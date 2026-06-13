@@ -58,18 +58,17 @@ records <- scopus_fetch_plan(plan, cache_dir = scopus_cache_dir(), resume = TRUE
 
 ## The record schema
 
-Whether records come from the API or from a fixture, they share one stable
-schema. Here we load the bundled fixture to continue offline:
+Whether records come from the API or from the bundled example data, they share
+one stable schema. The package ships a small, already normalised set, which we
+use here to continue offline:
 
 ```{r}
-fixture <- system.file("extdata", "scopus_page.json", package = "scopusflow")
-parsed  <- jsonlite::fromJSON(fixture, simplifyVector = FALSE)
-records <- scopus_records(parsed[["search-results"]], query = "TITLE(example)")
+records <- example_records
 records
 ```
 
-The same three records are bundled, already normalised, as `example_records`,
-ready to use without loading the fixture at all.
+`scopus_records()` produces this same shape from a raw API response, flattening
+the nested result into one row per record.
 
 ## DOIs and change tracking
 

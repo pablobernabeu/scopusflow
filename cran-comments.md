@@ -7,15 +7,17 @@ This is a new submission (scopusflow 0.1.0).
 * Local: Windows 11, R 4.5.1
 * GitHub Actions: windows-latest, macOS-latest, ubuntu-latest (release),
   ubuntu-latest (devel and oldrel-1)
+* win-builder: R-devel and R-release
 
 ## R CMD check results
 
 0 errors | 0 warnings | 1 note
 
-The note is the standard "New submission" note. It also lists the GitHub URLs
-(repository, issues, CI badge) as currently returning 404: the repository is
-created public at the moment of release, so these resolve once the package is
-published. They are the intended canonical home of the package.
+The note is the standard "New submission" note. It may also list the package
+website, https://pablobernabeu.github.io/scopusflow/, as not yet resolving. The
+GitHub Pages site is published from CI, so that URL goes live once the first
+pkgdown deployment completes. The GitHub repository is already public, and these
+URLs are the package's intended canonical home.
 
 ## Notes for the CRAN team
 

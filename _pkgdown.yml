@@ -8,6 +8,7 @@ reference:
   contents:
   - scopus_plan
   - scopus_count
+  - scopus_field_tags
 - title: Retrieve
   contents:
   - scopus_fetch
@@ -17,6 +18,7 @@ reference:
 - title: Normalise and inspect
   contents:
   - scopus_records
+  - summary.scopus_records
   - scopus_quota
 - title: DOIs and change tracking
   contents:
@@ -33,3 +35,6 @@ reference:
 - title: Keys
   contents:
   - scopus_has_key
+- title: Data
+  contents:
+  - example_records

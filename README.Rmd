@@ -126,9 +126,8 @@ The Scopus API enforces a weekly quota and a short-term rate limit, and it
 returns at most the first 5000 records of any query. scopusflow works within
 these limits rather than around them. It requests the largest page each view
 allows, 200 records for `STANDARD` and 25 for `COMPLETE`, so that a retrieval
-uses as few requests, and as little quota, as it can, working within the
-documented limits rather than around them. This is the same approach `rscopus`
-takes. The quota and rate-limit headers
+uses as few requests, and as little quota, as it can. This is the same approach
+`rscopus` takes. The quota and rate-limit headers
 are parsed by `scopus_quota()`, transient failures such as HTTP 429 and the 5xx
 range are retried with back-off that honours `Retry-After`, and any single query
 is capped at 5000 records with a warning that suggests partitioning by year. A
@@ -171,5 +170,8 @@ citation("scopusflow")
 
 ## Contributing
 
-Issues and pull requests are welcome at
-<https://github.com/pablobernabeu/scopusflow>.
+Issues and pull requests are welcome. The
+[contributing guide](https://github.com/pablobernabeu/scopusflow/blob/main/.github/CONTRIBUTING.md)
+describes the development setup and the conventions the package follows, and
+everyone taking part is asked to honour the
+[Code of Conduct](https://github.com/pablobernabeu/scopusflow/blob/main/.github/CODE_OF_CONDUCT.md).

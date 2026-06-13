@@ -157,7 +157,12 @@ scopus_search_page <- function(query,
   )
   req <- scopus_request(params, api_key = api_key, inst_token = inst_token, call = call)
   resp <- scopus_perform(req, call = call)
-  body <- httr2::resp_body_json(resp)
+  # Parse with jsonlite directly (rather than httr2::resp_body_json, which only
+  # suggests jsonlite) so the dependency is explicit and the structure is stable.
+  body <- jsonlite::fromJSON(
+    httr2::resp_body_string(resp),
+    simplifyVector = FALSE
+  )
   results <- body[["search-results"]]
   if (is.null(results)) {
     rlang::abort(

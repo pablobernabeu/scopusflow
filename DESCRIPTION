@@ -15,13 +15,15 @@ Description: A coherent, quota-aware workflow layer over the Elsevier
     programmatically. 'Scopus' is a trademark of Elsevier. This package is an
     independent client and is not affiliated with or endorsed by Elsevier.
 License: MIT + file LICENSE
-URL: https://github.com/pablobernabeu/scopusflow
+URL: https://github.com/pablobernabeu/scopusflow,
+    https://pablobernabeu.github.io/scopusflow/
 BugReports: https://github.com/pablobernabeu/scopusflow/issues
 Depends:
     R (>= 4.1.0)
 Imports:
     cli,
     httr2 (>= 1.0.0),
+    jsonlite,
     rlang (>= 1.0.0),
     stats,
     tibble,
@@ -29,7 +31,6 @@ Imports:
     utils
 Suggests:
     ggplot2,
-    jsonlite,
     knitr,
     rmarkdown,
     spelling,

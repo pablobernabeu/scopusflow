@@ -12,6 +12,7 @@ A coherent, quota-aware workflow layer over the Elsevier 'Scopus' Search 'API' \
 Useful links:
 \itemize{
   \item \url{https://github.com/pablobernabeu/scopusflow}
+  \item \url{https://pablobernabeu.github.io/scopusflow/}
   \item Report bugs at \url{https://github.com/pablobernabeu/scopusflow/issues}
 }
 

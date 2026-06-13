@@ -52,10 +52,11 @@ control over pagination, parsing of quota headers, back-off through
 `req_retry()` that honours `Retry-After` and typed classification of errors. It
 also makes offline testing possible through `httr2::local_mocked_responses()`,
 which is what lets the test suite cover each HTTP status without a network. The
-imports are kept small: `cli`, `httr2`, `rlang`, `tibble` and the base packages
-`tools` and `stats`/`utils`. Optional features live in Suggests, namely `ggplot2`
-for plotting, `jsonlite` for test fixtures, `knitr` and `rmarkdown` for the
-vignette, and `testthat`, `withr` and `spelling`.
+imports are kept small: `cli`, `httr2`, `jsonlite`, `rlang`, `tibble` and the
+base packages `stats`, `tools` and `utils`. `jsonlite` parses the API responses,
+since `httr2` only suggests it, so the dependency is declared rather than left
+implicit. Optional features live in Suggests, namely `ggplot2` for plotting,
+`knitr` and `rmarkdown` for the vignette, and `testthat`, `withr` and `spelling`.
 
 ## CRAN risks and mitigations
 
