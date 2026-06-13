@@ -5,23 +5,19 @@
 #' package.
 #'
 #' @details
-#' The key is looked up, in order, from:
-#' \enumerate{
-#'   \item the `api_key` argument, when supplied to a function;
-#'   \item the `scopusflow.api_key` option (`getOption("scopusflow.api_key")`);
-#'   \item the `SCOPUS_API_KEY` environment variable.
-#' }
-#' An optional institutional token (for off-campus access to subscriber content)
-#' is resolved the same way from the `inst_token` argument, the
-#' `scopusflow.inst_token` option, or the `SCOPUS_INST_TOKEN` environment
-#' variable.
+#' The key is looked up first from the `api_key` argument of whichever function
+#' is being called, then from the `scopusflow.api_key` option, and finally from
+#' the `SCOPUS_API_KEY` environment variable. An optional institutional token,
+#' used for off-campus access to subscriber content, is resolved the same way
+#' from the `inst_token` argument, the `scopusflow.inst_token` option, or the
+#' `SCOPUS_INST_TOKEN` environment variable.
 #'
-#' Keys are secrets: store them in `~/.Renviron` (for example,
-#' `SCOPUS_API_KEY=xxxx`) rather than in scripts, and never commit them to
-#' version control.
+#' A key is a secret. The safest home for it is `~/.Renviron`, as in
+#' `SCOPUS_API_KEY=xxxx`, rather than a script, and it should stay out of version
+#' control.
 #'
-#' @return `scopus_has_key()` returns a length-one logical, invisibly safe to
-#'   print. `TRUE` if a non-empty key is available, otherwise `FALSE`.
+#' @return A length-one logical that is safe to print, `TRUE` when a non-empty
+#'   key is available and `FALSE` otherwise.
 #' @seealso [scopus_count()], [scopus_fetch()]
 #' @examples
 #' # Does the current session have a key configured?

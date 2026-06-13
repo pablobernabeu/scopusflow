@@ -1,27 +1,28 @@
 #' Normalise raw 'Scopus' entries to a stable tidy schema
 #'
 #' Converts the nested list returned by the 'Scopus' Search API into a flat,
-#' predictable [tibble][tibble::tibble] with one row per record. This is the
-#' common currency of the package: [scopus_fetch()] and [scopus_fetch_plan()]
-#' return objects of this shape, and the DOI, comparison and export helpers all
-#' consume it.
+#' predictable [tibble][tibble::tibble] with one row per record. This shape is
+#' the common currency of the package. Both [scopus_fetch()] and
+#' [scopus_fetch_plan()] return it, and the DOI, comparison and export helpers
+#' all consume it.
 #'
-#' @param x One of: a parsed `search-results` list (the value of
+#' @param x A parsed `search-results` list (the value of
 #'   `httr2::resp_body_json(resp)[["search-results"]]`), a bare list of entry
-#'   objects, or an existing `scopus_records` object (returned unchanged).
+#'   objects, or an existing `scopus_records` object, which is returned
+#'   unchanged.
 #' @param query Optional character scalar recording the query that produced the
-#'   entries; stored in the `query` column for provenance.
-#' @return A tibble of class `scopus_records` with columns:
+#'   entries, kept in the `query` column for provenance.
+#' @return A tibble of class `scopus_records` with the columns
 #'   `entry_number` (integer), `scopus_id` (character), `doi` (character),
-#'   `title` (character), `authors` (character, first/corresponding creator),
-#'   `year` (integer), `date` (character, ISO cover date), `publication`
-#'   (character, source title), `citations` (integer) and `query` (character).
-#'   Missing fields are `NA`. An empty result set yields a zero-row tibble with
-#'   the same columns.
+#'   `title` (character), `authors` (character, the first or corresponding
+#'   creator), `year` (integer), `date` (character, the ISO cover date),
+#'   `publication` (character, the source title), `citations` (integer) and
+#'   `query` (character). A missing field becomes `NA`, and an empty result set
+#'   yields a zero-row tibble with the same columns.
 #' @details
 #' The 'Scopus' API signals an empty result set with a single sentinel entry
-#' containing an `error` field; this is detected and converted to a zero-row
-#' result rather than a spurious record.
+#' carrying an `error` field. This is detected and turned into a zero-row result
+#' rather than a spurious record.
 #' @examples
 #' # A minimal entry as the API would return it.
 #' raw <- list(entry = list(
@@ -74,7 +75,7 @@ scopus_entries <- function(x) {
   }
   if (!is.list(entries)) {
     rlang::abort(
-      "Cannot extract 'Scopus' entries from `x`; expected a list or `search-results`.",
+      "Cannot extract 'Scopus' entries from `x`. Provide a list or a `search-results` object.",
       class = "scopus_error_bad_input"
     )
   }

@@ -17,18 +17,18 @@
 #'   query (see [scopus_plan()]).
 #' @param view Either `"STANDARD"` or `"COMPLETE"`.
 #' @param api_key,inst_token Optional credentials (see [scopus_has_key()]).
-#' @param verbose Logical; report progress when `TRUE`.
-#' @return A tibble of class `scopus_comparison` with columns: `query` (the full
-#'   query used), `query_type` (`"reference"` or `"comparison"`), `abridged_query`
-#'   (the topic label for plotting), `year`, `n` (records that year),
-#'   `reference_n` (reference records that year), `comparison_percentage`
+#' @param verbose Logical. When `TRUE`, progress is reported.
+#' @return A tibble of class `scopus_comparison` with the columns `query` (the
+#'   full query used), `query_type` (`"reference"` or `"comparison"`),
+#'   `abridged_query` (the topic label for plotting), `year`, `n` (records that
+#'   year), `reference_n` (reference records that year), `comparison_percentage`
 #'   (`100 * n / reference_n`, or `NA` when `reference_n` is 0) and
 #'   `average_comparison_percentage` (the same ratio computed on period totals).
 #'   Comparison rows are sorted by descending average percentage.
 #' @section API access:
-#' Performs one count request per term per year and so requires a valid API key
-#' and internet access; see the *API access* section of [scopus_count()]. Use a
-#' modest number of terms and years to stay within quota.
+#' This performs one count request per term per year, so it requires a valid API
+#' key and internet access. The *API access* section of [scopus_count()] gives
+#' the details. A modest number of terms and years keeps the call within quota.
 #' @seealso [plot_scopus_comparison()] to visualise the result.
 #' @examplesIf scopusflow::scopus_has_key()
 #' cmp <- scopus_compare_topics(

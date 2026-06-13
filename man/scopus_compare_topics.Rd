@@ -33,13 +33,13 @@ query (see \code{\link[=scopus_plan]{scopus_plan()}}).}
 
 \item{api_key, inst_token}{Optional credentials (see \code{\link[=scopus_has_key]{scopus_has_key()}}).}
 
-\item{verbose}{Logical; report progress when \code{TRUE}.}
+\item{verbose}{Logical. When \code{TRUE}, progress is reported.}
 }
 \value{
-A tibble of class \code{scopus_comparison} with columns: \code{query} (the full
-query used), \code{query_type} (\code{"reference"} or \code{"comparison"}), \code{abridged_query}
-(the topic label for plotting), \code{year}, \code{n} (records that year),
-\code{reference_n} (reference records that year), \code{comparison_percentage}
+A tibble of class \code{scopus_comparison} with the columns \code{query} (the
+full query used), \code{query_type} (\code{"reference"} or \code{"comparison"}),
+\code{abridged_query} (the topic label for plotting), \code{year}, \code{n} (records that
+year), \code{reference_n} (reference records that year), \code{comparison_percentage}
 (\code{100 * n / reference_n}, or \code{NA} when \code{reference_n} is 0) and
 \code{average_comparison_percentage} (the same ratio computed on period totals).
 Comparison rows are sorted by descending average percentage.
@@ -53,9 +53,9 @@ growing or shrinking within a literature.
 }
 \section{API access}{
 
-Performs one count request per term per year and so requires a valid API key
-and internet access; see the \emph{API access} section of \code{\link[=scopus_count]{scopus_count()}}. Use a
-modest number of terms and years to stay within quota.
+This performs one count request per term per year, so it requires a valid API
+key and internet access. The \emph{API access} section of \code{\link[=scopus_count]{scopus_count()}} gives
+the details. A modest number of terms and years keeps the call within quota.
 }
 
 \examples{

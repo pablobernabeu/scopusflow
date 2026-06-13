@@ -12,10 +12,10 @@ plot_scopus_comparison(x, pub_count_in_legend = TRUE, ...)
 \arguments{
 \item{x}{A \code{scopus_comparison} object from \code{\link[=scopus_compare_topics]{scopus_compare_topics()}}.}
 
-\item{pub_count_in_legend}{Logical; append each topic's total record count to
-its legend label (default \code{TRUE}).}
+\item{pub_count_in_legend}{Logical, appending each topic's total record count
+to its legend label by default.}
 
-\item{...}{Currently unused; present for S3 consistency.}
+\item{...}{Currently unused, present for S3 consistency.}
 
 \item{object}{A \code{scopus_comparison} object (for the \code{autoplot()} method).}
 }
@@ -27,9 +27,9 @@ Draws a line chart of comparison percentage over time, one line per comparison
 topic, from the output of \code{\link[=scopus_compare_topics]{scopus_compare_topics()}}.
 }
 \details{
-Requires the suggested package \pkg{ggplot2}; an informative error is raised
-if it is not installed. Only comparison topics are drawn (the reference
-baseline is the 100\% denominator and is omitted).
+This needs the suggested package \pkg{ggplot2} and raises an informative error
+when it is absent. The chart shows the comparison topics alone, since the
+reference is the 100\% denominator against which they are measured.
 }
 \examples{
 \dontshow{if (rlang::is_installed("ggplot2")) withAutoprint(\{ # examplesIf}

@@ -9,15 +9,16 @@ scopus_extract_dois(x, dedupe = TRUE, file = NULL)
 \arguments{
 \item{x}{A \link{scopus_records} tibble, or a character vector of DOIs.}
 
-\item{dedupe}{Logical; drop duplicate DOIs (default \code{TRUE}).}
+\item{dedupe}{Logical, dropping duplicate DOIs by default.}
 
-\item{file}{Optional path to write the DOIs to as a single-column CSV. The
-file is written \strong{only} when this is supplied, and only to the exact path
-given - the package never writes implicitly. Parent directories are not
-created.}
+\item{file}{Optional path at which to write the DOIs as a single-column CSV.
+A file is written only when this argument is supplied, and only to the exact
+path given, so the package always leaves the working directory untouched
+unless asked. Parent directories are assumed to exist already.}
 }
 \value{
-A character vector of cleaned DOIs (invisibly when \code{file} is written).
+A character vector of cleaned DOIs, returned invisibly when \code{file} is
+written.
 }
 \description{
 Pulls Digital Object Identifiers from a \link{scopus_records} object (or a bare
@@ -28,9 +29,9 @@ bibliography.
 \details{
 Normalisation trims surrounding whitespace and strips common resolver
 prefixes (\verb{https://doi.org/}, \verb{http://dx.doi.org/}, \verb{doi:}) so that the same
-article is not counted twice because of formatting differences. Comparison and
-deduplication are case-insensitive (DOIs are case-insensitive), but the
-original casing is preserved in the output.
+article is counted once even when its DOI is formatted differently in two
+records. Because DOIs are case-insensitive, comparison and deduplication
+ignore case, while the output keeps the original casing.
 }
 \examples{
 recs <- scopus_records(list(entry = list(

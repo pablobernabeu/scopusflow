@@ -2,8 +2,8 @@
 #
 # scopusflow talks to the Elsevier Scopus Search API directly through httr2
 # rather than through rscopus. This gives request-level control over
-# pagination, quota headers, retry/back-off and — importantly — offline
-# testability via httr2::local_mocked_responses().
+# pagination, quota headers and retry with back-off, and, importantly, it makes
+# offline testing possible through httr2::local_mocked_responses().
 
 scopus_base_url <- function() {
   getOption("scopusflow.base_url", "https://api.elsevier.com/content/search/scopus")
@@ -88,18 +88,17 @@ scopus_retry_after <- function(resp) {
 #'
 #' Elsevier returns the caller's weekly quota and short-term rate-limit status in
 #' response headers. `scopus_quota()` extracts them into a tidy list so a
-#' workflow can pause, schedule or report on remaining allowance.
+#' workflow can pause, schedule or report on the remaining allowance.
 #'
 #' @param resp An [httr2::response] object, typically captured during a request.
 #' @return A list with elements `limit`, `remaining`, `reset` (a `POSIXct` time
-#'   when the rate-limit window resets, or `NA`), `status` and `retry_after`
-#'   (seconds, or `NA`). Missing headers yield `NA`.
+#'   at which the rate-limit window resets, or `NA`), `status` and `retry_after`
+#'   (seconds, or `NA`). A missing header yields `NA`.
 #' @details
 #' The relevant headers are `X-RateLimit-Limit`, `X-RateLimit-Remaining`,
 #' `X-RateLimit-Reset` (epoch seconds), `X-ELS-Status` and `Retry-After`. When
 #' the API raises a quota or rate-limit error, the parsed quota is also attached
-#' to the resulting condition object as `conditionCall(cnd)$quota` is not used;
-#' instead see `cnd$quota`.
+#' to the resulting condition, where it is available as `cnd$quota`.
 #' @examples
 #' # Build a fake response to show the shape of the output (no network used).
 #' resp <- httr2::response(

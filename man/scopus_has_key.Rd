@@ -7,8 +7,8 @@
 scopus_has_key()
 }
 \value{
-\code{scopus_has_key()} returns a length-one logical, invisibly safe to
-print. \code{TRUE} if a non-empty key is available, otherwise \code{FALSE}.
+A length-one logical that is safe to print, \code{TRUE} when a non-empty
+key is available and \code{FALSE} otherwise.
 }
 \description{
 \code{scopus_has_key()} reports whether an API key can be found, without revealing
@@ -16,20 +16,16 @@ it. The key itself is resolved internally and is never printed by the
 package.
 }
 \details{
-The key is looked up, in order, from:
-\enumerate{
-\item the \code{api_key} argument, when supplied to a function;
-\item the \code{scopusflow.api_key} option (\code{getOption("scopusflow.api_key")});
-\item the \code{SCOPUS_API_KEY} environment variable.
-}
-An optional institutional token (for off-campus access to subscriber content)
-is resolved the same way from the \code{inst_token} argument, the
-\code{scopusflow.inst_token} option, or the \code{SCOPUS_INST_TOKEN} environment
-variable.
+The key is looked up first from the \code{api_key} argument of whichever function
+is being called, then from the \code{scopusflow.api_key} option, and finally from
+the \code{SCOPUS_API_KEY} environment variable. An optional institutional token,
+used for off-campus access to subscriber content, is resolved the same way
+from the \code{inst_token} argument, the \code{scopusflow.inst_token} option, or the
+\code{SCOPUS_INST_TOKEN} environment variable.
 
-Keys are secrets: store them in \verb{~/.Renviron} (for example,
-\code{SCOPUS_API_KEY=xxxx}) rather than in scripts, and never commit them to
-version control.
+A key is a secret. The safest home for it is \verb{~/.Renviron}, as in
+\code{SCOPUS_API_KEY=xxxx}, rather than a script, and it should stay out of version
+control.
 }
 \examples{
 # Does the current session have a key configured?

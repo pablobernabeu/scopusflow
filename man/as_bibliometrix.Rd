@@ -11,10 +11,10 @@ as_bibliometrix(x)
 }
 \value{
 A data frame (classed \code{bibliometrixDB}) with the standard tag columns
-\code{AU} (authors), \code{TI} (title), \code{SO} (source/publication), \code{DI} (DOI), \code{PY}
+\code{AU} (authors), \code{TI} (title), \code{SO} (source or publication), \code{DI} (DOI), \code{PY}
 (publication year), \code{TC} (times cited), \code{UT} (record id) and \code{DB}
-(\code{"SCOPUS"}). Character tag fields are upper-cased, matching bibliometrix
-conventions.
+(\code{"SCOPUS"}). Character tag fields are upper-cased to match the bibliometrix
+convention.
 }
 \description{
 Re-maps a \link{scopus_records} tibble to the tagged column layout used by the
@@ -22,11 +22,12 @@ Re-maps a \link{scopus_records} tibble to the tagged column layout used by the
 results can flow into downstream science-mapping workflows.
 }
 \details{
-This produces the \emph{shape} bibliometrix expects from its core descriptive
-fields; it does not reconstruct fields the 'Scopus' Search API does not
-return (such as full author affiliations or cited references), which some
-bibliometrix analyses require. For those, export a full 'Scopus' CSV/BibTeX
-from the web interface and use \code{bibliometrix::convert2df()}.
+This produces the \emph{shape} bibliometrix expects from the core descriptive
+fields. It reconstructs only what the 'Scopus' Search API returns, so richer
+fields that some bibliometrix analyses use, such as full author affiliations
+or cited references, are left out. To obtain those, export a full 'Scopus'
+CSV or BibTeX file from the web interface and read it with
+\code{bibliometrix::convert2df()}.
 }
 \examples{
 recs <- scopus_records(list(entry = list(

@@ -19,10 +19,11 @@ scopus_fetch(
 \arguments{
 \item{query}{Character scalar. The base search expression.}
 
-\item{max_results}{Maximum number of records to retrieve. Defaults to \code{Inf}
-(all available, up to the API ceiling). The 'Scopus' Search API refuses
-offsets of 5000 or more, so at most 5000 records can be retrieved for any
-single query; partition larger searches by year with \code{\link[=scopus_plan]{scopus_plan()}}.}
+\item{max_results}{Maximum number of records to retrieve. Defaults to \code{Inf},
+meaning all available records up to the API ceiling. The 'Scopus' Search
+API refuses offsets of 5000 or more, so a single query yields at most 5000
+records. To go beyond that, partition the search by year with
+\code{\link[=scopus_plan]{scopus_plan()}}.}
 
 \item{view}{Either \code{"STANDARD"} or \code{"COMPLETE"}.}
 
@@ -35,10 +36,11 @@ most quota-efficient page the view allows (200 for \code{STANDARD}, 25 for
 
 \item{years}{Optional integer vector of publication years to restrict to.}
 
-\item{api_key, inst_token}{Optional credentials; by default resolved from
+\item{api_key, inst_token}{Optional credentials, resolved by default from
 options or environment variables (see \code{\link[=scopus_has_key]{scopus_has_key()}}).}
 
-\item{verbose}{Logical; if \code{TRUE}, report progress with informative messages.}
+\item{verbose}{Logical. When \code{TRUE}, progress is reported as the retrieval
+proceeds.}
 }
 \value{
 A \link{scopus_records} tibble. The reported total and the most recent
@@ -47,12 +49,12 @@ parsed quota are attached as the \code{total_results} and \code{quota} attribute
 \description{
 Retrieves records page by page, accumulating them and returning a single
 normalised \link{scopus_records} tibble. Pagination, the API's hard \code{start < 5000}
-ceiling, rate-limit handling and retry/back-off are all managed internally.
+ceiling, rate-limit handling and retry with back-off are all managed for you.
 }
 \section{API access}{
 
-Requires a valid API key and internet access; see the \emph{API access} section of
-\code{\link[=scopus_count]{scopus_count()}} for the conditions that may be raised.
+Requires a valid API key and internet access. The \emph{API access} section of
+\code{\link[=scopus_count]{scopus_count()}} lists the conditions that may be raised.
 }
 
 \examples{

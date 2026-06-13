@@ -3,6 +3,7 @@
 ^README\.Rmd$
 ^design-notes\.md$
 ^project-state\.md$
+^data-raw$
 ^cran-comments\.md$
 ^CLAUDE\.md$
 ^\.claude$

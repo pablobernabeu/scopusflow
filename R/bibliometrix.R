@@ -6,16 +6,17 @@
 #'
 #' @param x A [scopus_records] tibble.
 #' @return A data frame (classed `bibliometrixDB`) with the standard tag columns
-#'   `AU` (authors), `TI` (title), `SO` (source/publication), `DI` (DOI), `PY`
+#'   `AU` (authors), `TI` (title), `SO` (source or publication), `DI` (DOI), `PY`
 #'   (publication year), `TC` (times cited), `UT` (record id) and `DB`
-#'   (`"SCOPUS"`). Character tag fields are upper-cased, matching bibliometrix
-#'   conventions.
+#'   (`"SCOPUS"`). Character tag fields are upper-cased to match the bibliometrix
+#'   convention.
 #' @details
-#' This produces the *shape* bibliometrix expects from its core descriptive
-#' fields; it does not reconstruct fields the 'Scopus' Search API does not
-#' return (such as full author affiliations or cited references), which some
-#' bibliometrix analyses require. For those, export a full 'Scopus' CSV/BibTeX
-#' from the web interface and use `bibliometrix::convert2df()`.
+#' This produces the *shape* bibliometrix expects from the core descriptive
+#' fields. It reconstructs only what the 'Scopus' Search API returns, so richer
+#' fields that some bibliometrix analyses use, such as full author affiliations
+#' or cited references, are left out. To obtain those, export a full 'Scopus'
+#' CSV or BibTeX file from the web interface and read it with
+#' `bibliometrix::convert2df()`.
 #' @examples
 #' recs <- scopus_records(list(entry = list(
 #'   list(`dc:identifier` = "SCOPUS_ID:1", `prism:doi` = "10.1/a",

@@ -23,26 +23,26 @@ scopus_count(
 
 \item{view}{Either \code{"STANDARD"} or \code{"COMPLETE"}.}
 
-\item{api_key, inst_token}{Optional credentials; by default resolved from
+\item{api_key, inst_token}{Optional credentials, resolved by default from
 options or environment variables (see \code{\link[=scopus_has_key]{scopus_has_key()}}).}
 }
 \value{
-A single integer: the total number of matching records, or \code{NA} if the
-API did not report a total.
+A single integer giving the total number of matching records, or \code{NA}
+when the API reports no total.
 }
 \description{
 Retrieves only the total number of records matching a query, without
-downloading them. This is the cheap way to size a retrieval before committing
-quota: feed the count into \code{\link[=scopus_plan]{scopus_plan()}} partitioning decisions or simply
-report how large a topic is.
+downloading them. This is the inexpensive way to size a retrieval before
+committing quota. The count can guide how to partition a \code{\link[=scopus_plan]{scopus_plan()}}, or
+simply report how large a topic is.
 }
 \section{API access}{
 
 This function performs a network request and therefore requires a valid API
 key and internet access. When no key is configured it raises a
-\code{scopus_error_no_key} condition; other failures raise typed \code{scopus_error}
-subclasses (for example \code{scopus_error_rate_limit}). Wrap calls in
-\code{\link[=tryCatch]{tryCatch()}} to handle these gracefully.
+\code{scopus_error_no_key} condition, and other failures raise typed \code{scopus_error}
+subclasses such as \code{scopus_error_rate_limit}. A \code{\link[=tryCatch]{tryCatch()}} around the call
+lets a workflow handle these gracefully.
 }
 
 \examples{

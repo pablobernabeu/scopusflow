@@ -15,16 +15,16 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(scopusflow)
 ```
 
-This vignette is fully reproducible **without a Scopus API key**: it uses a small
-static fixture bundled with the package so the whole workflow can be shown
-offline. The few steps that genuinely require the API are shown but not run.
+This vignette is fully reproducible without a Scopus API key. It draws on a small
+static fixture bundled with the package, so the whole workflow can be shown
+offline. The few steps that genuinely need the API are shown but not run.
 
-## 1. Plans: describe a search before running it
+## Describing a search as a plan
 
-A *plan* separates describing a search from executing it. Plans are inspectable,
-saveable and version-controllable, and can be partitioned (for example by year)
-so large retrievals stay under the API's `start < 5000` ceiling and can be cached
-and resumed.
+A plan separates describing a search from executing it. Plans are inspectable,
+saveable and version-controllable, and they can be partitioned, for example by
+year, so that a large retrieval stays under the API's `start < 5000` ceiling and
+can be cached and resumed.
 
 ```{r}
 plan <- scopus_plan(
@@ -44,11 +44,11 @@ scopus_plan("language learning", field = "TITLE")$query
 scopus_plan("x", years = 2015:2020)$date
 ```
 
-## 2. Sizing and fetching (live)
+## Sizing and fetching
 
 With a key configured, you size a search cheaply and then execute the plan,
-optionally caching each cell so an interrupted run resumes without re-spending
-quota. These contact the API, so they are not evaluated here:
+optionally caching each cell so that an interrupted run resumes without
+re-spending quota. These contact the API, so they are not evaluated here:
 
 ```{r eval = FALSE}
 scopus_count("machine translation", years = 2018:2020, field = "TITLE-ABS-KEY")
@@ -56,7 +56,7 @@ scopus_count("machine translation", years = 2018:2020, field = "TITLE-ABS-KEY")
 records <- scopus_fetch_plan(plan, cache_dir = scopus_cache_dir(), resume = TRUE)
 ```
 
-## 3. The record schema
+## The record schema
 
 Whether records come from the API or from a fixture, they share one stable
 schema. Here we load the bundled fixture to continue offline:
@@ -68,7 +68,10 @@ records <- scopus_records(parsed[["search-results"]], query = "TITLE(example)")
 records
 ```
 
-## 4. DOIs and change tracking
+The same three records are bundled, already normalised, as `example_records`,
+ready to use without loading the fixture at all.
+
+## DOIs and change tracking
 
 Extract a clean, deduplicated DOI list for import into a reference manager, and
 compare two retrievals to see exactly what changed:
@@ -82,7 +85,7 @@ later <- c(dois[-1], "10.1000/example.999")
 scopus_diff_dois(old = dois, new = later)
 ```
 
-You can write the DOIs to an explicit path (never implicitly):
+You can write the DOIs to a path you specify:
 
 ```{r}
 out <- file.path(tempdir(), "dois.csv")
@@ -90,10 +93,10 @@ scopus_extract_dois(records, file = out)
 readLines(out)
 ```
 
-## 5. Comparing topic trends
+## Comparing topic trends
 
 `scopus_compare_topics()` issues one count request per term per year, so it needs
-the API. Its output has a fixed shape, which we mimic here to show the plot:
+the API. Its output has a fixed shape, which we reproduce here to show the plot:
 
 ```{r eval = FALSE}
 cmp <- scopus_compare_topics(
@@ -127,7 +130,7 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 }
 ```
 
-## 6. Export and interoperability
+## Export and interoperability
 
 Hand results to `bibliometrix`-style workflows, or save and reload them:
 
@@ -142,13 +145,13 @@ identical(read_scopus_records(path), records)
 ## Handling failures
 
 Network and API problems surface as typed conditions, all inheriting from
-`scopus_error`, so a workflow can respond programmatically:
+`scopus_error`, so a workflow can respond to them in code:
 
 ```{r eval = FALSE}
 tryCatch(
   scopus_fetch("..."),
   scopus_error_no_key     = function(e) message("No API key configured."),
-  scopus_error_rate_limit = function(e) message("Rate limited; back off."),
+  scopus_error_rate_limit = function(e) message("Rate limited, so backing off."),
   scopus_error            = function(e) message("Scopus error: ", conditionMessage(e))
 )
 ```

@@ -4,7 +4,7 @@
 # `scopus_error`, which itself inherits from `rlang_error`/`error`. This lets
 # callers catch a whole family of problems (for example, with
 # `tryCatch(scopus_error = ...)`) or respond to a specific status. None of these
-# helpers are exported; they are documented here for maintainers.
+# helpers are exported. They are documented here for maintainers.
 
 # Map an HTTP status code to a scopusflow condition subclass.
 scopus_status_class <- function(status) {
@@ -33,7 +33,7 @@ scopus_status_message <- function(status) {
     ),
     "404" = "The requested 'Scopus' resource was not found (HTTP 404).",
     "413" = "The request payload was too large (HTTP 413).",
-    "414" = "The request URI was too long (HTTP 414); shorten the query.",
+    "414" = "The request URI was too long (HTTP 414). Try a shorter query.",
     "429" = "The 'Scopus' API rate limit was exceeded (HTTP 429).",
     sprintf("The 'Scopus' API returned a server error (HTTP %s).", status)
   )
@@ -69,7 +69,7 @@ scopus_abort_no_key <- function(call = rlang::caller_env()) {
 # Abort because the host is unreachable (offline / DNS failure).
 scopus_abort_offline <- function(parent = NULL, call = rlang::caller_env()) {
   rlang::abort(
-    message = "Could not reach the 'Scopus' API; the service may be unavailable or you may be offline.",
+    message = "Could not reach the 'Scopus' API. The service may be unavailable, or you may be offline.",
     class = c("scopus_error_offline", "scopus_error"),
     parent = parent,
     call = call

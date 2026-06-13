@@ -2,22 +2,24 @@
 #'
 #' Retrieves records page by page, accumulating them and returning a single
 #' normalised [scopus_records] tibble. Pagination, the API's hard `start < 5000`
-#' ceiling, rate-limit handling and retry/back-off are all managed internally.
+#' ceiling, rate-limit handling and retry with back-off are all managed for you.
 #'
 #' @inheritParams scopus_count
-#' @param max_results Maximum number of records to retrieve. Defaults to `Inf`
-#'   (all available, up to the API ceiling). The 'Scopus' Search API refuses
-#'   offsets of 5000 or more, so at most 5000 records can be retrieved for any
-#'   single query; partition larger searches by year with [scopus_plan()].
+#' @param max_results Maximum number of records to retrieve. Defaults to `Inf`,
+#'   meaning all available records up to the API ceiling. The 'Scopus' Search
+#'   API refuses offsets of 5000 or more, so a single query yields at most 5000
+#'   records. To go beyond that, partition the search by year with
+#'   [scopus_plan()].
 #' @param page_size Integer records per page, or `NULL` (default) to use the
 #'   most quota-efficient page the view allows (200 for `STANDARD`, 25 for
 #'   `COMPLETE`). See [scopus_plan()] for why larger pages cost less quota.
-#' @param verbose Logical; if `TRUE`, report progress with informative messages.
+#' @param verbose Logical. When `TRUE`, progress is reported as the retrieval
+#'   proceeds.
 #' @return A [scopus_records] tibble. The reported total and the most recent
 #'   parsed quota are attached as the `total_results` and `quota` attributes.
 #' @section API access:
-#' Requires a valid API key and internet access; see the *API access* section of
-#' [scopus_count()] for the conditions that may be raised.
+#' Requires a valid API key and internet access. The *API access* section of
+#' [scopus_count()] lists the conditions that may be raised.
 #' @seealso [scopus_fetch_plan()] for cached, resumable, partitioned retrieval.
 #' @examplesIf scopusflow::scopus_has_key()
 #' recs <- scopus_fetch("TITLE-ABS-KEY(bibliometric)", max_results = 50)
@@ -50,7 +52,7 @@ scopus_fetch <- function(query,
 }
 
 # Internal pagination engine shared by scopus_fetch() and scopus_fetch_plan().
-# `wrapped` is the field-wrapped query; `date` is a year-range string or NULL.
+# `wrapped` is the field-wrapped query. `date` is a year-range string or NULL.
 scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
                               api_key = NULL, inst_token = NULL, verbose = FALSE) {
   # The API refuses start >= 5000; configurable only to keep tests fast.
@@ -79,8 +81,8 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
   if (capped) {
     rlang::warn(
       sprintf(
-        paste0("This query matches %s records but the 'Scopus' API only allows ",
-               "retrieving the first %d; partition by year with scopus_plan()."),
+        paste0("This query matches %s records, but the 'Scopus' API returns at ",
+               "most the first %d. Partition by year with scopus_plan() to go further."),
         format(total, big.mark = ","), hard_cap
       ),
       class = "scopus_warning_capped"

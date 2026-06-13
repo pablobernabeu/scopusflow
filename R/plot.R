@@ -4,14 +4,14 @@
 #' topic, from the output of [scopus_compare_topics()].
 #'
 #' @param x A `scopus_comparison` object from [scopus_compare_topics()].
-#' @param pub_count_in_legend Logical; append each topic's total record count to
-#'   its legend label (default `TRUE`).
-#' @param ... Currently unused; present for S3 consistency.
+#' @param pub_count_in_legend Logical, appending each topic's total record count
+#'   to its legend label by default.
+#' @param ... Currently unused, present for S3 consistency.
 #' @return A [ggplot2::ggplot] object. Printing it draws the plot.
 #' @details
-#' Requires the suggested package \pkg{ggplot2}; an informative error is raised
-#' if it is not installed. Only comparison topics are drawn (the reference
-#' baseline is the 100% denominator and is omitted).
+#' This needs the suggested package \pkg{ggplot2} and raises an informative error
+#' when it is absent. The chart shows the comparison topics alone, since the
+#' reference is the 100% denominator against which they are measured.
 #' @seealso [scopus_compare_topics()]
 #' @examplesIf rlang::is_installed("ggplot2")
 #' cmp <- tibble::tibble(

@@ -13,30 +13,30 @@ is_scopus_records(x)
 \item{x}{An object to test.}
 
 \item{query}{Optional character scalar recording the query that produced the
-entries; stored in the \code{query} column for provenance.}
+entries, kept in the \code{query} column for provenance.}
 }
 \value{
-A tibble of class \code{scopus_records} with columns:
+A tibble of class \code{scopus_records} with the columns
 \code{entry_number} (integer), \code{scopus_id} (character), \code{doi} (character),
-\code{title} (character), \code{authors} (character, first/corresponding creator),
-\code{year} (integer), \code{date} (character, ISO cover date), \code{publication}
-(character, source title), \code{citations} (integer) and \code{query} (character).
-Missing fields are \code{NA}. An empty result set yields a zero-row tibble with
-the same columns.
+\code{title} (character), \code{authors} (character, the first or corresponding
+creator), \code{year} (integer), \code{date} (character, the ISO cover date),
+\code{publication} (character, the source title), \code{citations} (integer) and
+\code{query} (character). A missing field becomes \code{NA}, and an empty result set
+yields a zero-row tibble with the same columns.
 
 \code{is_scopus_records()} returns a length-one logical.
 }
 \description{
 Converts the nested list returned by the 'Scopus' Search API into a flat,
-predictable \link[tibble:tibble]{tibble} with one row per record. This is the
-common currency of the package: \code{\link[=scopus_fetch]{scopus_fetch()}} and \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}
-return objects of this shape, and the DOI, comparison and export helpers all
-consume it.
+predictable \link[tibble:tibble]{tibble} with one row per record. This shape is
+the common currency of the package. Both \code{\link[=scopus_fetch]{scopus_fetch()}} and
+\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} return it, and the DOI, comparison and export helpers
+all consume it.
 }
 \details{
 The 'Scopus' API signals an empty result set with a single sentinel entry
-containing an \code{error} field; this is detected and converted to a zero-row
-result rather than a spurious record.
+carrying an \code{error} field. This is detected and turned into a zero-row result
+rather than a spurious record.
 }
 \examples{
 # A minimal entry as the API would return it.

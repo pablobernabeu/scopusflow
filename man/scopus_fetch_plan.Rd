@@ -17,20 +17,20 @@ scopus_fetch_plan(
 \arguments{
 \item{plan}{A \code{scopus_plan} object from \code{\link[=scopus_plan]{scopus_plan()}}.}
 
-\item{max_results}{Maximum records to retrieve \emph{per cell} (default \code{Inf}).}
+\item{max_results}{Maximum records to retrieve per cell (default \code{Inf}).}
 
-\item{cache_dir}{Optional directory for per-cell cache files. When \code{NULL}
-(the default) no caching is performed. Pass an explicit path you control, or
+\item{cache_dir}{Optional directory for per-cell cache files. The default of
+\code{NULL} performs no caching. Pass an explicit path you control, or
 \code{scopus_cache_dir()} to use a managed, clearable cache under
-\code{\link[tools:R_user_dir]{tools::R_user_dir()}}. The package never writes to the cache unless you opt
-in here.}
+\code{\link[tools:R_user_dir]{tools::R_user_dir()}}. Caching happens only when you opt in through this
+argument.}
 
-\item{resume}{Logical; when \code{TRUE} (and \code{cache_dir} is set) cells whose cache
-file already exists are loaded from disk instead of re-fetched.}
+\item{resume}{Logical. When \code{TRUE} and \code{cache_dir} is set, a cell whose cache
+file already exists is loaded from disk rather than fetched again.}
 
 \item{api_key, inst_token}{Optional credentials (see \code{\link[=scopus_has_key]{scopus_has_key()}}).}
 
-\item{verbose}{Logical; report per-cell progress when \code{TRUE}.}
+\item{verbose}{Logical. When \code{TRUE}, per-cell progress is reported.}
 }
 \value{
 A \link{scopus_records} tibble combining all cells, with the originating
@@ -38,14 +38,14 @@ A \link{scopus_records} tibble combining all cells, with the originating
 }
 \description{
 Runs every cell of a \code{\link[=scopus_plan]{scopus_plan()}} in turn, optionally caching each cell's
-result so an interrupted or quota-limited retrieval can be resumed without
-re-spending quota on cells already fetched. Results are accumulated and bound
-once into a single \link{scopus_records} tibble.
+result so that an interrupted or quota-limited retrieval can resume without
+re-spending quota on the cells already fetched. Results are accumulated and
+bound once into a single \link{scopus_records} tibble.
 }
 \section{API access}{
 
-Requires a valid API key and internet access for any cell not served from
-cache; see the \emph{API access} section of \code{\link[=scopus_count]{scopus_count()}}.
+Any cell not served from cache requires a valid API key and internet access.
+The \emph{API access} section of \code{\link[=scopus_count]{scopus_count()}} gives the details.
 }
 
 \examples{

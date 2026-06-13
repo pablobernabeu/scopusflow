@@ -10,10 +10,10 @@ Description: A coherent, quota-aware workflow layer over the Elsevier
     retry with back-off and optional resumable caching, normalises results to a
     stable tidy schema, extracts and tracks changes in Digital Object
     Identifiers (DOIs), compares publication trends across topics and exports
-    to formats compatible with downstream bibliometric tools. Network errors
-    are surfaced as typed conditions so that callers can respond programmatically.
-    'Scopus' is a trademark of Elsevier; this package is an independent client
-    and is not affiliated with or endorsed by Elsevier.
+    to formats compatible with downstream bibliometric tools. Network and 'API'
+    errors are surfaced as typed conditions so that callers can respond to them
+    programmatically. 'Scopus' is a trademark of Elsevier. This package is an
+    independent client and is not affiliated with or endorsed by Elsevier.
 License: MIT + file LICENSE
 URL: https://github.com/pablobernabeu/scopusflow
 BugReports: https://github.com/pablobernabeu/scopusflow/issues
@@ -23,6 +23,7 @@ Imports:
     cli,
     httr2 (>= 1.0.0),
     rlang (>= 1.0.0),
+    stats,
     tibble,
     tools,
     utils
@@ -38,6 +39,7 @@ VignetteBuilder:
     knitr
 Config/testthat/edition: 3
 Encoding: UTF-8
+LazyData: true
 Language: en-GB
 Roxygen: list(markdown = TRUE)
 Config/roxygen2/version: 8.0.0

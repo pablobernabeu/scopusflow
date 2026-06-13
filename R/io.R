@@ -1,13 +1,13 @@
 #' Read and write 'Scopus' record sets
 #'
 #' Save a [scopus_records] tibble to disk and read it back, with a stable
-#' round-trip. The format is chosen from the file extension: `.rds` (preserving
-#' types and class exactly) or `.csv` (portable plain text).
+#' round-trip. The file extension selects the format. An `.rds` file preserves
+#' the types and class exactly, while a `.csv` file is portable plain text.
 #'
 #' @param x A [scopus_records] tibble to write.
-#' @param path Explicit file path. The functions write to (or read from) exactly
-#'   this path and never the working directory implicitly; parent directories are
-#'   not created.
+#' @param path Explicit file path. The functions read from, or write to, exactly
+#'   this path and leave the working directory alone. Parent directories are
+#'   assumed to exist already.
 #' @return `write_scopus_records()` returns `x` invisibly. `read_scopus_records()`
 #'   returns a [scopus_records] tibble.
 #' @examples
@@ -95,7 +95,7 @@ scopus_path_format <- function(path) {
     rds = "rds",
     csv = "csv",
     rlang::abort(
-      sprintf("Unsupported file extension '.%s'; use '.rds' or '.csv'.", ext),
+      sprintf("Unsupported file extension '.%s'. Use '.rds' or '.csv'.", ext),
       class = "scopus_error_bad_input"
     )
   )

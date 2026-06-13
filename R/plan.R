@@ -9,11 +9,13 @@
 #' @param query Character scalar. The base search expression, without field tags
 #'   or year filters (these are added through `field` and `years`).
 #' @param years Optional integer vector of publication years to restrict to, for
-#'   example `2015:2020`. When `partition = "year"`, one plan cell is created per
-#'   distinct year; otherwise the minimum and maximum define a single date range.
+#'   example `2015:2020`. When `partition = "year"`, one plan cell is created for
+#'   each distinct year. Otherwise the minimum and maximum define a single date
+#'   range.
 #' @param field Optional character scalar naming a 'Scopus' field tag to wrap the
 #'   query in, for example `"TITLE-ABS-KEY"`, `"TITLE"`, `"AUTH"` or `"AFFIL"`.
-#'   When `NULL`, the query is used verbatim.
+#'   When `NULL`, the query is used verbatim. See [scopus_field_tags()] for the
+#'   common tags.
 #' @param view Either `"STANDARD"` or `"COMPLETE"`. `COMPLETE` returns more
 #'   fields but requires a subscriber entitlement and is limited to a smaller
 #'   page size.
@@ -21,9 +23,8 @@
 #'   (the default) to use the largest page the view allows. The 'Scopus' Search
 #'   API permits up to 200 records per page for the `STANDARD` view but only 25
 #'   for `COMPLETE`. Because the weekly quota is charged per request, requesting
-#'   the maximum page size minimises the number of requests - and hence the
-#'   quota - needed to retrieve a given result set. Lower it only if you have a
-#'   reason to.
+#'   the maximum page size keeps the number of requests, and so the quota, as low
+#'   as possible for a given result set. Lower it only where you have a reason to.
 #' @param partition Either `"none"` (a single query cell) or `"year"` (one cell
 #'   per year in `years`). Partitioning by year is the recommended way to stay
 #'   under the API's hard limit of `start < 5000`.
@@ -119,12 +120,6 @@ scopus_check_query <- function(query, call = rlang::caller_env()) {
     )
   }
   invisible(query)
-}
-
-# Recognised field tags, used for a friendly error; others are allowed too.
-scopus_known_fields <- function() {
-  c("TITLE", "TITLE-ABS-KEY", "TITLE-ABS-KEY-AUTH", "ABS", "KEY", "AUTH",
-    "AUTHKEY", "AFFIL", "AFFILORG", "SRCTITLE", "DOI", "ALL")
 }
 
 scopus_check_field <- function(field, call = rlang::caller_env()) {

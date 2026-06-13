@@ -21,12 +21,14 @@ is_scopus_plan(x)
 or year filters (these are added through \code{field} and \code{years}).}
 
 \item{years}{Optional integer vector of publication years to restrict to, for
-example \code{2015:2020}. When \code{partition = "year"}, one plan cell is created per
-distinct year; otherwise the minimum and maximum define a single date range.}
+example \code{2015:2020}. When \code{partition = "year"}, one plan cell is created for
+each distinct year. Otherwise the minimum and maximum define a single date
+range.}
 
 \item{field}{Optional character scalar naming a 'Scopus' field tag to wrap the
 query in, for example \code{"TITLE-ABS-KEY"}, \code{"TITLE"}, \code{"AUTH"} or \code{"AFFIL"}.
-When \code{NULL}, the query is used verbatim.}
+When \code{NULL}, the query is used verbatim. See \code{\link[=scopus_field_tags]{scopus_field_tags()}} for the
+common tags.}
 
 \item{view}{Either \code{"STANDARD"} or \code{"COMPLETE"}. \code{COMPLETE} returns more
 fields but requires a subscriber entitlement and is limited to a smaller
@@ -36,9 +38,8 @@ page size.}
 (the default) to use the largest page the view allows. The 'Scopus' Search
 API permits up to 200 records per page for the \code{STANDARD} view but only 25
 for \code{COMPLETE}. Because the weekly quota is charged per request, requesting
-the maximum page size minimises the number of requests - and hence the
-quota - needed to retrieve a given result set. Lower it only if you have a
-reason to.}
+the maximum page size keeps the number of requests, and so the quota, as low
+as possible for a given result set. Lower it only where you have a reason to.}
 
 \item{partition}{Either \code{"none"} (a single query cell) or \code{"year"} (one cell
 per year in \code{years}). Partitioning by year is the recommended way to stay

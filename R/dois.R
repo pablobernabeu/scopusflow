@@ -6,18 +6,19 @@
 #' bibliography.
 #'
 #' @param x A [scopus_records] tibble, or a character vector of DOIs.
-#' @param dedupe Logical; drop duplicate DOIs (default `TRUE`).
-#' @param file Optional path to write the DOIs to as a single-column CSV. The
-#'   file is written **only** when this is supplied, and only to the exact path
-#'   given - the package never writes implicitly. Parent directories are not
-#'   created.
-#' @return A character vector of cleaned DOIs (invisibly when `file` is written).
+#' @param dedupe Logical, dropping duplicate DOIs by default.
+#' @param file Optional path at which to write the DOIs as a single-column CSV.
+#'   A file is written only when this argument is supplied, and only to the exact
+#'   path given, so the package always leaves the working directory untouched
+#'   unless asked. Parent directories are assumed to exist already.
+#' @return A character vector of cleaned DOIs, returned invisibly when `file` is
+#'   written.
 #' @details
 #' Normalisation trims surrounding whitespace and strips common resolver
 #' prefixes (`https://doi.org/`, `http://dx.doi.org/`, `doi:`) so that the same
-#' article is not counted twice because of formatting differences. Comparison and
-#' deduplication are case-insensitive (DOIs are case-insensitive), but the
-#' original casing is preserved in the output.
+#' article is counted once even when its DOI is formatted differently in two
+#' records. Because DOIs are case-insensitive, comparison and deduplication
+#' ignore case, while the output keeps the original casing.
 #' @seealso [scopus_diff_dois()] to compare two retrievals.
 #' @examples
 #' recs <- scopus_records(list(entry = list(

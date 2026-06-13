@@ -7,7 +7,7 @@
 scopus_cache_dir(create = FALSE)
 }
 \arguments{
-\item{create}{Logical; create the directory if it does not exist.}
+\item{create}{Logical. When \code{TRUE}, the directory is created if it is absent.}
 }
 \value{
 The cache directory path, invisibly when \code{create = TRUE}.
@@ -15,7 +15,7 @@ The cache directory path, invisibly when \code{create = TRUE}.
 \description{
 Returns (and creates on request) a per-user cache directory under
 \code{\link[tools:R_user_dir]{tools::R_user_dir()}}, suitable for passing to \code{cache_dir} in
-\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}. The cache is entirely optional and clearable with
+\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}. The cache is entirely optional and can be cleared with
 \code{\link[=scopus_cache_clear]{scopus_cache_clear()}}.
 }
 \examples{

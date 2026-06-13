@@ -20,16 +20,16 @@ knitr::opts_chunk$set(
 [![R-CMD-check](https://github.com/pablobernabeu/scopusflow/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/pablobernabeu/scopusflow/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-**scopusflow** is a reproducible, quota-aware workflow layer over the Elsevier
-[Scopus](https://dev.elsevier.com/sc_apis.html) Search API. It turns ad-hoc
-bibliographic queries into inspectable *plans*, retrieves records safely
-(pagination, rate-limit handling, retry/back-off, optional resumable caching),
-normalises them to a stable tidy schema, tracks changes in DOI sets over time,
-and compares publication trends across topics.
+scopusflow is a reproducible, quota-aware workflow layer over the Elsevier
+[Scopus](https://dev.elsevier.com/sc_apis.html) Search API. It turns one-off
+bibliographic queries into inspectable plans, retrieves records safely with
+pagination, rate-limit handling, retry with back-off and optional resumable
+caching, normalises them to a stable tidy schema, tracks changes in DOI sets
+over time and compares publication trends across topics.
 
-> *Scopus* is a trademark of Elsevier. scopusflow is an independent client and
-> is not affiliated with or endorsed by Elsevier. You need your own Elsevier API
-> key and must use it under Elsevier's API terms.
+> Scopus is a trademark of Elsevier. scopusflow is an independent client and is
+> not affiliated with or endorsed by Elsevier. You will need your own Elsevier
+> API key and should use it under Elsevier's API terms.
 
 ## Installation
 
@@ -122,18 +122,17 @@ plot_scopus_comparison(cmp)
 
 ## Quotas, rate limits and errors
 
-The Scopus API enforces a weekly quota and a short-term rate limit, and refuses
-result offsets of 5000 or more. scopusflow:
-
-* requests the largest page each view allows (200 records for `STANDARD`, 25 for
-  `COMPLETE`) so a retrieval uses the fewest requests - and least quota -
-  possible; this is the same legitimate efficiency `rscopus` uses, not quota
-  evasion;
-* parses quota/rate-limit headers with `scopus_quota()`;
-* retries transient failures (HTTP 429 and 5xx) with back-off that honours
-  `Retry-After`;
-* caps any single query at 5000 records and warns, suggesting year partitioning;
-* raises **typed conditions** so failures can be handled programmatically:
+The Scopus API enforces a weekly quota and a short-term rate limit, and it
+returns at most the first 5000 records of any query. scopusflow works within
+these limits rather than around them. It requests the largest page each view
+allows, 200 records for `STANDARD` and 25 for `COMPLETE`, so that a retrieval
+uses as few requests, and as little quota, as it can, working within the
+documented limits rather than around them. This is the same approach `rscopus`
+takes. The quota and rate-limit headers
+are parsed by `scopus_quota()`, transient failures such as HTTP 429 and the 5xx
+range are retried with back-off that honours `Retry-After`, and any single query
+is capped at 5000 records with a warning that suggests partitioning by year. A
+failure arrives as a typed condition, so a workflow can respond to it in code:
 
 ```{r eval = FALSE}
 tryCatch(
@@ -150,19 +149,19 @@ All `scopus_error_*` conditions inherit from `scopus_error`.
 
 | Package | Focus | Relationship to scopusflow |
 |---|---|---|
-| [`rscopus`](https://cran.r-project.org/package=rscopus) | Low-level Scopus API wrapper | scopusflow targets a higher workflow layer (plans, quotas, caching, diffs) and calls the API directly via `httr2` |
-| [`openalexR`](https://cran.r-project.org/package=openalexR), [`pubmedR`](https://cran.r-project.org/package=pubmedR), [`dimensionsR`](https://cran.r-project.org/package=dimensionsR), [`rcrossref`](https://cran.r-project.org/package=rcrossref) | Other bibliographic databases | Complementary; different sources |
-| [`bibliometrix`](https://cran.r-project.org/package=bibliometrix) | Science mapping & analysis | Downstream; `as_bibliometrix()` feeds it |
+| [`rscopus`](https://cran.r-project.org/package=rscopus) | Low-level Scopus API wrapper | scopusflow sits at a higher workflow layer (plans, quotas, caching, diffs) and calls the API directly through `httr2` |
+| [`openalexR`](https://cran.r-project.org/package=openalexR), [`pubmedR`](https://cran.r-project.org/package=pubmedR), [`dimensionsR`](https://cran.r-project.org/package=dimensionsR), [`rcrossref`](https://cran.r-project.org/package=rcrossref) | Other bibliographic databases | Complementary, covering different sources |
+| [`bibliometrix`](https://cran.r-project.org/package=bibliometrix) | Science mapping and analysis | Downstream, and fed by `as_bibliometrix()` |
 
 ## Limitations
 
-* The Scopus Search API caps retrieval at 5000 records per query; partition
-  large searches by year.
-* `as_bibliometrix()` maps the core descriptive fields the Search API returns;
-  analyses needing full affiliations or cited references still require a full
-  Scopus export.
-* Access depends on your Elsevier entitlement; some fields require `COMPLETE`
-  view and a subscription.
+A few limits are worth keeping in mind. The Scopus Search API returns at most
+5000 records for a single query, so a large search is best partitioned by year.
+`as_bibliometrix()` maps the core descriptive fields the Search API returns, and
+an analysis that needs full affiliations or cited references will still call for
+a complete Scopus export. What you can retrieve also depends on your Elsevier
+entitlement, and some fields are available only in the `COMPLETE` view and to
+subscribers.
 
 ## Citation
 
@@ -170,7 +169,7 @@ All `scopus_error_*` conditions inherit from `scopus_error`.
 citation("scopusflow")
 ```
 
-## Code of conduct / contributing
+## Contributing
 
 Issues and pull requests are welcome at
 <https://github.com/pablobernabeu/scopusflow>.

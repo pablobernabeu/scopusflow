@@ -7,11 +7,12 @@
 scopus_cache_clear()
 }
 \value{
-Invisibly, \code{TRUE} if the cache directory was removed (or absent).
+Invisibly, \code{TRUE} once the managed cache directory is removed or found
+to be absent.
 }
 \description{
-Deletes cache files written under \code{\link[=scopus_cache_dir]{scopus_cache_dir()}}. Has no effect on
-caches you created in your own directories.
+Deletes the cache files written under \code{\link[=scopus_cache_dir]{scopus_cache_dir()}}. A cache you
+created in a directory of your own is left untouched.
 }
 \examples{
 # Safe to call even when nothing is cached.

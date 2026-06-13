@@ -11,20 +11,19 @@ scopus_quota(resp)
 }
 \value{
 A list with elements \code{limit}, \code{remaining}, \code{reset} (a \code{POSIXct} time
-when the rate-limit window resets, or \code{NA}), \code{status} and \code{retry_after}
-(seconds, or \code{NA}). Missing headers yield \code{NA}.
+at which the rate-limit window resets, or \code{NA}), \code{status} and \code{retry_after}
+(seconds, or \code{NA}). A missing header yields \code{NA}.
 }
 \description{
 Elsevier returns the caller's weekly quota and short-term rate-limit status in
 response headers. \code{scopus_quota()} extracts them into a tidy list so a
-workflow can pause, schedule or report on remaining allowance.
+workflow can pause, schedule or report on the remaining allowance.
 }
 \details{
 The relevant headers are \code{X-RateLimit-Limit}, \code{X-RateLimit-Remaining},
 \code{X-RateLimit-Reset} (epoch seconds), \code{X-ELS-Status} and \code{Retry-After}. When
 the API raises a quota or rate-limit error, the parsed quota is also attached
-to the resulting condition object as \code{conditionCall(cnd)$quota} is not used;
-instead see \code{cnd$quota}.
+to the resulting condition, where it is available as \code{cnd$quota}.
 }
 \examples{
 # Build a fake response to show the shape of the output (no network used).

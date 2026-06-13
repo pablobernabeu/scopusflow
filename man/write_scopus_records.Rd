@@ -12,9 +12,9 @@ read_scopus_records(path)
 \arguments{
 \item{x}{A \link{scopus_records} tibble to write.}
 
-\item{path}{Explicit file path. The functions write to (or read from) exactly
-this path and never the working directory implicitly; parent directories are
-not created.}
+\item{path}{Explicit file path. The functions read from, or write to, exactly
+this path and leave the working directory alone. Parent directories are
+assumed to exist already.}
 }
 \value{
 \code{write_scopus_records()} returns \code{x} invisibly. \code{read_scopus_records()}
@@ -22,8 +22,8 @@ returns a \link{scopus_records} tibble.
 }
 \description{
 Save a \link{scopus_records} tibble to disk and read it back, with a stable
-round-trip. The format is chosen from the file extension: \code{.rds} (preserving
-types and class exactly) or \code{.csv} (portable plain text).
+round-trip. The file extension selects the format. An \code{.rds} file preserves
+the types and class exactly, while a \code{.csv} file is portable plain text.
 }
 \examples{
 recs <- scopus_records(list(entry = list(
