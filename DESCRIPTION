@@ -1,0 +1,43 @@
+Package: scopusflow
+Title: A Reproducible Workflow Layer for 'Scopus' Bibliographic Searches
+Version: 0.1.0
+Authors@R:
+    person("Pablo", "Bernabeu", , "pcbernabeu@gmail.com", role = c("aut", "cre", "cph"),
+           comment = c(ORCID = "0000-0003-1083-2460"))
+Description: A coherent, quota-aware workflow layer over the Elsevier
+    'Scopus' Search 'API' <https://dev.elsevier.com/sc_apis.html>. It builds
+    reproducible search plans, retrieves records with rate-limit handling,
+    retry with back-off and optional resumable caching, normalises results to a
+    stable tidy schema, extracts and tracks changes in Digital Object
+    Identifiers (DOIs), compares publication trends across topics and exports
+    to formats compatible with downstream bibliometric tools. Network errors
+    are surfaced as typed conditions so that callers can respond programmatically.
+    'Scopus' is a trademark of Elsevier; this package is an independent client
+    and is not affiliated with or endorsed by Elsevier.
+License: MIT + file LICENSE
+URL: https://github.com/pablobernabeu/scopusflow
+BugReports: https://github.com/pablobernabeu/scopusflow/issues
+Depends:
+    R (>= 4.1.0)
+Imports:
+    cli,
+    httr2 (>= 1.0.0),
+    rlang (>= 1.0.0),
+    tibble,
+    tools,
+    utils
+Suggests:
+    ggplot2,
+    jsonlite,
+    knitr,
+    rmarkdown,
+    spelling,
+    testthat (>= 3.0.0),
+    withr
+VignetteBuilder:
+    knitr
+Config/testthat/edition: 3
+Encoding: UTF-8
+Language: en-GB
+Roxygen: list(markdown = TRUE)
+Config/roxygen2/version: 8.0.0

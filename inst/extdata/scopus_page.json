@@ -1,0 +1,36 @@
+{
+  "search-results": {
+    "opensearch:totalResults": "3",
+    "opensearch:startIndex": "0",
+    "opensearch:itemsPerPage": "3",
+    "entry": [
+      {
+        "dc:identifier": "SCOPUS_ID:85000000001",
+        "prism:doi": "10.1000/example.001",
+        "dc:title": "A reproducible workflow for bibliometric retrieval",
+        "dc:creator": "Smith J.",
+        "prism:publicationName": "Journal of Bibliometrics",
+        "prism:coverDate": "2019-03-01",
+        "citedby-count": "12"
+      },
+      {
+        "dc:identifier": "SCOPUS_ID:85000000002",
+        "prism:doi": "10.1000/example.002",
+        "dc:title": "Quota-aware querying of scholarly databases",
+        "dc:creator": "Doe A.",
+        "prism:publicationName": "Scientometrics Today",
+        "prism:coverDate": "2020-07-15",
+        "citedby-count": "5"
+      },
+      {
+        "dc:identifier": "SCOPUS_ID:85000000003",
+        "prism:doi": "10.1000/example.003",
+        "dc:title": "Tracking changes in DOI sets over time",
+        "dc:creator": "Lee K.",
+        "prism:publicationName": "Journal of Bibliometrics",
+        "prism:coverDate": "2021-01-10",
+        "citedby-count": "0"
+      }
+    ]
+  }
+}

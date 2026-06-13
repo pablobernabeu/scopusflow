@@ -1,0 +1,15 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^README\.Rmd$
+^design-notes\.md$
+^project-state\.md$
+^cran-comments\.md$
+^CLAUDE\.md$
+^\.claude$
+^\.github$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^LICENSE\.md$
+^\.git$
+^\.gitignore$

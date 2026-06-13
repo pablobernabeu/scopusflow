@@ -1,0 +1,15 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+docs/
+inst/doc
+/doc/
+/Meta/
+
+# Claude / AI assistant files
+CLAUDE.md
+CLAUDE.local.md
+.claude/
+project-state.md

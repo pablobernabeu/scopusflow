@@ -1,0 +1,35 @@
+url: https://pablobernabeu.github.io/scopusflow/
+
+template:
+  bootstrap: 5
+
+reference:
+- title: Plan and size
+  contents:
+  - scopus_plan
+  - scopus_count
+- title: Retrieve
+  contents:
+  - scopus_fetch
+  - scopus_fetch_plan
+  - scopus_cache_dir
+  - scopus_cache_clear
+- title: Normalise and inspect
+  contents:
+  - scopus_records
+  - scopus_quota
+- title: DOIs and change tracking
+  contents:
+  - scopus_extract_dois
+  - scopus_diff_dois
+- title: Compare and visualise
+  contents:
+  - scopus_compare_topics
+  - plot_scopus_comparison
+- title: Export and I/O
+  contents:
+  - as_bibliometrix
+  - write_scopus_records
+- title: Keys
+  contents:
+  - scopus_has_key
