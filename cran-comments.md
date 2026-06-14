@@ -17,6 +17,12 @@ The only note is the standard "New submission" note. All URLs in the DESCRIPTION
 and documentation resolve: the GitHub repository and the pkgdown website
 (https://pablobernabeu.github.io/scopusflow/) are public and live.
 
+The note also lists possibly misspelled words in the DESCRIPTION ("DOIs",
+"Elsevier", "bibliometric", "resumable"). These are spelled correctly: "Elsevier"
+is the name of the company that provides the API, "DOIs" is the plural of the
+abbreviation defined in the same sentence, and "bibliometric" and "resumable" are
+standard terms in this field.
+
 ## Notes for the CRAN team
 
 * The package is an independent client for the Elsevier 'Scopus' Search API.
