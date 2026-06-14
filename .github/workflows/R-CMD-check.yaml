@@ -51,9 +51,12 @@ jobs:
           build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
 
   # Verify the package works with ONLY its declared strong dependencies on the
-  # path, so that nothing in R/ silently relies on a Suggests or transitive
-  # package. Examples and Suggests-using tests/vignettes guard themselves with
-  # @examplesIf / requireNamespace() / skip_if_not_installed().
+  # path, so that nothing in R/, the examples or the tests silently relies on a
+  # Suggests or transitive package. Examples and Suggests-using tests guard
+  # themselves with @examplesIf / requireNamespace() / skip_if_not_installed().
+  # Vignettes are skipped here because rmarkdown (the output format) is a Suggest
+  # and so is absent under depends-only; the vignettes are built and checked in
+  # full by the matrix job above.
   depends-only:
     runs-on: ubuntu-latest
     name: depends-only
@@ -76,5 +79,8 @@ jobs:
 
       - uses: r-lib/actions/check-r-package@v2
         with:
-          args: 'c("--no-manual", "--as-cran")'
+          # Build the vignettes normally (R CMD build sees the full library), but
+          # skip RE-building them during the depends-only check, where rmarkdown
+          # is absent.
+          args: 'c("--no-manual", "--as-cran", "--no-vignettes")'
           build_args: 'c("--no-manual")'
