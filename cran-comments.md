@@ -13,11 +13,9 @@ This is a new submission (scopusflow 0.1.0).
 
 0 errors | 0 warnings | 1 note
 
-The note is the standard "New submission" note. It may also list the package
-website, https://pablobernabeu.github.io/scopusflow/, as not yet resolving. The
-GitHub Pages site is published from CI, so that URL goes live once the first
-pkgdown deployment completes. The GitHub repository is already public, and these
-URLs are the package's intended canonical home.
+The only note is the standard "New submission" note. All URLs in the DESCRIPTION
+and documentation resolve: the GitHub repository and the pkgdown website
+(https://pablobernabeu.github.io/scopusflow/) are public and live.
 
 ## Notes for the CRAN team
 
