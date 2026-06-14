@@ -23,7 +23,10 @@ First release.
 * A typed condition system (`scopus_error` and its subclasses) and quota-header
   parsing with [`scopus_quota()`].
 * The comparison plot uses whole-number year breaks, a colour-blind-safe palette,
-  direct line labels and an optional `highlight` argument.
+  direct line labels, an optional `highlight` argument and a shaded Wilson
+  stability band (an illustrative range, switchable with `interval`).
+* The bundled `example_records` spans several disciplines, and the examples and
+  five workflow vignettes draw on a wide range of fields.
 * Multiple authors are retained in the `authors` column rather than truncated to
   the first; very large result totals are handled without overflow; and DOI
   cleaning copes with `www.doi.org` hosts and `DOI:` labels.

@@ -59,7 +59,7 @@ Requires a valid API key and internet access. The \emph{API access} section of
 
 \examples{
 \dontshow{if (scopusflow::scopus_has_key()) withAutoprint(\{ # examplesIf}
-recs <- scopus_fetch("TITLE-ABS-KEY(bibliometric)", max_results = 50)
+recs <- scopus_fetch("graphene", field = "TITLE-ABS-KEY", max_results = 50)
 recs
 \dontshow{\}) # examplesIf}
 }

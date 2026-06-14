@@ -61,9 +61,9 @@ the details. A modest number of terms and years keeps the call within quota.
 \examples{
 \dontshow{if (scopusflow::scopus_has_key()) withAutoprint(\{ # examplesIf}
 cmp <- scopus_compare_topics(
-  reference_query = "language learning",
-  comparison_terms = c("effect size", "Bayesian"),
-  years = 2015:2020,
+  reference_query = "deep learning",
+  comparison_terms = c("computer vision", "drug discovery", "medical imaging"),
+  years = 2015:2022,
   field = "TITLE-ABS-KEY"
 )
 cmp

@@ -101,12 +101,18 @@ features ggplot2 already bundles: a viridis discrete scale, which is
 colour-blind-safe, and integer year breaks computed from the data so the axis
 never shows half-years. For a handful of topics the lines are labelled directly,
 which removes the colour-matching round-trip a legend imposes, and a `highlight`
-argument greys all but one topic when a figure needs a single focus. The
-dependencies ggrepel, directlabels and scales were considered for labelling and
-formatting and rejected, since the same results are reachable within ggplot2 and
-the package keeps its imports small. An exported theme helper was also rejected:
-with one plotting function it would add surface for no reuse, so the theme stays
-inline.
+argument greys all but one topic when a figure needs a single focus. Direct
+labels sit in the right margin (via `clip = "off"`) rather than a wide in-panel
+gutter, and the y-axis is capped at a data-driven round value, so the panel
+carries little empty space. A shaded band shows a Wilson score interval on each
+yearly share. Because 'Scopus' returns exact counts rather than a sample, the
+band is documented honestly as an illustrative stability range, not a confidence
+interval: it widens where the reference set is small, flagging volatile shares.
+The dependencies ggrepel, directlabels and scales were considered for labelling
+and formatting and rejected, since the same results are reachable within ggplot2
+and the package keeps its imports small. An exported theme helper was also
+rejected: with one plotting function it would add surface for no reuse, so the
+theme stays inline.
 
 ## API additions and rejected options
 

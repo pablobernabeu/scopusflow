@@ -30,8 +30,26 @@ test_that("the x-axis uses whole-number year breaks", {
 test_that("a colour-blind-safe (viridis) palette is used, not the default hue", {
   skip_if_not_installed("ggplot2")
   p <- plot_scopus_comparison(make_comparison())
-  cols <- unique(ggplot2::ggplot_build(p)$data[[1]]$colour)
+  cols <- unlist(lapply(ggplot2::ggplot_build(p)$data, function(d) {
+    if ("colour" %in% names(d)) unique(d$colour) else NULL
+  }))
   expect_false("#F8766D" %in% cols)  # ggplot2's default 2-hue first colour
+  expect_true(any(grepl("^#", cols)))
+})
+
+test_that("an uncertainty band is drawn by default and can be switched off", {
+  skip_if_not_installed("ggplot2")
+  has_ribbon <- function(p) {
+    any(vapply(p$layers, function(l) inherits(l$geom, "GeomRibbon"), logical(1)))
+  }
+  expect_true(has_ribbon(plot_scopus_comparison(make_comparison())))
+  expect_false(has_ribbon(plot_scopus_comparison(make_comparison(), interval = FALSE)))
+})
+
+test_that("the Wilson band is wider for smaller reference counts", {
+  w_small <- scopusflow:::scopus_wilson(5, 10)
+  w_large <- scopusflow:::scopus_wilson(500, 1000)
+  expect_gt(w_small$upper - w_small$lower, w_large$upper - w_large$lower)
 })
 
 test_that("autoplot dispatches to the same plot", {

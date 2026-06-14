@@ -50,8 +50,8 @@ The \emph{API access} section of \code{\link[=scopus_count]{scopus_count()}} giv
 
 \examples{
 \dontshow{if (scopusflow::scopus_has_key()) withAutoprint(\{ # examplesIf}
-plan <- scopus_plan("machine translation", years = 2018:2020, partition = "year")
-dir <- file.path(tempdir(), "mt-cache")
+plan <- scopus_plan("renewable energy", years = 2015:2022, partition = "year")
+dir <- file.path(tempdir(), "energy-cache")
 recs <- scopus_fetch_plan(plan, cache_dir = dir, resume = TRUE)
 \dontshow{\}) # examplesIf}
 }

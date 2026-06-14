@@ -15,8 +15,9 @@
 #'   [scopus_fetch()] or the `query` of [scopus_plan()].
 #' @seealso [scopus_field_tags()], [scopus_plan()]
 #' @examples
-#' scopus_query("language learning", "effect size", .field = "TITLE-ABS-KEY")
-#' scopus_query("CRISPR", "Cas9", .op = "OR")
+#' scopus_query("climate change", "adaptation", .field = "TITLE-ABS-KEY")
+#' scopus_query("graphene", "supercapacitor", .op = "AND")
+#' scopus_query("CRISPR", "Cas9", "Cas12", .op = "OR")
 #' @export
 scopus_query <- function(..., .op = c("AND", "OR", "AND NOT"), .field = NULL) {
   .op <- rlang::arg_match(.op)

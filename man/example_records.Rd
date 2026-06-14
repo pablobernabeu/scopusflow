@@ -5,7 +5,7 @@
 \alias{example_records}
 \title{Example set of normalised 'Scopus' records}
 \format{
-A \link{scopus_records} tibble with three rows and the standard schema:
+A \link{scopus_records} tibble with six rows and the standard schema:
 \describe{
 \item{entry_number}{Position within the retrieval.}
 \item{scopus_id}{The 'Scopus' record identifier.}
@@ -26,10 +26,11 @@ Synthetic example data, illustrative only.
 example_records
 }
 \description{
-A small set of three records in the shape that \code{\link[=scopus_fetch]{scopus_fetch()}} returns,
-provided so that the package can be explored and its examples run without a
-'Scopus' API key. The records were normalised from the static page fixture
-bundled in \code{inst/extdata}.
+A small set of six illustrative records spanning several disciplines (genome
+editing, machine learning, climate science, materials, oncology and physics),
+in the shape that \code{\link[=scopus_fetch]{scopus_fetch()}} returns. It is provided so that the package
+can be explored and its examples run without a 'Scopus' API key. The records
+were normalised from the static page fixture bundled in \code{inst/extdata}.
 }
 \examples{
 example_records

@@ -23,8 +23,8 @@
 #' The *API access* section of [scopus_count()] gives the details.
 #' @seealso [scopus_cache_dir()], [scopus_cache_clear()]
 #' @examplesIf scopusflow::scopus_has_key()
-#' plan <- scopus_plan("machine translation", years = 2018:2020, partition = "year")
-#' dir <- file.path(tempdir(), "mt-cache")
+#' plan <- scopus_plan("renewable energy", years = 2015:2022, partition = "year")
+#' dir <- file.path(tempdir(), "energy-cache")
 #' recs <- scopus_fetch_plan(plan, cache_dir = dir, resume = TRUE)
 #' @export
 scopus_fetch_plan <- function(plan,

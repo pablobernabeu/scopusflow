@@ -19,26 +19,28 @@ library(scopusflow)
 ```
 
 A common bibliometric question is not how large a literature is, but how its
-internal emphasis shifts over time. Within research on language learning, say, is
-the share of work that also discusses effect sizes growing? `scopus_compare_topics()`
-answers exactly this, and `plot_scopus_comparison()` shows the answer. The
-comparison itself contacts the API, so it is shown but not run; the plotting is
-reproduced offline from an object of the same shape.
+internal emphasis shifts over time. Within deep-learning research, say, is the
+share of work that also concerns medical imaging growing faster than the share
+about computer vision? `scopus_compare_topics()` answers exactly this, and
+`plot_scopus_comparison()` shows the answer. The comparison itself contacts the
+API, so it is shown but not run; the plotting is reproduced offline from an object
+of the same shape.
 
 ## What the comparison measures
 
 For each year and each comparison term, the function counts the records matching
 the reference topic *and* that term, and expresses it as a percentage of the
-records matching the reference *alone*. A value of 30% for "effect size" in 2020
-means that 30% of the language-learning records that year also mention effect
-sizes. The reference is the denominator, so it sits at 100% by construction and
+records matching the reference *alone*. A value of 30% for "computer vision" in
+2020 means that 30% of the deep-learning records that year also mention computer
+vision. The reference is the denominator, so it sits at 100% by construction and
 is not drawn.
 
 ```{r eval = FALSE}
 cmp <- scopus_compare_topics(
-  reference_query  = "language learning",
-  comparison_terms = c("effect size", "Bayesian", "replication"),
-  years            = 2014:2021,
+  reference_query  = "deep learning",
+  comparison_terms = c("computer vision", "natural language processing",
+                       "medical imaging", "drug discovery"),
+  years            = 2013:2021,
   field            = "TITLE-ABS-KEY"
 )
 ```
@@ -46,29 +48,32 @@ cmp <- scopus_compare_topics(
 ## The shape of the result
 
 The result is a tidy table with one row per topic and year. We build one here
-with the same columns so the rest of the article runs without a key.
+with the same columns so the rest of the article runs without a key. The
+reference set grows over the period, which the uncertainty band will reflect.
 
 ```{r}
-years <- 2014:2021
+years <- 2013:2021
+ref_n <- round(seq(400, 1600, length.out = length(years)))
+mk <- function(from, to) round(seq(from, to, length.out = length(years)))
+counts <- list(
+  "computer vision" = mk(140, 720),
+  "natural language processing" = mk(90, 540),
+  "medical imaging" = mk(15, 260),
+  "drug discovery" = mk(8, 170)
+)
 cmp <- tibble::tibble(
   query = "q",
   query_type = c(rep("reference", length(years)),
-                 rep("comparison", 3 * length(years))),
-  abridged_query = c(rep("language learning", length(years)),
-                     rep(c("effect size", "Bayesian", "replication"),
-                         each = length(years))),
-  year = rep(years, 4),
-  n = c(rep(900, length(years)),
-        round(seq(120, 360, length.out = length(years))),
-        round(seq(40, 200, length.out = length(years))),
-        round(seq(20, 150, length.out = length(years)))),
-  reference_n = rep(900, 4 * length(years)),
-  comparison_percentage = c(rep(100, length(years)),
-                            seq(13, 40, length.out = length(years)),
-                            seq(4, 22, length.out = length(years)),
-                            seq(2, 17, length.out = length(years))),
+                 rep("comparison", length(counts) * length(years))),
+  abridged_query = c(rep("deep learning", length(years)),
+                     rep(names(counts), each = length(years))),
+  year = rep(years, length(counts) + 1),
+  n = c(ref_n, unlist(counts, use.names = FALSE)),
+  reference_n = rep(ref_n, length(counts) + 1),
+  comparison_percentage = 100 * c(ref_n, unlist(counts, use.names = FALSE)) /
+    rep(ref_n, length(counts) + 1),
   average_comparison_percentage = c(rep(100, length(years)),
-                                    rep(c(27, 13, 9), each = length(years)))
+                                    rep(c(40, 33, 15, 9), each = length(years)))
 )
 class(cmp) <- c("scopus_comparison", class(cmp))
 cmp
@@ -81,29 +86,35 @@ no defined share and is recorded as `NA` rather than as a misleading zero.
 
 ## A first plot
 
-```{r eval = has_ggplot2, fig.alt = "Three topics' share of the language-learning literature from 2014 to 2021", fig.width = 7.5, fig.height = 4.5}
+```{r eval = has_ggplot2, fig.alt = "Four application areas' share of the deep-learning literature from 2013 to 2021, with shaded uncertainty bands", fig.width = 8, fig.height = 4.6}
 plot_scopus_comparison(cmp)
 ```
 
 The chart uses whole-number year breaks, a colour-blind-safe palette and, because
 there are only a few topics, labels the lines directly so the reader need not
-match colours to a legend. Each label carries the topic's total record count.
+match colours to a legend. Each label carries the topic's total record count. The
+shaded band around each line is a Wilson stability range: it is wide in the early
+years, when the reference set is small and the share would move easily, and
+narrows as the literature grows. Because 'Scopus' returns exact counts rather than
+a sample, the band is illustrative rather than a confidence interval, a point the
+`plot_scopus_comparison()` help page sets out.
 
 ## Drawing the eye to one topic
 
 When one topic is the focus of a figure, `highlight` draws it in an accent colour
 and greys the rest, which keeps the context visible without letting it compete.
 
-```{r eval = has_ggplot2, fig.alt = "The same chart with the Bayesian topic highlighted against the others in grey", fig.width = 7.5, fig.height = 4.5}
-plot_scopus_comparison(cmp, highlight = "Bayesian")
+```{r eval = has_ggplot2, fig.alt = "The same chart with the medical-imaging topic highlighted against the others in grey", fig.width = 8, fig.height = 4.6}
+plot_scopus_comparison(cmp, highlight = "medical imaging")
 ```
 
 ## Adjusting the labels
 
-The count suffix on each label can be turned off when a cleaner look is wanted.
+The count suffix on each label can be turned off, and the uncertainty band can be
+removed, when a cleaner look is wanted.
 
-```{r eval = has_ggplot2, fig.alt = "The comparison chart without record counts in the labels", fig.width = 7.5, fig.height = 4.5}
-plot_scopus_comparison(cmp, pub_count_in_legend = FALSE)
+```{r eval = has_ggplot2, fig.alt = "The comparison chart without record counts or bands", fig.width = 8, fig.height = 4.6}
+plot_scopus_comparison(cmp, pub_count_in_legend = FALSE, interval = FALSE)
 ```
 
 The return value is an ordinary [ggplot2](https://ggplot2.tidyverse.org) object,

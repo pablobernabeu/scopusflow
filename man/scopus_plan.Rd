@@ -63,8 +63,8 @@ controlled) and lets large retrievals be partitioned, for example one cell per
 year, so they can be cached and resumed.
 }
 \examples{
-scopus_plan("language learning", years = 2018:2020, field = "TITLE-ABS-KEY")
-scopus_plan("machine translation", years = 2010:2020, partition = "year")
+scopus_plan("quantum computing", years = 2015:2022, field = "TITLE-ABS-KEY")
+scopus_plan("immunotherapy", years = 2010:2020, partition = "year")
 }
 \seealso{
 \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} to execute a plan, \code{\link[=scopus_count]{scopus_count()}} to size it.

@@ -34,8 +34,8 @@
 #'   attributes.
 #' @seealso [scopus_fetch_plan()] to execute a plan, [scopus_count()] to size it.
 #' @examples
-#' scopus_plan("language learning", years = 2018:2020, field = "TITLE-ABS-KEY")
-#' scopus_plan("machine translation", years = 2010:2020, partition = "year")
+#' scopus_plan("quantum computing", years = 2015:2022, field = "TITLE-ABS-KEY")
+#' scopus_plan("immunotherapy", years = 2010:2020, partition = "year")
 #' @export
 scopus_plan <- function(query,
                         years = NULL,

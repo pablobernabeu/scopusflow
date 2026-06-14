@@ -27,8 +27,9 @@ alternative to pasting query fragments together by hand, which is where
 field-tag and bracket mistakes tend to creep in.
 }
 \examples{
-scopus_query("language learning", "effect size", .field = "TITLE-ABS-KEY")
-scopus_query("CRISPR", "Cas9", .op = "OR")
+scopus_query("climate change", "adaptation", .field = "TITLE-ABS-KEY")
+scopus_query("graphene", "supercapacitor", .op = "AND")
+scopus_query("CRISPR", "Cas9", "Cas12", .op = "OR")
 }
 \seealso{
 \code{\link[=scopus_field_tags]{scopus_field_tags()}}, \code{\link[=scopus_plan]{scopus_plan()}}

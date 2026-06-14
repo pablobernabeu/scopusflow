@@ -1,0 +1,90 @@
+---
+title: "Building and exporting a reference set"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Building and exporting a reference set}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+```{r setup}
+library(scopusflow)
+```
+
+A retrieval becomes useful once it leaves the package, as a reading list in a
+reference manager or as input to a science-mapping tool. This article covers that
+export end of the workflow, using the bundled `example_records` so every step
+runs without an API key.
+
+## Take stock first
+
+Before exporting anything, it helps to see what the set contains. `summary()`
+reports the size, the span of years, the number of distinct sources, the citation
+spread and the most-cited record.
+
+```{r}
+summary(example_records)
+```
+
+## A clean, deduplicated DOI list
+
+Reference managers such as Zotero import most reliably from DOIs.
+`scopus_extract_dois()` pulls them out, normalises them and removes duplicates,
+so the same article imports once even when its DOI was stored with a resolver
+prefix or in a different case.
+
+```{r}
+dois <- scopus_extract_dois(example_records)
+dois
+```
+
+The list can be written to a single-column CSV at a path you choose. Nothing is
+written unless a path is given.
+
+```{r}
+out <- file.path(tempdir(), "reference-set.csv")
+scopus_extract_dois(example_records, file = out)
+readLines(out)
+```
+
+## Handing off to science mapping
+
+`as_bibliometrix()` re-maps the records to the tagged column layout that the
+[bibliometrix](https://www.bibliometrix.org) package and the wider ISI convention
+expect.
+
+```{r}
+m <- as_bibliometrix(example_records)
+m[, c("AU", "TI", "PY", "SO", "TC", "DB")]
+```
+
+From there the usual bibliometrix entry points apply. This step needs that
+package, so it is shown but not run.
+
+```{r eval = FALSE}
+if (requireNamespace("bibliometrix", quietly = TRUE)) {
+  results <- bibliometrix::biblioAnalysis(as_bibliometrix(records))
+  summary(results, k = 10)
+}
+```
+
+As noted on the `as_bibliometrix()` help page, this reconstructs the core
+descriptive fields only. Analyses that need full affiliations or cited references
+still call for a complete 'Scopus' CSV or BibTeX export read with
+`bibliometrix::convert2df()`.
+
+## Saving the working set
+
+To pick the work up in a later session, save the records and read them back. The
+`.rds` form preserves the types and class exactly, while `.csv` is portable plain
+text.
+
+```{r}
+path <- file.path(tempdir(), "records.rds")
+write_scopus_records(example_records, path)
+identical(read_scopus_records(path), example_records)
+```

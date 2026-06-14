@@ -1,0 +1,107 @@
+---
+title: "Designing precise queries across disciplines"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Designing precise queries across disciplines}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+```{r setup}
+library(scopusflow)
+```
+
+A retrieval is only as good as its query. This article shows how to compose
+correct, field-tagged 'Scopus' queries with `scopus_query()` rather than pasting
+fragments by hand, where a missing bracket or a mistyped tag quietly returns the
+wrong records. Everything here is string construction, so it all runs offline;
+each query is shown as the literal string it produces.
+
+## Field tags decide where to look
+
+A field tag restricts a query to part of a record. `scopus_field_tags()` lists
+the common ones.
+
+```{r}
+scopus_field_tags()
+```
+
+The most generally useful tag is `TITLE-ABS-KEY`, which searches the title,
+abstract and keywords together, broad enough to catch a topic without the noise
+of a full-text match.
+
+## One term, many disciplines
+
+The same builder serves any field. Each call below returns the exact query string
+that would be sent to 'Scopus'.
+
+```{r}
+scopus_query("CRISPR", .field = "TITLE-ABS-KEY")              # molecular biology
+scopus_query("gravitational waves", .field = "TITLE-ABS-KEY") # physics
+scopus_query("microplastics", .field = "TITLE-ABS-KEY")       # environmental science
+scopus_query("blockchain", .field = "TITLE-ABS-KEY")          # computer science
+scopus_query("digital humanities", .field = "AUTHKEY")        # humanities
+```
+
+The last example uses `AUTHKEY`, the author-supplied keywords, which isolates work
+that self-identifies with a field and so cuts incidental mentions.
+
+## Combining terms with boolean operators
+
+Passing several terms joins them. The default operator is `AND`, and `OR` or
+`AND NOT` are available through `.op`.
+
+```{r}
+# Two concepts that must co-occur (materials science).
+scopus_query("perovskite", "solar cell", .field = "TITLE-ABS-KEY")
+
+# Spelling variants, either of which will do (economics).
+scopus_query("behavioral economics", "behavioural economics", .op = "OR")
+
+# A family of related tools (molecular biology).
+scopus_query("CRISPR", "Cas9", "Cas12", .op = "OR")
+```
+
+## From a query to a plan
+
+A composed query drops straight into the rest of the workflow. Here it anchors a
+year-partitioned plan, which keeps each cell under the API's 5000-record ceiling.
+
+```{r}
+q <- scopus_query("gut microbiome", "immunology", .field = "TITLE-ABS-KEY")
+q
+plan <- scopus_plan(q, years = 2015:2022, partition = "year")
+plan
+```
+
+The plan is ready to size and run, which contacts the API.
+
+```{r eval = FALSE}
+scopus_count(q, years = 2015:2022)
+records <- scopus_fetch_plan(plan)
+```
+
+## Searching by affiliation
+
+Field tags reach beyond topics. `AFFILORG` searches the affiliation, which turns a
+query into an institution-level view of output.
+
+```{r}
+scopus_query("Max Planck", .field = "AFFILORG")
+```
+
+## When a term is empty
+
+The builder validates its input, so a stray empty term is caught early rather
+than producing a malformed query.
+
+```{r}
+tryCatch(
+  scopus_query("graphene", ""),
+  scopus_error_bad_input = function(e) conditionMessage(e)
+)
+```

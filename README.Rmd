@@ -27,26 +27,26 @@ pagination, rate-limit handling, retry with back-off and optional resumable
 caching, normalises them to a stable tidy schema, tracks changes in DOI sets
 over time and compares publication trends across topics.
 
-```{r readme-hero, echo = FALSE, message = FALSE, fig.alt = "A line chart of three research topics' share of a reference literature rising and falling between 2014 and 2021", fig.width = 8, fig.height = 4.2, dpi = 130, out.width = "100%"}
+```{r readme-hero, echo = FALSE, message = FALSE, fig.alt = "A line chart showing how deep-learning research spread into computer vision, natural language processing, medical imaging and drug discovery between 2013 and 2021", fig.width = 8.5, fig.height = 4.4, dpi = 130, out.width = "100%"}
 library(scopusflow)
-years <- 2014:2021
+years <- 2013:2021
+ref_n <- round(seq(400, 1600, length.out = length(years)))
+n_cv <- round(seq(140, 720, length.out = length(years)))
+n_nlp <- round(seq(90, 540, length.out = length(years)))
+n_mi <- round(seq(15, 260, length.out = length(years)))
+n_dd <- round(seq(8, 170, length.out = length(years)))
 hero <- tibble::tibble(
   query = "q",
-  query_type = c(rep("reference", length(years)), rep("comparison", 3 * length(years))),
-  abridged_query = c(rep("language learning", length(years)),
-                     rep(c("effect size", "Bayesian", "replication"), each = length(years))),
-  year = rep(years, 4),
-  n = c(rep(900, length(years)),
-        round(seq(120, 360, length.out = length(years))),
-        round(seq(40, 200, length.out = length(years))),
-        round(seq(20, 150, length.out = length(years)))),
-  reference_n = rep(900, 4 * length(years)),
-  comparison_percentage = c(rep(100, length(years)),
-                            seq(13, 40, length.out = length(years)),
-                            seq(4, 22, length.out = length(years)),
-                            seq(2, 17, length.out = length(years))),
+  query_type = c(rep("reference", length(years)), rep("comparison", 4 * length(years))),
+  abridged_query = c(rep("deep learning", length(years)),
+                     rep(c("computer vision", "natural language processing",
+                           "medical imaging", "drug discovery"), each = length(years))),
+  year = rep(years, 5),
+  n = c(ref_n, n_cv, n_nlp, n_mi, n_dd),
+  reference_n = rep(ref_n, 5),
+  comparison_percentage = 100 * c(ref_n, n_cv, n_nlp, n_mi, n_dd) / rep(ref_n, 5),
   average_comparison_percentage = c(rep(100, length(years)),
-                                    rep(c(27, 13, 9), each = length(years)))
+                                    rep(c(40, 33, 15, 9), each = length(years)))
 )
 class(hero) <- c("scopus_comparison", class(hero))
 plot_scopus_comparison(hero)
@@ -117,17 +117,13 @@ With a key configured, the same pieces compose into a real retrieval. These
 calls contact the API and consume quota, so they are not run here:
 
 ```{r eval = FALSE}
-# 1. Build a reproducible plan, partitioned by year to stay under the
-#    API's start < 5000 ceiling.
-plan <- scopus_plan(
-  "machine translation",
-  years     = 2015:2020,
-  field     = "TITLE-ABS-KEY",
-  partition = "year"
-)
+# 1. Compose a field-tagged query, then a reproducible plan partitioned by
+#    year to stay under the API's start < 5000 ceiling.
+q <- scopus_query("perovskite", "solar cell", .field = "TITLE-ABS-KEY")
+plan <- scopus_plan(q, years = 2012:2022, partition = "year")
 
 # 2. Size it before spending quota.
-scopus_count("machine translation", years = 2015:2020, field = "TITLE-ABS-KEY")
+scopus_count(q, years = 2012:2022)
 
 # 3. Execute, caching each year so an interrupted run can resume.
 records <- scopus_fetch_plan(plan, cache_dir = scopus_cache_dir(), resume = TRUE)
@@ -135,11 +131,11 @@ records <- scopus_fetch_plan(plan, cache_dir = scopus_cache_dir(), resume = TRUE
 # 4. Save the DOIs for import into a reference manager (e.g. Zotero).
 scopus_extract_dois(records, file = file.path(tempdir(), "dois.csv"))
 
-# 5. Compare sub-topics within a literature over time.
+# 5. Compare how a method spreads across application areas over time.
 cmp <- scopus_compare_topics(
-  reference_query  = "language learning",
-  comparison_terms = c("effect size", "Bayesian", "meta-analysis"),
-  years            = 2010:2020,
+  reference_query  = "deep learning",
+  comparison_terms = c("computer vision", "drug discovery", "medical imaging"),
+  years            = 2013:2022,
   field            = "TITLE-ABS-KEY"
 )
 plot_scopus_comparison(cmp)

@@ -8,7 +8,7 @@ parsed <- jsonlite::fromJSON(fixture, simplifyVector = FALSE)
 
 example_records <- scopus_records(
   parsed[["search-results"]],
-  query = "TITLE-ABS-KEY(bibliometric)"
+  query = "illustrative multi-disciplinary sample"
 )
 
 save(example_records, file = "data/example_records.rda", version = 2, compress = "xz")
