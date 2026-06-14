@@ -5,6 +5,8 @@
 - [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md)
   [`is_scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md)
   : Build a reproducible 'Scopus' search plan
+- [`scopus_query()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_query.md)
+  : Build a field-tagged 'Scopus' query
 - [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md)
   : Count 'Scopus' results for a query
 - [`scopus_field_tags()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_field_tags.md)
@@ -21,13 +23,18 @@
 - [`scopus_cache_clear()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_clear.md)
   : Clear the scopusflow managed cache
 
-## Normalise and inspect
+## Records
 
-- [`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
+- [`as_tibble(`*`<scopus_records>`*`)`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
+  [`as.data.frame(`*`<scopus_records>`*`)`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
+  [`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
   [`is_scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
   : Normalise raw 'Scopus' entries to a stable tidy schema
 - [`summary(`*`<scopus_records>`*`)`](https://pablobernabeu.github.io/scopusflow/reference/summary.scopus_records.md)
   : Summarise a set of 'Scopus' records
+- [`scopus_combine()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md)
+  [`c(`*`<scopus_records>`*`)`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md)
+  : Combine record sets into one
 - [`scopus_quota()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_quota.md)
   : Parse 'Scopus' quota and rate-limit headers
 

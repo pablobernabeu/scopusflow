@@ -45,7 +45,7 @@ recs <- scopus_records(list(entry = list(
 path <- tempfile(fileext = ".csv")
 write_scopus_records(recs, path)
 read_scopus_records(path)
-#> <scopus_records> (1 record)
+#> <scopus_records> 1 record
 #> # A tibble: 1 × 10
 #>   entry_number scopus_id doi    title  authors  year date  publication citations
 #>          <int> <chr>     <chr>  <chr>  <chr>   <int> <chr> <chr>           <int>

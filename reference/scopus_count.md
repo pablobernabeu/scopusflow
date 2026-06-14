@@ -46,8 +46,13 @@ scopus_count(
 
 ## Value
 
-A single integer giving the total number of matching records, or `NA`
-when the API reports no total.
+A single number giving the total number of matching records, or `NA`
+when the API reports no total. It is returned as a double so that very
+large totals are represented exactly rather than overflowing, with the
+parsed quota (see
+[`scopus_quota()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_quota.md))
+attached as the `quota` attribute so a workflow can pace itself off a
+count.
 
 ## API access
 

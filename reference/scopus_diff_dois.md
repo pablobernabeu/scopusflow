@@ -20,9 +20,11 @@ scopus_diff_dois(old, new)
 
 ## Value
 
-A tibble with columns `doi` and `status`, where `status` is one of
-`"added"` (in `new` only), `"removed"` (in `old` only) or `"unchanged"`
-(in both), sorted by status then DOI.
+A tibble of class `scopus_doi_diff` with columns `doi` and `status`,
+where `status` is an ordered factor with levels `"added"` (in `new`
+only), `"removed"` (in `old` only) and `"unchanged"` (in both). Rows are
+sorted by status then DOI, and printing shows the counts in each
+category.
 
 ## See also
 
@@ -34,9 +36,10 @@ A tibble with columns `doi` and `status`, where `status` is one of
 old <- c("10.1/a", "10.1/b")
 new <- c("10.1/b", "10.1/c")
 scopus_diff_dois(old, new)
+#> <scopus_doi_diff> 1 added, 1 removed, 1 unchanged
 #> # A tibble: 3 × 2
 #>   doi    status   
-#>   <chr>  <chr>    
+#>   <chr>  <fct>    
 #> 1 10.1/c added    
 #> 2 10.1/a removed  
 #> 3 10.1/b unchanged

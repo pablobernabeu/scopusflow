@@ -32,8 +32,10 @@ summary(object, ...)
 
 A list of class `scopus_records_summary`, with elements `n_records`,
 `years` (the earliest and latest year present, each `NA` when no year is
-known), `n_sources`, `n_with_doi`, `total_citations` and
-`median_citations`. Printing it produces a short readable report.
+known), `n_sources`, `n_with_doi`, `total_citations`,
+`median_citations`, `top_cited` (the title of the most-cited record) and
+`top_source` (the most frequent source title). Printing it produces a
+short readable report.
 
 ## Examples
 
@@ -43,4 +45,6 @@ summary(example_records)
 #> 3 records, from 2019 to 2021.
 #> 2 sources, 3 with a DOI.
 #> Cited 17 times in total, median 5 per record.
+#> Most frequent source: Journal of Bibliometrics.
+#> Most cited: A reproducible workflow for bibliometric retrieval.
 ```

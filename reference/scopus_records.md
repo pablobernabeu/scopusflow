@@ -12,6 +12,12 @@ return it, and the DOI, comparison and export helpers all consume it.
 ## Usage
 
 ``` r
+# S3 method for class 'scopus_records'
+as_tibble(x, ...)
+
+# S3 method for class 'scopus_records'
+as.data.frame(x, ...)
+
 scopus_records(x, query = NA_character_)
 
 is_scopus_records(x)
@@ -23,6 +29,10 @@ is_scopus_records(x)
 
   An object to test.
 
+- ...:
+
+  Ignored, for S3 compatibility.
+
 - query:
 
   Optional character scalar recording the query that produced the
@@ -30,10 +40,15 @@ is_scopus_records(x)
 
 ## Value
 
+The coercion methods return a plain
+[tibble](https://tibble.tidyverse.org/reference/tibble.html) or data
+frame with the same columns and the `scopus_records` class removed.
+
 A tibble of class `scopus_records` with the columns `entry_number`
 (integer), `scopus_id` (character), `doi` (character), `title`
-(character), `authors` (character, the first or corresponding creator),
-`year` (integer), `date` (character, the ISO cover date), `publication`
+(character), `authors` (character, the creator names joined with `"; "`
+when several are listed), `year` (integer, the leading four digits of
+the cover date), `date` (character, the ISO cover date), `publication`
 (character, the source title), `citations` (integer) and `query`
 (character). A missing field becomes `NA`, and an empty result set
 yields a zero-row tibble with the same columns.
@@ -43,8 +58,9 @@ yields a zero-row tibble with the same columns.
 ## Details
 
 The 'Scopus' API signals an empty result set with a single sentinel
-entry carrying an `error` field. This is detected and turned into a
-zero-row result rather than a spurious record.
+entry that carries an `error` field and no identifier. This is detected
+and turned into a zero-row result rather than a spurious record, while a
+genuine record that also carries a per-entry `error` annotation is kept.
 
 ## Examples
 
@@ -62,10 +78,10 @@ raw <- list(entry = list(
   )
 ))
 scopus_records(raw, query = "TITLE(example)")
-#> <scopus_records> (1 record)
-#> # A tibble: 1 × 10
+#> <scopus_records> 1 record
+#> query: "TITLE(example)"
+#> # A tibble: 1 × 9
 #>   entry_number scopus_id doi     title authors  year date  publication citations
 #>          <int> <chr>     <chr>   <chr> <chr>   <int> <chr> <chr>           <int>
 #> 1            1 1         10.100… An e… Doe J.   2020 2020… Journal of…         7
-#> # ℹ 1 more variable: query <chr>
 ```

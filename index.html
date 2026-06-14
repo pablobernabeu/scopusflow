@@ -6,6 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>A Reproducible Workflow Layer for Scopus Bibliographic Searches • scopusflow</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" sizes="any" href="favicon.ico">
+<link rel="manifest" href="site.webmanifest">
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -13,6 +18,8 @@
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="A Reproducible Workflow Layer for Scopus Bibliographic Searches">
 <meta name="description" content="A coherent, quota-aware workflow layer over the Elsevier Scopus Search API &lt;https://dev.elsevier.com/sc_apis.html&gt;. It builds reproducible search plans, retrieves records with rate-limit handling, retry with back-off and optional resumable caching, normalises results to a stable tidy schema, extracts and tracks changes in Digital Object Identifiers (DOIs), compares publication trends across topics and exports to formats compatible with downstream bibliometric tools. Network and API errors are surfaced as typed conditions so that callers can respond to them programmatically. Scopus is a trademark of Elsevier. This package is an independent client and is not affiliated with or endorsed by Elsevier.">
 <meta property="og:description" content="A coherent, quota-aware workflow layer over the Elsevier Scopus Search API &lt;https://dev.elsevier.com/sc_apis.html&gt;. It builds reproducible search plans, retrieves records with rate-limit handling, retry with back-off and optional resumable caching, normalises results to a stable tidy schema, extracts and tracks changes in Digital Object Identifiers (DOIs), compares publication trends across topics and exports to formats compatible with downstream bibliometric tools. Network and API errors are surfaced as typed conditions so that callers can respond to them programmatically. Scopus is a trademark of Elsevier. This package is an independent client and is not affiliated with or endorsed by Elsevier.">
+<meta property="og:image" content="https://pablobernabeu.github.io/scopusflow/reference/figures/logo.png">
+<meta property="og:image:alt" content="scopusflow: a reproducible workflow layer for Scopus searches">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -33,6 +40,13 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="articles/scopusflow.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="articles/comparing-topics.html">Comparing topics over time</a></li>
+    <li><a class="dropdown-item" href="articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
+  </ul>
+</li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -48,11 +62,14 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="scopusflow">scopusflow<a class="anchor" aria-label="anchor" href="#scopusflow"></a>
-</h1></div>
+<div class="page-header">
+<img src="logo.png" class="logo" alt=""><h1 id="scopusflow-">scopusflow <a class="anchor" aria-label="anchor" href="#scopusflow-"></a>
+</h1>
+</div>
 <!-- badges: start -->
 
 <p>scopusflow is a reproducible, quota-aware workflow layer over the Elsevier <a href="https://dev.elsevier.com/sc_apis.html" class="external-link">Scopus</a> Search API. It turns one-off bibliographic queries into inspectable plans, retrieves records safely with pagination, rate-limit handling, retry with back-off and optional resumable caching, normalises them to a stable tidy schema, tracks changes in DOI sets over time and compares publication trends across topics.</p>
+<p><img src="reference/figures/README-readme-hero-1.png" alt="A line chart of three research topics' share of a reference literature rising and falling between 2014 and 2021" width="100%"></p>
 <blockquote>
 <p>Scopus is a trademark of Elsevier. scopusflow is an independent client and is not affiliated with or endorsed by Elsevier. You will need your own Elsevier API key and should use it under Elsevier’s API terms.</p>
 </blockquote>
@@ -94,13 +111,13 @@
 <span></span>
 <span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scopus_records.html">scopus_records</a></span><span class="op">(</span><span class="va">raw</span>, query <span class="op">=</span> <span class="st">"TITLE-ABS-KEY(workflow)"</span><span class="op">)</span></span>
 <span><span class="va">records</span></span>
-<span><span class="co">#&gt; &lt;scopus_records&gt; (2 records)</span></span>
-<span><span class="co">#&gt; # A tibble: 2 × 10</span></span>
+<span><span class="co">#&gt; &lt;scopus_records&gt; 2 records</span></span>
+<span><span class="co">#&gt; query: "TITLE-ABS-KEY(workflow)"</span></span>
+<span><span class="co">#&gt; # A tibble: 2 × 9</span></span>
 <span><span class="co">#&gt;   entry_number scopus_id doi     title authors  year date  publication citations</span></span>
 <span><span class="co">#&gt;          &lt;int&gt; &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt;   &lt;int&gt; &lt;chr&gt; &lt;chr&gt;           &lt;int&gt;</span></span>
 <span><span class="co">#&gt; 1            1 1         10.100… A re… Smith …  2020 2020… J. Bibliom…        12</span></span>
 <span><span class="co">#&gt; 2            2 2         10.100… Quot… Doe A.   2021 2021… Scientomet…         3</span></span>
-<span><span class="co">#&gt; # ℹ 1 more variable: query &lt;chr&gt;</span></span>
 <span></span>
 <span><span class="co"># Extract and deduplicate DOIs.</span></span>
 <span><span class="fu"><a href="reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span>
@@ -108,9 +125,10 @@
 <span></span>
 <span><span class="co"># Track what changed since a previous retrieval.</span></span>
 <span><span class="fu"><a href="reference/scopus_diff_dois.html">scopus_diff_dois</a></span><span class="op">(</span>old <span class="op">=</span> <span class="st">"10.1000/aaa"</span>, new <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"10.1000/aaa"</span>, <span class="st">"10.1000/bbb"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; &lt;scopus_doi_diff&gt; 1 added, 0 removed, 1 unchanged</span></span>
 <span><span class="co">#&gt; # A tibble: 2 × 2</span></span>
 <span><span class="co">#&gt;   doi         status   </span></span>
-<span><span class="co">#&gt;   &lt;chr&gt;       &lt;chr&gt;    </span></span>
+<span><span class="co">#&gt;   &lt;chr&gt;       &lt;fct&gt;    </span></span>
 <span><span class="co">#&gt; 1 10.1000/bbb added    </span></span>
 <span><span class="co">#&gt; 2 10.1000/aaa unchanged</span></span>
 <span></span>

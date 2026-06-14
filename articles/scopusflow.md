@@ -70,14 +70,14 @@ set, which we use here to continue offline:
 
 records <- example_records
 records
-#> <scopus_records> (3 records)
-#> # A tibble: 3 × 10
+#> <scopus_records> 3 records
+#> query: "TITLE-ABS-KEY(bibliometric)"
+#> # A tibble: 3 × 9
 #>   entry_number scopus_id   doi   title authors  year date  publication citations
 #>          <int> <chr>       <chr> <chr> <chr>   <int> <chr> <chr>           <int>
 #> 1            1 85000000001 10.1… A re… Smith …  2019 2019… Journal of…        12
 #> 2            2 85000000002 10.1… Quot… Doe A.   2020 2020… Scientomet…         5
 #> 3            3 85000000003 10.1… Trac… Lee K.   2021 2021… Journal of…         0
-#> # ℹ 1 more variable: query <chr>
 ```
 
 [`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
@@ -98,9 +98,10 @@ dois
 # Suppose a later retrieval added one DOI and dropped another.
 later <- c(dois[-1], "10.1000/example.999")
 scopus_diff_dois(old = dois, new = later)
+#> <scopus_doi_diff> 1 added, 1 removed, 2 unchanged
 #> # A tibble: 4 × 2
 #>   doi                 status   
-#>   <chr>               <chr>    
+#>   <chr>               <fct>    
 #> 1 10.1000/example.999 added    
 #> 2 10.1000/example.001 removed  
 #> 3 10.1000/example.002 unchanged

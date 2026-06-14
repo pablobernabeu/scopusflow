@@ -116,6 +116,50 @@ is still respected, and the remaining quota is surfaced through
 [`scopus_quota()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_quota.md)
 so that a caller can pace itself.
 
+## Visualisation
+
+[`plot_scopus_comparison()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_comparison.md)
+is deliberately built from ggplot2 alone, using only features ggplot2
+already bundles: a viridis discrete scale, which is colour-blind-safe,
+and integer year breaks computed from the data so the axis never shows
+half-years. For a handful of topics the lines are labelled directly,
+which removes the colour-matching round-trip a legend imposes, and a
+`highlight` argument greys all but one topic when a figure needs a
+single focus. The dependencies ggrepel, directlabels and scales were
+considered for labelling and formatting and rejected, since the same
+results are reachable within ggplot2 and the package keeps its imports
+small. An exported theme helper was also rejected: with one plotting
+function it would add surface for no reuse, so the theme stays inline.
+
+## API additions and rejected options
+
+[`scopus_combine()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md)
+(with a [`c()`](https://rdrr.io/r/base/c.html) method) fills a real gap,
+since plain [`rbind()`](https://rdrr.io/r/base/cbind.html) leaves
+duplicate entry numbers; it renumbers and optionally de-duplicates by
+identifier or DOI.
+[`scopus_query()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_query.md)
+composes field-tagged boolean queries so the brackets and tags are
+correct by construction. `as_tibble()` and
+[`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html) methods
+make the class easy to shed. Two tempting ideas were rejected: aliasing
+the exports to a single `scopus_*` prefix (needless churn for
+established names), and warning when a field tag is not one of the
+common ones (Scopus has many valid tags beyond the common dozen, so the
+warning would fire on legitimate input).
+
+## Robustness
+
+Responses are parsed with `simplifyVector = FALSE`, so an array-valued
+field such as several authors under `dc:creator` arrives as a list;
+`scopus_field()` collapses it to a semicolon-separated string rather
+than silently keeping the first element. The empty-result sentinel is
+recognised only when an entry carries an `error` field *and* no
+identifier, so a real record with a per-entry error annotation is not
+dropped. Totals are carried as doubles, since broad queries can report
+billions of matches that would overflow a 32-bit integer to `NA` and
+suppress the cap warning.
+
 ## Naming
 
 The chosen name, `scopusflow`, is a valid package name with no
