@@ -90,7 +90,7 @@ for cached, resumable, partitioned retrieval.
 
 ``` r
 if (FALSE) { # scopusflow::scopus_has_key()
-recs <- scopus_fetch("TITLE-ABS-KEY(bibliometric)", max_results = 50)
+recs <- scopus_fetch("graphene", field = "TITLE-ABS-KEY", max_results = 50)
 recs
 }
 ```

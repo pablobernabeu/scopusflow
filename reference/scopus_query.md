@@ -44,8 +44,10 @@ or the `query` of
 ## Examples
 
 ``` r
-scopus_query("language learning", "effect size", .field = "TITLE-ABS-KEY")
-#> [1] "TITLE-ABS-KEY(language learning) AND TITLE-ABS-KEY(effect size)"
-scopus_query("CRISPR", "Cas9", .op = "OR")
-#> [1] "CRISPR OR Cas9"
+scopus_query("climate change", "adaptation", .field = "TITLE-ABS-KEY")
+#> [1] "TITLE-ABS-KEY(climate change) AND TITLE-ABS-KEY(adaptation)"
+scopus_query("graphene", "supercapacitor", .op = "AND")
+#> [1] "graphene AND supercapacitor"
+scopus_query("CRISPR", "Cas9", "Cas12", .op = "OR")
+#> [1] "CRISPR OR Cas9 OR Cas12"
 ```

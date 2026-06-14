@@ -23,8 +23,11 @@ ceiling, rate-limit handling and retry with back-off are all managed for you."><
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/comparing-topics.html">Comparing topics over time</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
+    <li><a class="dropdown-item" href="../articles/comparing-topics.html">Comparing topics over time</a></li>
+    <li><a class="dropdown-item" href="../articles/designing-queries.html">Designing precise queries across disciplines</a></li>
     <li><a class="dropdown-item" href="../articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
+    <li><a class="dropdown-item" href="../articles/tracking-literature-change.html">Tracking how a literature changes between retrievals</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -128,7 +131,7 @@ parsed quota are attached as the <code>total_results</code> and <code>quota</cod
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># scopusflow::scopus_has_key()</span></span></span>
-<span class="r-in"><span><span class="va">recs</span> <span class="op">&lt;-</span> <span class="fu">scopus_fetch</span><span class="op">(</span><span class="st">"TITLE-ABS-KEY(bibliometric)"</span>, max_results <span class="op">=</span> <span class="fl">50</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">recs</span> <span class="op">&lt;-</span> <span class="fu">scopus_fetch</span><span class="op">(</span><span class="st">"graphene"</span>, field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span>, max_results <span class="op">=</span> <span class="fl">50</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">recs</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>

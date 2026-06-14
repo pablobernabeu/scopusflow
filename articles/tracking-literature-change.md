@@ -1,0 +1,130 @@
+# Tracking how a literature changes between retrievals
+
+``` r
+
+library(scopusflow)
+```
+
+A literature is a moving target. Run the same search a few months apart
+and the result will have grown, and perhaps lost a record that was
+re-indexed. This article shows how to see exactly what changed and how
+to merge retrievals safely. It runs offline: the baseline is the bundled
+`example_records`, and the later retrieval is built from a synthetic
+entry list of the same shape the API returns.
+
+## The baseline
+
+``` r
+
+baseline <- example_records
+nrow(baseline)
+#> [1] 6
+```
+
+## A later retrieval
+
+Months on, the search is repeated. Here we mimic that second pull: it
+keeps most of the original records, drops one that was re-indexed and
+adds two new papers.
+
+``` r
+
+later_raw <- list(entry = list(
+  # carried over from the baseline
+  list(`dc:identifier` = "SCOPUS_ID:85000000001", `prism:doi` = "10.1038/s41586-019-0001-1",
+       `dc:title` = "Genome editing with CRISPR-Cas9: principles and applications",
+       `prism:coverDate` = "2019-04-12"),
+  list(`dc:identifier` = "SCOPUS_ID:85000000002", `prism:doi` = "10.1038/s41586-020-0002-2",
+       `dc:title` = "Deep learning for medical image analysis: a review",
+       `prism:coverDate` = "2020-02-20"),
+  list(`dc:identifier` = "SCOPUS_ID:85000000006", `prism:doi` = "10.1103/PhysRevLett.116.061102",
+       `dc:title` = "Observation of gravitational waves from a binary black hole merger",
+       `prism:coverDate` = "2016-02-11"),
+  # newly indexed since the baseline
+  list(`dc:identifier` = "SCOPUS_ID:85000000007", `prism:doi` = "10.1126/science.abc1234",
+       `dc:title` = "A room-temperature superconductor candidate",
+       `prism:coverDate` = "2023-03-08"),
+  list(`dc:identifier` = "SCOPUS_ID:85000000008", `prism:doi` = "10.1038/s41586-023-0008-8",
+       `dc:title` = "Large language models for scientific discovery",
+       `prism:coverDate` = "2023-06-01")
+))
+later <- scopus_records(later_raw, query = "illustrative later retrieval")
+nrow(later)
+#> [1] 5
+```
+
+## What changed
+
+[`scopus_diff_dois()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_diff_dois.md)
+reports which DOIs were added, removed or unchanged between the two
+retrievals, and prints the counts in each category.
+
+``` r
+
+changes <- scopus_diff_dois(old = baseline, new = later)
+changes
+#> <scopus_doi_diff> 2 added, 3 removed, 3 unchanged
+#> # A tibble: 8 × 2
+#>   doi                            status   
+#>   <chr>                          <fct>    
+#> 1 10.1038/s41586-023-0008-8      added    
+#> 2 10.1126/science.abc1234        added    
+#> 3 10.1002/adma.202100001         removed  
+#> 4 10.1016/S1470-2045(20)30013-9  removed  
+#> 5 10.1038/s41558-018-0085-1      removed  
+#> 6 10.1038/s41586-019-0001-1      unchanged
+#> 7 10.1038/s41586-020-0002-2      unchanged
+#> 8 10.1103/PhysRevLett.116.061102 unchanged
+```
+
+The newly indexed papers come back as `added`, the records present both
+times as `unchanged`, and anything dropped from the later pull as
+`removed`. To act on one category, filter the table.
+
+``` r
+
+changes[changes$status == "added", ]
+#> <scopus_doi_diff> 2 added, 0 removed, 0 unchanged
+#> # A tibble: 2 × 2
+#>   doi                       status
+#>   <chr>                     <fct> 
+#> 1 10.1038/s41586-023-0008-8 added 
+#> 2 10.1126/science.abc1234   added
+```
+
+## Merging without duplicates
+
+To keep a cumulative set across retrievals, combine them.
+[`scopus_combine()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md)
+renumbers the records and, with `dedupe = TRUE`, keeps each one once by
+‘Scopus’ identifier or DOI, so the records the two pulls share are not
+doubled.
+
+``` r
+
+combined <- scopus_combine(baseline, later, dedupe = TRUE)
+nrow(combined)
+#> [1] 8
+```
+
+## Keeping a record of each pull
+
+Saving each retrieval lets you compare against it next time. The `.rds`
+form round-trips exactly.
+
+``` r
+
+path <- file.path(tempdir(), "baseline.rds")
+write_scopus_records(baseline, path)
+identical(read_scopus_records(path), baseline)
+#> [1] TRUE
+```
+
+In a live setting the later retrieval would come from the API rather
+than a synthetic list, with everything else unchanged.
+
+``` r
+
+later <- scopus_fetch("TITLE-ABS-KEY(CRISPR)", field = "TITLE-ABS-KEY")
+scopus_diff_dois(old = read_scopus_records(path), new = later)
+```

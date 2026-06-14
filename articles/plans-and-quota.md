@@ -138,14 +138,17 @@ for a single query and by the bundled `example_records`.
 ``` r
 
 example_records
-#> <scopus_records> 3 records
-#> query: "TITLE-ABS-KEY(bibliometric)"
-#> # A tibble: 3 × 9
+#> <scopus_records> 6 records
+#> query: "illustrative multi-disciplinary sample"
+#> # A tibble: 6 × 9
 #>   entry_number scopus_id   doi   title authors  year date  publication citations
 #>          <int> <chr>       <chr> <chr> <chr>   <int> <chr> <chr>           <int>
-#> 1            1 85000000001 10.1… A re… Smith …  2019 2019… Journal of…        12
-#> 2            2 85000000002 10.1… Quot… Doe A.   2020 2020… Scientomet…         5
-#> 3            3 85000000003 10.1… Trac… Lee K.   2021 2021… Journal of…         0
+#> 1            1 85000000001 10.1… Geno… Zhang …  2019 2019… Nature            540
+#> 2            2 85000000002 10.1… Deep… Kumar …  2020 2020… Nature            210
+#> 3            3 85000000003 10.1… Clim… Okafor…  2018 2018… Nature Cli…       122
+#> 4            4 85000000004 10.1… Grap… Tanaka…  2021 2021… Advanced M…        45
+#> 5            5 85000000005 10.1… Chec… Garcia…  2020 2020… The Lancet…       388
+#> 6            6 85000000006 10.1… Obse… Abbott…  2016 2016… Physical R…      4200
 ```
 
 ## Combining separate retrievals
@@ -160,14 +163,17 @@ duplicate entry numbers.
 ``` r
 
 scopus_combine(example_records, example_records, dedupe = TRUE)
-#> <scopus_records> 3 records
-#> query: "TITLE-ABS-KEY(bibliometric)"
-#> # A tibble: 3 × 9
+#> <scopus_records> 6 records
+#> query: "illustrative multi-disciplinary sample"
+#> # A tibble: 6 × 9
 #>   entry_number scopus_id   doi   title authors  year date  publication citations
 #>          <int> <chr>       <chr> <chr> <chr>   <int> <chr> <chr>           <int>
-#> 1            1 85000000001 10.1… A re… Smith …  2019 2019… Journal of…        12
-#> 2            2 85000000002 10.1… Quot… Doe A.   2020 2020… Scientomet…         5
-#> 3            3 85000000003 10.1… Trac… Lee K.   2021 2021… Journal of…         0
+#> 1            1 85000000001 10.1… Geno… Zhang …  2019 2019… Nature            540
+#> 2            2 85000000002 10.1… Deep… Kumar …  2020 2020… Nature            210
+#> 3            3 85000000003 10.1… Clim… Okafor…  2018 2018… Nature Cli…       122
+#> 4            4 85000000004 10.1… Grap… Tanaka…  2021 2021… Advanced M…        45
+#> 5            5 85000000005 10.1… Chec… Garcia…  2020 2020… The Lancet…       388
+#> 6            6 85000000006 10.1… Obse… Abbott…  2016 2016… Physical R…      4200
 ```
 
 ## When the ceiling bites

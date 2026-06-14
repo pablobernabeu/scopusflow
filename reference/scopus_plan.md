@@ -89,26 +89,26 @@ to size it.
 ## Examples
 
 ``` r
-scopus_plan("language learning", years = 2018:2020, field = "TITLE-ABS-KEY")
+scopus_plan("quantum computing", years = 2015:2022, field = "TITLE-ABS-KEY")
 #> <scopus_plan> (1 cell, view "STANDARD", partition "none")
 #> # A tibble: 1 × 6
 #>    cell query                            date       year view     page_size
 #> * <int> <chr>                            <chr>     <int> <chr>        <int>
-#> 1     1 TITLE-ABS-KEY(language learning) 2018-2020    NA STANDARD       200
-scopus_plan("machine translation", years = 2010:2020, partition = "year")
+#> 1     1 TITLE-ABS-KEY(quantum computing) 2015-2022    NA STANDARD       200
+scopus_plan("immunotherapy", years = 2010:2020, partition = "year")
 #> <scopus_plan> (11 cells, view "STANDARD", partition "year")
 #> # A tibble: 11 × 6
-#>     cell query               date   year view     page_size
-#>  * <int> <chr>               <chr> <int> <chr>        <int>
-#>  1     1 machine translation 2010   2010 STANDARD       200
-#>  2     2 machine translation 2011   2011 STANDARD       200
-#>  3     3 machine translation 2012   2012 STANDARD       200
-#>  4     4 machine translation 2013   2013 STANDARD       200
-#>  5     5 machine translation 2014   2014 STANDARD       200
-#>  6     6 machine translation 2015   2015 STANDARD       200
-#>  7     7 machine translation 2016   2016 STANDARD       200
-#>  8     8 machine translation 2017   2017 STANDARD       200
-#>  9     9 machine translation 2018   2018 STANDARD       200
-#> 10    10 machine translation 2019   2019 STANDARD       200
-#> 11    11 machine translation 2020   2020 STANDARD       200
+#>     cell query         date   year view     page_size
+#>  * <int> <chr>         <chr> <int> <chr>        <int>
+#>  1     1 immunotherapy 2010   2010 STANDARD       200
+#>  2     2 immunotherapy 2011   2011 STANDARD       200
+#>  3     3 immunotherapy 2012   2012 STANDARD       200
+#>  4     4 immunotherapy 2013   2013 STANDARD       200
+#>  5     5 immunotherapy 2014   2014 STANDARD       200
+#>  6     6 immunotherapy 2015   2015 STANDARD       200
+#>  7     7 immunotherapy 2016   2016 STANDARD       200
+#>  8     8 immunotherapy 2017   2017 STANDARD       200
+#>  9     9 immunotherapy 2018   2018 STANDARD       200
+#> 10    10 immunotherapy 2019   2019 STANDARD       200
+#> 11    11 immunotherapy 2020   2020 STANDARD       200
 ```

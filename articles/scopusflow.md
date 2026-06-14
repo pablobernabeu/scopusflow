@@ -70,14 +70,17 @@ set, which we use here to continue offline:
 
 records <- example_records
 records
-#> <scopus_records> 3 records
-#> query: "TITLE-ABS-KEY(bibliometric)"
-#> # A tibble: 3 × 9
+#> <scopus_records> 6 records
+#> query: "illustrative multi-disciplinary sample"
+#> # A tibble: 6 × 9
 #>   entry_number scopus_id   doi   title authors  year date  publication citations
 #>          <int> <chr>       <chr> <chr> <chr>   <int> <chr> <chr>           <int>
-#> 1            1 85000000001 10.1… A re… Smith …  2019 2019… Journal of…        12
-#> 2            2 85000000002 10.1… Quot… Doe A.   2020 2020… Scientomet…         5
-#> 3            3 85000000003 10.1… Trac… Lee K.   2021 2021… Journal of…         0
+#> 1            1 85000000001 10.1… Geno… Zhang …  2019 2019… Nature            540
+#> 2            2 85000000002 10.1… Deep… Kumar …  2020 2020… Nature            210
+#> 3            3 85000000003 10.1… Clim… Okafor…  2018 2018… Nature Cli…       122
+#> 4            4 85000000004 10.1… Grap… Tanaka…  2021 2021… Advanced M…        45
+#> 5            5 85000000005 10.1… Chec… Garcia…  2020 2020… The Lancet…       388
+#> 6            6 85000000006 10.1… Obse… Abbott…  2016 2016… Physical R…      4200
 ```
 
 [`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
@@ -93,19 +96,24 @@ manager, and compare two retrievals to see exactly what changed:
 
 dois <- scopus_extract_dois(records)
 dois
-#> [1] "10.1000/example.001" "10.1000/example.002" "10.1000/example.003"
+#> [1] "10.1038/s41586-019-0001-1"      "10.1038/s41586-020-0002-2"     
+#> [3] "10.1038/s41558-018-0085-1"      "10.1002/adma.202100001"        
+#> [5] "10.1016/S1470-2045(20)30013-9"  "10.1103/PhysRevLett.116.061102"
 
 # Suppose a later retrieval added one DOI and dropped another.
 later <- c(dois[-1], "10.1000/example.999")
 scopus_diff_dois(old = dois, new = later)
-#> <scopus_doi_diff> 1 added, 1 removed, 2 unchanged
-#> # A tibble: 4 × 2
-#>   doi                 status   
-#>   <chr>               <fct>    
-#> 1 10.1000/example.999 added    
-#> 2 10.1000/example.001 removed  
-#> 3 10.1000/example.002 unchanged
-#> 4 10.1000/example.003 unchanged
+#> <scopus_doi_diff> 1 added, 1 removed, 5 unchanged
+#> # A tibble: 7 × 2
+#>   doi                            status   
+#>   <chr>                          <fct>    
+#> 1 10.1000/example.999            added    
+#> 2 10.1038/s41586-019-0001-1      removed  
+#> 3 10.1002/adma.202100001         unchanged
+#> 4 10.1016/S1470-2045(20)30013-9  unchanged
+#> 5 10.1038/s41558-018-0085-1      unchanged
+#> 6 10.1038/s41586-020-0002-2      unchanged
+#> 7 10.1103/PhysRevLett.116.061102 unchanged
 ```
 
 You can write the DOIs to a path you specify:
@@ -115,8 +123,10 @@ You can write the DOIs to a path you specify:
 out <- file.path(tempdir(), "dois.csv")
 scopus_extract_dois(records, file = out)
 readLines(out)
-#> [1] "\"doi\""                 "\"10.1000/example.001\""
-#> [3] "\"10.1000/example.002\"" "\"10.1000/example.003\""
+#> [1] "\"doi\""                            "\"10.1038/s41586-019-0001-1\""     
+#> [3] "\"10.1038/s41586-020-0002-2\""      "\"10.1038/s41558-018-0085-1\""     
+#> [5] "\"10.1002/adma.202100001\""         "\"10.1016/S1470-2045(20)30013-9\"" 
+#> [7] "\"10.1103/PhysRevLett.116.061102\""
 ```
 
 ## Comparing topic trends
@@ -193,14 +203,27 @@ Hand results to `bibliometrix`-style workflows, or save and reload them:
 ``` r
 
 head(as_bibliometrix(records))
-#>         AU                                                 TI
-#> 1 SMITH J. A REPRODUCIBLE WORKFLOW FOR BIBLIOMETRIC RETRIEVAL
-#> 2   DOE A.        QUOTA-AWARE QUERYING OF SCHOLARLY DATABASES
-#> 3   LEE K.             TRACKING CHANGES IN DOI SETS OVER TIME
-#>                         SO                  DI   PY TC          UT     DB
-#> 1 JOURNAL OF BIBLIOMETRICS 10.1000/example.001 2019 12 85000000001 SCOPUS
-#> 2     SCIENTOMETRICS TODAY 10.1000/example.002 2020  5 85000000002 SCOPUS
-#> 3 JOURNAL OF BIBLIOMETRICS 10.1000/example.003 2021  0 85000000003 SCOPUS
+#>          AU                                                                 TI
+#> 1  ZHANG F.       GENOME EDITING WITH CRISPR-CAS9: PRINCIPLES AND APPLICATIONS
+#> 2  KUMAR S.                 DEEP LEARNING FOR MEDICAL IMAGE ANALYSIS: A REVIEW
+#> 3 OKAFOR N.                    CLIMATE CHANGE ADAPTATION IN COASTAL MEGACITIES
+#> 4 TANAKA H.             GRAPHENE ELECTRODES FOR NEXT-GENERATION ENERGY STORAGE
+#> 5 GARCIA M.                      CHECKPOINT INHIBITORS IN CANCER IMMUNOTHERAPY
+#> 6 ABBOTT B. OBSERVATION OF GRAVITATIONAL WAVES FROM A BINARY BLACK HOLE MERGER
+#>                        SO                             DI   PY   TC          UT
+#> 1                  NATURE      10.1038/s41586-019-0001-1 2019  540 85000000001
+#> 2                  NATURE      10.1038/s41586-020-0002-2 2020  210 85000000002
+#> 3   NATURE CLIMATE CHANGE      10.1038/s41558-018-0085-1 2018  122 85000000003
+#> 4      ADVANCED MATERIALS         10.1002/adma.202100001 2021   45 85000000004
+#> 5     THE LANCET ONCOLOGY  10.1016/S1470-2045(20)30013-9 2020  388 85000000005
+#> 6 PHYSICAL REVIEW LETTERS 10.1103/PhysRevLett.116.061102 2016 4200 85000000006
+#>       DB
+#> 1 SCOPUS
+#> 2 SCOPUS
+#> 3 SCOPUS
+#> 4 SCOPUS
+#> 5 SCOPUS
+#> 6 SCOPUS
 
 path <- file.path(tempdir(), "records.rds")
 write_scopus_records(records, path)

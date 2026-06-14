@@ -19,8 +19,11 @@
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/comparing-topics.html">Comparing topics over time</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
+    <li><a class="dropdown-item" href="../articles/comparing-topics.html">Comparing topics over time</a></li>
+    <li><a class="dropdown-item" href="../articles/designing-queries.html">Designing precise queries across disciplines</a></li>
     <li><a class="dropdown-item" href="../articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
+    <li><a class="dropdown-item" href="../articles/tracking-literature-change.html">Tracking how a literature changes between retrievals</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -49,7 +52,8 @@
 <li>A reference to the common ‘Scopus’ field tags in [<code><a href="../reference/scopus_field_tags.html">scopus_field_tags()</a></code>], a safe query composer in [<code><a href="../reference/scopus_query.html">scopus_query()</a></code>], and a bundled [<code>example_records</code>] dataset for offline exploration.</li>
 <li>Safe merging of record sets with [<code><a href="../reference/scopus_combine.html">scopus_combine()</a></code>] (and a <code><a href="https://rdrr.io/r/base/c.html" class="external-link">c()</a></code> method), plus <code>as_tibble()</code> and <code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> coercion.</li>
 <li>A typed condition system (<code>scopus_error</code> and its subclasses) and quota-header parsing with [<code><a href="../reference/scopus_quota.html">scopus_quota()</a></code>].</li>
-<li>The comparison plot uses whole-number year breaks, a colour-blind-safe palette, direct line labels and an optional <code>highlight</code> argument.</li>
+<li>The comparison plot uses whole-number year breaks, a colour-blind-safe palette, direct line labels, an optional <code>highlight</code> argument and a shaded Wilson stability band (an illustrative range, switchable with <code>interval</code>).</li>
+<li>The bundled <code>example_records</code> spans several disciplines, and the examples and five workflow vignettes draw on a wide range of fields.</li>
 <li>Multiple authors are retained in the <code>authors</code> column rather than truncated to the first; very large result totals are handled without overflow; and DOI cleaning copes with <code>www.doi.org</code> hosts and <code>DOI:</code> labels.</li>
 </ul></div>
   </main></div>

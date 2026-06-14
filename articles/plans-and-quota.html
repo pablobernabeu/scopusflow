@@ -39,8 +39,11 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/comparing-topics.html">Comparing topics over time</a></li>
+<li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
+    <li><a class="dropdown-item" href="../articles/comparing-topics.html">Comparing topics over time</a></li>
+    <li><a class="dropdown-item" href="../articles/designing-queries.html">Designing precise queries across disciplines</a></li>
     <li><a class="dropdown-item" href="../articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
+    <li><a class="dropdown-item" href="../articles/tracking-literature-change.html">Tracking how a literature changes between retrievals</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -185,14 +188,17 @@ returned by <code><a href="../reference/scopus_fetch.html">scopus_fetch()</a></c
 bundled <code>example_records</code>.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">example_records</span></span>
-<span><span class="co">#&gt; &lt;scopus_records&gt; 3 records</span></span>
-<span><span class="co">#&gt; query: <span style="color: #0000BB;">"TITLE-ABS-KEY(bibliometric)"</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 9</span></span></span>
+<span><span class="co">#&gt; &lt;scopus_records&gt; 6 records</span></span>
+<span><span class="co">#&gt; query: <span style="color: #0000BB;">"illustrative multi-disciplinary sample"</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 9</span></span></span>
 <span><span class="co">#&gt;   entry_number scopus_id   doi   title authors  year date  publication citations</span></span>
 <span><span class="co">#&gt;          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>            1 85000000001 10.1… A re… Smith …  <span style="text-decoration: underline;">2</span>019 2019… Journal of…        12</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>            2 85000000002 10.1… Quot… Doe A.   <span style="text-decoration: underline;">2</span>020 2020… Scientomet…         5</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>            3 85000000003 10.1… Trac… Lee K.   <span style="text-decoration: underline;">2</span>021 2021… Journal of…         0</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>            1 85000000001 10.1… Geno… Zhang …  <span style="text-decoration: underline;">2</span>019 2019… Nature            540</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>            2 85000000002 10.1… Deep… Kumar …  <span style="text-decoration: underline;">2</span>020 2020… Nature            210</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>            3 85000000003 10.1… Clim… Okafor…  <span style="text-decoration: underline;">2</span>018 2018… Nature Cli…       122</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>            4 85000000004 10.1… Grap… Tanaka…  <span style="text-decoration: underline;">2</span>021 2021… Advanced M…        45</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>            5 85000000005 10.1… Chec… Garcia…  <span style="text-decoration: underline;">2</span>020 2020… The Lancet…       388</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>            6 85000000006 10.1… Obse… Abbott…  <span style="text-decoration: underline;">2</span>016 2016… Physical R…      <span style="text-decoration: underline;">4</span>200</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="combining-separate-retrievals">Combining separate retrievals<a class="anchor" aria-label="anchor" href="#combining-separate-retrievals"></a>
@@ -203,14 +209,17 @@ duplicates by Scopus identifier or DOI. This is preferable to
 <code><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind()</a></code>, which would leave duplicate entry numbers.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_combine.html">scopus_combine</a></span><span class="op">(</span><span class="va">example_records</span>, <span class="va">example_records</span>, dedupe <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; &lt;scopus_records&gt; 3 records</span></span>
-<span><span class="co">#&gt; query: <span style="color: #0000BB;">"TITLE-ABS-KEY(bibliometric)"</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 9</span></span></span>
+<span><span class="co">#&gt; &lt;scopus_records&gt; 6 records</span></span>
+<span><span class="co">#&gt; query: <span style="color: #0000BB;">"illustrative multi-disciplinary sample"</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 9</span></span></span>
 <span><span class="co">#&gt;   entry_number scopus_id   doi   title authors  year date  publication citations</span></span>
 <span><span class="co">#&gt;          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>            1 85000000001 10.1… A re… Smith …  <span style="text-decoration: underline;">2</span>019 2019… Journal of…        12</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>            2 85000000002 10.1… Quot… Doe A.   <span style="text-decoration: underline;">2</span>020 2020… Scientomet…         5</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>            3 85000000003 10.1… Trac… Lee K.   <span style="text-decoration: underline;">2</span>021 2021… Journal of…         0</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>            1 85000000001 10.1… Geno… Zhang …  <span style="text-decoration: underline;">2</span>019 2019… Nature            540</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>            2 85000000002 10.1… Deep… Kumar …  <span style="text-decoration: underline;">2</span>020 2020… Nature            210</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>            3 85000000003 10.1… Clim… Okafor…  <span style="text-decoration: underline;">2</span>018 2018… Nature Cli…       122</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>            4 85000000004 10.1… Grap… Tanaka…  <span style="text-decoration: underline;">2</span>021 2021… Advanced M…        45</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>            5 85000000005 10.1… Chec… Garcia…  <span style="text-decoration: underline;">2</span>020 2020… The Lancet…       388</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>            6 85000000006 10.1… Obse… Abbott…  <span style="text-decoration: underline;">2</span>016 2016… Physical R…      <span style="text-decoration: underline;">4</span>200</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="when-the-ceiling-bites">When the ceiling bites<a class="anchor" aria-label="anchor" href="#when-the-ceiling-bites"></a>

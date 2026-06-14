@@ -43,8 +43,11 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="articles/comparing-topics.html">Comparing topics over time</a></li>
+<li><a class="dropdown-item" href="articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
+    <li><a class="dropdown-item" href="articles/comparing-topics.html">Comparing topics over time</a></li>
+    <li><a class="dropdown-item" href="articles/designing-queries.html">Designing precise queries across disciplines</a></li>
     <li><a class="dropdown-item" href="articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
+    <li><a class="dropdown-item" href="articles/tracking-literature-change.html">Tracking how a literature changes between retrievals</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
@@ -69,7 +72,7 @@
 <!-- badges: start -->
 
 <p>scopusflow is a reproducible, quota-aware workflow layer over the Elsevier <a href="https://dev.elsevier.com/sc_apis.html" class="external-link">Scopus</a> Search API. It turns one-off bibliographic queries into inspectable plans, retrieves records safely with pagination, rate-limit handling, retry with back-off and optional resumable caching, normalises them to a stable tidy schema, tracks changes in DOI sets over time and compares publication trends across topics.</p>
-<p><img src="reference/figures/README-readme-hero-1.png" alt="A line chart of three research topics' share of a reference literature rising and falling between 2014 and 2021" width="100%"></p>
+<p><img src="reference/figures/README-readme-hero-1.png" alt="A line chart showing how deep-learning research spread into computer vision, natural language processing, medical imaging and drug discovery between 2013 and 2021" width="100%"></p>
 <blockquote>
 <p>Scopus is a trademark of Elsevier. scopusflow is an independent client and is not affiliated with or endorsed by Elsevier. You will need your own Elsevier API key and should use it under Elsevier’s API terms.</p>
 </blockquote>
@@ -146,17 +149,13 @@
 </h2>
 <p>With a key configured, the same pieces compose into a real retrieval. These calls contact the API and consume quota, so they are not run here:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># 1. Build a reproducible plan, partitioned by year to stay under the</span></span>
-<span><span class="co">#    API's start &lt; 5000 ceiling.</span></span>
-<span><span class="va">plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span></span>
-<span>  <span class="st">"machine translation"</span>,</span>
-<span>  years     <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2020</span>,</span>
-<span>  field     <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span>,</span>
-<span>  partition <span class="op">=</span> <span class="st">"year"</span></span>
-<span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co"># 1. Compose a field-tagged query, then a reproducible plan partitioned by</span></span>
+<span><span class="co">#    year to stay under the API's start &lt; 5000 ceiling.</span></span>
+<span><span class="va">q</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"perovskite"</span>, <span class="st">"solar cell"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span>
+<span><span class="va">plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="va">q</span>, years <span class="op">=</span> <span class="fl">2012</span><span class="op">:</span><span class="fl">2022</span>, partition <span class="op">=</span> <span class="st">"year"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 2. Size it before spending quota.</span></span>
-<span><span class="fu"><a href="reference/scopus_count.html">scopus_count</a></span><span class="op">(</span><span class="st">"machine translation"</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2020</span>, field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/scopus_count.html">scopus_count</a></span><span class="op">(</span><span class="va">q</span>, years <span class="op">=</span> <span class="fl">2012</span><span class="op">:</span><span class="fl">2022</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 3. Execute, caching each year so an interrupted run can resume.</span></span>
 <span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scopus_fetch_plan.html">scopus_fetch_plan</a></span><span class="op">(</span><span class="va">plan</span>, cache_dir <span class="op">=</span> <span class="fu"><a href="reference/scopus_cache_dir.html">scopus_cache_dir</a></span><span class="op">(</span><span class="op">)</span>, resume <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -164,11 +163,11 @@
 <span><span class="co"># 4. Save the DOIs for import into a reference manager (e.g. Zotero).</span></span>
 <span><span class="fu"><a href="reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">records</span>, file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"dois.csv"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># 5. Compare sub-topics within a literature over time.</span></span>
+<span><span class="co"># 5. Compare how a method spreads across application areas over time.</span></span>
 <span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scopus_compare_topics.html">scopus_compare_topics</a></span><span class="op">(</span></span>
-<span>  reference_query  <span class="op">=</span> <span class="st">"language learning"</span>,</span>
-<span>  comparison_terms <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"effect size"</span>, <span class="st">"Bayesian"</span>, <span class="st">"meta-analysis"</span><span class="op">)</span>,</span>
-<span>  years            <span class="op">=</span> <span class="fl">2010</span><span class="op">:</span><span class="fl">2020</span>,</span>
+<span>  reference_query  <span class="op">=</span> <span class="st">"deep learning"</span>,</span>
+<span>  comparison_terms <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"computer vision"</span>, <span class="st">"drug discovery"</span>, <span class="st">"medical imaging"</span><span class="op">)</span>,</span>
+<span>  years            <span class="op">=</span> <span class="fl">2013</span><span class="op">:</span><span class="fl">2022</span>,</span>
 <span>  field            <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/plot_scopus_comparison.html">plot_scopus_comparison</a></span><span class="op">(</span><span class="va">cmp</span><span class="op">)</span></span></code></pre></div>

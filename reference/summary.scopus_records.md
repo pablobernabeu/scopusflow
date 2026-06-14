@@ -42,9 +42,9 @@ short readable report.
 ``` r
 summary(example_records)
 #> <scopus_records> summary
-#> 3 records, from 2019 to 2021.
-#> 2 sources, 3 with a DOI.
-#> Cited 17 times in total, median 5 per record.
-#> Most frequent source: Journal of Bibliometrics.
-#> Most cited: A reproducible workflow for bibliometric retrieval.
+#> 6 records, from 2016 to 2021.
+#> 5 sources, 6 with a DOI.
+#> Cited 5505 times in total, median 299 per record.
+#> Most frequent source: Nature.
+#> Most cited: Observation of gravitational waves from a binary black hole merger.
 ```
