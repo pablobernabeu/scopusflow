@@ -1,0 +1,164 @@
+# Scheduled "dependency canary": builds and checks the package against the
+# current and development versions of its dependencies, so that a breaking change
+# upstream (for example in httr2) is caught early. On failure it attempts an
+# automatic fix via the Claude Code action (only when an ANTHROPIC_API_KEY secret
+# is configured) and always flags the maintainer with a de-duplicated issue.
+on:
+  schedule:
+    - cron: "17 5 */2 * *" # every other day at 05:17 UTC
+  workflow_dispatch:
+
+name: dependency-check.yaml
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  actions: read
+
+jobs:
+  dependency-check:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+      # Evaluates to the string "true" only when the secret is configured; the
+      # secret value itself is never exposed.
+      HAS_ANTHROPIC: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git for the auto-fix step
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
+
+      - name: Install development versions of the key dependencies
+        continue-on-error: true
+        shell: Rscript {0}
+        run: |
+          pak::pak(c(
+            "r-lib/httr2", "r-lib/cli", "r-lib/rlang",
+            "tidyverse/tibble", "jeroen/jsonlite"
+          ), ask = FALSE)
+
+      - name: Record installed dependency versions
+        shell: Rscript {0}
+        run: |
+          deps <- c("httr2", "cli", "rlang", "tibble", "jsonlite", "ggplot2")
+          for (p in deps) {
+            v <- tryCatch(as.character(packageVersion(p)), error = function(e) "absent")
+            cat(sprintf("%-10s %s\n", p, v))
+          }
+
+      - name: Check the package
+        id: check
+        shell: Rscript {0}
+        run: |
+          res <- rcmdcheck::rcmdcheck(
+            args = c("--no-manual", "--as-cran"),
+            error_on = "never", quiet = FALSE
+          )
+          problems <- c(res$errors, res$warnings)
+          writeLines(if (length(problems)) problems else "none", "check-problems.txt")
+          status <- if (length(res$errors) || length(res$warnings)) "fail" else "pass"
+          cat(sprintf("status=%s\n", status),
+              file = Sys.getenv("GITHUB_OUTPUT"), append = TRUE)
+
+      - name: Attempt an automatic fix
+        if: steps.check.outputs.status == 'fail' && env.HAS_ANTHROPIC == 'true'
+        continue-on-error: true
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            The scheduled dependency check for this R package (scopusflow) is
+            failing, most likely because an updated dependency introduced a
+            breaking change. The file check-problems.txt in the repository root
+            holds the R CMD check errors and warnings.
+
+            Please:
+              1. Read check-problems.txt and the relevant files under R/ and
+                 tests/.
+              2. Make the smallest change that restores compatibility with the
+                 updated dependency, preserving behaviour and the package's
+                 conventions (typed conditions via rlang::abort, British spelling,
+                 offline tests).
+              3. Run Rscript -e 'devtools::test()' to confirm the fix.
+              4. Open a pull request from a new branch named
+                 fix/dependency-canary-${{ github.run_number }} with a clear title
+                 and a description of what broke and how you fixed it, using:
+                 gh pr create --base main --head <branch> --title "..." --body "...".
+
+            Do not edit files under .github/ and do not bump the package version.
+          claude_args: >-
+            --max-turns 25
+            --allowedTools "Bash(git:*),Bash(gh:*),Bash(Rscript:*),Bash(R:*),Edit,Read,Write"
+
+      - name: Flag the maintainer
+        if: steps.check.outputs.status == 'fail'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Scheduled dependency check is failing"
+          {
+            echo "The scheduled dependency check found problems when building and"
+            echo "checking scopusflow against current and development versions of"
+            echo "its dependencies."
+            echo ""
+            echo "Run log: $RUN_URL"
+            echo ""
+            echo "Problems reported by R CMD check:"
+            echo '```'
+            cat check-problems.txt
+            echo '```'
+            if [ "$HAS_ANTHROPIC" = "true" ]; then
+              echo ""
+              echo "An automatic fix was attempted. Look for an open pull request"
+              echo "named fix/dependency-canary-${{ github.run_number }}."
+            else
+              echo ""
+              echo "Set an ANTHROPIC_API_KEY repository secret to let this workflow"
+              echo "attempt an automatic fix before flagging."
+            fi
+          } > issue-body.md
+          gh label create dependencies --color ededed \
+            --description "Dependency maintenance" 2>/dev/null || true
+          existing=$(gh issue list --state open --search "$title in:title" \
+            --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body-file issue-body.md
+          else
+            gh issue create --title "$title" --body-file issue-body.md \
+              --label dependencies
+          fi
+
+      - name: Resolve the flag when the check passes again
+        if: steps.check.outputs.status == 'pass'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          title="Scheduled dependency check is failing"
+          existing=$(gh issue list --state open --search "$title in:title" \
+            --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" \
+              --body "The scheduled dependency check is passing again. Closing."
+            gh issue close "$existing"
+          fi

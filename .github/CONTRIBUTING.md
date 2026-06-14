@@ -57,6 +57,30 @@ single-quoted in the DESCRIPTION and the help files. Running
 `spelling::spell_check_package()` before a pull request keeps the word list
 tidy.
 
+## Automated maintenance
+
+Two scheduled safeguards watch for breakage from the package's dependencies, so
+that an upstream change does not quietly stop the package working.
+
+A dependency canary (`.github/workflows/dependency-check.yaml`) runs every other
+day. It rebuilds and checks the package against the current and the development
+versions of the key dependencies, `httr2` above all, and so catches a breaking
+change before it reaches a release. When the check fails it opens, or updates, a
+single issue with the log, and closes it again once the check passes. If a
+breaking change is found and an `ANTHROPIC_API_KEY` repository secret is
+configured, the workflow first asks the Claude Code action to attempt a fix and
+open a pull request, which the maintainer then reviews; without the secret it
+simply flags the issue. The workflow can also be run on demand from the Actions
+tab.
+
+Dependabot (`.github/dependabot.yml`) keeps the GitHub Actions used by the
+workflows up to date through weekly pull requests. It does not track CRAN
+packages, which is why the dependency canary watches those at runtime instead.
+
+For the issue and pull-request automation to work, the repository's *Settings →
+Actions → General → Workflow permissions* must grant read and write permissions
+and, for the auto-fix pull request, allow GitHub Actions to create pull requests.
+
 ## Submitting a pull request
 
 Please base your work on `main`, keep the change focused, and add or update tests
