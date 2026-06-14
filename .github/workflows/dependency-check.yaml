@@ -105,7 +105,7 @@ jobs:
         id: diagnose
         if: steps.check.outputs.status == 'fail' && env.HAS_CLAUDE != 'true'
         continue-on-error: true
-        uses: actions/ai-inference@v1
+        uses: actions/ai-inference@v2
         with:
           prompt-file: ai-prompt.txt
           system-prompt: "You are an expert R package maintainer who fixes breakage caused by dependency updates."
