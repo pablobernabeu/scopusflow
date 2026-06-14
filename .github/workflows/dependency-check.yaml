@@ -15,6 +15,7 @@ permissions:
   pull-requests: write
   issues: write
   actions: read
+  models: read # free GitHub Models inference for the no-cost diagnosis path
 
 jobs:
   dependency-check:
@@ -22,9 +23,11 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
-      # Evaluates to the string "true" only when the secret is configured; the
-      # secret value itself is never exposed.
-      HAS_ANTHROPIC: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+      # Each evaluates to the string "true" only when the secret is configured;
+      # the secret values themselves are never exposed. A Claude subscription
+      # OAuth token (CLAUDE_CODE_OAUTH_TOKEN) drives the agentic auto-fix at no
+      # API cost; an ANTHROPIC_API_KEY is the paid alternative.
+      HAS_CLAUDE: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' || secrets.ANTHROPIC_API_KEY != '' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -80,11 +83,59 @@ jobs:
           cat(sprintf("status=%s\n", status),
               file = Sys.getenv("GITHUB_OUTPUT"), append = TRUE)
 
-      - name: Attempt an automatic fix
-        if: steps.check.outputs.status == 'fail' && env.HAS_ANTHROPIC == 'true'
+      # Free path (no key, runs for everyone): GitHub Models diagnoses the
+      # breakage and proposes a fix, which is included in the issue below.
+      - name: Build the diagnosis prompt
+        if: steps.check.outputs.status == 'fail' && env.HAS_CLAUDE != 'true'
+        run: |
+          {
+            echo "The R package 'scopusflow' is failing its dependency check, most"
+            echo "likely because an updated dependency changed its API. From the R"
+            echo "CMD check output, the DESCRIPTION and the source-file list below,"
+            echo "give a short diagnosis of the most probable cause, name the file"
+            echo "and function that most likely needs changing, and propose a"
+            echo "concrete minimal fix as a code snippet or unified diff. Be concise."
+            echo
+            echo "=== R CMD check problems ==="; cat check-problems.txt
+            echo; echo "=== DESCRIPTION ==="; cat DESCRIPTION
+            echo; echo "=== R/ source files ==="; ls R
+          } > ai-prompt.txt
+
+      - name: Diagnose with GitHub Models (free)
+        id: diagnose
+        if: steps.check.outputs.status == 'fail' && env.HAS_CLAUDE != 'true'
+        continue-on-error: true
+        uses: actions/ai-inference@v1
+        with:
+          prompt-file: ai-prompt.txt
+          system-prompt: "You are an expert R package maintainer who fixes breakage caused by dependency updates."
+          max-completion-tokens: 1200
+
+      - name: Save the diagnosis
+        if: steps.check.outputs.status == 'fail' && env.HAS_CLAUDE != 'true'
+        continue-on-error: true
+        env:
+          # Passed via env (not interpolated into the script) so untrusted model
+          # output cannot inject shell commands.
+          RESPONSE: ${{ steps.diagnose.outputs.response }}
+        run: |
+          if [ -n "$RESPONSE" ]; then
+            {
+              echo "### Suggested fix (free, via GitHub Models)"
+              echo
+              printf '%s\n' "$RESPONSE"
+            } > ai-suggestion.md
+          fi
+
+      # Subscription/paid path: a full agentic fix that opens a pull request.
+      # Uses a Claude subscription OAuth token if present (no API cost), else an
+      # ANTHROPIC_API_KEY.
+      - name: Attempt an automatic fix (Claude)
+        if: steps.check.outputs.status == 'fail' && env.HAS_CLAUDE == 'true'
         continue-on-error: true
         uses: anthropics/claude-code-action@v1
         with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           prompt: |
             The scheduled dependency check for this R package (scopusflow) is
@@ -128,14 +179,15 @@ jobs:
             echo '```'
             cat check-problems.txt
             echo '```'
-            if [ "$HAS_ANTHROPIC" = "true" ]; then
+            if [ "$HAS_CLAUDE" = "true" ]; then
               echo ""
-              echo "An automatic fix was attempted. Look for an open pull request"
-              echo "named fix/dependency-canary-${{ github.run_number }}."
-            else
+              echo "A full automatic fix was attempted with the Claude Code action."
+              echo "Look for an open pull request named"
+              echo "fix/dependency-canary-${{ github.run_number }}."
+            fi
+            if [ -f ai-suggestion.md ]; then
               echo ""
-              echo "Set an ANTHROPIC_API_KEY repository secret to let this workflow"
-              echo "attempt an automatic fix before flagging."
+              cat ai-suggestion.md
             fi
           } > issue-body.md
           gh label create dependencies --color ededed \

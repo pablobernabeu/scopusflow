@@ -66,12 +66,23 @@ A dependency canary (`.github/workflows/dependency-check.yaml`) runs every other
 day. It rebuilds and checks the package against the current and the development
 versions of the key dependencies, `httr2` above all, and so catches a breaking
 change before it reaches a release. When the check fails it opens, or updates, a
-single issue with the log, and closes it again once the check passes. If a
-breaking change is found and an `ANTHROPIC_API_KEY` repository secret is
-configured, the workflow first asks the Claude Code action to attempt a fix and
-open a pull request, which the maintainer then reviews; without the secret it
-simply flags the issue. The workflow can also be run on demand from the Actions
-tab.
+single issue with the log, and closes it again once the check passes. It can also
+be run on demand from the Actions tab.
+
+The whole canary, the issue flagging and Dependabot run on GitHub's free
+Actions minutes for public repositories and need no secret. When a breaking
+change is found, the attempt to resolve it has three tiers, in order of
+capability:
+
+* With no secret, the workflow asks a free GitHub Models model to diagnose the
+  breakage and propose a fix, and includes that suggestion in the issue it
+  raises. This costs nothing.
+* With a `CLAUDE_CODE_OAUTH_TOKEN` secret, generated from a Claude Pro or Max
+  subscription with `claude setup-token`, the Claude Code action attempts a full
+  fix and opens a pull request for review, billed to the subscription rather than
+  per token.
+* With an `ANTHROPIC_API_KEY` secret, the same agentic fix runs against the paid
+  API.
 
 Dependabot (`.github/dependabot.yml`) keeps the GitHub Actions used by the
 workflows up to date through weekly pull requests. It does not track CRAN

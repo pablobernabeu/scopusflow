@@ -165,12 +165,14 @@ so a scheduled dependency canary
 (`.github/workflows/dependency-check.yaml`) rebuilds and checks it every other
 day against the current and development versions of those dependencies. A
 breaking change therefore surfaces here before it reaches a release. The workflow
-flags the maintainer through a single, de-duplicated issue, and, when an
-`ANTHROPIC_API_KEY` secret is present, first asks the Claude Code action to
-attempt a fix and open a pull request for review. The auto-fix is opt-in and
-best-effort: without the secret, or if it fails, the detection and flagging still
-work, so the safeguard never depends on it. Dependabot keeps the workflow actions
-themselves current.
+flags the maintainer through a single, de-duplicated issue. The whole pipeline
+runs on GitHub's free Actions minutes and needs no secret. The attempt to resolve
+a breakage has three tiers: with no secret it asks a free GitHub Models model to
+diagnose and propose a fix in the issue; with a Claude subscription OAuth token
+(`CLAUDE_CODE_OAUTH_TOKEN`, no per-token cost) or a paid `ANTHROPIC_API_KEY`, the
+Claude Code action attempts a full fix and opens a pull request. Every tier is
+best-effort, so detection and flagging never depend on it. Dependabot keeps the
+workflow actions themselves current.
 
 ## Assumptions
 
