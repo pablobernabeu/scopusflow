@@ -25,6 +25,21 @@ test_that("c() method combines record sets", {
   expect_equal(nrow(out), 12L)
 })
 
+test_that("dedupe keeps records that have neither an id nor a DOI", {
+  r <- scopus_records(list(entry = list(
+    list(`dc:title` = "A"), list(`dc:title` = "B")
+  )))
+  out <- scopus_combine(r, r, dedupe = TRUE)
+  expect_equal(nrow(out), 4L) # no keys, so nothing is treated as a duplicate
+})
+
+test_that("dedupe falls back to the DOI (case-insensitively) when the id is absent", {
+  r1 <- scopus_records(list(entry = list(list(`prism:doi` = "10.1/x"))))
+  r2 <- scopus_records(list(entry = list(list(`prism:doi` = "10.1/X"))))
+  out <- scopus_combine(r1, r2, dedupe = TRUE)
+  expect_equal(nrow(out), 1L)
+})
+
 test_that("coercion strips the scopus_records class", {
   tb <- tibble::as_tibble(example_records)
   expect_false(inherits(tb, "scopus_records"))

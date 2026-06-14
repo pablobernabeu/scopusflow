@@ -52,6 +52,32 @@ test_that("the Wilson band is wider for smaller reference counts", {
   expect_gt(w_small$upper - w_small$lower, w_large$upper - w_large$lower)
 })
 
+test_that("the Wilson band stays within 0-100 at the boundaries", {
+  w0 <- scopusflow:::scopus_wilson(0, 50)    # share 0%
+  w1 <- scopusflow:::scopus_wilson(50, 50)   # share 100%
+  for (w in list(w0, w1)) {
+    expect_gte(w$lower, 0)
+    expect_lte(w$upper, 100)
+    expect_lte(w$lower, w$upper)
+  }
+  expect_equal(w0$lower, 0)   # cannot dip below zero
+  expect_equal(w1$upper, 100) # cannot exceed one hundred
+})
+
+test_that("a single-year comparison plots without error", {
+  skip_if_not_installed("ggplot2")
+  cmp <- tibble::tibble(
+    query = "q", query_type = "comparison", abridged_query = c("a", "b"),
+    year = c(2020L, 2020L), n = c(5, 3), reference_n = c(10, 10),
+    comparison_percentage = c(50, 30), average_comparison_percentage = c(50, 30)
+  )
+  class(cmp) <- c("scopus_comparison", class(cmp))
+  p <- plot_scopus_comparison(cmp)
+  expect_s3_class(p, "ggplot")
+  b <- ggplot2::ggplot_build(p)$layout$panel_params[[1]]$x$breaks
+  expect_true(all(b == round(b), na.rm = TRUE))
+})
+
 test_that("autoplot dispatches to the same plot", {
   skip_if_not_installed("ggplot2")
   p <- ggplot2::autoplot(make_comparison())
