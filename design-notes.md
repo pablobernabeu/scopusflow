@@ -192,6 +192,21 @@ Every export carries roxygen2 documentation with fast, fixture-based
 examples. The package also ships a README, one vignette driven by
 fixtures, an `inst/CITATION` file, a `NEWS.md` and a `cran-comments.md`.
 
+## Continuous maintenance
+
+The package depends on several actively developed packages, `httr2` most
+of all, so a scheduled dependency canary
+(`.github/workflows/dependency-check.yaml`) rebuilds and checks it every
+other day against the current and development versions of those
+dependencies. A breaking change therefore surfaces here before it
+reaches a release. The workflow flags the maintainer through a single,
+de-duplicated issue, and, when an `ANTHROPIC_API_KEY` secret is present,
+first asks the Claude Code action to attempt a fix and open a pull
+request for review. The auto-fix is opt-in and best-effort: without the
+secret, or if it fails, the detection and flagging still work, so the
+safeguard never depends on it. Dependabot keeps the workflow actions
+themselves current.
+
 ## Assumptions
 
 On licensing, the original `rscopus_plus` code is licensed CC BY 4.0 and

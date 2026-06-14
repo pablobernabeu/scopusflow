@@ -69,6 +69,13 @@
 <p>The prose follows British spelling, and the names <code>'Scopus'</code> and <code>'API'</code> are single-quoted in the DESCRIPTION and the help files. Running <code><a href="https://docs.ropensci.org/spelling//reference/spell_check_package.html" class="external-link">spelling::spell_check_package()</a></code> before a pull request keeps the word list tidy.</p>
 </div>
 <div class="section level2">
+<h2 id="automated-maintenance">Automated maintenance<a class="anchor" aria-label="anchor" href="#automated-maintenance"></a></h2>
+<p>Two scheduled safeguards watch for breakage from the package’s dependencies, so that an upstream change does not quietly stop the package working.</p>
+<p>A dependency canary (<code>.github/workflows/dependency-check.yaml</code>) runs every other day. It rebuilds and checks the package against the current and the development versions of the key dependencies, <code>httr2</code> above all, and so catches a breaking change before it reaches a release. When the check fails it opens, or updates, a single issue with the log, and closes it again once the check passes. If a breaking change is found and an <code>ANTHROPIC_API_KEY</code> repository secret is configured, the workflow first asks the Claude Code action to attempt a fix and open a pull request, which the maintainer then reviews; without the secret it simply flags the issue. The workflow can also be run on demand from the Actions tab.</p>
+<p>Dependabot (<code>.github/dependabot.yml</code>) keeps the GitHub Actions used by the workflows up to date through weekly pull requests. It does not track CRAN packages, which is why the dependency canary watches those at runtime instead.</p>
+<p>For the issue and pull-request automation to work, the repository’s <em>Settings → Actions → General → Workflow permissions</em> must grant read and write permissions and, for the auto-fix pull request, allow GitHub Actions to create pull requests.</p>
+</div>
+<div class="section level2">
 <h2 id="submitting-a-pull-request">Submitting a pull request<a class="anchor" aria-label="anchor" href="#submitting-a-pull-request"></a></h2>
 <p>Please base your work on <code>main</code>, keep the change focused, and add or update tests and documentation alongside the code. Running <code>devtools::document()</code>, <code>devtools::test()</code> and <code>devtools::check()</code> locally before opening the pull request saves a round trip. Continuous integration then checks the package on Windows, macOS and several versions of R on Linux.</p>
 <p>By contributing you agree that your contribution is licensed under the same MIT licence as the package, and that you will follow the <a href="CODE_OF_CONDUCT.html">Code of Conduct</a>.</p>
