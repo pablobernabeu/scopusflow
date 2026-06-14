@@ -184,7 +184,15 @@ the comparison percentages including the zero-denominator case, the
 mapping of HTTP statuses 400, 401, 403, 404, 413, 414, 429 and the 5xx
 range onto conditions, transient classification, offline handling,
 caching and resume, plotting where ggplot2 is present, the I/O
-round-trips and key handling.
+round-trips and key handling. An offline request-contract test pins the
+outbound URL, query parameters and auth header, so a change to the
+request shape is caught even though no real request is made. Spelling is
+enforced during `R CMD check` through `tests/spelling.R`, and a
+`_R_CHECK_DEPENDS_ONLY_` CI run proves the Imports are declared
+correctly. The mocks cannot tell whether the live API has changed, so a
+weekly, key-gated live smoke test checks that a real query still returns
+the documented, populated schema; it skips itself, staying green, until
+a `SCOPUS_API_KEY` secret is added.
 
 ## Documentation strategy
 

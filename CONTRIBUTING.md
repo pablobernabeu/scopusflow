@@ -96,6 +96,15 @@ order of capability:
 - With an `ANTHROPIC_API_KEY` secret, the same agentic fix runs against
   the paid API.
 
+A weekly live smoke test (`.github/workflows/live-api-check.yaml`)
+guards the other half of the risk. The ordinary test suite mocks all
+HTTP, so it cannot tell whether the real ‘Scopus’ API has renamed a
+field or changed its envelope. The live test runs a tiny real query and
+checks that the records come back with the documented columns populated.
+It needs a `SCOPUS_API_KEY` repository secret; until one is set, the
+live tests skip themselves and the run stays green, so adding the
+workflow costs nothing.
+
 Dependabot (`.github/dependabot.yml`) keeps the GitHub Actions used by
 the workflows up to date through weekly pull requests. It does not track
 CRAN packages, which is why the dependency canary watches those at
@@ -113,7 +122,9 @@ update tests and documentation alongside the code. Running
 `devtools::document()`, `devtools::test()` and `devtools::check()`
 locally before opening the pull request saves a round trip. Continuous
 integration then checks the package on Windows, macOS and several
-versions of R on Linux.
+versions of R on Linux, and once more with only its declared
+dependencies on the path (a `_R_CHECK_DEPENDS_ONLY_` run), which proves
+that nothing in `R/` relies on an undeclared package.
 
 By contributing you agree that your contribution is licensed under the
 same MIT licence as the package, and that you will follow the [Code of
