@@ -189,6 +189,12 @@ describes the development setup and the conventions the package follows,
 and everyone taking part is asked to honour the [Code of
 Conduct](https://github.com/pablobernabeu/scopusflow/blob/main/.github/CODE_OF_CONDUCT.md).
 
+Alongside the per-commit checks on Windows, macOS and several versions
+of R, a scheduled job re-checks the package every other day against the
+current and development versions of its dependencies, so that breakage
+from an upstream change is caught early. The contributing guide
+describes how it reports, and tries to resolve, any problem it finds.
+
 # Package index
 
 ## Plan and size
