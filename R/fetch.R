@@ -65,19 +65,17 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
     )
   }
 
-  # First page: also tells us the total.
+  # First page: also tells us the total (a double, possibly NA when the API
+  # omits it).
   first_count <- min(page_size, max_results)
   first <- fetch_page(0L, first_count)
   total <- scopus_total_results(first)
   quota <- attr(first, "quota")
   pages <- list(scopus_entries(first))
   fetched <- length(pages[[1]])
-  if (is.na(total)) total <- fetched
 
-  to_fetch <- min(max_results, total)
-  capped <- to_fetch > hard_cap
-  to_fetch <- min(to_fetch, hard_cap)
-
+  known_total <- !is.na(total)
+  capped <- known_total && total > hard_cap
   if (capped) {
     rlang::warn(
       sprintf(
@@ -88,8 +86,19 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
       class = "scopus_warning_capped"
     )
   }
+
+  # How many to aim for: the reported total when known, otherwise keep paging
+  # (up to the ceiling) until a short or empty page signals the end. A first page
+  # shorter than requested already means there is nothing more to fetch.
+  to_fetch <- if (known_total) {
+    min(max_results, total, hard_cap)
+  } else if (fetched < first_count) {
+    fetched
+  } else {
+    min(max_results, hard_cap)
+  }
   if (verbose) {
-    cli::cli_inform("Fetching up to {to_fetch} of {total} record{?s}.")
+    cli::cli_inform("Fetching up to {to_fetch} record{?s}.")
   }
 
   start <- page_size
@@ -103,6 +112,8 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
     fetched <- fetched + length(entries)
     if (verbose) cli::cli_inform("  {fetched}/{to_fetch} retrieved.")
     start <- start + page_size
+    # A page shorter than requested is the last page; stop without a wasted call.
+    if (length(entries) < count) break
   }
 
   # Concatenate entries once, then normalise a single time.

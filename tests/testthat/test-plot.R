@@ -13,12 +13,25 @@ make_comparison <- function() {
   cmp
 }
 
-test_that("plot_scopus_comparison returns a ggplot", {
+test_that("plot_scopus_comparison returns a ggplot of the comparison topics", {
   skip_if_not_installed("ggplot2")
   p <- plot_scopus_comparison(make_comparison())
   expect_s3_class(p, "ggplot")
-  # Only comparison topics are drawn (reference excluded).
   expect_equal(length(unique(p$data$abridged_query)), 2L)
+})
+
+test_that("the x-axis uses whole-number year breaks", {
+  skip_if_not_installed("ggplot2")
+  p <- plot_scopus_comparison(make_comparison())
+  b <- ggplot2::ggplot_build(p)$layout$panel_params[[1]]$x$breaks
+  expect_true(all(b == round(b), na.rm = TRUE))
+})
+
+test_that("a colour-blind-safe (viridis) palette is used, not the default hue", {
+  skip_if_not_installed("ggplot2")
+  p <- plot_scopus_comparison(make_comparison())
+  cols <- unique(ggplot2::ggplot_build(p)$data[[1]]$colour)
+  expect_false("#F8766D" %in% cols)  # ggplot2's default 2-hue first colour
 })
 
 test_that("autoplot dispatches to the same plot", {
@@ -27,10 +40,32 @@ test_that("autoplot dispatches to the same plot", {
   expect_s3_class(p, "ggplot")
 })
 
-test_that("legend labels can include counts", {
+test_that("legend/line labels can include counts", {
   skip_if_not_installed("ggplot2")
   p <- plot_scopus_comparison(make_comparison(), pub_count_in_legend = TRUE)
   expect_true(any(grepl("n =", levels(p$data$label))))
+})
+
+test_that("highlight greys the others and accents one topic", {
+  skip_if_not_installed("ggplot2")
+  p <- plot_scopus_comparison(make_comparison(), highlight = "a")
+  cols <- unlist(lapply(ggplot2::ggplot_build(p)$data, function(d) unique(d$colour)))
+  expect_true("#BB5566" %in% cols)
+  expect_true("grey75" %in% cols)
+})
+
+test_that("an unknown highlight is rejected", {
+  skip_if_not_installed("ggplot2")
+  expect_error(plot_scopus_comparison(make_comparison(), highlight = "zzz"),
+               class = "scopus_error_bad_input")
+})
+
+test_that("a year without reference records is dropped, not errored", {
+  skip_if_not_installed("ggplot2")
+  cmp <- make_comparison()
+  cmp$reference_n[cmp$year == 2018] <- 0
+  cmp$comparison_percentage[cmp$year == 2018 & cmp$query_type == "comparison"] <- NA
+  expect_s3_class(plot_scopus_comparison(cmp), "ggplot")
 })
 
 test_that("plotting a non-comparison object errors", {

@@ -19,7 +19,7 @@ test_that("an explicit api_key argument wins", {
   withr::local_envvar(SCOPUS_API_KEY = "")
   httr2::local_mocked_responses(mock_corpus(total = 1L))
   withr::local_options(scopusflow.max_tries = 1L)
-  expect_equal(scopus_count("x", api_key = "explicit"), 1L)
+  expect_equal(as.numeric(scopus_count("x", api_key = "explicit")), 1)
 })
 
 test_that("the key is never exposed in the request dump", {

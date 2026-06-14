@@ -14,15 +14,17 @@
 #'   entries, kept in the `query` column for provenance.
 #' @return A tibble of class `scopus_records` with the columns
 #'   `entry_number` (integer), `scopus_id` (character), `doi` (character),
-#'   `title` (character), `authors` (character, the first or corresponding
-#'   creator), `year` (integer), `date` (character, the ISO cover date),
-#'   `publication` (character, the source title), `citations` (integer) and
-#'   `query` (character). A missing field becomes `NA`, and an empty result set
-#'   yields a zero-row tibble with the same columns.
+#'   `title` (character), `authors` (character, the creator names joined with
+#'   `"; "` when several are listed), `year` (integer, the leading four digits of
+#'   the cover date), `date` (character, the ISO cover date), `publication`
+#'   (character, the source title), `citations` (integer) and `query`
+#'   (character). A missing field becomes `NA`, and an empty result set yields a
+#'   zero-row tibble with the same columns.
 #' @details
-#' The 'Scopus' API signals an empty result set with a single sentinel entry
-#' carrying an `error` field. This is detected and turned into a zero-row result
-#' rather than a spurious record.
+#' The 'Scopus' API signals an empty result set with a single sentinel entry that
+#' carries an `error` field and no identifier. This is detected and turned into a
+#' zero-row result rather than a spurious record, while a genuine record that also
+#' carries a per-entry `error` annotation is kept.
 #' @examples
 #' # A minimal entry as the API would return it.
 #' raw <- list(entry = list(
@@ -79,11 +81,19 @@ scopus_entries <- function(x) {
       class = "scopus_error_bad_input"
     )
   }
-  # Detect the empty-result sentinel: a single entry carrying an `error` field.
-  if (length(entries) == 1L && is.list(entries[[1]]) && !is.null(entries[[1]][["error"]])) {
+  # Detect the empty-result sentinel: a lone entry carrying an `error` field and
+  # no bibliographic identifier. A real single record can also carry a per-entry
+  # `error` annotation, so requiring the identifiers to be absent avoids dropping
+  # it.
+  if (length(entries) == 1L && scopus_is_empty_sentinel(entries[[1]])) {
     return(list())
   }
   entries
+}
+
+scopus_is_empty_sentinel <- function(entry) {
+  is.list(entry) && !is.null(entry[["error"]]) &&
+    is.null(entry[["dc:identifier"]]) && is.null(entry[["prism:doi"]])
 }
 
 scopus_records_columns <- function() {
@@ -113,7 +123,7 @@ scopus_entry_to_row <- function(entry, i, query) {
   id_raw <- scopus_field(entry, "dc:identifier")
   scopus_id <- if (is.na(id_raw)) NA_character_ else sub("^SCOPUS_ID:", "", id_raw)
   date <- scopus_field(entry, "prism:coverDate")
-  year <- if (is.na(date)) NA_integer_ else suppressWarnings(as.integer(substr(date, 1, 4)))
+  year <- scopus_parse_year(date)
   citations <- scopus_field(entry, "citedby-count")
   citations <- if (is.na(citations)) NA_integer_ else suppressWarnings(as.integer(citations))
 
@@ -132,7 +142,12 @@ scopus_entry_to_row <- function(entry, i, query) {
   )
 }
 
-# Safely pull a scalar character field from an entry, returning NA when absent.
+# Pull a character field from an entry, returning NA when absent. A field that
+# arrives as an array of scalars (for example several authors under `dc:creator`,
+# which jsonlite keeps as a list because the response is parsed with
+# simplifyVector = FALSE) is collapsed into one semicolon-separated string rather
+# than silently reduced to its first element. A field that is a list of objects
+# is not a simple value and is reported as missing.
 scopus_field <- function(entry, name) {
   if (!is.list(entry) || is.null(entry[[name]])) {
     return(NA_character_)
@@ -141,12 +156,47 @@ scopus_field <- function(entry, name) {
   if (length(val) == 0L) {
     return(NA_character_)
   }
-  as.character(val[[1]])
+  if (is.list(val)) {
+    scalar <- vapply(val, function(v) is.atomic(v) && length(v) == 1L, logical(1))
+    if (!all(scalar)) {
+      return(NA_character_)
+    }
+    val <- unlist(val, use.names = FALSE)
+  }
+  if (!is.atomic(val)) {
+    return(NA_character_)
+  }
+  paste(as.character(val), collapse = "; ")
+}
+
+# The publication year is the leading four-digit run of `prism:coverDate`, and is
+# NA when the date is absent or does not begin with four digits.
+scopus_parse_year <- function(date) {
+  if (length(date) != 1L || is.na(date)) {
+    return(NA_integer_)
+  }
+  m <- regmatches(date, regexpr("^[0-9]{4}", date))
+  if (length(m) == 0L || !nzchar(m)) NA_integer_ else as.integer(m)
 }
 
 #' @export
 print.scopus_records <- function(x, ...) {
-  cli::cli_text("{.cls scopus_records} ({nrow(x)} record{?s})")
-  NextMethod()
+  n <- nrow(x)
+  total <- attr(x, "total_results")
+  header <- sprintf("<scopus_records> %d record%s", n, if (n == 1L) "" else "s")
+  if (!is.null(total) && length(total) == 1L && !is.na(total) && total > n) {
+    header <- sprintf("%s of %s matching", header, format(total, big.mark = ","))
+  }
+  cli::cli_text("{header}")
+
+  # When the query is the same for every row, lift it into the header and hide
+  # the column to keep the table readable.
+  body <- x
+  q <- unique(x$query)
+  if (length(q) == 1L && !is.na(q)) {
+    cli::cli_text("query: {.val {q}}")
+    body <- x[setdiff(names(x), "query")]
+  }
+  print(tibble::as_tibble(body), ...)
   invisible(x)
 }

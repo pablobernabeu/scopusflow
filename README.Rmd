@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# scopusflow
+# scopusflow <img src="man/figures/logo.png" align="right" height="139" alt="" />
 
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
@@ -26,6 +26,31 @@ bibliographic queries into inspectable plans, retrieves records safely with
 pagination, rate-limit handling, retry with back-off and optional resumable
 caching, normalises them to a stable tidy schema, tracks changes in DOI sets
 over time and compares publication trends across topics.
+
+```{r readme-hero, echo = FALSE, message = FALSE, fig.alt = "A line chart of three research topics' share of a reference literature rising and falling between 2014 and 2021", fig.width = 8, fig.height = 4.2, dpi = 130, out.width = "100%"}
+library(scopusflow)
+years <- 2014:2021
+hero <- tibble::tibble(
+  query = "q",
+  query_type = c(rep("reference", length(years)), rep("comparison", 3 * length(years))),
+  abridged_query = c(rep("language learning", length(years)),
+                     rep(c("effect size", "Bayesian", "replication"), each = length(years))),
+  year = rep(years, 4),
+  n = c(rep(900, length(years)),
+        round(seq(120, 360, length.out = length(years))),
+        round(seq(40, 200, length.out = length(years))),
+        round(seq(20, 150, length.out = length(years)))),
+  reference_n = rep(900, 4 * length(years)),
+  comparison_percentage = c(rep(100, length(years)),
+                            seq(13, 40, length.out = length(years)),
+                            seq(4, 22, length.out = length(years)),
+                            seq(2, 17, length.out = length(years))),
+  average_comparison_percentage = c(rep(100, length(years)),
+                                    rep(c(27, 13, 9), each = length(years)))
+)
+class(hero) <- c("scopus_comparison", class(hero))
+plot_scopus_comparison(hero)
+```
 
 > Scopus is a trademark of Elsevier. scopusflow is an independent client and is
 > not affiliated with or endorsed by Elsevier. You will need your own Elsevier

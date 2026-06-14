@@ -21,6 +21,25 @@ test_that("RDS round-trips exactly", {
   expect_identical(read_scopus_records(path), recs)
 })
 
+test_that("an empty record set round-trips through CSV", {
+  empty <- scopus_records(list(entry = list()))
+  path <- withr::local_tempfile(fileext = ".csv")
+  write_scopus_records(empty, path)
+  back <- read_scopus_records(path)
+  expect_equal(nrow(back), 0L)
+  expect_type(back$year, "integer")
+})
+
+test_that("a title with comma, quote and newline survives CSV round-trip", {
+  recs <- scopus_records(list(entry = list(
+    list(`dc:identifier` = "SCOPUS_ID:1", `prism:doi` = "10.1/a",
+         `dc:title` = "A \"tricky\", title\nwith breaks")
+  )))
+  path <- withr::local_tempfile(fileext = ".csv")
+  write_scopus_records(recs, path)
+  expect_equal(read_scopus_records(path)$title, recs$title)
+})
+
 test_that("unsupported extensions are rejected", {
   recs <- make_records()
   path <- withr::local_tempfile(fileext = ".txt")

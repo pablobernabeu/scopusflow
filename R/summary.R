@@ -10,8 +10,9 @@
 #' @param ... Ignored, present for compatibility with the [summary()] generic.
 #' @return A list of class `scopus_records_summary`, with elements `n_records`,
 #'   `years` (the earliest and latest year present, each `NA` when no year is
-#'   known), `n_sources`, `n_with_doi`, `total_citations` and `median_citations`.
-#'   Printing it produces a short readable report.
+#'   known), `n_sources`, `n_with_doi`, `total_citations`, `median_citations`,
+#'   `top_cited` (the title of the most-cited record) and `top_source` (the most
+#'   frequent source title). Printing it produces a short readable report.
 #' @examples
 #' summary(example_records)
 #' @export
@@ -21,15 +22,22 @@ summary.scopus_records <- function(object, ...) {
     c(min(years), max(years))
   }
   citations <- object$citations[!is.na(object$citations)]
+  sources <- object$publication[!is.na(object$publication)]
 
   structure(
     list(
       n_records = nrow(object),
       years = year_range,
-      n_sources = length(unique(object$publication[!is.na(object$publication)])),
+      n_sources = length(unique(sources)),
       n_with_doi = sum(!is.na(object$doi)),
       total_citations = if (length(citations) == 0L) NA_integer_ else sum(citations),
-      median_citations = if (length(citations) == 0L) NA_real_ else stats::median(citations)
+      median_citations = if (length(citations) == 0L) NA_real_ else stats::median(citations),
+      top_cited = if (length(citations) == 0L) NA_character_ else {
+        object$title[which.max(object$citations)]
+      },
+      top_source = if (length(sources) == 0L) NA_character_ else {
+        names(sort(table(sources), decreasing = TRUE))[1]
+      }
     ),
     class = "scopus_records_summary"
   )
@@ -53,6 +61,12 @@ print.scopus_records_summary <- function(x, ...) {
     cli::cli_text(
       "Cited {x$total_citations} time{?s} in total, median {x$median_citations} per record."
     )
+  }
+  if (!is.na(x$top_source)) {
+    cli::cli_text("Most frequent source: {x$top_source}.")
+  }
+  if (!is.na(x$top_cited)) {
+    cli::cli_text("Most cited: {.emph {x$top_cited}}.")
   }
   invisible(x)
 }

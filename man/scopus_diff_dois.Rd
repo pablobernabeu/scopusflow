@@ -11,9 +11,10 @@ scopus_diff_dois(old, new)
 representing the earlier (\code{old}) and later (\code{new}) retrievals.}
 }
 \value{
-A tibble with columns \code{doi} and \code{status}, where \code{status} is one of
-\code{"added"} (in \code{new} only), \code{"removed"} (in \code{old} only) or \code{"unchanged"} (in
-both), sorted by status then DOI.
+A tibble of class \code{scopus_doi_diff} with columns \code{doi} and \code{status},
+where \code{status} is an ordered factor with levels \code{"added"} (in \code{new} only),
+\code{"removed"} (in \code{old} only) and \code{"unchanged"} (in both). Rows are sorted by
+status then DOI, and printing shows the counts in each category.
 }
 \description{
 Identifies which DOIs were added, removed or unchanged between an earlier and

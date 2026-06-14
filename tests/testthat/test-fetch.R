@@ -1,7 +1,11 @@
-test_that("scopus_count returns the reported total", {
+test_that("scopus_count returns the reported total with quota attached", {
   local_scopus_test_env()
-  httr2::local_mocked_responses(mock_corpus(total = 137L))
-  expect_equal(scopus_count("anything"), 137L)
+  httr2::local_mocked_responses(
+    mock_corpus(total = 137L, headers = list(`X-RateLimit-Remaining` = "99"))
+  )
+  n <- scopus_count("anything")
+  expect_equal(as.numeric(n), 137)
+  expect_equal(attr(n, "quota")$remaining, 99)
 })
 
 test_that("scopus_fetch paginates and binds once", {
@@ -31,6 +35,41 @@ test_that("retrieval is capped at the API ceiling with a warning", {
     class = "scopus_warning_capped"
   )
   expect_equal(nrow(recs), 6L)
+})
+
+test_that("a huge total still triggers the cap warning (no integer overflow)", {
+  local_scopus_test_env()
+  withr::local_options(scopusflow.hard_cap = 6L)
+  # Far beyond the 32-bit integer ceiling.
+  httr2::local_mocked_responses(function(req) {
+    mock_search_results(mock_entries(2L), total = 3000000000)
+  })
+  expect_warning(
+    recs <- scopus_fetch("anything", page_size = 2L),
+    class = "scopus_warning_capped"
+  )
+  expect_equal(attr(recs, "total_results"), 3e9)
+})
+
+test_that("fetching stops when the server serves fewer records than its total", {
+  local_scopus_test_env()
+  served <- 5L
+  calls <- 0L
+  httr2::local_mocked_responses(function(req) {
+    calls <<- calls + 1L
+    q <- httr2::url_parse(req$url)$query
+    start <- as.integer(if (is.null(q$start)) 0L else q$start)
+    count <- as.integer(if (is.null(q$count)) 25L else q$count)
+    n <- max(0L, min(count, served - start))
+    entries <- if (n > 0L) mock_entries(n, offset = start) else {
+      list(list(error = "Result set was empty"))
+    }
+    # Report a total far larger than what is actually served.
+    mock_search_results(entries, total = 100L)
+  })
+  recs <- scopus_fetch("anything", page_size = 2L)
+  expect_equal(nrow(recs), 5L)
+  expect_lte(calls, 4L)  # 3 full pages then a short page; no run to the ceiling
 })
 
 test_that("an empty corpus yields zero rows", {

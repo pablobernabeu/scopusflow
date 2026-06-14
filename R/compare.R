@@ -72,9 +72,10 @@ scopus_compare_topics <- function(reference_query,
     ))
   }
 
-  # Reference counts by year (denominator).
+  # Reference counts by year (denominator). Counts are doubles so that a missing
+  # total arrives as NA rather than triggering a type error.
   if (verbose) cli::cli_inform("Counting reference query across {length(years)} year{?s}.")
-  ref_n <- vapply(years, function(y) count_for(ref_wrapped, y), integer(1))
+  ref_n <- vapply(years, function(y) count_for(ref_wrapped, y), numeric(1))
   names(ref_n) <- as.character(years)
 
   rows <- list()
@@ -87,7 +88,7 @@ scopus_compare_topics <- function(reference_query,
     if (verbose) cli::cli_inform("Counting comparison term {.val {term}}.")
     term_wrapped <- scopus_wrap_field(term, field)
     cmp_query <- paste(ref_wrapped, "AND", term_wrapped)
-    cmp_n <- vapply(years, function(y) count_for(cmp_query, y), integer(1))
+    cmp_n <- vapply(years, function(y) count_for(cmp_query, y), numeric(1))
     rows[[length(rows) + 1L]] <- scopus_comparison_block(
       query = cmp_query, query_type = "comparison",
       abridged = term, years = years, n = cmp_n, ref_n = ref_n
@@ -109,11 +110,13 @@ scopus_compare_topics <- function(reference_query,
   tibble::new_tibble(as.list(out), nrow = nrow(out), class = "scopus_comparison")
 }
 
-# Build the per-year rows for one query, computing percentages safely.
+# Build the per-year rows for one query, computing percentages safely. A year
+# whose reference count is zero (or whose count is unavailable) yields NA for
+# that year, and the average rests on the years that are available.
 scopus_comparison_block <- function(query, query_type, abridged, years, n, ref_n) {
-  pct <- ifelse(ref_n == 0, NA_real_, 100 * n / ref_n)
-  total_n <- sum(n)
-  total_ref <- sum(ref_n)
+  pct <- ifelse(is.na(ref_n) | ref_n == 0, NA_real_, 100 * n / ref_n)
+  total_n <- sum(n, na.rm = TRUE)
+  total_ref <- sum(ref_n, na.rm = TRUE)
   avg <- if (total_ref == 0) NA_real_ else 100 * total_n / total_ref
   data.frame(
     query = query,

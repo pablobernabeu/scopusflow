@@ -7,6 +7,8 @@ test_that("summary reports the expected figures", {
   expect_equal(s$n_with_doi, 3L)
   expect_equal(s$total_citations, 17L)
   expect_equal(s$median_citations, 5)
+  expect_equal(s$top_source, "Journal of Bibliometrics")
+  expect_equal(s$top_cited, example_records$title[which.max(example_records$citations)])
 })
 
 test_that("summary copes with empty records and missing years", {

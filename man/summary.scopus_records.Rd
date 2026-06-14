@@ -14,8 +14,9 @@
 \value{
 A list of class \code{scopus_records_summary}, with elements \code{n_records},
 \code{years} (the earliest and latest year present, each \code{NA} when no year is
-known), \code{n_sources}, \code{n_with_doi}, \code{total_citations} and \code{median_citations}.
-Printing it produces a short readable report.
+known), \code{n_sources}, \code{n_with_doi}, \code{total_citations}, \code{median_citations},
+\code{top_cited} (the title of the most-cited record) and \code{top_source} (the most
+frequent source title). Printing it produces a short readable report.
 }
 \description{
 Gives a compact overview of a \link{scopus_records} object, reporting how many

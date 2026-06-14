@@ -12,8 +12,11 @@
 #' @param view Either `"STANDARD"` or `"COMPLETE"`.
 #' @param api_key,inst_token Optional credentials, resolved by default from
 #'   options or environment variables (see [scopus_has_key()]).
-#' @return A single integer giving the total number of matching records, or `NA`
-#'   when the API reports no total.
+#' @return A single number giving the total number of matching records, or `NA`
+#'   when the API reports no total. It is returned as a double so that very large
+#'   totals are represented exactly rather than overflowing, with the parsed
+#'   quota (see [scopus_quota()]) attached as the `quota` attribute so a workflow
+#'   can pace itself off a count.
 #' @section API access:
 #' This function performs a network request and therefore requires a valid API
 #' key and internet access. When no key is configured it raises a
@@ -46,5 +49,7 @@ scopus_count <- function(query,
     api_key = api_key,
     inst_token = inst_token
   )
-  scopus_total_results(results)
+  total <- scopus_total_results(results)
+  attr(total, "quota") <- attr(results, "quota")
+  total
 }

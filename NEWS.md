@@ -15,7 +15,15 @@ First release.
   [`plot_scopus_comparison()`] or `autoplot()`.
 * Interoperability and I/O through [`as_bibliometrix()`],
   [`write_scopus_records()`] and [`read_scopus_records()`].
-* A reference to the common 'Scopus' field tags in [`scopus_field_tags()`], and a
-  bundled [`example_records`] dataset for offline exploration.
+* A reference to the common 'Scopus' field tags in [`scopus_field_tags()`], a
+  safe query composer in [`scopus_query()`], and a bundled [`example_records`]
+  dataset for offline exploration.
+* Safe merging of record sets with [`scopus_combine()`] (and a `c()` method), plus
+  `as_tibble()` and `as.data.frame()` coercion.
 * A typed condition system (`scopus_error` and its subclasses) and quota-header
   parsing with [`scopus_quota()`].
+* The comparison plot uses whole-number year breaks, a colour-blind-safe palette,
+  direct line labels and an optional `highlight` argument.
+* Multiple authors are retained in the `authors` column rather than truncated to
+  the first; very large result totals are handled without overflow; and DOI
+  cleaning copes with `www.doi.org` hosts and `DOI:` labels.

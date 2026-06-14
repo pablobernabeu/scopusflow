@@ -2,11 +2,21 @@ url: https://pablobernabeu.github.io/scopusflow/
 
 template:
   bootstrap: 5
+  opengraph:
+    image:
+      src: man/figures/logo.png
+      alt: "scopusflow: a reproducible workflow layer for Scopus searches"
+
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [search, github]
 
 reference:
 - title: Plan and size
   contents:
   - scopus_plan
+  - scopus_query
   - scopus_count
   - scopus_field_tags
 - title: Retrieve
@@ -15,10 +25,11 @@ reference:
   - scopus_fetch_plan
   - scopus_cache_dir
   - scopus_cache_clear
-- title: Normalise and inspect
+- title: Records
   contents:
   - scopus_records
   - summary.scopus_records
+  - scopus_combine
   - scopus_quota
 - title: DOIs and change tracking
   contents:

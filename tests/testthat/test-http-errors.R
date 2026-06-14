@@ -38,6 +38,15 @@ test_that("Retry-After drives the back-off wait", {
   expect_true(is.na(retry_after(httr2::response(429L))))
 })
 
+test_that("Retry-After accepts the HTTP-date form", {
+  retry_after <- scopusflow:::scopus_retry_after
+  future <- format(Sys.time() + 100, "%a, %d %b %Y %H:%M:%S", tz = "GMT")
+  secs <- retry_after(httr2::response(429L, headers = list(`Retry-After` = future)))
+  expect_true(secs > 0 && secs <= 100)
+  past <- "Wed, 21 Oct 2015 07:28:00 GMT"
+  expect_equal(retry_after(httr2::response(429L, headers = list(`Retry-After` = past))), 0)
+})
+
 test_that("persistent 429 surfaces a rate-limit condition", {
   local_scopus_test_env()
   httr2::local_mocked_responses(function(req) {

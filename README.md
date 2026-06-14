@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# scopusflow
+# scopusflow <img src="man/figures/logo.png" align="right" height="139" alt="" />
 
 <!-- badges: start -->
 
@@ -17,6 +17,8 @@ records safely with pagination, rate-limit handling, retry with back-off
 and optional resumable caching, normalises them to a stable tidy schema,
 tracks changes in DOI sets over time and compares publication trends
 across topics.
+
+<img src="man/figures/README-readme-hero-1.png" alt="A line chart of three research topics' share of a reference literature rising and falling between 2014 and 2021" width="100%" />
 
 > Scopus is a trademark of Elsevier. scopusflow is an independent client
 > and is not affiliated with or endorsed by Elsevier. You will need your
@@ -65,13 +67,13 @@ raw <- list(entry = list(
 
 records <- scopus_records(raw, query = "TITLE-ABS-KEY(workflow)")
 records
-#> <scopus_records> (2 records)
-#> # A tibble: 2 × 10
+#> <scopus_records> 2 records
+#> query: "TITLE-ABS-KEY(workflow)"
+#> # A tibble: 2 × 9
 #>   entry_number scopus_id doi     title authors  year date  publication citations
 #>          <int> <chr>     <chr>   <chr> <chr>   <int> <chr> <chr>           <int>
 #> 1            1 1         10.100… A re… Smith …  2020 2020… J. Bibliom…        12
 #> 2            2 2         10.100… Quot… Doe A.   2021 2021… Scientomet…         3
-#> # ℹ 1 more variable: query <chr>
 
 # Extract and deduplicate DOIs.
 scopus_extract_dois(records)
@@ -79,9 +81,10 @@ scopus_extract_dois(records)
 
 # Track what changed since a previous retrieval.
 scopus_diff_dois(old = "10.1000/aaa", new = c("10.1000/aaa", "10.1000/bbb"))
+#> <scopus_doi_diff> 1 added, 0 removed, 1 unchanged
 #> # A tibble: 2 × 2
 #>   doi         status   
-#>   <chr>       <chr>    
+#>   <chr>       <fct>    
 #> 1 10.1000/bbb added    
 #> 2 10.1000/aaa unchanged
 

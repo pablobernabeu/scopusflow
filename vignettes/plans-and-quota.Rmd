@@ -1,0 +1,140 @@
+---
+title: "Search plans and quota-aware retrieval"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Search plans and quota-aware retrieval}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+```{r setup}
+library(scopusflow)
+```
+
+The Elsevier Scopus Search API is generous but bounded. A weekly quota limits how
+many requests you may make, a short-term rate limit caps how fast you may make
+them, and no single query will return more than its first 5000 records. This
+article shows how scopusflow works within those bounds so that a large retrieval
+is reproducible, efficient and resumable. The steps that contact the API need a
+key and are not run here; everything else runs offline.
+
+## A query, built safely
+
+Most queries combine a few terms under a field tag. `scopus_query()` assembles
+them without the bracket and tag mistakes that creep in when fragments are pasted
+together by hand.
+
+```{r}
+q <- scopus_query("language learning", "effect size", .field = "TITLE-ABS-KEY")
+q
+```
+
+The recognised field tags, and what each one searches, are listed by
+`scopus_field_tags()`.
+
+```{r}
+scopus_field_tags()
+```
+
+## Describing the search as a plan
+
+A plan records exactly what will be fetched, so it can be saved, reviewed and
+re-run. Partitioning by year is the recommended way to stay under the
+5000-record ceiling, since each year becomes its own cell.
+
+```{r}
+plan <- scopus_plan(q, years = 2010:2020, partition = "year")
+plan
+```
+
+Each cell carries the query, the year, the view and the page size. The page size
+deserves a moment's attention, because it is where quota is won or lost.
+
+## Why page size is a quota decision
+
+Scopus charges quota per request, not per record. A page may hold up to 200
+records under the `STANDARD` view, or 25 under `COMPLETE`. Retrieving a thousand
+records in pages of 200 therefore costs five requests, where pages of 25 would
+cost forty. For that reason `page_size` defaults to the largest the view allows,
+which is the same efficiency `rscopus` relies on, and is in no sense an evasion
+of the quota: every request is counted, and the 5000-record ceiling still holds.
+
+```{r}
+scopus_plan(q, view = "STANDARD")$page_size[1]
+scopus_plan(q, view = "COMPLETE")$page_size[1]
+```
+
+## Sizing before spending
+
+Counting is cheap and does not download records, so it is worth doing first. The
+count comes back with the parsed quota attached, which lets a workflow decide
+whether it has the allowance to proceed.
+
+```{r eval = FALSE}
+n <- scopus_count(q, years = 2010:2020)
+n
+attr(n, "quota")
+```
+
+## Fetching, with caching and resume
+
+`scopus_fetch_plan()` runs each cell in turn. Given a cache directory it writes
+each cell to disk as it completes, so a run interrupted halfway, or stopped by
+the quota, resumes from where it left off rather than paying for the same cells
+again.
+
+```{r eval = FALSE}
+records <- scopus_fetch_plan(
+  plan,
+  cache_dir = scopus_cache_dir(),
+  resume = TRUE
+)
+records
+```
+
+The result is a `scopus_records` tibble, the same shape returned by
+`scopus_fetch()` for a single query and by the bundled `example_records`.
+
+```{r}
+example_records
+```
+
+## Combining separate retrievals
+
+Results gathered in separate runs combine safely with `scopus_combine()`, which
+renumbers the records and can drop duplicates by Scopus identifier or DOI. This
+is preferable to `rbind()`, which would leave duplicate entry numbers.
+
+```{r}
+scopus_combine(example_records, example_records, dedupe = TRUE)
+```
+
+## When the ceiling bites
+
+A query matching more than 5000 records cannot be retrieved in full from a single
+call; `scopus_fetch()` returns the first 5000 and warns. The remedy is the plan:
+split the search by year, or by any other facet, so that each cell stays under
+the ceiling. `scopus_count()` tells you in advance whether a split is needed.
+
+## Handling interruptions
+
+Network and API problems are raised as typed conditions, all inheriting from
+`scopus_error`, so a long retrieval can respond to them rather than stopping
+dead.
+
+```{r eval = FALSE}
+result <- tryCatch(
+  scopus_fetch_plan(plan, cache_dir = scopus_cache_dir()),
+  scopus_error_rate_limit = function(e) {
+    message("Rate limited; the cached cells are safe. Try again later.")
+    NULL
+  }
+)
+```
+
+Because each completed cell is already cached, resuming after such a pause costs
+nothing for the work already done.

@@ -35,8 +35,12 @@ scopus_request <- function(params,
   if (!is.null(token)) {
     req <- httr2::req_headers(req, `X-ELS-Insttoken` = token, .redact = "X-ELS-Insttoken")
   }
-  # Drop NULL params so they are omitted from the query string.
-  params <- params[!vapply(params, is.null, logical(1))]
+  # Drop absent parameters (NULL or empty string) so they are omitted from the
+  # query string rather than sent as a bare, possibly malformed, parameter.
+  absent <- vapply(params, function(v) {
+    is.null(v) || (length(v) == 1L && !is.na(v) && identical(as.character(v), ""))
+  }, logical(1))
+  params <- params[!absent]
   req <- httr2::req_url_query(req, !!!params)
   req
 }
@@ -75,13 +79,24 @@ scopus_is_transient <- function(resp) {
 }
 
 # Number of seconds to wait before a retry, honouring Retry-After if present.
+# The header may be a number of seconds or an HTTP date (RFC 7231); both forms
+# are supported.
 scopus_retry_after <- function(resp) {
   ra <- httr2::resp_header(resp, "Retry-After")
   if (is.null(ra)) {
     return(NA_real_)
   }
-  val <- suppressWarnings(as.numeric(ra))
-  if (is.na(val)) NA_real_ else val
+  secs <- suppressWarnings(as.numeric(ra))
+  if (!is.na(secs)) {
+    return(secs)
+  }
+  when <- suppressWarnings(
+    as.POSIXct(ra, format = "%a, %d %b %Y %H:%M:%S", tz = "GMT")
+  )
+  if (is.na(when)) {
+    return(NA_real_)
+  }
+  max(0, as.numeric(difftime(when, Sys.time(), units = "secs")))
 }
 
 #' Parse 'Scopus' quota and rate-limit headers
@@ -174,11 +189,13 @@ scopus_search_page <- function(query,
   results
 }
 
-# Total number of results reported for the most recent page.
+# Total number of results reported for the most recent page. Returned as a
+# double so that very large totals (Scopus can report billions for broad
+# queries) survive without integer overflow to NA.
 scopus_total_results <- function(results) {
   total <- results[["opensearch:totalResults"]]
   if (is.null(total)) {
-    return(NA_integer_)
+    return(NA_real_)
   }
-  as.integer(suppressWarnings(as.numeric(total)))
+  suppressWarnings(as.numeric(total))
 }

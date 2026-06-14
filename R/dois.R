@@ -59,9 +59,10 @@ scopus_extract_dois <- function(x, dedupe = TRUE, file = NULL) {
 #'
 #' @param old,new [scopus_records] objects or character vectors of DOIs,
 #'   representing the earlier (`old`) and later (`new`) retrievals.
-#' @return A tibble with columns `doi` and `status`, where `status` is one of
-#'   `"added"` (in `new` only), `"removed"` (in `old` only) or `"unchanged"` (in
-#'   both), sorted by status then DOI.
+#' @return A tibble of class `scopus_doi_diff` with columns `doi` and `status`,
+#'   where `status` is an ordered factor with levels `"added"` (in `new` only),
+#'   `"removed"` (in `old` only) and `"unchanged"` (in both). Rows are sorted by
+#'   status then DOI, and printing shows the counts in each category.
 #' @seealso [scopus_extract_dois()]
 #' @examples
 #' old <- c("10.1/a", "10.1/b")
@@ -81,15 +82,26 @@ scopus_diff_dois <- function(old, new) {
   removed <- old_dois[!old_key %in% new_key]
   unchanged <- new_dois[new_key %in% old_key]
 
-  out <- tibble::tibble(
-    doi = c(added, removed, unchanged),
-    status = c(
-      rep("added", length(added)),
+  status <- factor(
+    c(rep("added", length(added)),
       rep("removed", length(removed)),
-      rep("unchanged", length(unchanged))
-    )
+      rep("unchanged", length(unchanged))),
+    levels = c("added", "removed", "unchanged")
   )
-  out[order(out$status, out$doi), ]
+  out <- tibble::tibble(doi = c(added, removed, unchanged), status = status)
+  out <- out[order(out$status, out$doi), , drop = FALSE]
+  tibble::new_tibble(as.list(out), nrow = nrow(out), class = "scopus_doi_diff")
+}
+
+#' @export
+print.scopus_doi_diff <- function(x, ...) {
+  counts <- table(factor(x$status, levels = c("added", "removed", "unchanged")))
+  cli::cli_text(
+    "{.cls scopus_doi_diff} {counts[['added']]} added, ",
+    "{counts[['removed']]} removed, {counts[['unchanged']]} unchanged"
+  )
+  print(tibble::as_tibble(x), ...)
+  invisible(x)
 }
 
 # Coerce accepted inputs to a character vector of DOIs.
@@ -109,10 +121,14 @@ scopus_as_doi_vector <- function(x) {
   )
 }
 
-# Trim whitespace, strip resolver prefixes, drop NA/empty.
+# Trim whitespace, strip resolver prefixes, drop NA/empty. The resolver host and
+# the `doi:` label are removed separately so that a space after either (as in
+# "DOI: 10.1/x", common when DOIs are copied from a citation) does not survive.
 scopus_clean_dois <- function(dois) {
   dois <- dois[!is.na(dois)]
   dois <- trimws(dois)
-  dois <- sub("^(https?://(dx\\.)?doi\\.org/|doi:)", "", dois, ignore.case = TRUE)
+  dois <- sub("^\\s*(https?://)?(www\\.)?(dx\\.)?doi\\.org/", "", dois, ignore.case = TRUE)
+  dois <- sub("^\\s*doi:\\s*", "", dois, ignore.case = TRUE)
+  dois <- trimws(dois)
   dois[nzchar(dois)]
 }

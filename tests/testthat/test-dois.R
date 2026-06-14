@@ -18,6 +18,24 @@ test_that("extract accepts a bare character vector", {
   expect_equal(scopus_extract_dois(c("10.1/a", NA, "")), "10.1/a")
 })
 
+test_that("resolver prefixes and 'DOI: ' labels are stripped cleanly", {
+  expect_equal(
+    scopus_extract_dois(c(
+      "https://doi.org/10.1/a",
+      "http://dx.doi.org/10.1/b",
+      "https://www.doi.org/10.1/c",
+      "DOI: 10.1/d",
+      "doi:10.1/e",
+      "doi.org/10.1/f"
+    ), dedupe = FALSE),
+    c("10.1/a", "10.1/b", "10.1/c", "10.1/d", "10.1/e", "10.1/f")
+  )
+})
+
+test_that("a 'DOI: ' label and its bare form deduplicate together", {
+  expect_equal(scopus_extract_dois(c("DOI: 10.1/x", "10.1/x")), "10.1/x")
+})
+
 test_that("writing happens only to the explicit path", {
   recs <- scopus_records(list(entry = list(list(`prism:doi` = "10.1/a"))))
   path <- withr::local_tempfile(fileext = ".csv")
@@ -34,19 +52,27 @@ test_that("write rejects an empty path", {
 
 test_that("diff identifies added, removed and unchanged", {
   d <- scopus_diff_dois(c("10.1/a", "10.1/b"), c("10.1/b", "10.1/c"))
-  expect_equal(d$status[d$doi == "10.1/c"], "added")
-  expect_equal(d$status[d$doi == "10.1/a"], "removed")
-  expect_equal(d$status[d$doi == "10.1/b"], "unchanged")
+  expect_s3_class(d, "scopus_doi_diff")
+  expect_s3_class(d$status, "factor")
+  expect_equal(as.character(d$status[d$doi == "10.1/c"]), "added")
+  expect_equal(as.character(d$status[d$doi == "10.1/a"]), "removed")
+  expect_equal(as.character(d$status[d$doi == "10.1/b"]), "unchanged")
   expect_equal(nrow(d), 3L)
 })
 
 test_that("diff is case-insensitive and handles empty sets", {
   d <- scopus_diff_dois(character(0), c("10.1/a"))
-  expect_equal(d$status, "added")
+  expect_equal(as.character(d$status), "added")
   d2 <- scopus_diff_dois(c("10.1/A"), c("10.1/a"))
-  expect_equal(d2$status, "unchanged")
+  expect_equal(as.character(d2$status), "unchanged")
   d3 <- scopus_diff_dois(character(0), character(0))
   expect_equal(nrow(d3), 0L)
+})
+
+test_that("the diff prints its counts", {
+  d <- scopus_diff_dois(c("10.1/a", "10.1/b"), c("10.1/b", "10.1/c"))
+  out <- paste(cli::cli_fmt(print(d)), collapse = " ")
+  expect_match(out, "added")
 })
 
 test_that("diff accepts scopus_records on either side", {
