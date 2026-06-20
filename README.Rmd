@@ -107,6 +107,9 @@ scopus_extract_dois(records)
 # Track what changed since a previous retrieval.
 scopus_diff_dois(old = "10.1000/aaa", new = c("10.1000/aaa", "10.1000/bbb"))
 
+# Tally the most frequent sources or authors.
+scopus_top(records, by = "source")
+
 # Hand off to bibliometrix-style analysis.
 as_bibliometrix(records)
 ```
@@ -139,20 +142,26 @@ cmp <- scopus_compare_topics(
   field            = "TITLE-ABS-KEY"
 )
 plot_scopus_comparison(cmp)
+
+# 6. Read the abstract of a known record, or harvest a whole large query past
+#    the 5000-record ceiling with cursor pagination.
+scopus_abstract("10.1038/s41586-019-0001-1")
+all_records <- scopus_fetch("TITLE-ABS-KEY(microplastics)", cursor = TRUE)
 ```
 
 ## Quotas, rate limits and errors
 
-The Scopus API enforces a weekly quota and a short-term rate limit, and it
-returns at most the first 5000 records of any query. scopusflow works within
-these limits rather than around them. It requests the largest page each view
-allows, 200 records for `STANDARD` and 25 for `COMPLETE`, so that a retrieval
-uses as few requests, and as little quota, as it can. This is the same approach
-`rscopus` takes. The quota and rate-limit headers
-are parsed by `scopus_quota()`, transient failures such as HTTP 429 and the 5xx
-range are retried with back-off that honours `Retry-After`, and any single query
-is capped at 5000 records with a warning that suggests partitioning by year. A
-failure arrives as a typed condition, so a workflow can respond to it in code:
+The Scopus API enforces a weekly quota and a short-term rate limit, and ordinary
+offset paging returns at most the first 5000 records of any query (use
+`scopus_fetch(cursor = TRUE)` to go beyond that). scopusflow works within these
+limits rather than around them. It requests the largest page each view allows,
+200 records for `STANDARD` and 25 for `COMPLETE`, so that a retrieval uses as few
+requests, and as little quota, as it can. This is the same approach `rscopus`
+takes. The quota and rate-limit headers are parsed by `scopus_quota()`, transient
+failures such as HTTP 429 and the 5xx range are retried with back-off that
+honours `Retry-After`, and an offset-paged query is capped at 5000 records with a
+warning that suggests cursor paging or partitioning by year. A failure arrives as
+a typed condition, so a workflow can respond to it in code:
 
 ```{r eval = FALSE}
 tryCatch(

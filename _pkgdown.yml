@@ -23,6 +23,7 @@ reference:
   contents:
   - scopus_fetch
   - scopus_fetch_plan
+  - scopus_abstract
   - scopus_cache_dir
   - scopus_cache_clear
 - title: Records
@@ -35,9 +36,13 @@ reference:
   contents:
   - scopus_extract_dois
   - scopus_diff_dois
-- title: Compare and visualise
+- title: Analyse and visualise
   contents:
+  - scopus_trend
+  - scopus_top
   - scopus_compare_topics
+  - plot_scopus_trend
+  - plot_scopus_top
   - plot_scopus_comparison
 - title: Export and I/O
   contents:

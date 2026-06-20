@@ -6,13 +6,17 @@
 #'
 #' @inheritParams scopus_count
 #' @param max_results Maximum number of records to retrieve. Defaults to `Inf`,
-#'   meaning all available records up to the API ceiling. The 'Scopus' Search
-#'   API refuses offsets of 5000 or more, so a single query yields at most 5000
-#'   records. To go beyond that, partition the search by year with
-#'   [scopus_plan()].
+#'   meaning all available records up to the API ceiling. With the default
+#'   offset-based paging the 'Scopus' Search API refuses offsets of 5000 or more,
+#'   so a single query yields at most 5000 records; set `cursor = TRUE`, or
+#'   partition the search by year with [scopus_plan()], to go beyond that.
 #' @param page_size Integer records per page, or `NULL` (default) to use the
 #'   most quota-efficient page the view allows (200 for `STANDARD`, 25 for
 #'   `COMPLETE`). See [scopus_plan()] for why larger pages cost less quota.
+#' @param cursor Logical. When `TRUE`, retrieve the result set with cursor-based
+#'   pagination, which has no 5000-record ceiling, so an entire large query can be
+#'   harvested in one call. The records then arrive in the API's deep-paging
+#'   order rather than sorted by relevance.
 #' @param verbose Logical. When `TRUE`, progress is reported as the retrieval
 #'   proceeds.
 #' @return A [scopus_records] tibble. The reported total and the most recent
@@ -31,6 +35,7 @@ scopus_fetch <- function(query,
                          page_size = NULL,
                          field = NULL,
                          years = NULL,
+                         cursor = FALSE,
                          api_key = NULL,
                          inst_token = NULL,
                          verbose = FALSE) {
@@ -46,15 +51,23 @@ scopus_fetch <- function(query,
 
   scopus_fetch_core(
     wrapped = wrapped, date = date, view = view, page_size = page_size,
-    max_results = max_results, api_key = api_key, inst_token = inst_token,
-    verbose = verbose
+    max_results = max_results, cursor = isTRUE(cursor),
+    api_key = api_key, inst_token = inst_token, verbose = verbose
   )
 }
 
 # Internal pagination engine shared by scopus_fetch() and scopus_fetch_plan().
 # `wrapped` is the field-wrapped query. `date` is a year-range string or NULL.
 scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
-                              api_key = NULL, inst_token = NULL, verbose = FALSE) {
+                              cursor = FALSE, api_key = NULL, inst_token = NULL,
+                              verbose = FALSE) {
+  if (isTRUE(cursor)) {
+    return(scopus_fetch_cursor(
+      wrapped = wrapped, date = date, view = view, page_size = page_size,
+      max_results = max_results, api_key = api_key, inst_token = inst_token,
+      verbose = verbose
+    ))
+  }
   # The API refuses start >= 5000; configurable only to keep tests fast.
   hard_cap <- as.integer(getOption("scopusflow.hard_cap", 5000L))
 
@@ -117,6 +130,45 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
   }
 
   # Concatenate entries once, then normalise a single time.
+  all_entries <- unlist(pages, recursive = FALSE)
+  if (is.null(all_entries)) all_entries <- list()
+  records <- scopus_records(list(entry = all_entries), query = wrapped)
+  attr(records, "total_results") <- total
+  attr(records, "quota") <- quota
+  records
+}
+
+# Cursor-based pagination: follow the `@next` cursor the API returns until the
+# result set is exhausted, so there is no 5000-record ceiling.
+scopus_fetch_cursor <- function(wrapped, date, view, page_size, max_results,
+                                api_key = NULL, inst_token = NULL, verbose = FALSE) {
+  pages <- list()
+  fetched <- 0L
+  total <- NA_real_
+  quota <- NULL
+  cursor <- "*"
+
+  repeat {
+    count <- if (is.finite(max_results)) min(page_size, max_results - fetched) else page_size
+    if (count <= 0L) break
+    results <- scopus_search_page(
+      query = wrapped, cursor = cursor, count = count, view = view,
+      date = date, api_key = api_key, inst_token = inst_token
+    )
+    if (is.na(total)) total <- scopus_total_results(results)
+    quota <- attr(results, "quota")
+    entries <- scopus_entries(results)
+    if (length(entries) == 0L) break
+    pages[[length(pages) + 1L]] <- entries
+    fetched <- fetched + length(entries)
+    if (verbose) cli::cli_inform("  {fetched} retrieved.")
+
+    next_cursor <- results[["cursor"]][["@next"]]
+    # Stop when the API offers no further cursor or stops advancing.
+    if (is.null(next_cursor) || identical(next_cursor, cursor)) break
+    cursor <- next_cursor
+  }
+
   all_entries <- unlist(pages, recursive = FALSE)
   if (is.null(all_entries)) all_entries <- list()
   records <- scopus_records(list(entry = all_entries), query = wrapped)

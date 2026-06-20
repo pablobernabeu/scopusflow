@@ -66,6 +66,42 @@ mock_corpus <- function(total, headers = list()) {
   }
 }
 
+# A mock corpus served via cursor pagination: each response carries the next
+# cursor until the corpus is exhausted.
+mock_cursor_corpus <- function(total) {
+  function(req) {
+    q <- httr2::url_parse(req$url)$query
+    count <- as.integer(if (is.null(q$count)) 25L else q$count)
+    cur <- q$cursor
+    offset <- if (is.null(cur) || identical(cur, "*")) 0L else as.integer(cur)
+    avail <- max(0L, total - offset)
+    n <- min(count, avail)
+    entries <- if (n > 0L) mock_entries(n, offset = offset) else {
+      list(list(error = "Result set was empty"))
+    }
+    next_off <- offset + n
+    cursor <- if (next_off < total && n > 0L) {
+      list(`@next` = as.character(next_off))
+    } else {
+      list()
+    }
+    body <- list(`search-results` = list(
+      `opensearch:totalResults` = as.character(total),
+      entry = entries,
+      cursor = cursor
+    ))
+    mock_json_response(body)
+  }
+}
+
+# An Abstract Retrieval response carrying the given coredata.
+mock_abstract <- function(core, status = 200L) {
+  mock_json_response(
+    list(`abstracts-retrieval-response` = list(coredata = core)),
+    status = status
+  )
+}
+
 # Load the bundled static page fixture as a parsed list.
 load_page_fixture <- function() {
   path <- system.file("extdata", "scopus_page.json", package = "scopusflow")

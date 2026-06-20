@@ -1,27 +1,31 @@
 ## Submission
 
-This is a new submission (scopusflow 0.1.0).
+This is an update of scopusflow, from 0.1.0 to 0.2.0. It adds cursor-based
+pagination (to retrieve beyond the API's 5000-record offset ceiling), an
+abstract-retrieval function, and an analysis and plotting layer
+(annual trends and top-source/author tallies). The changes are listed in NEWS.md.
+There are no user-facing breaking changes.
 
 ## Test environments
 
 * Local: Windows 11, R 4.5.1
 * GitHub Actions: windows-latest, macOS-latest, ubuntu-latest (release),
-  ubuntu-latest (devel and oldrel-1)
+  ubuntu-latest (devel and oldrel-1), plus a depends-only run
 * win-builder: R-devel and R-release
 
 ## R CMD check results
 
-0 errors | 0 warnings | 1 note
+0 errors | 0 warnings | 0 notes locally.
 
-The only note is the standard "New submission" note. All URLs in the DESCRIPTION
-and documentation resolve: the GitHub repository and the pkgdown website
-(https://pablobernabeu.github.io/scopusflow/) are public and live.
+On some platforms a single note may list possibly misspelled words in the
+DESCRIPTION ("DOIs", "Elsevier", "bibliometric", "resumable"). These are spelled
+correctly: "Elsevier" is the name of the company that provides the API, "DOIs" is
+the plural of the abbreviation defined in the same sentence, and "bibliometric"
+and "resumable" are standard terms in this field.
 
-The note also lists possibly misspelled words in the DESCRIPTION ("DOIs",
-"Elsevier", "bibliometric", "resumable"). These are spelled correctly: "Elsevier"
-is the name of the company that provides the API, "DOIs" is the plural of the
-abbreviation defined in the same sentence, and "bibliometric" and "resumable" are
-standard terms in this field.
+## Reverse dependencies
+
+There are no reverse dependencies.
 
 ## Notes for the CRAN team
 

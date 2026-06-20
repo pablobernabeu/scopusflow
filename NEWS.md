@@ -1,3 +1,20 @@
+# scopusflow 0.2.0
+
+This release reaches further into the API and adds an analysis layer on top of a
+retrieval.
+
+* [`scopus_fetch()`] gains `cursor = TRUE`, cursor-based pagination that retrieves
+  a whole large query without the 5000-record ceiling of offset paging.
+* [`scopus_abstract()`] retrieves the abstract and fuller metadata for one or many
+  records from the 'Scopus' Abstract Retrieval API, resilient to an identifier
+  that cannot be found.
+* [`scopus_trend()`] reports annual record counts for a query (the size of a
+  literature over time), with [`plot_scopus_trend()`].
+* [`scopus_top()`] tallies the most frequent sources or authors in a record set,
+  with [`plot_scopus_top()`]. An `autoplot()` method draws a record set's
+  publications per year.
+* A scheduled coverage workflow reports test coverage on each run.
+
 # scopusflow 0.1.0
 
 First release.

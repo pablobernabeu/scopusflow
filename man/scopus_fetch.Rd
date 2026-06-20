@@ -11,6 +11,7 @@ scopus_fetch(
   page_size = NULL,
   field = NULL,
   years = NULL,
+  cursor = FALSE,
   api_key = NULL,
   inst_token = NULL,
   verbose = FALSE
@@ -20,10 +21,10 @@ scopus_fetch(
 \item{query}{Character scalar. The base search expression.}
 
 \item{max_results}{Maximum number of records to retrieve. Defaults to \code{Inf},
-meaning all available records up to the API ceiling. The 'Scopus' Search
-API refuses offsets of 5000 or more, so a single query yields at most 5000
-records. To go beyond that, partition the search by year with
-\code{\link[=scopus_plan]{scopus_plan()}}.}
+meaning all available records up to the API ceiling. With the default
+offset-based paging the 'Scopus' Search API refuses offsets of 5000 or more,
+so a single query yields at most 5000 records; set \code{cursor = TRUE}, or
+partition the search by year with \code{\link[=scopus_plan]{scopus_plan()}}, to go beyond that.}
 
 \item{view}{Either \code{"STANDARD"} or \code{"COMPLETE"}.}
 
@@ -35,6 +36,11 @@ most quota-efficient page the view allows (200 for \code{STANDARD}, 25 for
 \code{\link[=scopus_plan]{scopus_plan()}}).}
 
 \item{years}{Optional integer vector of publication years to restrict to.}
+
+\item{cursor}{Logical. When \code{TRUE}, retrieve the result set with cursor-based
+pagination, which has no 5000-record ceiling, so an entire large query can be
+harvested in one call. The records then arrive in the API's deep-paging
+order rather than sorted by relevance.}
 
 \item{api_key, inst_token}{Optional credentials, resolved by default from
 options or environment variables (see \code{\link[=scopus_has_key]{scopus_has_key()}}).}

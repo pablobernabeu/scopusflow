@@ -47,3 +47,21 @@ test_that("a live response carries quota headers", {
   expect_type(quota, "list")
   expect_true(all(c("limit", "remaining", "reset") %in% names(quota)))
 })
+
+test_that("a live abstract retrieval returns metadata", {
+  skip_live()
+  withr::local_options(scopusflow.api_key = NULL)
+  ab <- scopus_abstract("10.1103/PhysRevLett.116.061102")
+  expect_s3_class(ab, "scopus_abstracts")
+  expect_equal(nrow(ab), 1L)
+  expect_false(is.na(ab$title))
+})
+
+test_that("a live trend returns annual counts", {
+  skip_live()
+  withr::local_options(scopusflow.api_key = NULL)
+  tr <- scopus_trend("TITLE-ABS-KEY(graphene)", years = 2018:2019)
+  expect_s3_class(tr, "scopus_trend")
+  expect_equal(nrow(tr), 2L)
+  expect_true(all(tr$n >= 0))
+})

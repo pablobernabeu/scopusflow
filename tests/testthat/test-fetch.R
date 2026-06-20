@@ -88,6 +88,23 @@ test_that("quota is attached to fetched records", {
   expect_equal(attr(recs, "quota")$remaining, 42)
 })
 
+test_that("cursor pagination retrieves the whole set without a 5000 cap", {
+  local_scopus_test_env()
+  withr::local_options(scopusflow.hard_cap = 6L) # would bite offset paging, not cursor
+  httr2::local_mocked_responses(mock_cursor_corpus(total = 450L))
+  recs <- scopus_fetch("anything", cursor = TRUE, page_size = 200L)
+  expect_equal(nrow(recs), 450L)
+  expect_equal(recs$entry_number, 1:450)
+  expect_equal(attr(recs, "total_results"), 450)
+})
+
+test_that("cursor pagination reaches beyond 5000 records", {
+  local_scopus_test_env()
+  httr2::local_mocked_responses(mock_cursor_corpus(total = 12000L))
+  recs <- scopus_fetch("anything", cursor = TRUE, page_size = 200L, max_results = 7000L)
+  expect_equal(nrow(recs), 7000L)
+})
+
 test_that("invalid max_results and page_size are rejected without network", {
   local_scopus_test_env()
   expect_error(scopus_fetch("x", max_results = 0), class = "scopus_error_bad_input")

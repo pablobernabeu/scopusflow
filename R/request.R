@@ -159,16 +159,20 @@ scopus_search_page <- function(query,
                                view = "STANDARD",
                                date = NULL,
                                field = NULL,
+                               cursor = NULL,
                                api_key = NULL,
                                inst_token = NULL,
                                call = rlang::caller_env()) {
+  # Offset and cursor paging are mutually exclusive: with a cursor, `start` is
+  # omitted and the API returns the next cursor in the response.
   params <- list(
     query = query,
-    start = format(as.integer(start), scientific = FALSE),
+    start = if (is.null(cursor)) format(as.integer(start), scientific = FALSE) else NULL,
     count = format(as.integer(count), scientific = FALSE),
     view = view,
     date = date,
-    field = field
+    field = field,
+    cursor = cursor
   )
   req <- scopus_request(params, api_key = api_key, inst_token = inst_token, call = call)
   resp <- scopus_perform(req, call = call)
