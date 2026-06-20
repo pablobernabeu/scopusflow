@@ -17,7 +17,10 @@ contributor is counted once per record.}
 }
 \value{
 A tibble of class \code{scopus_top} with columns \code{value} and \code{n}, sorted by
-descending count. The \code{by} choice is stored in the \code{by} attribute.
+descending count, with ties broken by \code{value} in byte order so the result is
+reproducible across platforms and locales. Exactly \code{n} rows are returned
+(fewer if there are fewer distinct values), so values tied at the \code{n}-th
+place may be cut. The \code{by} choice is stored in the \code{by} attribute.
 }
 \description{
 Tallies the most common sources or authors across a \link{scopus_records} object.

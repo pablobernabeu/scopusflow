@@ -33,7 +33,9 @@ options or environment variables (see \code{\link[=scopus_has_key]{scopus_has_ke
 \value{
 A tibble of class \code{scopus_trend} with columns \code{query} (the
 field-wrapped query), \code{year} (integer) and \code{n} (the count that year, as a
-double so very large counts are exact).
+double so very large counts are exact). A year whose response omits a total
+is recorded as \code{NA} (with a warning) and contributes nothing to the total
+shown by \code{print()}.
 }
 \description{
 Counts how many records match a query in each year, giving the size of a

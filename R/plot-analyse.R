@@ -40,6 +40,10 @@ plot_scopus_trend <- function(x, ...) {
   }
   rlang::check_installed("ggplot2", reason = "to plot a trend")
   yrs <- sort(unique(x$year))
+  if (length(yrs) == 0L) {
+    rlang::abort("The trend has no years to plot.",
+                 class = "scopus_error_bad_input")
+  }
   ggplot2::ggplot(x, ggplot2::aes(x = .data$year, y = .data$n)) +
     ggplot2::geom_area(fill = "#31688E", alpha = 0.16) +
     ggplot2::geom_line(colour = "#31688E", linewidth = 1) +
@@ -73,6 +77,10 @@ plot_scopus_top <- function(x, ...) {
                  class = "scopus_error_bad_input")
   }
   rlang::check_installed("ggplot2", reason = "to plot top values")
+  if (nrow(x) == 0L) {
+    rlang::abort("The `scopus_top` object has no values to plot.",
+                 class = "scopus_error_bad_input")
+  }
   by <- attr(x, "by") %||% "value"
   df <- x
   df$value <- factor(df$value, levels = rev(df$value))

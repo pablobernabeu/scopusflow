@@ -11,7 +11,9 @@
 #' @param verbose Logical. When `TRUE`, progress is reported.
 #' @return A tibble of class `scopus_trend` with columns `query` (the
 #'   field-wrapped query), `year` (integer) and `n` (the count that year, as a
-#'   double so very large counts are exact).
+#'   double so very large counts are exact). A year whose response omits a total
+#'   is recorded as `NA` (with a warning) and contributes nothing to the total
+#'   shown by `print()`.
 #' @section API access:
 #' This performs one count request per year, so it requires a valid API key and
 #' internet access; see the *API access* section of [scopus_count()].
@@ -45,6 +47,14 @@ scopus_trend <- function(query,
     ))
   }, numeric(1))
 
+  if (anyNA(n)) {
+    missing_years <- years[is.na(n)]
+    n_missing <- length(missing_years)
+    cli::cli_warn(
+      "No count returned for {n_missing} year{?s} ({.val {missing_years}}); recorded as {.val NA}."
+    )
+  }
+
   tibble::new_tibble(
     list(query = rep(wrapped, length(years)), year = as.integer(years), n = n),
     nrow = length(years), class = "scopus_trend"
@@ -70,7 +80,10 @@ print.scopus_trend <- function(x, ...) {
 #'   contributor is counted once per record.
 #' @param n The number of rows to return (the top `n`).
 #' @return A tibble of class `scopus_top` with columns `value` and `n`, sorted by
-#'   descending count. The `by` choice is stored in the `by` attribute.
+#'   descending count, with ties broken by `value` in byte order so the result is
+#'   reproducible across platforms and locales. Exactly `n` rows are returned
+#'   (fewer if there are fewer distinct values), so values tied at the `n`-th
+#'   place may be cut. The `by` choice is stored in the `by` attribute.
 #' @seealso [plot_scopus_top()], [summary.scopus_records()]
 #' @examples
 #' scopus_top(example_records, by = "source")
@@ -84,8 +97,12 @@ scopus_top <- function(x, by = c("source", "author"), n = 10L) {
     )
   }
   by <- rlang::arg_match(by)
-  if (!is.numeric(n) || length(n) != 1L || is.na(n) || n < 1L) {
-    rlang::abort("`n` must be a single positive number.", class = "scopus_error_bad_input")
+  if (!is.numeric(n) || length(n) != 1L || !is.finite(n) || n < 1L ||
+      n != floor(n)) {
+    rlang::abort(
+      "`n` must be a single positive whole number.",
+      class = "scopus_error_bad_input"
+    )
   }
 
   values <- switch(
@@ -100,8 +117,11 @@ scopus_top <- function(x, by = c("source", "author"), n = 10L) {
   if (length(values) == 0L) {
     out <- tibble::tibble(value = character(), n = integer())
   } else {
-    tab <- sort(table(values), decreasing = TRUE)
+    tab <- table(values)
     out <- tibble::tibble(value = names(tab), n = as.integer(tab))
+    # Order by descending count, breaking ties by value in C-locale byte order
+    # (method = "radix") so the truncated top-n is identical on every platform.
+    out <- out[order(-out$n, out$value, method = "radix"), , drop = FALSE]
     out <- utils::head(out, as.integer(n))
   }
   structure(

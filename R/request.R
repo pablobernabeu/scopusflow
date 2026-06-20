@@ -178,9 +178,15 @@ scopus_search_page <- function(query,
   resp <- scopus_perform(req, call = call)
   # Parse with jsonlite directly (rather than httr2::resp_body_json, which only
   # suggests jsonlite) so the dependency is explicit and the structure is stable.
-  body <- jsonlite::fromJSON(
-    httr2::resp_body_string(resp),
-    simplifyVector = FALSE
+  body <- tryCatch(
+    jsonlite::fromJSON(httr2::resp_body_string(resp), simplifyVector = FALSE),
+    error = function(e) {
+      rlang::abort(
+        "The 'Scopus' API response was not valid JSON.",
+        class = c("scopus_error_malformed", "scopus_error"),
+        parent = e, call = call
+      )
+    }
   )
   results <- body[["search-results"]]
   if (is.null(results)) {

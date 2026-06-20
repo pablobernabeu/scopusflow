@@ -13,7 +13,6 @@ retrieval.
 * [`scopus_top()`] tallies the most frequent sources or authors in a record set,
   with [`plot_scopus_top()`]. An `autoplot()` method draws a record set's
   publications per year.
-* A scheduled coverage workflow reports test coverage on each run.
 
 # scopusflow 0.1.0
 

@@ -40,7 +40,10 @@ most quota-efficient page the view allows (200 for \code{STANDARD}, 25 for
 \item{cursor}{Logical. When \code{TRUE}, retrieve the result set with cursor-based
 pagination, which has no 5000-record ceiling, so an entire large query can be
 harvested in one call. The records then arrive in the API's deep-paging
-order rather than sorted by relevance.}
+order rather than sorted by relevance. As a safeguard against a
+non-conforming server that never signals the end, cursor paging stops after
+\code{getOption("scopusflow.max_cursor_pages", 1e5)} pages with a warning; set
+that option to \code{Inf} to remove the ceiling.}
 
 \item{api_key, inst_token}{Optional credentials, resolved by default from
 options or environment variables (see \code{\link[=scopus_has_key]{scopus_has_key()}}).}

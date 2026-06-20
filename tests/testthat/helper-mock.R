@@ -94,6 +94,24 @@ mock_cursor_corpus <- function(total) {
   }
 }
 
+# A misbehaving cursor mock that NEVER signals the end: every page is full and
+# carries a fresh, ever-advancing `@next`, and no total is reported. Only the
+# package's own page ceiling can stop a fetch against this.
+mock_cursor_runaway <- function() {
+  function(req) {
+    q <- httr2::url_parse(req$url)$query
+    count <- as.integer(if (is.null(q$count)) 25L else q$count)
+    cur <- q$cursor
+    offset <- if (is.null(cur) || identical(cur, "*")) 0L else as.integer(cur)
+    body <- list(`search-results` = list(
+      # No opensearch:totalResults, so the total stays unknown.
+      entry = mock_entries(count, offset = offset),
+      cursor = list(`@next` = as.character(offset + count))
+    ))
+    mock_json_response(body)
+  }
+}
+
 # An Abstract Retrieval response carrying the given coredata.
 mock_abstract <- function(core, status = 200L) {
   mock_json_response(

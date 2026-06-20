@@ -105,6 +105,47 @@ test_that("cursor pagination reaches beyond 5000 records", {
   expect_equal(nrow(recs), 7000L)
 })
 
+test_that("cursor pagination terminates when the cursor stops advancing", {
+  local_scopus_test_env()
+  calls <- 0L
+  # The cursor never advances: the stall guard, not the mock, must stop the loop.
+  httr2::local_mocked_responses(function(req) {
+    calls <<- calls + 1L
+    q <- httr2::url_parse(req$url)$query
+    count <- as.integer(if (is.null(q$count)) 25L else q$count)
+    mock_json_response(list(`search-results` = list(
+      entry = mock_entries(count, offset = 0L),
+      cursor = list(`@next` = "STUCK")
+    )))
+  })
+  recs <- scopus_fetch("anything", cursor = TRUE, page_size = 10L)
+  expect_lte(calls, 2L)
+})
+
+test_that("cursor pagination makes no more requests than max_results needs", {
+  local_scopus_test_env()
+  calls <- 0L
+  corpus <- mock_cursor_corpus(total = 5000L)
+  httr2::local_mocked_responses(function(req) {
+    calls <<- calls + 1L
+    corpus(req)
+  })
+  recs <- scopus_fetch("anything", cursor = TRUE, page_size = 200L, max_results = 1000L)
+  expect_equal(nrow(recs), 1000L)
+  expect_lte(calls, 1000L / 200L + 1L)
+})
+
+test_that("cursor pagination stops at the page ceiling if the API never ends", {
+  local_scopus_test_env()
+  withr::local_options(scopusflow.max_cursor_pages = 3L)
+  httr2::local_mocked_responses(mock_cursor_runaway())
+  expect_warning(
+    recs <- scopus_fetch("anything", cursor = TRUE, page_size = 10L),
+    class = "scopus_warning_capped"
+  )
+  expect_equal(nrow(recs), 30L) # three pages of ten, then the backstop fires
+})
+
 test_that("invalid max_results and page_size are rejected without network", {
   local_scopus_test_env()
   expect_error(scopus_fetch("x", max_results = 0), class = "scopus_error_bad_input")

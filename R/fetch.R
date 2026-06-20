@@ -16,7 +16,10 @@
 #' @param cursor Logical. When `TRUE`, retrieve the result set with cursor-based
 #'   pagination, which has no 5000-record ceiling, so an entire large query can be
 #'   harvested in one call. The records then arrive in the API's deep-paging
-#'   order rather than sorted by relevance.
+#'   order rather than sorted by relevance. As a safeguard against a
+#'   non-conforming server that never signals the end, cursor paging stops after
+#'   `getOption("scopusflow.max_cursor_pages", 1e5)` pages with a warning; set
+#'   that option to `Inf` to remove the ceiling.
 #' @param verbose Logical. When `TRUE`, progress is reported as the retrieval
 #'   proceeds.
 #' @return A [scopus_records] tibble. The reported total and the most recent
@@ -147,6 +150,18 @@ scopus_fetch_cursor <- function(wrapped, date, view, page_size, max_results,
   total <- NA_real_
   quota <- NULL
   cursor <- "*"
+  page_no <- 0L
+  # A safety ceiling on the number of cursor pages, in case a misbehaving API
+  # keeps advancing the cursor without ever signalling the end. Set generously
+  # so it never bites a conforming server; configurable to keep tests fast.
+  # A non-finite or invalid option means "no ceiling" (Inf), so `page_no >= Inf`
+  # is simply never true, rather than coercing to NA and aborting the loop.
+  max_pages <- suppressWarnings(as.numeric(
+    getOption("scopusflow.max_cursor_pages", 100000L)
+  ))
+  if (length(max_pages) != 1L || is.na(max_pages) || max_pages < 1) {
+    max_pages <- Inf
+  }
 
   repeat {
     count <- if (is.finite(max_results)) min(page_size, max_results - fetched) else page_size
@@ -161,12 +176,32 @@ scopus_fetch_cursor <- function(wrapped, date, view, page_size, max_results,
     if (length(entries) == 0L) break
     pages[[length(pages) + 1L]] <- entries
     fetched <- fetched + length(entries)
+    page_no <- page_no + 1L
     if (verbose) cli::cli_inform("  {fetched} retrieved.")
+
+    # Stop once the reported total is reached: an API that keeps advancing the
+    # cursor beyond its own total has started repeating, so there is no more.
+    if (!is.na(total) && fetched >= total) break
 
     next_cursor <- results[["cursor"]][["@next"]]
     # Stop when the API offers no further cursor or stops advancing.
     if (is.null(next_cursor) || identical(next_cursor, cursor)) break
     cursor <- next_cursor
+
+    # Backstop: a non-conforming API that never signals the end must not page
+    # forever, burning memory, requests and quota. Warn and return what we have.
+    if (page_no >= max_pages) {
+      rlang::warn(
+        sprintf(
+          paste0("Cursor paging stopped after %d pages (%s records) without the ",
+                 "'Scopus' API signalling the end; returning what was retrieved. ",
+                 "Raise scopusflow.max_cursor_pages if the result set is larger."),
+          page_no, format(fetched, big.mark = ",")
+        ),
+        class = "scopus_warning_capped"
+      )
+      break
+    }
   }
 
   all_entries <- unlist(pages, recursive = FALSE)

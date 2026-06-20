@@ -45,6 +45,11 @@ scopus_abstract <- function(ids,
     ids <- sub("^SCOPUS_ID:", "", ids)
   }
 
+  # Resolve the key once up front: a missing key is a configuration error and
+  # should abort clearly, rather than being caught per identifier below and
+  # turned into a whole tibble of NA rows.
+  scopus_key(api_key)
+
   rows <- lapply(seq_along(ids), function(i) {
     if (verbose) cli::cli_inform("Retrieving {i}/{length(ids)}: {ids[i]}.")
     tryCatch(
@@ -66,9 +71,19 @@ scopus_abstract_request <- function(id, by, api_key = NULL, inst_token = NULL,
   token <- scopus_inst_token(inst_token)
   base <- getOption("scopusflow.abstract_url",
                     "https://api.elsevier.com/content/abstract")
-  # The DOI may itself contain slashes, which the API expects literally, so the
-  # path is assembled directly rather than escaped segment by segment.
-  req <- httr2::request(paste0(base, "/", by, "/", id))
+  # A DOI may itself contain slashes, which the API expects literally, so each
+  # path segment is percent-encoded individually and the slashes are preserved.
+  # This escapes characters such as '?', '#' or spaces that would otherwise be
+  # misparsed, without touching the structural slashes.
+  id_path <- paste(
+    vapply(
+      strsplit(id, "/", fixed = TRUE)[[1]],
+      function(segment) utils::URLencode(segment, reserved = TRUE),
+      character(1)
+    ),
+    collapse = "/"
+  )
+  req <- httr2::request(paste0(base, "/", by, "/", id_path))
   req <- httr2::req_user_agent(req, scopus_user_agent())
   req <- httr2::req_headers(
     req, `X-ELS-APIKey` = key, Accept = "application/json",
@@ -83,7 +98,16 @@ scopus_abstract_request <- function(id, by, api_key = NULL, inst_token = NULL,
 scopus_abstract_one <- function(id, by, api_key = NULL, inst_token = NULL) {
   req <- scopus_abstract_request(id, by, api_key = api_key, inst_token = inst_token)
   resp <- scopus_perform(req)
-  body <- jsonlite::fromJSON(httr2::resp_body_string(resp), simplifyVector = FALSE)
+  body <- tryCatch(
+    jsonlite::fromJSON(httr2::resp_body_string(resp), simplifyVector = FALSE),
+    error = function(e) {
+      rlang::abort(
+        "The 'Scopus' abstract response was not valid JSON.",
+        class = c("scopus_error_malformed", "scopus_error"),
+        parent = e
+      )
+    }
+  )
   core <- body[["abstracts-retrieval-response"]][["coredata"]]
   if (is.null(core)) {
     rlang::abort(

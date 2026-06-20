@@ -205,6 +205,35 @@ set an honest default figure. A shared, unexported `scopus_minimal_theme()` now
 backs the several plots, the internal helper the earlier notes said would be
 justified once a second plotting function appeared.
 
+### Pre-CRAN hardening of the 0.2.0 additions
+
+A multi-agent adversarial review of the 0.2.0 code, with every finding
+independently verified against the source, surfaced no blockers but a set of
+edge-case robustness gaps that were closed before submission, since a defect is
+far cheaper to fix before CRAN than after:
+
+- `scopus_top()` now orders ties by `value` in byte order (`order(..., method =
+  "radix")`) instead of the locale-dependent `sort(table())`, so which tied
+  values survive the top-`n` cut is reproducible across platforms; it also
+  rejects fractional and non-finite `n`, matching the package's other count
+  validators.
+- `scopus_trend()` warns (rather than silently recording `NA`) when a year's
+  response carries no total.
+- `scopus_abstract()` percent-encodes each identifier path segment while
+  preserving the structural slashes a DOI needs, so a DOI containing reserved
+  characters is not mis-parsed; it resolves the key once up front so a missing
+  key aborts cleanly instead of degrading to a tibble of `NA` rows; and a
+  malformed `200` body is raised as a typed `scopus_error_malformed` (also in
+  `scopus_search_page()`), so the batch degrades to an `NA` row rather than
+  aborting on an untyped `jsonlite` error.
+- Cursor paging gained a bounded backstop: it stops once the reported total is
+  reached and, against a non-conforming server that never signals the end, after
+  `getOption("scopusflow.max_cursor_pages", 1e5)` pages with a typed warning
+  (set the option to `Inf` to disable), so an unbounded harvest cannot silently
+  burn memory and quota.
+- The plot functions guard empty `scopus_trend`/`scopus_top` inputs with a typed
+  condition rather than an opaque `sprintf` crash or a silent blank chart.
+
 ## Assumptions
 
 On licensing, the original `rscopus_plus` code is licensed CC BY 4.0 and was
