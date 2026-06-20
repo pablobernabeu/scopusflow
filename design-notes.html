@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -19,7 +19,8 @@
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="articles/analysing-a-literature.html">Analysing and visualising a literature</a></li>
+    <li><a class="dropdown-item" href="articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
     <li><a class="dropdown-item" href="articles/comparing-topics.html">Comparing topics over time</a></li>
     <li><a class="dropdown-item" href="articles/designing-queries.html">Designing precise queries across disciplines</a></li>
     <li><a class="dropdown-item" href="articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
@@ -123,6 +124,12 @@
 <div class="section level2">
 <h2 id="continuous-maintenance">Continuous maintenance<a class="anchor" aria-label="anchor" href="#continuous-maintenance"></a></h2>
 <p>The package depends on several actively developed packages, <code>httr2</code> most of all, so a scheduled dependency canary (<code>.github/workflows/dependency-check.yaml</code>) rebuilds and checks it every other day against the current and development versions of those dependencies. A breaking change therefore surfaces here before it reaches a release. The workflow flags the maintainer through a single, de-duplicated issue. The whole pipeline runs on GitHub’s free Actions minutes and needs no secret. The attempt to resolve a breakage has three tiers: with no secret it asks a free GitHub Models model to diagnose and propose a fix in the issue; with a Claude subscription OAuth token (<code>CLAUDE_CODE_OAUTH_TOKEN</code>, no per-token cost) or a paid <code>ANTHROPIC_API_KEY</code>, the Claude Code action attempts a full fix and opens a pull request. Every tier is best-effort, so detection and flagging never depend on it. Dependabot keeps the workflow actions themselves current.</p>
+</div>
+<div class="section level2">
+<h2 id="version-020-api-reach-and-an-analysis-layer">Version 0.2.0: API reach and an analysis layer<a class="anchor" aria-label="anchor" href="#version-020-api-reach-and-an-analysis-layer"></a></h2>
+<p>The first release stopped at retrieval. 0.2.0 reaches further into the API and adds the analysis that a study usually needs next, all kept offline-testable.</p>
+<p>Cursor pagination (<code>scopus_fetch(cursor = TRUE)</code>) follows the API’s <code>@next</code> cursor instead of an offset, so a single large query can be harvested past the 5000-record ceiling that offset paging imposes. It is opt-in, since the records then arrive in deep-paging rather than relevance order, which is the right trade for a complete harvest but not for a top-of-results sample. <code><a href="reference/scopus_abstract.html">scopus_abstract()</a></code> adds the Abstract Retrieval API, a second endpoint, so the abstract and fuller metadata of a known record can be read; a batch is resilient, turning a per-id failure into an <code>NA</code> row with a warning rather than losing the whole call. Both are tested with <code>httr2</code> mocks and a key-gated live test, exactly as the Search API is.</p>
+<p>The analysis layer consumes objects already in hand: <code><a href="reference/scopus_top.html">scopus_top()</a></code> tallies sources or authors from a record set in memory, and <code><a href="reference/scopus_trend.html">scopus_trend()</a></code> counts a query year by year through the API (the single-query companion to the topic comparison). Each pairs with a plot, and an <code>autoplot()</code> method gives a record set an honest default figure. A shared, unexported <code>scopus_minimal_theme()</code> now backs the several plots, the internal helper the earlier notes said would be justified once a second plotting function appeared.</p>
 </div>
 <div class="section level2">
 <h2 id="assumptions">Assumptions<a class="anchor" aria-label="anchor" href="#assumptions"></a></h2>

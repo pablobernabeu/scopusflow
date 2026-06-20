@@ -15,7 +15,7 @@ all consume it."><meta property="og:image" content="https://pablobernabeu.github
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -27,7 +27,8 @@ all consume it."><meta property="og:image" content="https://pablobernabeu.github
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/analysing-a-literature.html">Analysing and visualising a literature</a></li>
+    <li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
     <li><a class="dropdown-item" href="../articles/comparing-topics.html">Comparing topics over time</a></li>
     <li><a class="dropdown-item" href="../articles/designing-queries.html">Designing precise queries across disciplines</a></li>
     <li><a class="dropdown-item" href="../articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
@@ -45,7 +46,7 @@ all consume it."><meta property="og:image" content="https://pablobernabeu.github
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Normalise raw 'Scopus' entries to a stable tidy schema</h1>
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/R/combine.R" class="external-link"><code>R/combine.R</code></a>, <a href="https://github.com/pablobernabeu/scopusflow/blob/main/R/records.R" class="external-link"><code>R/records.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/R/combine.R" class="external-link"><code>R/combine.R</code></a>, <a href="https://github.com/pablobernabeu/scopusflow/blob/main/R/plot-analyse.R" class="external-link"><code>R/plot-analyse.R</code></a>, <a href="https://github.com/pablobernabeu/scopusflow/blob/main/R/records.R" class="external-link"><code>R/records.R</code></a></small>
       <div class="d-none name"><code>scopus_records.Rd</code></div>
     </div>
 
@@ -65,6 +66,9 @@ all consume it.</p>
 <span><span class="co"># S3 method for class 'scopus_records'</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># S3 method for class 'scopus_records'</span></span>
+<span><span class="fu">autoplot</span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
 <span><span class="fu">scopus_records</span><span class="op">(</span><span class="va">x</span>, query <span class="op">=</span> <span class="cn">NA_character_</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">is_scopus_records</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></code></pre></div>
@@ -82,6 +86,10 @@ all consume it.</p>
 <dd><p>Ignored, for S3 compatibility.</p></dd>
 
 
+<dt id="arg-object">object<a class="anchor" aria-label="anchor" href="#arg-object"></a></dt>
+<dd><p>A scopus_records object (for the <code>autoplot()</code> method).</p></dd>
+
+
 <dt id="arg-query">query<a class="anchor" aria-label="anchor" href="#arg-query"></a></dt>
 <dd><p>Optional character scalar recording the query that produced the
 entries, kept in the <code>query</code> column for provenance.</p></dd>
@@ -91,6 +99,8 @@ entries, kept in the <code>query</code> column for provenance.</p></dd>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>The coercion methods return a plain <a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a> or data
 frame with the same columns and the <code>scopus_records</code> class removed.</p>
+<p>The <code>autoplot()</code> method returns a <a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot2::ggplot</a> of the records per
+year.</p>
 <p>A tibble of class <code>scopus_records</code> with the columns
 <code>entry_number</code> (integer), <code>scopus_id</code> (character), <code>doi</code> (character),
 <code>title</code> (character), <code>authors</code> (character, the creator names joined with

@@ -218,6 +218,36 @@ opens a pull request. Every tier is best-effort, so detection and
 flagging never depend on it. Dependabot keeps the workflow actions
 themselves current.
 
+## Version 0.2.0: API reach and an analysis layer
+
+The first release stopped at retrieval. 0.2.0 reaches further into the
+API and adds the analysis that a study usually needs next, all kept
+offline-testable.
+
+Cursor pagination (`scopus_fetch(cursor = TRUE)`) follows the API’s
+`@next` cursor instead of an offset, so a single large query can be
+harvested past the 5000-record ceiling that offset paging imposes. It is
+opt-in, since the records then arrive in deep-paging rather than
+relevance order, which is the right trade for a complete harvest but not
+for a top-of-results sample.
+[`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+adds the Abstract Retrieval API, a second endpoint, so the abstract and
+fuller metadata of a known record can be read; a batch is resilient,
+turning a per-id failure into an `NA` row with a warning rather than
+losing the whole call. Both are tested with `httr2` mocks and a
+key-gated live test, exactly as the Search API is.
+
+The analysis layer consumes objects already in hand:
+[`scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_top.md)
+tallies sources or authors from a record set in memory, and
+[`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md)
+counts a query year by year through the API (the single-query companion
+to the topic comparison). Each pairs with a plot, and an `autoplot()`
+method gives a record set an honest default figure. A shared, unexported
+`scopus_minimal_theme()` now backs the several plots, the internal
+helper the earlier notes said would be justified once a second plotting
+function appeared.
+
 ## Assumptions
 
 On licensing, the original `rscopus_plus` code is licensed CC BY 4.0 and
