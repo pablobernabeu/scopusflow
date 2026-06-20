@@ -28,6 +28,31 @@ summary(example_records)
 #> Most cited: Observation of gravitational waves from a binary black hole merger.
 ```
 
+A record set is an ordinary tibble underneath, so it drops straight into
+tidyverse or base workflows. `as_tibble()` and
+[`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html) make that
+explicit when a downstream tool expects a plain frame.
+
+``` r
+
+tibble::as_tibble(example_records)
+#> # A tibble: 6 × 10
+#>   entry_number scopus_id   doi   title authors  year date  publication citations
+#>          <int> <chr>       <chr> <chr> <chr>   <int> <chr> <chr>           <int>
+#> 1            1 85000000001 10.1… Geno… Zhang …  2019 2019… Nature            540
+#> 2            2 85000000002 10.1… Deep… Kumar …  2020 2020… Nature            210
+#> 3            3 85000000003 10.1… Clim… Okafor…  2018 2018… Nature Cli…       122
+#> 4            4 85000000004 10.1… Grap… Tanaka…  2021 2021… Advanced M…        45
+#> 5            5 85000000005 10.1… Chec… Garcia…  2020 2020… The Lancet…       388
+#> 6            6 85000000006 10.1… Obse… Abbott…  2016 2016… Physical R…      4200
+#> # ℹ 1 more variable: query <chr>
+as.data.frame(example_records)[1:3, c("title", "year")]
+#>                                                          title year
+#> 1 Genome editing with CRISPR-Cas9: principles and applications 2019
+#> 2           Deep learning for medical image analysis: a review 2020
+#> 3              Climate change adaptation in coastal megacities 2018
+```
+
 ## A clean, deduplicated DOI list
 
 Reference managers such as Zotero import most reliably from DOIs.

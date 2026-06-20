@@ -46,8 +46,20 @@ plot_scopus_top(scopus_top(example_records, by = "source"))
 ![A horizontal bar chart of the most frequent
 sources](analysing-a-literature_files/figure-html/unnamed-chunk-3-1.png)
 
+The same plot works on the author tally.
+
+``` r
+
+plot_scopus_top(scopus_top(example_records, by = "author", n = 5))
+```
+
+![A horizontal bar chart of the most frequent
+authors](analysing-a-literature_files/figure-html/unnamed-chunk-4-1.png)
+
 A record set also has an honest default view: `autoplot()` draws its
-records per year.
+records per year. The same `autoplot()` generic dispatches on
+`scopus_trend` and `scopus_top` objects too, delegating to the plots
+above.
 
 ``` r
 
@@ -55,7 +67,7 @@ ggplot2::autoplot(example_records)
 ```
 
 ![A bar chart of records per
-year](analysing-a-literature_files/figure-html/unnamed-chunk-4-1.png)
+year](analysing-a-literature_files/figure-html/unnamed-chunk-5-1.png)
 
 ## How a literature grows
 
@@ -82,7 +94,7 @@ plot_scopus_trend(tr)
 ```
 
 ![A line and area chart of records per year rising over
-time](analysing-a-literature_files/figure-html/unnamed-chunk-6-1.png)
+time](analysing-a-literature_files/figure-html/unnamed-chunk-7-1.png)
 
 ## Reading the fuller record
 
@@ -115,3 +127,9 @@ nrow(recs)
 
 The records then arrive in the API’s deep-paging order rather than
 sorted by relevance, which is the right trade for a complete harvest.
+This is the one-call alternative to the year-partitioned plan in the
+*Search plans and quota-aware retrieval* article: a plan keeps each cell
+under the ceiling and preserves relevance order, whereas `cursor = TRUE`
+harvests the whole set in a single pass. Reach for the plan when you
+want cached, resumable cells, and the cursor when you want the complete
+set at once.

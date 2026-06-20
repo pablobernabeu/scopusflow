@@ -110,16 +110,27 @@ become a date filter:</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="st">"language learning"</span>, field <span class="op">=</span> <span class="st">"TITLE"</span><span class="op">)</span><span class="op">$</span><span class="va">query</span></span>
 <span><span class="co">#&gt; [1] "TITLE(language learning)"</span></span>
 <span><span class="fu"><a href="../reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="st">"x"</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2020</span><span class="op">)</span><span class="op">$</span><span class="va">date</span></span>
-<span><span class="co">#&gt; [1] "2015-2020"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "2015-2020"</span></span>
+<span></span>
+<span><span class="co"># A plan is a classed object; is_scopus_plan() confirms it.</span></span>
+<span><span class="fu"><a href="../reference/scopus_plan.html">is_scopus_plan</a></span><span class="op">(</span><span class="va">plan</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="sizing-and-fetching">Sizing and fetching<a class="anchor" aria-label="anchor" href="#sizing-and-fetching"></a>
 </h2>
+<p><code><a href="../reference/scopus_has_key.html">scopus_has_key()</a></code> reports whether a key is configured,
+without revealing it. It is the guard the package’s own examples use to
+skip the steps that need the API, so it is the natural switch for a
+reproducible script:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_has_key.html">scopus_has_key</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] FALSE</span></span></code></pre></div>
 <p>With a key configured, you size a search cheaply and then execute the
 plan, optionally caching each cell so that an interrupted run resumes
 without re-spending quota. These contact the API, so they are not
 evaluated here:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_count.html">scopus_count</a></span><span class="op">(</span><span class="st">"machine translation"</span>, years <span class="op">=</span> <span class="fl">2018</span><span class="op">:</span><span class="fl">2020</span>, field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan</a></span><span class="op">(</span><span class="va">plan</span>, cache_dir <span class="op">=</span> <span class="fu"><a href="../reference/scopus_cache_dir.html">scopus_cache_dir</a></span><span class="op">(</span><span class="op">)</span>, resume <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
@@ -130,7 +141,7 @@ evaluated here:</p>
 <p>Whether records come from the API or from the bundled example data,
 they share one stable schema. The package ships a small, already
 normalised set, which we use here to continue offline:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">records</span> <span class="op">&lt;-</span> <span class="va">example_records</span></span>
 <span><span class="va">records</span></span>
 <span><span class="co">#&gt; &lt;scopus_records&gt; 6 records</span></span>
@@ -143,7 +154,11 @@ normalised set, which we use here to continue offline:</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>            3 85000000003 10.1… Clim… Okafor…  <span style="text-decoration: underline;">2</span>018 2018… Nature Cli…       122</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>            4 85000000004 10.1… Grap… Tanaka…  <span style="text-decoration: underline;">2</span>021 2021… Advanced M…        45</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>            5 85000000005 10.1… Chec… Garcia…  <span style="text-decoration: underline;">2</span>020 2020… The Lancet…       388</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>            6 85000000006 10.1… Obse… Abbott…  <span style="text-decoration: underline;">2</span>016 2016… Physical R…      <span style="text-decoration: underline;">4</span>200</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>            6 85000000006 10.1… Obse… Abbott…  <span style="text-decoration: underline;">2</span>016 2016… Physical R…      <span style="text-decoration: underline;">4</span>200</span></span>
+<span></span>
+<span><span class="co"># A record set is a classed tibble; is_scopus_records() confirms the contract.</span></span>
+<span><span class="fu"><a href="../reference/scopus_records.html">is_scopus_records</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
 <p><code><a href="../reference/scopus_records.html">scopus_records()</a></code> produces this same shape from a raw API
 response, flattening the nested result into one row per record.</p>
 </div>
@@ -152,7 +167,7 @@ response, flattening the nested result into one row per record.</p>
 </h2>
 <p>Extract a clean, deduplicated DOI list for import into a reference
 manager, and compare two retrievals to see exactly what changed:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dois</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span>
 <span><span class="va">dois</span></span>
 <span><span class="co">#&gt; [1] "10.1038/s41586-019-0001-1"      "10.1038/s41586-020-0002-2"     </span></span>
@@ -174,7 +189,7 @@ manager, and compare two retrievals to see exactly what changed:</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> 10.1038/s41586-020-0002-2      unchanged</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> 10.1103/PhysRevLett.116.061102 unchanged</span></span></code></pre></div>
 <p>You can write the DOIs to a path you specify:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"dois.csv"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">records</span>, file <span class="op">=</span> <span class="va">out</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span>
@@ -189,14 +204,14 @@ manager, and compare two retrievals to see exactly what changed:</p>
 <p><code><a href="../reference/scopus_compare_topics.html">scopus_compare_topics()</a></code> issues one count request per
 term per year, so it needs the API. Its output has a fixed shape, which
 we reproduce here to show the plot:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_compare_topics.html">scopus_compare_topics</a></span><span class="op">(</span></span>
 <span>  reference_query  <span class="op">=</span> <span class="st">"language learning"</span>,</span>
 <span>  comparison_terms <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"effect size"</span>, <span class="st">"Bayesian"</span><span class="op">)</span>,</span>
 <span>  years            <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2020</span>,</span>
 <span>  field            <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># A stand-in comparison object with the same columns scopus_compare_topics()</span></span>
 <span><span class="co"># returns, so the plotting step is reproducible offline.</span></span>
 <span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
@@ -234,18 +249,18 @@ we reproduce here to show the plot:</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">17</span> q     comparison Bayesian        <span style="text-decoration: underline;">2</span>019    15         100                    15</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">18</span> q     comparison Bayesian        <span style="text-decoration: underline;">2</span>020    19         100                    19</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: average_comparison_percentage &lt;dbl&gt;</span></span></span></code></pre></div>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"ggplot2"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="../reference/plot_scopus_comparison.html">plot_scopus_comparison</a></span><span class="op">(</span><span class="va">cmp</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<p><img src="scopusflow_files/figure-html/unnamed-chunk-10-1.png" class="r-plt" alt="Line chart of two topics' share of the reference literature over time" width="672"></p>
+<p><img src="scopusflow_files/figure-html/unnamed-chunk-11-1.png" class="r-plt" alt="Line chart of two topics' share of the reference literature over time" width="672"></p>
 </div>
 <div class="section level2">
 <h2 id="export-and-interoperability">Export and interoperability<a class="anchor" aria-label="anchor" href="#export-and-interoperability"></a>
 </h2>
 <p>Hand results to <code>bibliometrix</code>-style workflows, or save
 and reload them:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="../reference/as_bibliometrix.html">as_bibliometrix</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;          AU                                                                 TI</span></span>
 <span><span class="co">#&gt; 1  ZHANG F.       GENOME EDITING WITH CRISPR-CAS9: PRINCIPLES AND APPLICATIONS</span></span>
@@ -280,7 +295,7 @@ and reload them:</p>
 <p>Network and API problems surface as typed conditions, all inheriting
 from <code>scopus_error</code>, so a workflow can respond to them in
 code:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/scopus_fetch.html">scopus_fetch</a></span><span class="op">(</span><span class="st">"..."</span><span class="op">)</span>,</span>
 <span>  scopus_error_no_key     <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"No API key configured."</span><span class="op">)</span>,</span>

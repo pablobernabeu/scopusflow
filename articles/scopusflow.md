@@ -44,9 +44,24 @@ scopus_plan("language learning", field = "TITLE")$query
 #> [1] "TITLE(language learning)"
 scopus_plan("x", years = 2015:2020)$date
 #> [1] "2015-2020"
+
+# A plan is a classed object; is_scopus_plan() confirms it.
+is_scopus_plan(plan)
+#> [1] TRUE
 ```
 
 ## Sizing and fetching
+
+[`scopus_has_key()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_has_key.md)
+reports whether a key is configured, without revealing it. It is the
+guard the package’s own examples use to skip the steps that need the
+API, so it is the natural switch for a reproducible script:
+
+``` r
+
+scopus_has_key()
+#> [1] FALSE
+```
 
 With a key configured, you size a search cheaply and then execute the
 plan, optionally caching each cell so that an interrupted run resumes
@@ -81,6 +96,10 @@ records
 #> 4            4 85000000004 10.1… Grap… Tanaka…  2021 2021… Advanced M…        45
 #> 5            5 85000000005 10.1… Chec… Garcia…  2020 2020… The Lancet…       388
 #> 6            6 85000000006 10.1… Obse… Abbott…  2016 2016… Physical R…      4200
+
+# A record set is a classed tibble; is_scopus_records() confirms the contract.
+is_scopus_records(records)
+#> [1] TRUE
 ```
 
 [`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
@@ -194,7 +213,7 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 ```
 
 ![Line chart of two topics' share of the reference literature over
-time](scopusflow_files/figure-html/unnamed-chunk-10-1.png)
+time](scopusflow_files/figure-html/unnamed-chunk-11-1.png)
 
 ## Export and interoperability
 
