@@ -73,6 +73,7 @@
 <!-- badges: start -->
 
 <p>scopusflow is a reproducible, quota-aware workflow layer over the Elsevier <a href="https://dev.elsevier.com/sc_apis.html" class="external-link">Scopus</a> Search API. It turns one-off bibliographic queries into inspectable plans, retrieves records safely with pagination, rate-limit handling, retry with back-off and optional resumable caching, normalises them to a stable tidy schema, tracks changes in DOI sets over time and compares publication trends across topics.</p>
+<p>A Python twin, <a href="https://github.com/pablobernabeu/scopusflow-py" class="external-link">scopusflow for Python</a>, offers the same workflow on top of <a href="https://pybliometrics.readthedocs.io" class="external-link">pybliometrics</a>.</p>
 <p><img src="reference/figures/README-readme-hero-1.png" alt="A line chart showing how deep-learning research spread into computer vision, natural language processing, medical imaging and drug discovery between 2013 and 2021" width="100%"></p>
 <blockquote>
 <p>Scopus is a trademark of Elsevier. scopusflow is an independent client and is not affiliated with or endorsed by Elsevier. You will need your own Elsevier API key and should use it under Elsevier’s API terms.</p>
@@ -94,7 +95,7 @@
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pablobernabeu/scopusflow" class="external-link">scopusflow</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/scopus_has_key.html">scopus_has_key</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] FALSE</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="quick-start-offline">Quick start (offline)<a class="anchor" aria-label="anchor" href="#quick-start-offline"></a>

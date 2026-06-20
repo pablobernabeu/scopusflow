@@ -8,6 +8,11 @@ and optional resumable caching, normalises them to a stable tidy schema,
 tracks changes in DOI sets over time and compares publication trends
 across topics.
 
+A Python twin, [scopusflow for
+Python](https://github.com/pablobernabeu/scopusflow-py), offers the same
+workflow on top of
+[pybliometrics](https://pybliometrics.readthedocs.io).
+
 ![A line chart showing how deep-learning research spread into computer
 vision, natural language processing, medical imaging and drug discovery
 between 2013 and 2021](reference/figures/README-readme-hero-1.png)
@@ -40,7 +45,7 @@ SCOPUS_INST_TOKEN=your-institutional-token
 
 library(scopusflow)
 scopus_has_key()
-#> [1] FALSE
+#> [1] TRUE
 ```
 
 ## Quick start (offline)
