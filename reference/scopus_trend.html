@@ -103,7 +103,9 @@ options or environment variables (see <code><a href="scopus_has_key.html">scopus
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A tibble of class <code>scopus_trend</code> with columns <code>query</code> (the
 field-wrapped query), <code>year</code> (integer) and <code>n</code> (the count that year, as a
-double so very large counts are exact).</p>
+double so very large counts are exact). A year whose response omits a total
+is recorded as <code>NA</code> (with a warning) and contributes nothing to the total
+shown by <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code>.</p>
     </div>
     <div class="section level2">
     <h2 id="api-access">API access<a class="anchor" aria-label="anchor" href="#api-access"></a></h2>

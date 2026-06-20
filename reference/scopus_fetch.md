@@ -65,7 +65,10 @@ scopus_fetch(
   Logical. When `TRUE`, retrieve the result set with cursor-based
   pagination, which has no 5000-record ceiling, so an entire large query
   can be harvested in one call. The records then arrive in the API's
-  deep-paging order rather than sorted by relevance.
+  deep-paging order rather than sorted by relevance. As a safeguard
+  against a non-conforming server that never signals the end, cursor
+  paging stops after `getOption("scopusflow.max_cursor_pages", 1e5)`
+  pages with a warning; set that option to `Inf` to remove the ceiling.
 
 - api_key, inst_token:
 

@@ -32,7 +32,11 @@ scopus_top(x, by = c("source", "author"), n = 10L)
 ## Value
 
 A tibble of class `scopus_top` with columns `value` and `n`, sorted by
-descending count. The `by` choice is stored in the `by` attribute.
+descending count, with ties broken by `value` in byte order so the
+result is reproducible across platforms and locales. Exactly `n` rows
+are returned (fewer if there are fewer distinct values), so values tied
+at the `n`-th place may be cut. The `by` choice is stored in the `by`
+attribute.
 
 ## See also
 

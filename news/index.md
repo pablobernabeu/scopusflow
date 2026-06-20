@@ -20,7 +20,6 @@ top of a retrieval.
   tallies the most frequent sources or authors in a record set, with
   \[[`plot_scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_top.md)\].
   An `autoplot()` method draws a record set’s publications per year.
-- A scheduled coverage workflow reports test coverage on each run.
 
 ## scopusflow 0.1.0
 
