@@ -30,6 +30,15 @@ spread and the most-cited record.
 summary(example_records)
 ```
 
+A record set is an ordinary tibble underneath, so it drops straight into
+tidyverse or base workflows. `as_tibble()` and `as.data.frame()` make that
+explicit when a downstream tool expects a plain frame.
+
+```{r}
+tibble::as_tibble(example_records)
+as.data.frame(example_records)[1:3, c("title", "year")]
+```
+
 ## A clean, deduplicated DOI list
 
 Reference managers such as Zotero import most reliably from DOIs.

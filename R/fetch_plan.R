@@ -25,7 +25,9 @@
 #' @examplesIf scopusflow::scopus_has_key()
 #' plan <- scopus_plan("renewable energy", years = 2015:2022, partition = "year")
 #' dir <- file.path(tempdir(), "energy-cache")
-#' recs <- scopus_fetch_plan(plan, cache_dir = dir, resume = TRUE)
+#' # `max_results` caps each yearly cell, so the example stays small and
+#' # quota-light; drop it to harvest every record in the plan.
+#' recs <- scopus_fetch_plan(plan, max_results = 25, cache_dir = dir, resume = TRUE)
 #' @export
 scopus_fetch_plan <- function(plan,
                               max_results = Inf,

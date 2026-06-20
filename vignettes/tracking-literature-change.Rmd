@@ -86,6 +86,15 @@ combined <- scopus_combine(baseline, later, dedupe = TRUE)
 nrow(combined)
 ```
 
+The base `c()` method concatenates record sets directly, renumbering but without
+de-duplicating, so it is the building block that `scopus_combine()` adds the
+duplicate handling to.
+
+```{r}
+stacked <- c(baseline, later)
+nrow(stacked)
+```
+
 ## Keeping a record of each pull
 
 Saving each retrieval lets you compare against it next time. The `.rds` form

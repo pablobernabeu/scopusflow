@@ -42,9 +42,20 @@ filter:
 ```{r}
 scopus_plan("language learning", field = "TITLE")$query
 scopus_plan("x", years = 2015:2020)$date
+
+# A plan is a classed object; is_scopus_plan() confirms it.
+is_scopus_plan(plan)
 ```
 
 ## Sizing and fetching
+
+`scopus_has_key()` reports whether a key is configured, without revealing it. It
+is the guard the package's own examples use to skip the steps that need the API,
+so it is the natural switch for a reproducible script:
+
+```{r}
+scopus_has_key()
+```
 
 With a key configured, you size a search cheaply and then execute the plan,
 optionally caching each cell so that an interrupted run resumes without
@@ -65,6 +76,9 @@ use here to continue offline:
 ```{r}
 records <- example_records
 records
+
+# A record set is a classed tibble; is_scopus_records() confirms the contract.
+is_scopus_records(records)
 ```
 
 `scopus_records()` produces this same shape from a raw API response, flattening
