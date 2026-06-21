@@ -48,6 +48,9 @@ reference:
   contents:
   - as_bibliometrix
   - write_scopus_records
+- title: App
+  contents:
+  - run_app
 - title: Keys
   contents:
   - scopus_has_key

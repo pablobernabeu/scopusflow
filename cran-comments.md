@@ -2,9 +2,13 @@
 
 This is an update of scopusflow, from 0.1.0 to 0.2.0. It adds cursor-based
 pagination (to retrieve beyond the API's 5000-record offset ceiling), an
-abstract-retrieval function, and an analysis and plotting layer
-(annual trends and top-source/author tallies). The changes are listed in NEWS.md.
-There are no user-facing breaking changes.
+abstract-retrieval function, an analysis and plotting layer (annual trends and
+top-source/author tallies), and a local, code-free Shiny app (run_app()). The
+changes are listed in NEWS.md. There are no user-facing breaking changes.
+
+The app's interface packages (shiny, bslib, callr, fansi) are in Suggests and
+used only inside run_app(), which is guarded with rlang::check_installed(); the
+package builds, loads and checks without them.
 
 ## Test environments
 

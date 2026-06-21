@@ -234,6 +234,39 @@ far cheaper to fix before CRAN than after:
 - The plot functions guard empty `scopus_trend`/`scopus_top` inputs with a typed
   condition rather than an opaque `sprintf` crash or a silent blank chart.
 
+### A local-first app
+
+`run_app()` launches a Shiny front end so the workflow can be driven without
+writing code, while a panel mirrors every choice back as a runnable script, so
+the app is an on-ramp to the package rather than a replacement for it. It is
+deliberately local-first, bound to `127.0.0.1`: a hosted multi-user version would
+conflict with Elsevier's API terms (which expect calls not to be proxied through
+a server-side component) and with the institutional-IP entitlement model (calls
+from a cloud IP get reduced access), and it would put third parties in custody of
+users' keys. Running on the user's own machine sidesteps all three, and removes
+any platform timeout on a long harvest.
+
+The long retrieval runs in a background `callr::r_bg()` child whose `verbose`
+`cli` output is written to a log file the server tails (a poll on
+`invalidateLater`, rendered through `fansi`), rather than captured over a pipe,
+which would deadlock once the OS pipe buffer filled. The code mirror is built
+from hand-rolled templates, not `shinymeta`, because the expensive step runs
+across the async boundary `shinymeta` cannot see. The reproducible-code,
+progress-parsing and ANSI-to-HTML helpers are factored into `app-helpers.R` so
+they are unit-tested offline; the reactive layer is not.
+
+On the key: it is held only in the session, never written by app code to the
+log, the generated script or the cache path. The terminal panel HTML-escapes its
+content in both the coloured and plain branches, so a query echoed into the log
+cannot inject markup. One residual, accepted exposure: `callr` serialises the
+worker's argument list, which includes the key, to a short-lived, user-owned
+temp file when launching the child. That is tolerated because the app is local
+and the file is the user's own and transient; the alternative of passing the key
+through the child's environment was rejected as it would lengthen the exposure
+window in the process environment without a net gain on a single-user machine.
+The app's interface packages (`shiny`, `bslib`, `callr`, `fansi`) stay in
+Suggests and are required only inside `run_app()`.
+
 ## Assumptions
 
 On licensing, the original `rscopus_plus` code is licensed CC BY 4.0 and was

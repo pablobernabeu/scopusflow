@@ -30,9 +30,13 @@ Imports:
     tools,
     utils
 Suggests:
+    bslib,
+    callr,
+    fansi,
     ggplot2,
     knitr,
     rmarkdown,
+    shiny,
     spelling,
     testthat (>= 3.0.0),
     withr
