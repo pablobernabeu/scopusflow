@@ -74,6 +74,11 @@
   [`read_scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_records.md)
   : Read and write 'Scopus' record sets
 
+## App
+
+- [`run_app()`](https://pablobernabeu.github.io/scopusflow/reference/run_app.md)
+  : Launch the scopusflow app
+
 ## Keys
 
 - [`scopus_has_key()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_has_key.md)

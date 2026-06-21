@@ -20,6 +20,12 @@ top of a retrieval.
   tallies the most frequent sources or authors in a record set, with
   \[[`plot_scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_top.md)\].
   An `autoplot()` method draws a record set’s publications per year.
+- \[[`run_app()`](https://pablobernabeu.github.io/scopusflow/reference/run_app.md)\]
+  launches a local, code-free Shiny app for building a search,
+  retrieving records with a live progress terminal, and exporting them.
+  A panel mirrors every choice as a runnable R script, so the app is an
+  on-ramp to the package. It runs on your own machine, so the API key
+  never leaves it.
 
 ## scopusflow 0.1.0
 
