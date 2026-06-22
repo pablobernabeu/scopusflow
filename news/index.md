@@ -9,7 +9,11 @@ This release adds a code-free app and reference-manager export.
   retrieving records with a live progress terminal, and exporting them.
   A panel mirrors every choice as a runnable R script, so the app is an
   on-ramp to the package. It runs on your own machine, so the API key
-  never leaves it.
+  never leaves it. The app also has a *Compare topics* tab (with
+  highlight, stability-band and counts-in-label controls, a quota
+  estimate and a CSV export) and a *Demo mode*, on by default, that
+  synthesises records and a comparison so the whole workflow can be
+  explored with no key and no network.
 - \[[`as_bibtex()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)\]
   and
   \[[`as_ris()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)\]
