@@ -27,6 +27,7 @@ It works on records already in memory, so it makes no network request."><meta pr
     <li><a class="dropdown-item" href="../articles/designing-queries.html">Designing precise queries across disciplines</a></li>
     <li><a class="dropdown-item" href="../articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
     <li><a class="dropdown-item" href="../articles/tracking-literature-change.html">Tracking how a literature changes between retrievals</a></li>
+    <li><a class="dropdown-item" href="../articles/using-the-app.html">Using the code-free app</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -77,8 +78,8 @@ contributor is counted once per record.</p></dd>
     <p>A tibble of class <code>scopus_top</code> with columns <code>value</code> and <code>n</code>, sorted by
 descending count, with ties broken by <code>value</code> in byte order so the result is
 reproducible across platforms and locales. Exactly <code>n</code> rows are returned
-(fewer if there are fewer distinct values), so values tied at the <code>n</code>-th
-place may be cut. The <code>by</code> choice is stored in the <code>by</code> attribute.</p>
+(fewer if there are fewer distinct values), so values tied at the cut-off
+rank may be dropped. The <code>by</code> choice is stored in the <code>by</code> attribute.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

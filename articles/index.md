@@ -16,3 +16,5 @@
   scopusflow](https://pablobernabeu.github.io/scopusflow/articles/scopusflow.md):
 - [Tracking how a literature changes between
   retrievals](https://pablobernabeu.github.io/scopusflow/articles/tracking-literature-change.md):
+- [Using the code-free
+  app](https://pablobernabeu.github.io/scopusflow/articles/using-the-app.md):

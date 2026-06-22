@@ -13,7 +13,8 @@ This release adds a code-free app and reference-manager export.
   highlight, stability-band and counts-in-label controls, a per-term
   progress indicator, a quota estimate and a CSV export) and a *Demo
   mode*, on by default, that synthesises records and a comparison so the
-  whole workflow can be explored with no key and no network.
+  whole workflow can be explored with no key and no network. A new
+  vignette, *Using the code-free app*, walks through every panel.
 - \[[`as_bibtex()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)\]
   and
   \[[`as_ris()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)\]
@@ -100,8 +101,8 @@ First release.
   shaded Wilson stability band (an illustrative range, switchable with
   `interval`).
 - The bundled `example_records` spans several disciplines, and the
-  examples and five workflow vignettes draw on a wide range of fields.
+  examples and workflow vignettes draw on a wide range of fields.
 - Multiple authors are retained in the `authors` column rather than
-  truncated to the first; very large result totals are handled without
-  overflow; and DOI cleaning copes with `www.doi.org` hosts and `DOI:`
+  truncated to the first. Very large result totals are handled without
+  overflow. DOI cleaning copes with `www.doi.org` hosts and `DOI:`
   labels.

@@ -25,6 +25,7 @@
     <li><a class="dropdown-item" href="../articles/designing-queries.html">Designing precise queries across disciplines</a></li>
     <li><a class="dropdown-item" href="../articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
     <li><a class="dropdown-item" href="../articles/tracking-literature-change.html">Tracking how a literature changes between retrievals</a></li>
+    <li><a class="dropdown-item" href="../articles/using-the-app.html">Using the code-free app</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -44,7 +45,7 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.3.0" id="scopusflow-030">scopusflow 0.3.0<a class="anchor" aria-label="anchor" href="#scopusflow-030"></a></h2>
 <p>This release adds a code-free app and reference-manager export.</p>
-<ul><li>[<code><a href="../reference/run_app.html">run_app()</a></code>] launches a local, code-free Shiny app for building a search, retrieving records with a live progress terminal, and exporting them. A panel mirrors every choice as a runnable R script, so the app is an on-ramp to the package. It runs on your own machine, so the API key never leaves it. The app also has a <em>Compare topics</em> tab (with highlight, stability-band and counts-in-label controls, a per-term progress indicator, a quota estimate and a CSV export) and a <em>Demo mode</em>, on by default, that synthesises records and a comparison so the whole workflow can be explored with no key and no network.</li>
+<ul><li>[<code><a href="../reference/run_app.html">run_app()</a></code>] launches a local, code-free Shiny app for building a search, retrieving records with a live progress terminal, and exporting them. A panel mirrors every choice as a runnable R script, so the app is an on-ramp to the package. It runs on your own machine, so the API key never leaves it. The app also has a <em>Compare topics</em> tab (with highlight, stability-band and counts-in-label controls, a per-term progress indicator, a quota estimate and a CSV export) and a <em>Demo mode</em>, on by default, that synthesises records and a comparison so the whole workflow can be explored with no key and no network. A new vignette, <em>Using the code-free app</em>, walks through every panel.</li>
 <li>[<code><a href="../reference/as_bibtex.html">as_bibtex()</a></code>] and [<code><a href="../reference/as_bibtex.html">as_ris()</a></code>] export a record set to the BibTeX and RIS interchange formats, so a search can be carried into Zotero, EndNote, Mendeley or a LaTeX bibliography.</li>
 <li>[<code><a href="../reference/plot_scopus_comparison.html">plot_scopus_comparison()</a></code>] now spreads the direct line labels vertically and draws a leader from each label to its line, so topics that converge near the final year no longer overlap, and falls back to a legend when there are too many topics to label legibly.</li>
 </ul></div>
@@ -69,8 +70,8 @@
 <li>Safe merging of record sets with [<code><a href="../reference/scopus_combine.html">scopus_combine()</a></code>] (and a <code><a href="https://rdrr.io/r/base/c.html" class="external-link">c()</a></code> method), plus <code>as_tibble()</code> and <code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> coercion.</li>
 <li>A typed condition system (<code>scopus_error</code> and its subclasses) and quota-header parsing with [<code><a href="../reference/scopus_quota.html">scopus_quota()</a></code>].</li>
 <li>The comparison plot uses whole-number year breaks, a colour-blind-safe palette, direct line labels, an optional <code>highlight</code> argument and a shaded Wilson stability band (an illustrative range, switchable with <code>interval</code>).</li>
-<li>The bundled <code>example_records</code> spans several disciplines, and the examples and five workflow vignettes draw on a wide range of fields.</li>
-<li>Multiple authors are retained in the <code>authors</code> column rather than truncated to the first; very large result totals are handled without overflow; and DOI cleaning copes with <code>www.doi.org</code> hosts and <code>DOI:</code> labels.</li>
+<li>The bundled <code>example_records</code> spans several disciplines, and the examples and workflow vignettes draw on a wide range of fields.</li>
+<li>Multiple authors are retained in the <code>authors</code> column rather than truncated to the first. Very large result totals are handled without overflow. DOI cleaning copes with <code>www.doi.org</code> hosts and <code>DOI:</code> labels.</li>
 </ul></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

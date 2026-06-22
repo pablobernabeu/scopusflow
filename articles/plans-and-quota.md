@@ -11,7 +11,7 @@ fast you may make them, and no single query will return more than its
 first 5000 records. This article shows how scopusflow works within those
 bounds so that a large retrieval is reproducible, efficient and
 resumable. The steps that contact the API need a key and are not run
-here; everything else runs offline.
+here. Everything else runs offline.
 
 ## A query, built safely
 
@@ -223,11 +223,10 @@ scopus_combine(example_records, example_records, dedupe = TRUE)
 ## When the ceiling bites
 
 A query matching more than 5000 records cannot be retrieved in full from
-a single call;
+a single call.
 [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
-returns the first 5000 and warns. The remedy is the plan: split the
-search by year, or by any other facet, so that each cell stays under the
-ceiling.
+returns the first 5000 and warns. The remedy is to split the search by
+year, or by any other facet, so that each cell stays under the ceiling.
 [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md)
 tells you in advance whether a split is needed.
 

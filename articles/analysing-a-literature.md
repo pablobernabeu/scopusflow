@@ -102,14 +102,50 @@ The Search API returns a few fields per record. To read the abstract and
 the fuller metadata for a record you already know,
 [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
 calls the Abstract Retrieval API, by DOI or ‘Scopus’ identifier. A batch
-is resilient: an identifier that cannot be found yields a row of `NA`s
-with a warning rather than stopping the run.
+is resilient, so an identifier that cannot be found yields a row of
+`NA`s with a warning rather than stopping the run.
 
 ``` r
 
 ab <- scopus_abstract(c("10.1038/s41586-019-0001-1", "10.1103/PhysRevLett.116.061102"))
+```
+
+The result is a tibble of class `scopus_abstracts`, one row per
+identifier. To show its shape without a key, here is a stand-in with the
+same columns.
+
+``` r
+
+ab <- tibble::tibble(
+  id          = c("10.1038/s41586-019-0001-1", "10.1103/PhysRevLett.116.061102"),
+  scopus_id   = c("85060000001", "84960000002"),
+  doi         = c("10.1038/s41586-019-0001-1", "10.1103/PhysRevLett.116.061102"),
+  title       = c("A single-cell atlas of gene expression",
+                  "Observation of gravitational waves from a binary black hole merger"),
+  abstract    = c("Here we present a comprehensive single-cell survey of ...",
+                  "On 14 September 2015 the two detectors of LIGO observed ..."),
+  publication = c("Nature", "Physical Review Letters"),
+  year        = c(2019L, 2016L),
+  citations   = c(420L, 5400L)
+)
+class(ab) <- c("scopus_abstracts", class(ab))
+ab
+#> <scopus_abstracts> (2 records)
+#> # A tibble: 2 × 8
+#>   id                  scopus_id doi   title abstract publication  year citations
+#>   <chr>               <chr>     <chr> <chr> <chr>    <chr>       <int>     <int>
+#> 1 10.1038/s41586-019… 85060000… 10.1… A si… Here we… Nature       2019       420
+#> 2 10.1103/PhysRevLet… 84960000… 10.1… Obse… On 14 S… Physical R…  2016      5400
+
 ab[, c("doi", "title", "year")]
-substr(ab$abstract[1], 1, 200)
+#> <scopus_abstracts> (2 records)
+#> # A tibble: 2 × 3
+#>   doi                            title                                      year
+#>   <chr>                          <chr>                                     <int>
+#> 1 10.1038/s41586-019-0001-1      A single-cell atlas of gene expression     2019
+#> 2 10.1103/PhysRevLett.116.061102 Observation of gravitational waves from …  2016
+substr(ab$abstract[2], 1, 40)
+#> [1] "On 14 September 2015 the two detectors o"
 ```
 
 ## Beyond five thousand records

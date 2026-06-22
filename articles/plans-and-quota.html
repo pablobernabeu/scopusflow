@@ -45,6 +45,7 @@
     <li><a class="dropdown-item" href="../articles/designing-queries.html">Designing precise queries across disciplines</a></li>
     <li><a class="dropdown-item" href="../articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
     <li><a class="dropdown-item" href="../articles/tracking-literature-change.html">Tracking how a literature changes between retrievals</a></li>
+    <li><a class="dropdown-item" href="../articles/using-the-app.html">Using the code-free app</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -83,7 +84,7 @@ caps how fast you may make them, and no single query will return more
 than its first 5000 records. This article shows how scopusflow works
 within those bounds so that a large retrieval is reproducible, efficient
 and resumable. The steps that contact the API need a key and are not run
-here; everything else runs offline.</p>
+here. Everything else runs offline.</p>
 <div class="section level2">
 <h2 id="a-query-built-safely">A query, built safely<a class="anchor" aria-label="anchor" href="#a-query-built-safely"></a>
 </h2>
@@ -259,9 +260,9 @@ duplicates by Scopus identifier or DOI. This is preferable to
 <h2 id="when-the-ceiling-bites">When the ceiling bites<a class="anchor" aria-label="anchor" href="#when-the-ceiling-bites"></a>
 </h2>
 <p>A query matching more than 5000 records cannot be retrieved in full
-from a single call; <code><a href="../reference/scopus_fetch.html">scopus_fetch()</a></code> returns the first 5000
-and warns. The remedy is the plan: split the search by year, or by any
-other facet, so that each cell stays under the ceiling.
+from a single call. <code><a href="../reference/scopus_fetch.html">scopus_fetch()</a></code> returns the first 5000
+and warns. The remedy is to split the search by year, or by any other
+facet, so that each cell stays under the ceiling.
 <code><a href="../reference/scopus_count.html">scopus_count()</a></code> tells you in advance whether a split is
 needed.</p>
 </div>
