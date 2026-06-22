@@ -16,6 +16,9 @@ This release adds a code-free app and reference-manager export.
   export a record set to the BibTeX and RIS interchange formats, so a
   search can be carried into Zotero, EndNote, Mendeley or a LaTeX
   bibliography.
+- \[[`plot_scopus_comparison()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_comparison.md)\]
+  now spreads the direct line labels vertically, so topics that converge
+  near the final year no longer overlap.
 
 ## scopusflow 0.2.0
 
