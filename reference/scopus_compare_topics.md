@@ -88,8 +88,8 @@ to visualise the result.
 if (FALSE) { # scopusflow::scopus_has_key()
 cmp <- scopus_compare_topics(
   reference_query = "deep learning",
-  comparison_terms = c("computer vision", "drug discovery", "medical imaging"),
-  years = 2015:2022,
+  comparison_terms = c("computer vision", "drug discovery"),
+  years = 2018:2022,
   field = "TITLE-ABS-KEY"
 )
 cmp

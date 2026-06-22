@@ -28,6 +28,31 @@ summary(example_records)
 #> Most cited: Observation of gravitational waves from a binary black hole merger.
 ```
 
+A record set is an ordinary tibble underneath, so it drops straight into
+tidyverse or base workflows. `as_tibble()` and
+[`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html) make that
+explicit when a downstream tool expects a plain frame.
+
+``` r
+
+tibble::as_tibble(example_records)
+#> # A tibble: 6 × 10
+#>   entry_number scopus_id   doi   title authors  year date  publication citations
+#>          <int> <chr>       <chr> <chr> <chr>   <int> <chr> <chr>           <int>
+#> 1            1 85000000001 10.1… Geno… Zhang …  2019 2019… Nature            540
+#> 2            2 85000000002 10.1… Deep… Kumar …  2020 2020… Nature            210
+#> 3            3 85000000003 10.1… Clim… Okafor…  2018 2018… Nature Cli…       122
+#> 4            4 85000000004 10.1… Grap… Tanaka…  2021 2021… Advanced M…        45
+#> 5            5 85000000005 10.1… Chec… Garcia…  2020 2020… The Lancet…       388
+#> 6            6 85000000006 10.1… Obse… Abbott…  2016 2016… Physical R…      4200
+#> # ℹ 1 more variable: query <chr>
+as.data.frame(example_records)[1:3, c("title", "year")]
+#>                                                          title year
+#> 1 Genome editing with CRISPR-Cas9: principles and applications 2019
+#> 2           Deep learning for medical image analysis: a review 2020
+#> 3              Climate change adaptation in coastal megacities 2018
+```
+
 ## A clean, deduplicated DOI list
 
 Reference managers such as Zotero import most reliably from DOIs.
@@ -57,6 +82,45 @@ readLines(out)
 #> [3] "\"10.1038/s41586-020-0002-2\""      "\"10.1038/s41558-018-0085-1\""     
 #> [5] "\"10.1002/adma.202100001\""         "\"10.1016/S1470-2045(20)30013-9\"" 
 #> [7] "\"10.1103/PhysRevLett.116.061102\""
+```
+
+## Into a reference manager
+
+A DOI list is enough for an import-by-identifier, but a full record
+carries more.
+[`as_ris()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
+and
+[`as_bibtex()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
+render the set in the two interchange formats that reference managers
+read, so a search moves straight into Zotero, EndNote or a LaTeX
+bibliography. Each record becomes one entry, with its authors split out.
+
+``` r
+
+cat(substr(as_ris(example_records), 1, 320))
+#> TY  - JOUR
+#> TI  - Genome editing with CRISPR-Cas9: principles and applications
+#> AU  - Zhang F.
+#> PY  - 2019
+#> JO  - Nature
+#> DO  - 10.1038/s41586-019-0001-1
+#> N1  - Scopus ID: 85000000001
+#> ER  - 
+#> 
+#> TY  - JOUR
+#> TI  - Deep learning for medical image analysis: a review
+#> AU  - Kumar S.
+#> PY  - 2020
+#> JO  - Nature
+#> DO  - 10.1038/s41586-020-00
+```
+
+Pass a `file` to write the whole set; nothing is written without one.
+
+``` r
+
+bib <- file.path(tempdir(), "reference-set.bib")
+as_bibtex(example_records, file = bib)
 ```
 
 ## Handing off to science mapping

@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,7 +39,8 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
+<li><a class="dropdown-item" href="../articles/analysing-a-literature.html">Analysing and visualising a literature</a></li>
+    <li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
     <li><a class="dropdown-item" href="../articles/comparing-topics.html">Comparing topics over time</a></li>
     <li><a class="dropdown-item" href="../articles/designing-queries.html">Designing precise queries across disciplines</a></li>
     <li><a class="dropdown-item" href="../articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
@@ -68,7 +69,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Building and exporting a reference set</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.1.0/vignettes/building-a-reference-set.Rmd" class="external-link"><code>vignettes/building-a-reference-set.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/vignettes/building-a-reference-set.Rmd" class="external-link"><code>vignettes/building-a-reference-set.Rmd</code></a></small>
       <div class="d-none name"><code>building-a-reference-set.Rmd</code></div>
     </div>
 
@@ -94,6 +95,27 @@ of distinct sources, the citation spread and the most-cited record.</p>
 <span><span class="co">#&gt; Cited 5505 times in total, median 299 per record.</span></span>
 <span><span class="co">#&gt; Most frequent source: Nature.</span></span>
 <span><span class="co">#&gt; Most cited: <span style="font-style: italic;">Observation of gravitational waves from a binary black hole merger</span>.</span></span></code></pre></div>
+<p>A record set is an ordinary tibble underneath, so it drops straight
+into tidyverse or base workflows. <code>as_tibble()</code> and
+<code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> make that explicit when a downstream tool
+expects a plain frame.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html" class="external-link">as_tibble</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 10</span></span></span>
+<span><span class="co">#&gt;   entry_number scopus_id   doi   title authors  year date  publication citations</span></span>
+<span><span class="co">#&gt;          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>            1 85000000001 10.1… Geno… Zhang …  <span style="text-decoration: underline;">2</span>019 2019… Nature            540</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>            2 85000000002 10.1… Deep… Kumar …  <span style="text-decoration: underline;">2</span>020 2020… Nature            210</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>            3 85000000003 10.1… Clim… Okafor…  <span style="text-decoration: underline;">2</span>018 2018… Nature Cli…       122</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>            4 85000000004 10.1… Grap… Tanaka…  <span style="text-decoration: underline;">2</span>021 2021… Advanced M…        45</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>            5 85000000005 10.1… Chec… Garcia…  <span style="text-decoration: underline;">2</span>020 2020… The Lancet…       388</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>            6 85000000006 10.1… Obse… Abbott…  <span style="text-decoration: underline;">2</span>016 2016… Physical R…      <span style="text-decoration: underline;">4</span>200</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: query &lt;chr&gt;</span></span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"title"</span>, <span class="st">"year"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt;                                                          title year</span></span>
+<span><span class="co">#&gt; 1 Genome editing with CRISPR-Cas9: principles and applications 2019</span></span>
+<span><span class="co">#&gt; 2           Deep learning for medical image analysis: a review 2020</span></span>
+<span><span class="co">#&gt; 3              Climate change adaptation in coastal megacities 2018</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="a-clean-deduplicated-doi-list">A clean, deduplicated DOI list<a class="anchor" aria-label="anchor" href="#a-clean-deduplicated-doi-list"></a>
@@ -102,7 +124,7 @@ of distinct sources, the citation spread and the most-cited record.</p>
 <code><a href="../reference/scopus_extract_dois.html">scopus_extract_dois()</a></code> pulls them out, normalises them and
 removes duplicates, so the same article imports once even when its DOI
 was stored with a resolver prefix or in a different case.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dois</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span></span>
 <span><span class="va">dois</span></span>
 <span><span class="co">#&gt; [1] "10.1038/s41586-019-0001-1"      "10.1038/s41586-020-0002-2"     </span></span>
@@ -110,7 +132,7 @@ was stored with a resolver prefix or in a different case.</p>
 <span><span class="co">#&gt; [5] "10.1016/S1470-2045(20)30013-9"  "10.1103/PhysRevLett.116.061102"</span></span></code></pre></div>
 <p>The list can be written to a single-column CSV at a path you choose.
 Nothing is written unless a path is given.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"reference-set.csv"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">example_records</span>, file <span class="op">=</span> <span class="va">out</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span>
@@ -120,12 +142,43 @@ Nothing is written unless a path is given.</p>
 <span><span class="co">#&gt; [7] "\"10.1103/PhysRevLett.116.061102\""</span></span></code></pre></div>
 </div>
 <div class="section level2">
+<h2 id="into-a-reference-manager">Into a reference manager<a class="anchor" aria-label="anchor" href="#into-a-reference-manager"></a>
+</h2>
+<p>A DOI list is enough for an import-by-identifier, but a full record
+carries more. <code><a href="../reference/as_bibtex.html">as_ris()</a></code> and <code><a href="../reference/as_bibtex.html">as_bibtex()</a></code> render
+the set in the two interchange formats that reference managers read, so
+a search moves straight into Zotero, EndNote or a LaTeX bibliography.
+Each record becomes one entry, with its authors split out.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fu"><a href="../reference/as_bibtex.html">as_ris</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">320</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; TY  - JOUR</span></span>
+<span><span class="co">#&gt; TI  - Genome editing with CRISPR-Cas9: principles and applications</span></span>
+<span><span class="co">#&gt; AU  - Zhang F.</span></span>
+<span><span class="co">#&gt; PY  - 2019</span></span>
+<span><span class="co">#&gt; JO  - Nature</span></span>
+<span><span class="co">#&gt; DO  - 10.1038/s41586-019-0001-1</span></span>
+<span><span class="co">#&gt; N1  - Scopus ID: 85000000001</span></span>
+<span><span class="co">#&gt; ER  - </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; TY  - JOUR</span></span>
+<span><span class="co">#&gt; TI  - Deep learning for medical image analysis: a review</span></span>
+<span><span class="co">#&gt; AU  - Kumar S.</span></span>
+<span><span class="co">#&gt; PY  - 2020</span></span>
+<span><span class="co">#&gt; JO  - Nature</span></span>
+<span><span class="co">#&gt; DO  - 10.1038/s41586-020-00</span></span></code></pre></div>
+<p>Pass a <code>file</code> to write the whole set; nothing is written
+without one.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">bib</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"reference-set.bib"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/as_bibtex.html">as_bibtex</a></span><span class="op">(</span><span class="va">example_records</span>, file <span class="op">=</span> <span class="va">bib</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
 <h2 id="handing-off-to-science-mapping">Handing off to science mapping<a class="anchor" aria-label="anchor" href="#handing-off-to-science-mapping"></a>
 </h2>
 <p><code><a href="../reference/as_bibliometrix.html">as_bibliometrix()</a></code> re-maps the records to the tagged
 column layout that the <a href="https://www.bibliometrix.org" class="external-link">bibliometrix</a> package and the
 wider ISI convention expect.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">m</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/as_bibliometrix.html">as_bibliometrix</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span></span>
 <span><span class="va">m</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AU"</span>, <span class="st">"TI"</span>, <span class="st">"PY"</span>, <span class="st">"SO"</span>, <span class="st">"TC"</span>, <span class="st">"DB"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt;          AU                                                                 TI</span></span>
@@ -144,7 +197,7 @@ wider ISI convention expect.</p>
 <span><span class="co">#&gt; 6 2016 PHYSICAL REVIEW LETTERS 4200 SCOPUS</span></span></code></pre></div>
 <p>From there the usual bibliometrix entry points apply. This step needs
 that package, so it is shown but not run.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"bibliometrix"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">bibliometrix</span><span class="fu">::</span><span class="fu">biblioAnalysis</span><span class="op">(</span><span class="fu"><a href="../reference/as_bibliometrix.html">as_bibliometrix</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">results</span>, k <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
@@ -160,7 +213,7 @@ or BibTeX export read with <code>bibliometrix::convert2df()</code>.</p>
 <p>To pick the work up in a later session, save the records and read
 them back. The <code>.rds</code> form preserves the types and class
 exactly, while <code>.csv</code> is portable plain text.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"records.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/write_scopus_records.html">write_scopus_records</a></span><span class="op">(</span><span class="va">example_records</span>, <span class="va">path</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="../reference/write_scopus_records.html">read_scopus_records</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span>, <span class="va">example_records</span><span class="op">)</span></span>

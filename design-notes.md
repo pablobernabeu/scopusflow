@@ -218,6 +218,109 @@ opens a pull request. Every tier is best-effort, so detection and
 flagging never depend on it. Dependabot keeps the workflow actions
 themselves current.
 
+## Version 0.2.0: API reach and an analysis layer
+
+The first release stopped at retrieval. 0.2.0 reaches further into the
+API and adds the analysis that a study usually needs next, all kept
+offline-testable.
+
+Cursor pagination (`scopus_fetch(cursor = TRUE)`) follows the API’s
+`@next` cursor instead of an offset, so a single large query can be
+harvested past the 5000-record ceiling that offset paging imposes. It is
+opt-in, since the records then arrive in deep-paging rather than
+relevance order, which is the right trade for a complete harvest but not
+for a top-of-results sample.
+[`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+adds the Abstract Retrieval API, a second endpoint, so the abstract and
+fuller metadata of a known record can be read; a batch is resilient,
+turning a per-id failure into an `NA` row with a warning rather than
+losing the whole call. Both are tested with `httr2` mocks and a
+key-gated live test, exactly as the Search API is.
+
+The analysis layer consumes objects already in hand:
+[`scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_top.md)
+tallies sources or authors from a record set in memory, and
+[`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md)
+counts a query year by year through the API (the single-query companion
+to the topic comparison). Each pairs with a plot, and an `autoplot()`
+method gives a record set an honest default figure. A shared, unexported
+`scopus_minimal_theme()` now backs the several plots, the internal
+helper the earlier notes said would be justified once a second plotting
+function appeared.
+
+### Pre-CRAN hardening of the 0.2.0 additions
+
+A multi-agent adversarial review of the 0.2.0 code, with every finding
+independently verified against the source, surfaced no blockers but a
+set of edge-case robustness gaps that were closed before submission,
+since a defect is far cheaper to fix before CRAN than after:
+
+- [`scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_top.md)
+  now orders ties by `value` in byte order
+  (`order(..., method = "radix")`) instead of the locale-dependent
+  `sort(table())`, so which tied values survive the top-`n` cut is
+  reproducible across platforms; it also rejects fractional and
+  non-finite `n`, matching the package’s other count validators.
+- [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md)
+  warns (rather than silently recording `NA`) when a year’s response
+  carries no total.
+- [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+  percent-encodes each identifier path segment while preserving the
+  structural slashes a DOI needs, so a DOI containing reserved
+  characters is not mis-parsed; it resolves the key once up front so a
+  missing key aborts cleanly instead of degrading to a tibble of `NA`
+  rows; and a malformed `200` body is raised as a typed
+  `scopus_error_malformed` (also in `scopus_search_page()`), so the
+  batch degrades to an `NA` row rather than aborting on an untyped
+  `jsonlite` error.
+- Cursor paging gained a bounded backstop: it stops once the reported
+  total is reached and, against a non-conforming server that never
+  signals the end, after `getOption("scopusflow.max_cursor_pages", 1e5)`
+  pages with a typed warning (set the option to `Inf` to disable), so an
+  unbounded harvest cannot silently burn memory and quota.
+- The plot functions guard empty `scopus_trend`/`scopus_top` inputs with
+  a typed condition rather than an opaque `sprintf` crash or a silent
+  blank chart.
+
+### A local-first app
+
+[`run_app()`](https://pablobernabeu.github.io/scopusflow/reference/run_app.md)
+launches a Shiny front end so the workflow can be driven without writing
+code, while a panel mirrors every choice back as a runnable script, so
+the app is an on-ramp to the package rather than a replacement for it.
+It is deliberately local-first, bound to `127.0.0.1`: a hosted
+multi-user version would conflict with Elsevier’s API terms (which
+expect calls not to be proxied through a server-side component) and with
+the institutional-IP entitlement model (calls from a cloud IP get
+reduced access), and it would put third parties in custody of users’
+keys. Running on the user’s own machine sidesteps all three, and removes
+any platform timeout on a long harvest.
+
+The long retrieval runs in a background
+[`callr::r_bg()`](https://callr.r-lib.org/reference/r_bg.html) child
+whose `verbose` `cli` output is written to a log file the server tails
+(a poll on `invalidateLater`, rendered through `fansi`), rather than
+captured over a pipe, which would deadlock once the OS pipe buffer
+filled. The code mirror is built from hand-rolled templates, not
+`shinymeta`, because the expensive step runs across the async boundary
+`shinymeta` cannot see. The reproducible-code, progress-parsing and
+ANSI-to-HTML helpers are factored into `app-helpers.R` so they are
+unit-tested offline; the reactive layer is not.
+
+On the key: it is held only in the session, never written by app code to
+the log, the generated script or the cache path. The terminal panel
+HTML-escapes its content in both the coloured and plain branches, so a
+query echoed into the log cannot inject markup. One residual, accepted
+exposure: `callr` serialises the worker’s argument list, which includes
+the key, to a short-lived, user-owned temp file when launching the
+child. That is tolerated because the app is local and the file is the
+user’s own and transient; the alternative of passing the key through the
+child’s environment was rejected as it would lengthen the exposure
+window in the process environment without a net gain on a single-user
+machine. The app’s interface packages (`shiny`, `bslib`, `callr`,
+`fansi`) stay in Suggests and are required only inside
+[`run_app()`](https://pablobernabeu.github.io/scopusflow/reference/run_app.md).
+
 ## Assumptions
 
 On licensing, the original `rscopus_plus` code is licensed CC BY 4.0 and

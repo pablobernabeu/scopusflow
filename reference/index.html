@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -19,7 +19,8 @@
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/analysing-a-literature.html">Analysing and visualising a literature</a></li>
+    <li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
     <li><a class="dropdown-item" href="../articles/comparing-topics.html">Comparing topics over time</a></li>
     <li><a class="dropdown-item" href="../articles/designing-queries.html">Designing precise queries across disciplines</a></li>
     <li><a class="dropdown-item" href="../articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
@@ -102,6 +103,13 @@
 
         <dt>
 
+          <code><a href="scopus_abstract.html">scopus_abstract()</a></code>
+
+        </dt>
+        <dd>Retrieve abstracts and richer metadata</dd>
+
+        <dt>
+
           <code><a href="scopus_cache_dir.html">scopus_cache_dir()</a></code>
 
         </dt>
@@ -125,7 +133,7 @@
 
       <dl><dt>
 
-          <code><a href="scopus_records.html">as_tibble(<i>&lt;scopus_records&gt;</i>)</a></code> <code><a href="scopus_records.html">as.data.frame(<i>&lt;scopus_records&gt;</i>)</a></code> <code><a href="scopus_records.html">scopus_records()</a></code> <code><a href="scopus_records.html">is_scopus_records()</a></code>
+          <code><a href="scopus_records.html">as_tibble(<i>&lt;scopus_records&gt;</i>)</a></code> <code><a href="scopus_records.html">as.data.frame(<i>&lt;scopus_records&gt;</i>)</a></code> <code><a href="scopus_records.html">autoplot(<i>&lt;scopus_records&gt;</i>)</a></code> <code><a href="scopus_records.html">scopus_records()</a></code> <code><a href="scopus_records.html">is_scopus_records()</a></code>
 
         </dt>
         <dd>Normalise raw 'Scopus' entries to a stable tidy schema</dd>
@@ -174,7 +182,7 @@
         </dt>
         <dd>Compare two DOI retrievals</dd>
       </dl></div><div class="section level2">
-      <h2 id="compare-and-visualise">Compare and visualise<a class="anchor" aria-label="anchor" href="#compare-and-visualise"></a></h2>
+      <h2 id="analyse-and-visualise">Analyse and visualise<a class="anchor" aria-label="anchor" href="#analyse-and-visualise"></a></h2>
 
 
 
@@ -185,10 +193,38 @@
 
       <dl><dt>
 
+          <code><a href="scopus_trend.html">scopus_trend()</a></code>
+
+        </dt>
+        <dd>Annual publication counts for a query</dd>
+
+        <dt>
+
+          <code><a href="scopus_top.html">scopus_top()</a></code>
+
+        </dt>
+        <dd>Most frequent values in a record set</dd>
+
+        <dt>
+
           <code><a href="scopus_compare_topics.html">scopus_compare_topics()</a></code>
 
         </dt>
         <dd>Compare publication trends across topics</dd>
+
+        <dt>
+
+          <code><a href="plot_scopus_trend.html">plot_scopus_trend()</a></code> <code><a href="plot_scopus_trend.html">autoplot(<i>&lt;scopus_trend&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Plot a publication trend</dd>
+
+        <dt>
+
+          <code><a href="plot_scopus_top.html">plot_scopus_top()</a></code> <code><a href="plot_scopus_top.html">autoplot(<i>&lt;scopus_top&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Plot the most frequent values in a record set</dd>
 
         <dt>
 
@@ -215,10 +251,33 @@
 
         <dt>
 
+          <code><a href="as_bibtex.html">as_bibtex()</a></code> <code><a href="as_bibtex.html">as_ris()</a></code>
+
+        </dt>
+        <dd>Export records to BibTeX or RIS</dd>
+
+        <dt>
+
           <code><a href="write_scopus_records.html">write_scopus_records()</a></code> <code><a href="write_scopus_records.html">read_scopus_records()</a></code>
 
         </dt>
         <dd>Read and write 'Scopus' record sets</dd>
+      </dl></div><div class="section level2">
+      <h2 id="app">App<a class="anchor" aria-label="anchor" href="#app"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="run_app.html">run_app()</a></code>
+
+        </dt>
+        <dd>Launch the scopusflow app</dd>
       </dl></div><div class="section level2">
       <h2 id="keys">Keys<a class="anchor" aria-label="anchor" href="#keys"></a></h2>
 

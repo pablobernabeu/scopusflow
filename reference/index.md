@@ -18,6 +18,8 @@
   : Fetch 'Scopus' records for a query
 - [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
   : Execute a 'Scopus' search plan, with optional caching and resume
+- [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+  : Retrieve abstracts and richer metadata
 - [`scopus_cache_dir()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_dir.md)
   : Managed cache directory for scopusflow
 - [`scopus_cache_clear()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_clear.md)
@@ -27,6 +29,7 @@
 
 - [`as_tibble(`*`<scopus_records>`*`)`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
   [`as.data.frame(`*`<scopus_records>`*`)`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
+  [`autoplot(`*`<scopus_records>`*`)`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
   [`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
   [`is_scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
   : Normalise raw 'Scopus' entries to a stable tidy schema
@@ -45,10 +48,20 @@
 - [`scopus_diff_dois()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_diff_dois.md)
   : Compare two DOI retrievals
 
-## Compare and visualise
+## Analyse and visualise
 
+- [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md)
+  : Annual publication counts for a query
+- [`scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_top.md)
+  : Most frequent values in a record set
 - [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
   : Compare publication trends across topics
+- [`plot_scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_trend.md)
+  [`autoplot(`*`<scopus_trend>`*`)`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_trend.md)
+  : Plot a publication trend
+- [`plot_scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_top.md)
+  [`autoplot(`*`<scopus_top>`*`)`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_top.md)
+  : Plot the most frequent values in a record set
 - [`plot_scopus_comparison()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_comparison.md)
   [`autoplot(`*`<scopus_comparison>`*`)`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_comparison.md)
   : Plot a topic comparison
@@ -57,9 +70,17 @@
 
 - [`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)
   : Convert records to a bibliometrix-compatible data frame
+- [`as_bibtex()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
+  [`as_ris()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
+  : Export records to BibTeX or RIS
 - [`write_scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_records.md)
   [`read_scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_records.md)
   : Read and write 'Scopus' record sets
+
+## App
+
+- [`run_app()`](https://pablobernabeu.github.io/scopusflow/reference/run_app.md)
+  : Launch the scopusflow app
 
 ## Keys
 

@@ -1,5 +1,43 @@
 # Changelog
 
+## scopusflow 0.3.0
+
+This release adds a code-free app and reference-manager export.
+
+- \[[`run_app()`](https://pablobernabeu.github.io/scopusflow/reference/run_app.md)\]
+  launches a local, code-free Shiny app for building a search,
+  retrieving records with a live progress terminal, and exporting them.
+  A panel mirrors every choice as a runnable R script, so the app is an
+  on-ramp to the package. It runs on your own machine, so the API key
+  never leaves it.
+- \[[`as_bibtex()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)\]
+  and
+  \[[`as_ris()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)\]
+  export a record set to the BibTeX and RIS interchange formats, so a
+  search can be carried into Zotero, EndNote, Mendeley or a LaTeX
+  bibliography.
+
+## scopusflow 0.2.0
+
+This release reaches further into the API and adds an analysis layer on
+top of a retrieval.
+
+- \[[`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)\]
+  gains `cursor = TRUE`, cursor-based pagination that retrieves a whole
+  large query without the 5000-record ceiling of offset paging.
+- \[[`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)\]
+  retrieves the abstract and fuller metadata for one or many records
+  from the ‘Scopus’ Abstract Retrieval API, resilient to an identifier
+  that cannot be found.
+- \[[`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md)\]
+  reports annual record counts for a query (the size of a literature
+  over time), with
+  \[[`plot_scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_trend.md)\].
+- \[[`scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_top.md)\]
+  tallies the most frequent sources or authors in a record set, with
+  \[[`plot_scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_top.md)\].
+  An `autoplot()` method draws a record set’s publications per year.
+
 ## scopusflow 0.1.0
 
 CRAN release: 2026-06-20

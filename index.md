@@ -8,6 +8,11 @@ and optional resumable caching, normalises them to a stable tidy schema,
 tracks changes in DOI sets over time and compares publication trends
 across topics.
 
+A Python twin, [scopusflow for
+Python](https://github.com/pablobernabeu/scopusflow-py), offers the same
+workflow on top of
+[pybliometrics](https://pybliometrics.readthedocs.io).
+
 ![A line chart showing how deep-learning research spread into computer
 vision, natural language processing, medical imaging and drug discovery
 between 2013 and 2021](reference/figures/README-readme-hero-1.png)
@@ -40,7 +45,7 @@ SCOPUS_INST_TOKEN=your-institutional-token
 
 library(scopusflow)
 scopus_has_key()
-#> [1] FALSE
+#> [1] TRUE
 ```
 
 ## Quick start (offline)
@@ -85,6 +90,14 @@ scopus_diff_dois(old = "10.1000/aaa", new = c("10.1000/aaa", "10.1000/bbb"))
 #> 1 10.1000/bbb added    
 #> 2 10.1000/aaa unchanged
 
+# Tally the most frequent sources or authors.
+scopus_top(records, by = "source")
+#> # A tibble: 2 × 2
+#>   value                    n
+#> * <chr>                <int>
+#> 1 J. Bibliometrics         1
+#> 2 Scientometrics Today     1
+
 # Hand off to bibliometrix-style analysis.
 as_bibliometrix(records)
 #>         AU                      TI                   SO          DI   PY TC UT
@@ -124,23 +137,29 @@ cmp <- scopus_compare_topics(
   field            = "TITLE-ABS-KEY"
 )
 plot_scopus_comparison(cmp)
+
+# 6. Read the abstract of a known record, or harvest a whole large query past
+#    the 5000-record ceiling with cursor pagination.
+scopus_abstract("10.1038/s41586-019-0001-1")
+all_records <- scopus_fetch("TITLE-ABS-KEY(microplastics)", cursor = TRUE)
 ```
 
 ## Quotas, rate limits and errors
 
 The Scopus API enforces a weekly quota and a short-term rate limit, and
-it returns at most the first 5000 records of any query. scopusflow works
-within these limits rather than around them. It requests the largest
-page each view allows, 200 records for `STANDARD` and 25 for `COMPLETE`,
-so that a retrieval uses as few requests, and as little quota, as it
-can. This is the same approach `rscopus` takes. The quota and rate-limit
-headers are parsed by
+ordinary offset paging returns at most the first 5000 records of any
+query (use `scopus_fetch(cursor = TRUE)` to go beyond that). scopusflow
+works within these limits rather than around them. It requests the
+largest page each view allows, 200 records for `STANDARD` and 25 for
+`COMPLETE`, so that a retrieval uses as few requests, and as little
+quota, as it can. This is the same approach `rscopus` takes. The quota
+and rate-limit headers are parsed by
 [`scopus_quota()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_quota.md),
 transient failures such as HTTP 429 and the 5xx range are retried with
-back-off that honours `Retry-After`, and any single query is capped at
-5000 records with a warning that suggests partitioning by year. A
-failure arrives as a typed condition, so a workflow can respond to it in
-code:
+back-off that honours `Retry-After`, and an offset-paged query is capped
+at 5000 records with a warning that suggests cursor paging or
+partitioning by year. A failure arrives as a typed condition, so a
+workflow can respond to it in code:
 
 ``` r
 

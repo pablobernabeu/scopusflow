@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -19,7 +19,8 @@
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/analysing-a-literature.html">Analysing and visualising a literature</a></li>
+    <li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
     <li><a class="dropdown-item" href="../articles/comparing-topics.html">Comparing topics over time</a></li>
     <li><a class="dropdown-item" href="../articles/designing-queries.html">Designing precise queries across disciplines</a></li>
     <li><a class="dropdown-item" href="../articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
@@ -37,9 +38,23 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.1.0/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.3.0" id="scopusflow-030">scopusflow 0.3.0<a class="anchor" aria-label="anchor" href="#scopusflow-030"></a></h2>
+<p>This release adds a code-free app and reference-manager export.</p>
+<ul><li>[<code><a href="../reference/run_app.html">run_app()</a></code>] launches a local, code-free Shiny app for building a search, retrieving records with a live progress terminal, and exporting them. A panel mirrors every choice as a runnable R script, so the app is an on-ramp to the package. It runs on your own machine, so the API key never leaves it.</li>
+<li>[<code><a href="../reference/as_bibtex.html">as_bibtex()</a></code>] and [<code><a href="../reference/as_bibtex.html">as_ris()</a></code>] export a record set to the BibTeX and RIS interchange formats, so a search can be carried into Zotero, EndNote, Mendeley or a LaTeX bibliography.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.0" id="scopusflow-020">scopusflow 0.2.0<a class="anchor" aria-label="anchor" href="#scopusflow-020"></a></h2>
+<p>This release reaches further into the API and adds an analysis layer on top of a retrieval.</p>
+<ul><li>[<code><a href="../reference/scopus_fetch.html">scopus_fetch()</a></code>] gains <code>cursor = TRUE</code>, cursor-based pagination that retrieves a whole large query without the 5000-record ceiling of offset paging.</li>
+<li>[<code><a href="../reference/scopus_abstract.html">scopus_abstract()</a></code>] retrieves the abstract and fuller metadata for one or many records from the ‘Scopus’ Abstract Retrieval API, resilient to an identifier that cannot be found.</li>
+<li>[<code><a href="../reference/scopus_trend.html">scopus_trend()</a></code>] reports annual record counts for a query (the size of a literature over time), with [<code><a href="../reference/plot_scopus_trend.html">plot_scopus_trend()</a></code>].</li>
+<li>[<code><a href="../reference/scopus_top.html">scopus_top()</a></code>] tallies the most frequent sources or authors in a record set, with [<code><a href="../reference/plot_scopus_top.html">plot_scopus_top()</a></code>]. An <code>autoplot()</code> method draws a record set’s publications per year.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0" id="scopusflow-010">scopusflow 0.1.0<a class="anchor" aria-label="anchor" href="#scopusflow-010"></a></h2><p class="text-muted">CRAN release: 2026-06-20</p>
 <p>First release.</p>
@@ -56,7 +71,8 @@
 <li>The bundled <code>example_records</code> spans several disciplines, and the examples and five workflow vignettes draw on a wide range of fields.</li>
 <li>Multiple authors are retained in the <code>authors</code> column rather than truncated to the first; very large result totals are handled without overflow; and DOI cleaning copes with <code>www.doi.org</code> hosts and <code>DOI:</code> labels.</li>
 </ul></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

@@ -2,6 +2,8 @@
 
 ### All vignettes
 
+- [Analysing and visualising a
+  literature](https://pablobernabeu.github.io/scopusflow/articles/analysing-a-literature.md):
 - [Building and exporting a reference
   set](https://pablobernabeu.github.io/scopusflow/articles/building-a-reference-set.md):
 - [Comparing topics over
