@@ -208,7 +208,7 @@ plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
   caption <- sprintf("Source: 'Scopus' Search API. Years %d to %d.",
                      min(yrs), max(yrs))
   if (show_band) {
-    caption <- paste0(caption, "\nShaded band: illustrative Wilson stability range, wider where the reference set is small.")
+    caption <- paste0(caption, "\nShaded band: illustrative Wilson stability range (not a confidence interval), wider where the reference set is small.")
   }
   if (n_missing > 0L) {
     caption <- paste0(

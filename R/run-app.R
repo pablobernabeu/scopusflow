@@ -487,24 +487,47 @@ app_server <- function(input, output, session) {
       shiny::showNotification("Enter at least one comparison term.", type = "warning")
       return()
     }
-    this_year <- as.integer(format(Sys.Date(), "%Y"))
-    yrs <- years_value() %||% seq(this_year - 5L, this_year)
-    if (isTRUE(input$demo)) {
-      rv$comparison <- app_demo_comparison(input$query, terms, yrs)
-      return()
-    }
-    if (is.null(api_key())) {
+    if (!isTRUE(input$demo) && is.null(api_key())) {
       shiny::showNotification("Enter your Scopus API key, or switch on Demo mode.",
                               type = "warning")
       return()
     }
-    out <- shiny::withProgress(message = "Comparing topics", value = 0.5, {
-      tryCatch(
-        scopus_compare_topics(input$query, terms, years = yrs,
-                              field = nzchar_or_null(input$field), view = input$view,
-                              api_key = api_key()),
-        scopus_error = function(e) e
-      )
+    this_year <- as.integer(format(Sys.Date(), "%Y"))
+    yrs <- years_value() %||% seq(this_year - 5L, this_year)
+    # One count step per term, plus the reference: drive a live progress bar.
+    n_steps <- length(terms) + 1L
+
+    out <- shiny::withProgress(message = "Comparing topics", value = 0, {
+      if (isTRUE(input$demo)) {
+        # Synthesise with visible per-term progress so the demo shows activity.
+        shiny::setProgress(1L / n_steps, detail = "counting the reference")
+        Sys.sleep(0.4)
+        for (i in seq_along(terms)) {
+          shiny::setProgress((i + 1L) / n_steps,
+                             detail = sprintf("counting '%s'", terms[i]))
+          Sys.sleep(0.4)
+        }
+        app_demo_comparison(input$query, terms, yrs)
+      } else {
+        # Advance the bar on each verbose message scopus_compare_topics emits
+        # (one per count step), so a long term x year grid is observable.
+        step <- 0L
+        withCallingHandlers(
+          tryCatch(
+            scopus_compare_topics(input$query, terms, years = yrs,
+                                  field = nzchar_or_null(input$field),
+                                  view = input$view, api_key = api_key(),
+                                  verbose = TRUE),
+            scopus_error = function(e) e
+          ),
+          message = function(m) {
+            step <<- step + 1L
+            shiny::setProgress(min(step / n_steps, 1),
+                               detail = trimws(conditionMessage(m)))
+            invokeRestart("muffleMessage")
+          }
+        )
+      }
     })
     if (inherits(out, "condition")) {
       shiny::showNotification(paste("Scopus:", conditionMessage(out)), type = "error",

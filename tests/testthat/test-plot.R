@@ -118,6 +118,13 @@ test_that("plotting a non-comparison object errors", {
                class = "scopus_error_bad_input")
 })
 
+test_that("the comparison caption guards the Wilson band", {
+  skip_if_not_installed("ggplot2")
+  p <- plot_scopus_comparison(make_comparison())
+  expect_true(grepl("not a confidence interval", p$labels$caption, fixed = TRUE))
+  expect_true(grepl("Source: 'Scopus'", p$labels$caption, fixed = TRUE))
+})
+
 test_that("scopus_spread_positions separates close labels in order", {
   expect_equal(scopus_spread_positions(c(10, 10.1, 10.2), 1), c(10, 11, 12))
   expect_equal(scopus_spread_positions(c(0, 5, 10), 1), c(0, 5, 10))
