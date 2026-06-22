@@ -77,7 +77,10 @@ app_code_mirror <- function(query,
     "",
     "# Save the records and a clean, de-duplicated DOI list.",
     "write_scopus_records(records, \"scopus-records.rds\")",
-    "scopus_extract_dois(records, file = \"scopus-dois.csv\")"
+    "scopus_extract_dois(records, file = \"scopus-dois.csv\")",
+    "",
+    "# Or export for a reference manager (Zotero, EndNote) or LaTeX.",
+    "as_bibtex(records, file = \"scopus-records.bib\")"
   )
   paste(lines, collapse = "\n")
 }

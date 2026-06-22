@@ -109,8 +109,13 @@ app_ui <- function() {
       bslib::nav_panel(
         "Export",
         shiny::br(),
+        shiny::p(shiny::tags$small(
+          "Carry the records into a reference manager (Zotero, EndNote) or a ",
+          "LaTeX bibliography.")),
         shiny::downloadButton("dl_rds", "Records (.rds)", class = "btn-outline-secondary"),
-        shiny::downloadButton("dl_dois", "DOIs (.csv)", class = "btn-outline-secondary")
+        shiny::downloadButton("dl_dois", "DOIs (.csv)", class = "btn-outline-secondary"),
+        shiny::downloadButton("dl_bibtex", "BibTeX (.bib)", class = "btn-outline-secondary"),
+        shiny::downloadButton("dl_ris", "RIS (.ris)", class = "btn-outline-secondary")
       )
     ),
     shiny::tags$script(shiny::HTML(
@@ -376,6 +381,22 @@ app_server <- function(input, output, session) {
     content = function(file) {
       shiny::req(rv$records)
       scopus_extract_dois(rv$records, file = file)
+    }
+  )
+
+  output$dl_bibtex <- shiny::downloadHandler(
+    filename = "scopus-records.bib",
+    content = function(file) {
+      shiny::req(rv$records)
+      as_bibtex(rv$records, file = file)
+    }
+  )
+
+  output$dl_ris <- shiny::downloadHandler(
+    filename = "scopus-records.ris",
+    content = function(file) {
+      shiny::req(rv$records)
+      as_ris(rv$records, file = file)
     }
   )
 

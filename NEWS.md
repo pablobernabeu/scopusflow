@@ -1,3 +1,15 @@
+# scopusflow 0.3.0
+
+This release adds a code-free app and reference-manager export.
+
+* [`run_app()`] launches a local, code-free Shiny app for building a search,
+  retrieving records with a live progress terminal, and exporting them. A panel
+  mirrors every choice as a runnable R script, so the app is an on-ramp to the
+  package. It runs on your own machine, so the API key never leaves it.
+* [`as_bibtex()`] and [`as_ris()`] export a record set to the BibTeX and RIS
+  interchange formats, so a search can be carried into Zotero, EndNote, Mendeley
+  or a LaTeX bibliography.
+
 # scopusflow 0.2.0
 
 This release reaches further into the API and adds an analysis layer on top of a
@@ -13,10 +25,6 @@ retrieval.
 * [`scopus_top()`] tallies the most frequent sources or authors in a record set,
   with [`plot_scopus_top()`]. An `autoplot()` method draws a record set's
   publications per year.
-* [`run_app()`] launches a local, code-free Shiny app for building a search,
-  retrieving records with a live progress terminal, and exporting them. A panel
-  mirrors every choice as a runnable R script, so the app is an on-ramp to the
-  package. It runs on your own machine, so the API key never leaves it.
 
 # scopusflow 0.1.0
 

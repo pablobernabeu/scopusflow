@@ -60,6 +60,24 @@ scopus_extract_dois(example_records, file = out)
 readLines(out)
 ```
 
+## Into a reference manager
+
+A DOI list is enough for an import-by-identifier, but a full record carries more.
+`as_ris()` and `as_bibtex()` render the set in the two interchange formats that
+reference managers read, so a search moves straight into Zotero, EndNote or a
+LaTeX bibliography. Each record becomes one entry, with its authors split out.
+
+```{r}
+cat(substr(as_ris(example_records), 1, 320))
+```
+
+Pass a `file` to write the whole set; nothing is written without one.
+
+```{r}
+bib <- file.path(tempdir(), "reference-set.bib")
+as_bibtex(example_records, file = bib)
+```
+
 ## Handing off to science mapping
 
 `as_bibliometrix()` re-maps the records to the tagged column layout that the

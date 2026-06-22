@@ -47,6 +47,8 @@ reference:
 - title: Export and I/O
   contents:
   - as_bibliometrix
+  - as_bibtex
+  - as_ris
   - write_scopus_records
 - title: App
   contents:
