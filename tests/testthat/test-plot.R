@@ -136,4 +136,26 @@ test_that("converging topics get vertically separated direct labels", {
     function(l) inherits(l$geom, "GeomText"), logical(1)))
   ly <- p$layers[[text_layer[1]]]$data$label_y
   expect_true(abs(ly[1] - ly[2]) >= 0.5)
+  # a leader segment connects the label back to the line end
+  expect_true(any(vapply(p$layers,
+    function(l) inherits(l$geom, "GeomSegment"), logical(1))))
+})
+
+test_that("many topics fall back to a legend instead of direct labels", {
+  skip_if_not_installed("ggplot2")
+  cmp <- tibble::tibble(
+    query = "q",
+    query_type = c(rep("reference", 2), rep("comparison", 2 * 10)),
+    abridged_query = c(rep("ref", 2), rep(sprintf("t%02d", 1:10), each = 2)),
+    year = c(2019, 2020, rep(c(2019, 2020), 10)),
+    n = c(100, 100, rep(c(5, 6), 10)),
+    reference_n = rep(100, 22),
+    comparison_percentage = c(100, 100, rep(c(5, 6), 10)),
+    average_comparison_percentage = c(100, 100, rep(5.5, 20))
+  )
+  class(cmp) <- c("scopus_comparison", class(cmp))
+  p <- plot_scopus_comparison(cmp)
+  expect_identical(p$theme$legend.position, "top")   # legend, not direct labels
+  expect_false(any(vapply(p$layers,
+    function(l) inherits(l$geom, "GeomText"), logical(1))))
 })

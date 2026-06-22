@@ -9,8 +9,10 @@ This release adds a code-free app and reference-manager export.
 * [`as_bibtex()`] and [`as_ris()`] export a record set to the BibTeX and RIS
   interchange formats, so a search can be carried into Zotero, EndNote, Mendeley
   or a LaTeX bibliography.
-* [`plot_scopus_comparison()`] now spreads the direct line labels vertically, so
-  topics that converge near the final year no longer overlap.
+* [`plot_scopus_comparison()`] now spreads the direct line labels vertically and
+  draws a leader from each label to its line, so topics that converge near the
+  final year no longer overlap, and falls back to a legend when there are too
+  many topics to label legibly.
 
 # scopusflow 0.2.0
 

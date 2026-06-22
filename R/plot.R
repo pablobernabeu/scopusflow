@@ -107,7 +107,6 @@ plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
     df$ci_upper <- wb$upper
   }
 
-  direct <- length(topics) <= 6L
   yrs <- sort(unique(df$year))
   brk <- if (length(yrs) > 12L) {
     p <- pretty(yrs)
@@ -122,6 +121,11 @@ plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
   # A data-driven upper limit, rounded up to the next 5%, removes dead headroom.
   ymax_src <- if (show_band) df$ci_upper else df$comparison_percentage
   ymax_pad <- min(100, ceiling(max(ymax_src, na.rm = TRUE) / 5) * 5)
+
+  # Label the lines directly when they fit legibly once spread; otherwise the
+  # legend (set up at the foot of this function) is used instead.
+  gap <- ymax_pad * 0.055
+  direct <- length(topics) <= 8L && (length(topics) - 1L) * gap <= ymax_pad
 
   p <- ggplot2::ggplot(
     df,
@@ -148,17 +152,25 @@ plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
                                       end = 0.85, name = NULL)
     if (direct) {
       # Spread the right-edge labels vertically so converging lines do not
-      # produce overlapping labels.
-      ends$label_y <- scopus_spread_positions(ends$comparison_percentage,
-                                              ymax_pad * 0.05)
+      # produce overlapping labels, and draw a thin leader from each line's true
+      # endpoint to its (possibly nudged) label so the link is unambiguous.
+      nudge <- diff(range(yrs)) * 0.012 + 0.05
+      ends$label_y <- scopus_spread_positions(ends$comparison_percentage, gap)
       over <- max(ends$label_y) - ymax_pad
       if (over > 0) ends$label_y <- ends$label_y - over
-      p <- p + ggplot2::geom_text(
-        data = ends,
-        ggplot2::aes(label = .data$label, colour = .data$label, y = .data$label_y),
-        hjust = 0, nudge_x = diff(range(yrs)) * 0.012 + 0.05, size = 3.1,
-        show.legend = FALSE
-      )
+      p <- p +
+        ggplot2::geom_segment(
+          data = ends,
+          ggplot2::aes(x = .data$year, y = .data$comparison_percentage,
+                       xend = .data$year + nudge, yend = .data$label_y,
+                       colour = .data$label),
+          linewidth = 0.4, show.legend = FALSE
+        ) +
+        ggplot2::geom_text(
+          data = ends,
+          ggplot2::aes(label = .data$label, colour = .data$label, y = .data$label_y),
+          hjust = 0, nudge_x = nudge, size = 3.1, show.legend = FALSE
+        )
     }
   } else {
     df$is_hi <- df$abridged_query == highlight
