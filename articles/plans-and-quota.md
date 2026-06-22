@@ -113,38 +113,6 @@ n
 attr(n, "quota")
 ```
 
-That allowance is parsed from the response headers by
-[`scopus_quota()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_quota.md).
-To show its shape without a network call, apply it to a constructed
-response:
-
-``` r
-
-resp <- httr2::response(
-  status_code = 200,
-  headers = list(
-    `X-RateLimit-Limit`     = "20000",
-    `X-RateLimit-Remaining` = "19987",
-    `X-RateLimit-Reset`     = "1700000000"
-  )
-)
-scopus_quota(resp)
-#> $limit
-#> [1] 20000
-#> 
-#> $remaining
-#> [1] 19987
-#> 
-#> $reset
-#> [1] "2023-11-14 22:13:20 UTC"
-#> 
-#> $status
-#> [1] NA
-#> 
-#> $retry_after
-#> [1] NA
-```
-
 ## Fetching, with caching and resume
 
 [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
@@ -161,18 +129,6 @@ records <- scopus_fetch_plan(
   resume = TRUE
 )
 records
-```
-
-The cache lives under
-[`scopus_cache_dir()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_dir.md).
-To force a fresh retrieval, empty it with
-[`scopus_cache_clear()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_clear.md).
-Both are shown but not run, so the article does not touch a real cache:
-
-``` r
-
-scopus_cache_dir()    # where completed cells are written
-scopus_cache_clear()  # remove them, so the next run re-fetches from scratch
 ```
 
 The result is a `scopus_records` tibble, the same shape returned by

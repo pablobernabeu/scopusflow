@@ -18,9 +18,6 @@ as_tibble(x, ...)
 # S3 method for class 'scopus_records'
 as.data.frame(x, ...)
 
-# S3 method for class 'scopus_records'
-autoplot(object, ...)
-
 scopus_records(x, query = NA_character_)
 
 is_scopus_records(x)
@@ -36,10 +33,6 @@ is_scopus_records(x)
 
   Ignored, for S3 compatibility.
 
-- object:
-
-  A scopus_records object (for the `autoplot()` method).
-
 - query:
 
   Optional character scalar recording the query that produced the
@@ -50,10 +43,6 @@ is_scopus_records(x)
 The coercion methods return a plain
 [tibble](https://tibble.tidyverse.org/reference/tibble.html) or data
 frame with the same columns and the `scopus_records` class removed.
-
-The `autoplot()` method returns a
-[ggplot2::ggplot](https://ggplot2.tidyverse.org/reference/ggplot.html)
-of the records per year.
 
 A tibble of class `scopus_records` with the columns `entry_number`
 (integer), `scopus_id` (character), `doi` (character), `title`

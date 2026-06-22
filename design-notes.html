@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -19,8 +19,7 @@
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="articles/analysing-a-literature.html">Analysing and visualising a literature</a></li>
-    <li><a class="dropdown-item" href="articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
     <li><a class="dropdown-item" href="articles/comparing-topics.html">Comparing topics over time</a></li>
     <li><a class="dropdown-item" href="articles/designing-queries.html">Designing precise queries across disciplines</a></li>
     <li><a class="dropdown-item" href="articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
@@ -38,7 +37,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="logo.png" class="logo" alt=""><h1>Design notes for scopusflow</h1>
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/design-notes.md" class="external-link"><code>design-notes.md</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.1.0/design-notes.md" class="external-link"><code>design-notes.md</code></a></small>
     </div>
 
 <div id="design-notes-for-scopusflow" class="section level1">
@@ -124,30 +123,6 @@
 <div class="section level2">
 <h2 id="continuous-maintenance">Continuous maintenance<a class="anchor" aria-label="anchor" href="#continuous-maintenance"></a></h2>
 <p>The package depends on several actively developed packages, <code>httr2</code> most of all, so a scheduled dependency canary (<code>.github/workflows/dependency-check.yaml</code>) rebuilds and checks it every other day against the current and development versions of those dependencies. A breaking change therefore surfaces here before it reaches a release. The workflow flags the maintainer through a single, de-duplicated issue. The whole pipeline runs on GitHub’s free Actions minutes and needs no secret. The attempt to resolve a breakage has three tiers: with no secret it asks a free GitHub Models model to diagnose and propose a fix in the issue; with a Claude subscription OAuth token (<code>CLAUDE_CODE_OAUTH_TOKEN</code>, no per-token cost) or a paid <code>ANTHROPIC_API_KEY</code>, the Claude Code action attempts a full fix and opens a pull request. Every tier is best-effort, so detection and flagging never depend on it. Dependabot keeps the workflow actions themselves current.</p>
-</div>
-<div class="section level2">
-<h2 id="version-020-api-reach-and-an-analysis-layer">Version 0.2.0: API reach and an analysis layer<a class="anchor" aria-label="anchor" href="#version-020-api-reach-and-an-analysis-layer"></a></h2>
-<p>The first release stopped at retrieval. 0.2.0 reaches further into the API and adds the analysis that a study usually needs next, all kept offline-testable.</p>
-<p>Cursor pagination (<code>scopus_fetch(cursor = TRUE)</code>) follows the API’s <code>@next</code> cursor instead of an offset, so a single large query can be harvested past the 5000-record ceiling that offset paging imposes. It is opt-in, since the records then arrive in deep-paging rather than relevance order, which is the right trade for a complete harvest but not for a top-of-results sample. <code><a href="reference/scopus_abstract.html">scopus_abstract()</a></code> adds the Abstract Retrieval API, a second endpoint, so the abstract and fuller metadata of a known record can be read; a batch is resilient, turning a per-id failure into an <code>NA</code> row with a warning rather than losing the whole call. Both are tested with <code>httr2</code> mocks and a key-gated live test, exactly as the Search API is.</p>
-<p>The analysis layer consumes objects already in hand: <code><a href="reference/scopus_top.html">scopus_top()</a></code> tallies sources or authors from a record set in memory, and <code><a href="reference/scopus_trend.html">scopus_trend()</a></code> counts a query year by year through the API (the single-query companion to the topic comparison). Each pairs with a plot, and an <code>autoplot()</code> method gives a record set an honest default figure. A shared, unexported <code>scopus_minimal_theme()</code> now backs the several plots, the internal helper the earlier notes said would be justified once a second plotting function appeared.</p>
-<div class="section level3">
-<h3 id="pre-cran-hardening-of-the-020-additions">Pre-CRAN hardening of the 0.2.0 additions<a class="anchor" aria-label="anchor" href="#pre-cran-hardening-of-the-020-additions"></a></h3>
-<p>A multi-agent adversarial review of the 0.2.0 code, with every finding independently verified against the source, surfaced no blockers but a set of edge-case robustness gaps that were closed before submission, since a defect is far cheaper to fix before CRAN than after:</p>
-<ul><li>
-<code><a href="reference/scopus_top.html">scopus_top()</a></code> now orders ties by <code>value</code> in byte order (<code>order(..., method = "radix")</code>) instead of the locale-dependent <code>sort(table())</code>, so which tied values survive the top-<code>n</code> cut is reproducible across platforms; it also rejects fractional and non-finite <code>n</code>, matching the package’s other count validators.</li>
-<li>
-<code><a href="reference/scopus_trend.html">scopus_trend()</a></code> warns (rather than silently recording <code>NA</code>) when a year’s response carries no total.</li>
-<li>
-<code><a href="reference/scopus_abstract.html">scopus_abstract()</a></code> percent-encodes each identifier path segment while preserving the structural slashes a DOI needs, so a DOI containing reserved characters is not mis-parsed; it resolves the key once up front so a missing key aborts cleanly instead of degrading to a tibble of <code>NA</code> rows; and a malformed <code>200</code> body is raised as a typed <code>scopus_error_malformed</code> (also in <code>scopus_search_page()</code>), so the batch degrades to an <code>NA</code> row rather than aborting on an untyped <code>jsonlite</code> error.</li>
-<li>Cursor paging gained a bounded backstop: it stops once the reported total is reached and, against a non-conforming server that never signals the end, after <code>getOption("scopusflow.max_cursor_pages", 1e5)</code> pages with a typed warning (set the option to <code>Inf</code> to disable), so an unbounded harvest cannot silently burn memory and quota.</li>
-<li>The plot functions guard empty <code>scopus_trend</code>/<code>scopus_top</code> inputs with a typed condition rather than an opaque <code>sprintf</code> crash or a silent blank chart.</li>
-</ul></div>
-<div class="section level3">
-<h3 id="a-local-first-app">A local-first app<a class="anchor" aria-label="anchor" href="#a-local-first-app"></a></h3>
-<p><code><a href="reference/run_app.html">run_app()</a></code> launches a Shiny front end so the workflow can be driven without writing code, while a panel mirrors every choice back as a runnable script, so the app is an on-ramp to the package rather than a replacement for it. It is deliberately local-first, bound to <code>127.0.0.1</code>: a hosted multi-user version would conflict with Elsevier’s API terms (which expect calls not to be proxied through a server-side component) and with the institutional-IP entitlement model (calls from a cloud IP get reduced access), and it would put third parties in custody of users’ keys. Running on the user’s own machine sidesteps all three, and removes any platform timeout on a long harvest.</p>
-<p>The long retrieval runs in a background <code><a href="https://callr.r-lib.org/reference/r_bg.html" class="external-link">callr::r_bg()</a></code> child whose <code>verbose</code> <code>cli</code> output is written to a log file the server tails (a poll on <code>invalidateLater</code>, rendered through <code>fansi</code>), rather than captured over a pipe, which would deadlock once the OS pipe buffer filled. The code mirror is built from hand-rolled templates, not <code>shinymeta</code>, because the expensive step runs across the async boundary <code>shinymeta</code> cannot see. The reproducible-code, progress-parsing and ANSI-to-HTML helpers are factored into <code>app-helpers.R</code> so they are unit-tested offline; the reactive layer is not.</p>
-<p>On the key: it is held only in the session, never written by app code to the log, the generated script or the cache path. The terminal panel HTML-escapes its content in both the coloured and plain branches, so a query echoed into the log cannot inject markup. One residual, accepted exposure: <code>callr</code> serialises the worker’s argument list, which includes the key, to a short-lived, user-owned temp file when launching the child. That is tolerated because the app is local and the file is the user’s own and transient; the alternative of passing the key through the child’s environment was rejected as it would lengthen the exposure window in the process environment without a net gain on a single-user machine. The app’s interface packages (<code>shiny</code>, <code>bslib</code>, <code>callr</code>, <code>fansi</code>) stay in Suggests and are required only inside <code><a href="reference/run_app.html">run_app()</a></code>.</p>
-</div>
 </div>
 <div class="section level2">
 <h2 id="assumptions">Assumptions<a class="anchor" aria-label="anchor" href="#assumptions"></a></h2>

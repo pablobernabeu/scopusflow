@@ -107,19 +107,6 @@ nrow(combined)
 #> [1] 8
 ```
 
-The base [`c()`](https://rdrr.io/r/base/c.html) method concatenates
-record sets directly, renumbering but without de-duplicating, so it is
-the building block that
-[`scopus_combine()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md)
-adds the duplicate handling to.
-
-``` r
-
-stacked <- c(baseline, later)
-nrow(stacked)
-#> [1] 11
-```
-
 ## Keeping a record of each pull
 
 Saving each retrieval lets you compare against it next time. The `.rds`

@@ -11,7 +11,7 @@ ceiling, rate-limit handling and retry with back-off are all managed for you."><
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -23,8 +23,7 @@ ceiling, rate-limit handling and retry with back-off are all managed for you."><
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/analysing-a-literature.html">Analysing and visualising a literature</a></li>
-    <li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
     <li><a class="dropdown-item" href="../articles/comparing-topics.html">Comparing topics over time</a></li>
     <li><a class="dropdown-item" href="../articles/designing-queries.html">Designing precise queries across disciplines</a></li>
     <li><a class="dropdown-item" href="../articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
@@ -42,7 +41,7 @@ ceiling, rate-limit handling and retry with back-off are all managed for you."><
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Fetch 'Scopus' records for a query</h1>
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/R/fetch.R" class="external-link"><code>R/fetch.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.1.0/R/fetch.R" class="external-link"><code>R/fetch.R</code></a></small>
       <div class="d-none name"><code>scopus_fetch.Rd</code></div>
     </div>
 
@@ -61,7 +60,6 @@ ceiling, rate-limit handling and retry with back-off are all managed for you.</p
 <span>  page_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  field <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  years <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  cursor <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  api_key <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  inst_token <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
@@ -78,10 +76,10 @@ ceiling, rate-limit handling and retry with back-off are all managed for you.</p
 
 <dt id="arg-max-results">max_results<a class="anchor" aria-label="anchor" href="#arg-max-results"></a></dt>
 <dd><p>Maximum number of records to retrieve. Defaults to <code>Inf</code>,
-meaning all available records up to the API ceiling. With the default
-offset-based paging the 'Scopus' Search API refuses offsets of 5000 or more,
-so a single query yields at most 5000 records; set <code>cursor = TRUE</code>, or
-partition the search by year with <code><a href="scopus_plan.html">scopus_plan()</a></code>, to go beyond that.</p></dd>
+meaning all available records up to the API ceiling. The 'Scopus' Search
+API refuses offsets of 5000 or more, so a single query yields at most 5000
+records. To go beyond that, partition the search by year with
+<code><a href="scopus_plan.html">scopus_plan()</a></code>.</p></dd>
 
 
 <dt id="arg-view">view<a class="anchor" aria-label="anchor" href="#arg-view"></a></dt>
@@ -101,16 +99,6 @@ most quota-efficient page the view allows (200 for <code>STANDARD</code>, 25 for
 
 <dt id="arg-years">years<a class="anchor" aria-label="anchor" href="#arg-years"></a></dt>
 <dd><p>Optional integer vector of publication years to restrict to.</p></dd>
-
-
-<dt id="arg-cursor">cursor<a class="anchor" aria-label="anchor" href="#arg-cursor"></a></dt>
-<dd><p>Logical. When <code>TRUE</code>, retrieve the result set with cursor-based
-pagination, which has no 5000-record ceiling, so an entire large query can be
-harvested in one call. The records then arrive in the API's deep-paging
-order rather than sorted by relevance. As a safeguard against a
-non-conforming server that never signals the end, cursor paging stops after
-<code>getOption("scopusflow.max_cursor_pages", 1e5)</code> pages with a warning; set
-that option to <code>Inf</code> to remove the ceiling.</p></dd>
 
 
 <dt id="arg-api-key-inst-token">api_key, inst_token<a class="anchor" aria-label="anchor" href="#arg-api-key-inst-token"></a></dt>
