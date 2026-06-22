@@ -35,7 +35,11 @@ app_code_mirror <- function(query,
                             view = "STANDARD",
                             partition = "year",
                             max_results = Inf,
-                            by = "source") {
+                            by = "source",
+                            compare_terms = NULL,
+                            highlight = NULL,
+                            interval = TRUE,
+                            pub_count_in_legend = TRUE) {
   query <- if (is.null(query) || !nzchar(trimws(query))) "your query" else trimws(query)
   years_code <- app_years_code(years)
   has_field <- !is.null(field) && nzchar(field)
@@ -82,6 +86,37 @@ app_code_mirror <- function(query,
     "# Or export for a reference manager (Zotero, EndNote) or LaTeX.",
     "as_bibtex(records, file = \"scopus-records.bib\")"
   )
+
+  # When comparison terms are set (and a year span is available), append a
+  # runnable topic-comparison block reflecting the chosen terms and toggles.
+  terms <- if (is.null(compare_terms)) character() else trimws(compare_terms)
+  terms <- terms[nzchar(terms)]
+  if (length(terms) > 0L && !is.null(years_code)) {
+    cmp_args <- c(
+      app_quote(query),
+      sprintf("comparison_terms = c(%s)",
+              paste(vapply(terms, app_quote, character(1)), collapse = ", ")),
+      sprintf("years = %s", years_code)
+    )
+    if (has_field) cmp_args <- c(cmp_args, sprintf("field = %s", app_quote(field)))
+    if (identical(view, "COMPLETE")) cmp_args <- c(cmp_args, "view = \"COMPLETE\"")
+    plot_args <- "cmp"
+    if (!is.null(highlight) && nzchar(highlight)) {
+      plot_args <- c(plot_args, sprintf("highlight = %s", app_quote(highlight)))
+    }
+    if (!isTRUE(interval)) plot_args <- c(plot_args, "interval = FALSE")
+    if (!isTRUE(pub_count_in_legend)) {
+      plot_args <- c(plot_args, "pub_count_in_legend = FALSE")
+    }
+    lines <- c(
+      lines,
+      "",
+      "# Compare how sub-topics co-occur with the search over time, as a share",
+      "# of it (one count request per term per year).",
+      sprintf("cmp <- scopus_compare_topics(%s)", app_args(cmp_args)),
+      sprintf("plot_scopus_comparison(%s)", paste(plot_args, collapse = ", "))
+    )
+  }
   paste(lines, collapse = "\n")
 }
 
@@ -93,6 +128,84 @@ app_args <- function(args) {
     return(one_line)
   }
   paste0("\n  ", paste(args, collapse = ",\n  "), "\n")
+}
+
+# Synthesise a set of records of the stable schema, so the whole app flow (table,
+# plots, export) works offline with no key. Mirrors the Python app's _demo_rows /
+# _demo_worker: eight records per requested year, drawn from a fixed pool of
+# sources and authors so the by-year and top-source/author plots have structure.
+app_demo_records <- function(years) {
+  years <- if (is.null(years) || length(years) == 0L) 2020L else sort(unique(as.integer(years)))
+  sources <- c("Nature", "Science", "Carbon", "Nano Letters", "Advanced Materials")
+  authors <- c("Lee J.", "Park S.", "Kim H.", "Garcia M.", "Zhang F.", "Abbott B.")
+  rows <- list()
+  for (y in years) {
+    for (j in seq_len(8L)) {
+      ai <- ((j - 1L) %% length(authors)) + 1L
+      ai2 <- (ai %% length(authors)) + 1L
+      rows[[length(rows) + 1L]] <- data.frame(
+        scopus_id = sprintf("%d%03d", y, j),
+        doi = sprintf("10.1000/demo.%d.%03d", y, j),
+        title = sprintf("Demonstration record %d from %d", j, y),
+        authors = paste(authors[ai], authors[ai2], sep = "; "),
+        year = as.integer(y),
+        date = sprintf("%d-01-01", y),
+        publication = sources[((y + j) %% length(sources)) + 1L],
+        citations = as.integer((j * 7L + y) %% 120L),
+        query = "demo",
+        stringsAsFactors = FALSE
+      )
+    }
+  }
+  df <- do.call(rbind, rows)
+  df$entry_number <- seq_len(nrow(df))
+  cols <- c("entry_number", "scopus_id", "doi", "title", "authors", "year",
+            "date", "publication", "citations", "query")
+  tibble::new_tibble(as.list(df[cols]), nrow = nrow(df), class = "scopus_records")
+}
+
+# Synthesise a plausible topic comparison so the compare flow works offline,
+# mirroring the Python app's _demo_comparison. Each term is given a different base
+# share and growth rate; the rows are built and sorted exactly as
+# scopus_compare_topics() does, so the demo object is indistinguishable in shape
+# from a real one.
+app_demo_comparison <- function(reference, terms, years) {
+  reference <- trimws(reference %||% "")
+  if (!nzchar(reference)) reference <- "reference topic"
+  terms <- trimws(terms)
+  terms <- terms[nzchar(terms)]
+  if (length(terms) == 0L) terms <- "comparison term"
+  years <- sort(unique(as.integer(years)))
+  if (length(years) == 0L) years <- 2020L
+  span <- max(length(years) - 1L, 1L)
+  y0 <- years[1]
+  ref_n <- 1000 + (years - y0) * 120
+  names(ref_n) <- as.character(years)
+
+  rows <- list()
+  rows[[1]] <- scopus_comparison_block(
+    query = reference, query_type = "reference",
+    abridged = reference, years = years, n = ref_n, ref_n = ref_n
+  )
+  for (i in seq_along(terms)) {
+    base <- 0.06 + 0.07 * (i - 1L)
+    growth <- 0.03 * i
+    cmp_n <- as.integer(ref_n * (base + growth * (years - y0) / span))
+    rows[[length(rows) + 1L]] <- scopus_comparison_block(
+      query = paste(reference, "AND", terms[i]), query_type = "comparison",
+      abridged = terms[i], years = years, n = cmp_n, ref_n = ref_n
+    )
+  }
+  out <- do.call(rbind, rows)
+  ord <- order(
+    out$query_type != "reference",
+    -out$average_comparison_percentage,
+    out$abridged_query,
+    out$year
+  )
+  out <- out[ord, ]
+  rownames(out) <- NULL
+  tibble::new_tibble(as.list(out), nrow = nrow(out), class = "scopus_comparison")
 }
 
 # Find the most recent "Cell k/N:" marker in the streamed verbose log and return

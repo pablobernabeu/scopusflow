@@ -20,6 +20,23 @@ app_fetch_worker <- function(query, years, field, view, partition,
   )
 }
 
+# The demo worker simulates a harvest in a fresh background session: it streams
+# per-cell progress (so the live terminal and progress bar behave exactly as in a
+# real run) and returns the synthetic records it was handed. The records are
+# built in the parent (by app_demo_records()) and passed in, so the worker needs
+# no package on the child. Mirrors the Python app's _demo_worker.
+app_demo_fetch_worker <- function(query, years, records) {
+  options(cli.num_colors = 256L, cli.default_num_colors = 256L, crayon.enabled = TRUE)
+  yrs <- if (is.null(years)) 0L else years
+  total <- length(yrs)
+  for (i in seq_along(yrs)) {
+    cat(sprintf("Cell %d/%d: synthesising %s (%s)\n", i, total, query, yrs[i]))
+    flush(stdout())
+    Sys.sleep(0.5)
+  }
+  records
+}
+
 # Common Scopus field tags offered in the UI (a "(none)" option leaves the query
 # untagged).
 app_field_choices <- function() {
@@ -45,6 +62,7 @@ app_ui <- function() {
       width = 340,
       shiny::passwordInput("api_key", "Scopus API key",
                            placeholder = "paste your key (stays on this machine)"),
+      shiny::checkboxInput("demo", "Demo mode (no key needed)", value = TRUE),
       shiny::uiOutput("key_status"),
       shiny::hr(),
       shiny::textInput("query", "Search terms", value = "graphene supercapacitor"),
@@ -107,6 +125,37 @@ app_ui <- function() {
       bslib::nav_panel("Top sources", shiny::plotOutput("plot_sources", height = "320px")),
       bslib::nav_panel("Top authors", shiny::plotOutput("plot_authors", height = "320px")),
       bslib::nav_panel(
+        "Compare topics",
+        # fillable = FALSE so the content flows normally and the plot keeps its
+        # fixed height; in a fillable (flex) tab the plot shares height with the
+        # inputs and collapses to nothing ("figure margins too large").
+        bslib::card_body(
+          fillable = FALSE,
+          shiny::p(shiny::tags$small(
+            "How sub-topics co-occur with your search over time, as a share of it.",
+            "Your search terms above are the reference topic.")),
+          shiny::textInput("cmp_terms", "Comparison terms (comma-separated)",
+                           value = "machine learning, deep learning", width = "100%"),
+          bslib::layout_columns(
+            col_widths = c(5, 7),
+            shiny::selectInput("cmp_highlight", "Highlight topic",
+                               choices = c("(none)" = "")),
+            shiny::div(
+              shiny::checkboxInput("cmp_interval", "Stability band", value = TRUE),
+              shiny::checkboxInput("cmp_counts", "Counts in label", value = TRUE)
+            )
+          ),
+          shiny::uiOutput("cmp_note"),
+          shiny::actionButton("compare", "Compare topics",
+                              class = "btn-outline-primary mb-2",
+                              icon = shiny::icon("chart-line")),
+          shiny::plotOutput("plot_comparison", height = "360px"),
+          shiny::br(),
+          shiny::downloadButton("dl_comparison", "Comparison (.csv)",
+                                class = "btn-outline-secondary btn-sm")
+        )
+      ),
+      bslib::nav_panel(
         "Export",
         shiny::br(),
         shiny::p(shiny::tags$small(
@@ -132,7 +181,7 @@ app_ui <- function() {
 app_server <- function(input, output, session) {
   rv <- shiny::reactiveValues(
     proc = NULL, logfile = NULL, records = NULL, lines = character(),
-    progress = NULL, status = "idle"
+    progress = NULL, status = "idle", comparison = NULL
   )
 
   # The key lives only in the session, passed to the worker as an argument.
@@ -142,7 +191,10 @@ app_server <- function(input, output, session) {
   })
 
   output$key_status <- shiny::renderUI({
-    if (is.null(api_key())) {
+    if (isTRUE(input$demo)) {
+      shiny::span(class = "text-info", shiny::icon("flask"),
+                  " Demo mode: synthetic data, no key needed.")
+    } else if (is.null(api_key())) {
       shiny::span(class = "text-warning", shiny::icon("circle"),
                   " Enter your key to fetch.")
     } else {
@@ -159,20 +211,42 @@ app_server <- function(input, output, session) {
     if (length(mr) != 1L || is.na(mr) || mr < 1) Inf else mr
   })
 
-  # The live code mirror, rebuilt whenever the plan inputs change.
-  output$code_mirror <- shiny::renderText({
+  # Comma-separated comparison terms, parsed once for the plot, the count note,
+  # the CSV download and the reproducible script.
+  cmp_terms_value <- shiny::reactive({
+    raw <- trimws(strsplit(input$cmp_terms %||% "", ",", fixed = TRUE)[[1]])
+    raw[nzchar(raw)]
+  })
+
+  # The live code mirror, rebuilt whenever the plan or comparison inputs change,
+  # and shared by the on-screen panel and the script download.
+  code_text <- shiny::reactive({
     app_code_mirror(
       query = input$query, years = years_value(),
       field = input$field, view = input$view,
       partition = if (isTRUE(input$use_years)) "year" else "none",
-      max_results = max_value()
+      max_results = max_value(),
+      compare_terms = cmp_terms_value(),
+      highlight = if (nzchar(input$cmp_highlight %||% "")) input$cmp_highlight else NULL,
+      interval = !identical(input$cmp_interval, FALSE),
+      pub_count_in_legend = !identical(input$cmp_counts, FALSE)
     )
   })
 
+  output$code_mirror <- shiny::renderText(code_text())
+
   # Cheap pre-flight sizing, run synchronously: one request per query/year.
   shiny::observeEvent(input$count, {
+    if (isTRUE(input$demo)) {
+      ncells <- if (isTRUE(input$use_years)) length(years_value()) else 1L
+      rv$size_note <- sprintf(
+        "Demo plan: %d %s; would synthesise ~%d records.",
+        ncells, if (ncells == 1L) "cell" else "year-cells", ncells * 8L)
+      return()
+    }
     if (is.null(api_key())) {
-      shiny::showNotification("Enter your Scopus API key first.", type = "warning")
+      shiny::showNotification("Enter your Scopus API key, or switch on Demo mode.",
+                              type = "warning")
       return()
     }
     shiny::withProgress(message = "Checking size", value = 0.5, {
@@ -206,8 +280,9 @@ app_server <- function(input, output, session) {
 
   # Launch the background harvest.
   shiny::observeEvent(input$fetch, {
-    if (is.null(api_key())) {
-      shiny::showNotification("Enter your Scopus API key first.", type = "warning")
+    if (!isTRUE(input$demo) && is.null(api_key())) {
+      shiny::showNotification("Enter your Scopus API key, or switch on Demo mode.",
+                              type = "warning")
       return()
     }
     if (!is.null(rv$proc) && rv$proc$is_alive()) {
@@ -228,16 +303,25 @@ app_server <- function(input, output, session) {
     rv$progress <- NULL
     rv$records <- NULL
     rv$status <- "running"
-    rv$proc <- callr::r_bg(
-      func = app_fetch_worker,
-      args = list(
-        query = input$query, years = years_value(),
-        field = nzchar_or_null(input$field), view = input$view,
-        partition = if (isTRUE(input$use_years)) "year" else "none",
-        max_results = max_value(), cache_dir = cache_dir, api_key = api_key()
-      ),
-      stdout = logfile, stderr = "2>&1", supervise = TRUE
-    )
+    rv$proc <- if (isTRUE(input$demo)) {
+      callr::r_bg(
+        func = app_demo_fetch_worker,
+        args = list(query = input$query, years = years_value(),
+                    records = app_demo_records(years_value())),
+        stdout = logfile, stderr = "2>&1", supervise = TRUE
+      )
+    } else {
+      callr::r_bg(
+        func = app_fetch_worker,
+        args = list(
+          query = input$query, years = years_value(),
+          field = nzchar_or_null(input$field), view = input$view,
+          partition = if (isTRUE(input$use_years)) "year" else "none",
+          max_results = max_value(), cache_dir = cache_dir, api_key = api_key()
+        ),
+        stdout = logfile, stderr = "2>&1", supervise = TRUE
+      )
+    }
   })
 
   shiny::observeEvent(input$cancel, {
@@ -359,12 +443,97 @@ app_server <- function(input, output, session) {
 
   output$dl_script <- shiny::downloadHandler(
     filename = "scopusflow-script.R",
+    content = function(file) writeLines(code_text(), file)
+  )
+
+  # Topic comparison. The highlight choices track the entered terms; the note
+  # shows the count-request cost (one per term per year) outside demo mode.
+  shiny::observeEvent(cmp_terms_value(), {
+    terms <- cmp_terms_value()
+    sel <- if (!is.null(input$cmp_highlight) && input$cmp_highlight %in% terms) {
+      input$cmp_highlight
+    } else {
+      ""
+    }
+    shiny::updateSelectInput(session, "cmp_highlight",
+                             choices = c("(none)" = "", terms), selected = sel)
+  }, ignoreNULL = FALSE)
+
+  output$cmp_note <- shiny::renderUI({
+    terms <- cmp_terms_value()
+    if (length(terms) == 0L || isTRUE(input$demo)) {
+      return(NULL)
+    }
+    this_year <- as.integer(format(Sys.Date(), "%Y"))
+    yrs <- years_value() %||% seq(this_year - 5L, this_year)
+    n <- length(terms) * length(yrs)
+    msg <- sprintf(
+      "%d term%s x %d year%s = %d count requests.%s",
+      length(terms), if (length(terms) == 1L) "" else "s",
+      length(yrs), if (length(yrs) == 1L) "" else "s", n,
+      if (n > 80L) "  Consider fewer terms or years." else ""
+    )
+    shiny::p(shiny::tags$small(msg))
+  })
+
+  shiny::observeEvent(input$compare, {
+    if (!nzchar(trimws(input$query %||% ""))) {
+      shiny::showNotification("Enter search terms first (used as the reference topic).",
+                              type = "warning")
+      return()
+    }
+    terms <- cmp_terms_value()
+    if (length(terms) == 0L) {
+      shiny::showNotification("Enter at least one comparison term.", type = "warning")
+      return()
+    }
+    this_year <- as.integer(format(Sys.Date(), "%Y"))
+    yrs <- years_value() %||% seq(this_year - 5L, this_year)
+    if (isTRUE(input$demo)) {
+      rv$comparison <- app_demo_comparison(input$query, terms, yrs)
+      return()
+    }
+    if (is.null(api_key())) {
+      shiny::showNotification("Enter your Scopus API key, or switch on Demo mode.",
+                              type = "warning")
+      return()
+    }
+    out <- shiny::withProgress(message = "Comparing topics", value = 0.5, {
+      tryCatch(
+        scopus_compare_topics(input$query, terms, years = yrs,
+                              field = nzchar_or_null(input$field), view = input$view,
+                              api_key = api_key()),
+        scopus_error = function(e) e
+      )
+    })
+    if (inherits(out, "condition")) {
+      shiny::showNotification(paste("Scopus:", conditionMessage(out)), type = "error",
+                              duration = NULL)
+      return()
+    }
+    rv$comparison <- out
+  })
+
+  output$plot_comparison <- shiny::renderPlot({
+    cmp <- rv$comparison
+    shiny::validate(
+      shiny::need(!is.null(cmp), "Enter comparison terms and click Compare topics."),
+      shiny::need(rlang::is_installed("ggplot2"), "Install ggplot2 to see the plot.")
+    )
+    topics <- unique(cmp$abridged_query[cmp$query_type == "comparison"])
+    hl <- input$cmp_highlight
+    if (is.null(hl) || !nzchar(hl) || !hl %in% topics) hl <- NULL
+    plot_scopus_comparison(
+      cmp, highlight = hl, interval = !identical(input$cmp_interval, FALSE),
+      pub_count_in_legend = !identical(input$cmp_counts, FALSE)
+    )
+  })
+
+  output$dl_comparison <- shiny::downloadHandler(
+    filename = "scopus-comparison.csv",
     content = function(file) {
-      writeLines(app_code_mirror(
-        query = input$query, years = years_value(), field = input$field,
-        view = input$view, partition = if (isTRUE(input$use_years)) "year" else "none",
-        max_results = max_value()
-      ), file)
+      shiny::req(rv$comparison)
+      utils::write.csv(as.data.frame(rv$comparison), file, row.names = FALSE)
     }
   )
 
@@ -417,9 +586,12 @@ nzchar_or_null <- function(x) {
 
 #' Launch the scopusflow app
 #'
-#' Starts a local, code-free Shiny app for building a search, retrieving records
-#' and exporting them, with a live terminal that streams the retrieval's progress
-#' and a panel that mirrors every choice as runnable R code. The app runs on your
+#' Starts a local, code-free Shiny app for building a search, retrieving records,
+#' comparing topic trends and exporting the results, with a live terminal that
+#' streams the retrieval's progress and a panel that mirrors every choice as
+#' runnable R code. A *Demo mode* (on by default) synthesises records and a topic
+#' comparison so the whole workflow can be explored with no key and no network;
+#' switch it off and supply a key to query 'Scopus' for real. The app runs on your
 #' own machine: your API key never leaves it, and requests originate from your own
 #' network, which is what the 'Scopus' API expects. It needs the suggested
 #' packages \pkg{shiny}, \pkg{bslib} and \pkg{callr} (and \pkg{ggplot2} for the

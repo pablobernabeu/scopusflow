@@ -77,6 +77,54 @@ test_that("app_ansi_to_html escapes HTML even on the coloured path", {
   expect_true(grepl("&lt;script&gt;", out, fixed = TRUE))
 })
 
+test_that("app_code_mirror appends a comparison block when terms are given", {
+  code <- app_code_mirror(
+    query = "deep learning", years = 2018:2022, field = "TITLE-ABS-KEY",
+    compare_terms = c("computer vision", "drug discovery"),
+    highlight = "computer vision", interval = FALSE, pub_count_in_legend = FALSE
+  )
+  expect_true(grepl("scopus_compare_topics(", code, fixed = TRUE))
+  expect_true(grepl('"computer vision"', code, fixed = TRUE))
+  expect_true(grepl('"drug discovery"', code, fixed = TRUE))
+  expect_true(grepl("plot_scopus_comparison(", code, fixed = TRUE))
+  expect_true(grepl('highlight = "computer vision"', code, fixed = TRUE))
+  expect_true(grepl("interval = FALSE", code, fixed = TRUE))
+  expect_true(grepl("pub_count_in_legend = FALSE", code, fixed = TRUE))
+  expect_silent(parse(text = code))
+})
+
+test_that("app_code_mirror skips the comparison block without terms or years", {
+  expect_false(grepl("compare_topics",
+                     app_code_mirror(query = "x", years = 2018:2020), fixed = TRUE))
+  # Terms but no year span: skipped, since scopus_compare_topics() needs years.
+  expect_false(grepl("compare_topics",
+                     app_code_mirror(query = "x", years = NULL, partition = "none",
+                                     compare_terms = "a"), fixed = TRUE))
+})
+
+test_that("app_demo_records builds a valid records object spanning the years", {
+  recs <- app_demo_records(2019:2021)
+  expect_s3_class(recs, "scopus_records")
+  expect_equal(nrow(recs), 3L * 8L)             # eight records per year
+  expect_setequal(unique(recs$year), 2019:2021)
+  expect_true(all(c("title", "authors", "publication", "citations") %in% names(recs)))
+  expect_false(anyNA(recs$publication))
+  # The plots and exports built on the schema accept it.
+  expect_s3_class(scopus_top(recs, by = "source"), "data.frame")
+  expect_true(nchar(as_bibtex(recs)) > 0)
+})
+
+test_that("app_demo_comparison mirrors a real comparison object", {
+  cmp <- app_demo_comparison("graphene", c("flexible", "energy storage"), 2018:2021)
+  expect_s3_class(cmp, "scopus_comparison")
+  expect_setequal(unique(cmp$query_type), c("reference", "comparison"))
+  expect_setequal(unique(cmp$abridged_query[cmp$query_type == "comparison"]),
+                  c("flexible", "energy storage"))
+  # It is plottable through the same path as a real comparison.
+  skip_if_not_installed("ggplot2")
+  expect_s3_class(plot_scopus_comparison(cmp), "ggplot")
+})
+
 test_that("run_app is exported and guarded", {
   expect_true(is.function(run_app))
 })
