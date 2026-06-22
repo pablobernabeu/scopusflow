@@ -147,9 +147,15 @@ plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
       ggplot2::scale_colour_viridis_d(option = "viridis", begin = 0.05,
                                       end = 0.85, name = NULL)
     if (direct) {
+      # Spread the right-edge labels vertically so converging lines do not
+      # produce overlapping labels.
+      ends$label_y <- scopus_spread_positions(ends$comparison_percentage,
+                                              ymax_pad * 0.05)
+      over <- max(ends$label_y) - ymax_pad
+      if (over > 0) ends$label_y <- ends$label_y - over
       p <- p + ggplot2::geom_text(
         data = ends,
-        ggplot2::aes(label = .data$label, colour = .data$label),
+        ggplot2::aes(label = .data$label, colour = .data$label, y = .data$label_y),
         hjust = 0, nudge_x = diff(range(yrs)) * 0.012 + 0.05, size = 3.1,
         show.legend = FALSE
       )
@@ -242,6 +248,22 @@ scopus_wilson <- function(x, n, z = 1.96) {
     lower = pmin(pmax((centre - margin) * 100, 0), 100),
     upper = pmin(pmax((centre + margin) * 100, 0), 100)
   )
+}
+
+# Nudge label positions apart so none sits within `gap` of another, in their
+# original order, moving each as little as possible upwards. Keeps the direct
+# end-labels legible where lines converge near the final year.
+scopus_spread_positions <- function(values, gap) {
+  ord <- order(values)
+  adjusted <- values
+  for (k in seq_along(ord)[-1]) {
+    i <- ord[k]
+    prev <- ord[k - 1L]
+    if (adjusted[i] < adjusted[prev] + gap) {
+      adjusted[i] <- adjusted[prev] + gap
+    }
+  }
+  adjusted
 }
 
 #' @rdname plot_scopus_comparison

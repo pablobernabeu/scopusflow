@@ -117,3 +117,23 @@ test_that("plotting a non-comparison object errors", {
   expect_error(plot_scopus_comparison(data.frame(a = 1)),
                class = "scopus_error_bad_input")
 })
+
+test_that("scopus_spread_positions separates close labels in order", {
+  expect_equal(scopus_spread_positions(c(10, 10.1, 10.2), 1), c(10, 11, 12))
+  expect_equal(scopus_spread_positions(c(0, 5, 10), 1), c(0, 5, 10))
+  out <- scopus_spread_positions(c(10.2, 10, 10.1), 1)
+  expect_true(out[2] < out[3] && out[3] < out[1])
+})
+
+test_that("converging topics get vertically separated direct labels", {
+  skip_if_not_installed("ggplot2")
+  cmp <- make_comparison()
+  # Force the two topics' final-year shares to converge.
+  cmp$comparison_percentage[cmp$year == max(cmp$year) &
+                              cmp$query_type == "comparison"] <- c(20, 20.1)
+  p <- plot_scopus_comparison(cmp)
+  text_layer <- which(vapply(p$layers,
+    function(l) inherits(l$geom, "GeomText"), logical(1)))
+  ly <- p$layers[[text_layer[1]]]$data$label_y
+  expect_true(abs(ly[1] - ly[2]) >= 0.5)
+})
