@@ -2,6 +2,8 @@ API's
 autoplot
 bibliometrix
 BibTeX
+bslib
+callr
 clearable
 CMD
 deduplicated
@@ -15,9 +17,11 @@ LaTeX
 Lifecycle
 Mendeley
 ORCID
+pybliometrics
 resumable
 RIS
 saveable
 Scopus
 tibble
+tidyverse
 Zotero

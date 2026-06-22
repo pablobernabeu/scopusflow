@@ -82,8 +82,8 @@ print.scopus_trend <- function(x, ...) {
 #' @return A tibble of class `scopus_top` with columns `value` and `n`, sorted by
 #'   descending count, with ties broken by `value` in byte order so the result is
 #'   reproducible across platforms and locales. Exactly `n` rows are returned
-#'   (fewer if there are fewer distinct values), so values tied at the `n`-th
-#'   place may be cut. The `by` choice is stored in the `by` attribute.
+#'   (fewer if there are fewer distinct values), so values tied at the cut-off
+#'   rank may be dropped. The `by` choice is stored in the `by` attribute.
 #' @seealso [plot_scopus_top()], [summary.scopus_records()]
 #' @examples
 #' scopus_top(example_records, by = "source")

@@ -128,8 +128,11 @@ scopus_count(q, years = 2012:2022)
 # 3. Execute, caching each year so an interrupted run can resume.
 records <- scopus_fetch_plan(plan, cache_dir = scopus_cache_dir(), resume = TRUE)
 
-# 4. Save the DOIs for import into a reference manager (e.g. Zotero).
+# 4. Save a clean DOI list, or export the records for a reference manager
+#    (Zotero, EndNote, Mendeley) or a LaTeX bibliography.
 scopus_extract_dois(records, file = file.path(tempdir(), "dois.csv"))
+as_bibtex(records, file = file.path(tempdir(), "records.bib"))
+as_ris(records, file = file.path(tempdir(), "records.ris"))
 
 # 5. Compare how a method spreads across application areas over time.
 cmp <- scopus_compare_topics(
@@ -145,6 +148,25 @@ plot_scopus_comparison(cmp)
 scopus_abstract("10.1038/s41586-019-0001-1")
 all_records <- scopus_fetch("TITLE-ABS-KEY(microplastics)", cursor = TRUE)
 ```
+
+## Code-free app
+
+`run_app()` opens a local Shiny app that drives the whole workflow
+without writing code, and mirrors every choice back as a runnable R
+script, so it works as an on-ramp to the package rather than a
+replacement. It runs on your own machine, so your API key never leaves
+it, and a demo mode lets you try the flow with synthetic data and no
+key.
+
+``` r
+run_app()
+```
+
+The retrieval runs in a background process with a live progress
+terminal. Records appear as a table and as plots, with one-click export
+to RDS, DOIs, BibTeX and RIS, and a Compare topics tab draws the same
+topic comparison shown above. It needs the suggested packages shiny,
+bslib and callr.
 
 ## Quotas, rate limits and errors
 
