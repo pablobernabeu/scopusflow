@@ -18,6 +18,10 @@ This release adds a code-free app and reference-manager export.
   draws a leader from each label to its line, so topics that converge near the
   final year no longer overlap, and falls back to a legend when there are too
   many topics to label legibly.
+* The app is steadier under stress. It refuses to start a comparison while a
+  harvest is running, surfaces any comparison failure as a notification rather
+  than a crash, floors a fractional maximum-records entry, drops duplicate
+  comparison terms, and tells you when there is nothing to cancel.
 
 # scopusflow 0.2.0
 

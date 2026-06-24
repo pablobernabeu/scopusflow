@@ -208,14 +208,17 @@ app_server <- function(input, output, session) {
 
   max_value <- shiny::reactive({
     mr <- suppressWarnings(as.numeric(input$max_results))
-    if (length(mr) != 1L || is.na(mr) || mr < 1) Inf else mr
+    # A blank or invalid entry means "all"; a fractional entry is floored so the
+    # worker and the generated script agree on a whole-number cap.
+    if (length(mr) != 1L || is.na(mr) || mr < 1) Inf else floor(mr)
   })
 
   # Comma-separated comparison terms, parsed once for the plot, the count note,
-  # the CSV download and the reproducible script.
+  # the CSV download and the reproducible script. Duplicates are dropped so a
+  # repeated term does not spend a redundant count request or double a legend.
   cmp_terms_value <- shiny::reactive({
     raw <- trimws(strsplit(input$cmp_terms %||% "", ",", fixed = TRUE)[[1]])
-    raw[nzchar(raw)]
+    unique(raw[nzchar(raw)])
   })
 
   # The live code mirror, rebuilt whenever the plan or comparison inputs change,
@@ -332,6 +335,8 @@ app_server <- function(input, output, session) {
       if (!is.null(rv$logfile) && file.exists(rv$logfile)) unlink(rv$logfile)
       rv$proc <- NULL
       shiny::showNotification("Retrieval cancelled.", type = "message")
+    } else {
+      shiny::showNotification("Nothing to cancel.", type = "message")
     }
   })
 
@@ -492,6 +497,13 @@ app_server <- function(input, output, session) {
                               type = "warning")
       return()
     }
+    # A comparison issues count requests on the same key as a harvest, and runs
+    # synchronously, so block it while a background fetch is in flight.
+    if (!is.null(rv$proc) && rv$proc$is_alive()) {
+      shiny::showNotification("Wait for the retrieval to finish before comparing.",
+                              type = "warning")
+      return()
+    }
     this_year <- as.integer(format(Sys.Date(), "%Y"))
     yrs <- years_value() %||% seq(this_year - 5L, this_year)
     # One count step per term, plus the reference: drive a live progress bar.
@@ -513,12 +525,14 @@ app_server <- function(input, output, session) {
         # (one per count step), so a long term x year grid is observable.
         step <- 0L
         withCallingHandlers(
+          # Catch any failure, not only a typed scopus_error, so a network or
+          # internal error surfaces as a notification rather than a red screen.
           tryCatch(
             scopus_compare_topics(input$query, terms, years = yrs,
                                   field = nzchar_or_null(input$field),
                                   view = input$view, api_key = api_key(),
                                   verbose = TRUE),
-            scopus_error = function(e) e
+            error = function(e) e
           ),
           message = function(m) {
             step <<- step + 1L
@@ -530,8 +544,12 @@ app_server <- function(input, output, session) {
       }
     })
     if (inherits(out, "condition")) {
-      shiny::showNotification(paste("Scopus:", conditionMessage(out)), type = "error",
-                              duration = NULL)
+      msg <- if (inherits(out, "scopus_error")) {
+        paste("Scopus:", conditionMessage(out))
+      } else {
+        paste("Comparison failed:", conditionMessage(out))
+      }
+      shiny::showNotification(msg, type = "error", duration = NULL)
       return()
     }
     rv$comparison <- out
