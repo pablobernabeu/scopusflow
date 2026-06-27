@@ -132,20 +132,86 @@ test_that("scopus_spread_positions separates close labels in order", {
   expect_true(out[2] < out[3] && out[3] < out[1])
 })
 
-test_that("converging topics get vertically separated direct labels", {
+# A six-topic frame whose final-year shares converge tightly, so the end-labels
+# must be spread apart to stay legible.
+make_converging <- function(nt = 6L) {
+  years <- 2015:2021
+  ends <- seq(18, 21, length.out = nt)
+  rows <- list()
+  for (y in years) rows[[length(rows) + 1L]] <- data.frame(
+    query = "r", query_type = "reference", abridged_query = "ref", year = y,
+    n = 1000L, reference_n = 1000L, comparison_percentage = 100,
+    average_comparison_percentage = 100)
+  for (k in seq_len(nt)) for (y in years) {
+    pct <- ends[k] * (0.5 + 0.5 * (y - years[1]) / (years[length(years)] - years[1]))
+    rows[[length(rows) + 1L]] <- data.frame(
+      query = paste0("t", k), query_type = "comparison",
+      abridged_query = sprintf("topic %d", k), year = y, n = as.integer(pct * 10),
+      reference_n = 1000L, comparison_percentage = pct,
+      average_comparison_percentage = ends[k])
+  }
+  cmp <- do.call(rbind, rows)
+  class(cmp) <- c("scopus_comparison", class(cmp))
+  cmp
+}
+
+# Render to a headless PDF device, then read back the drawn end-label y positions
+# (in npc) and the rendered text-line height, so a test can assert no overlap.
+rendered_label_gaps <- function(p, height, width = 8) {
+  f <- tempfile(fileext = ".pdf")
+  grDevices::pdf(f, width = width, height = height)
+  on.exit({grDevices::dev.off(); unlink(f)}, add = TRUE)
+  grid::grid.newpage(); print(p); grid::grid.force()
+  txt <- grid::grid.get("sf_endlabels_text", grep = TRUE, global = TRUE)
+  if (is.null(txt)) return(NULL)
+  ys <- sort(as.numeric(txt$y))                      # label positions, already npc
+  nms <- grid::grid.ls(viewports = TRUE, grobs = FALSE, print = FALSE)$name
+  grid::seekViewport(grep("^panel", nms, value = TRUE)[1])
+  line <- grid::convertHeight(
+    grid::grobHeight(grid::textGrob("Ag", gp = txt$gp)), "npc", valueOnly = TRUE)
+  grid::upViewport(0)
+  list(y = ys, line = line)
+}
+
+test_that("converging topics get a self-spreading end-label layer with leaders", {
   skip_if_not_installed("ggplot2")
   cmp <- make_comparison()
-  # Force the two topics' final-year shares to converge.
   cmp$comparison_percentage[cmp$year == max(cmp$year) &
                               cmp$query_type == "comparison"] <- c(20, 20.1)
   p <- plot_scopus_comparison(cmp)
-  text_layer <- which(vapply(p$layers,
-    function(l) inherits(l$geom, "GeomText"), logical(1)))
-  ly <- p$layers[[text_layer[1]]]$data$label_y
-  expect_true(abs(ly[1] - ly[2]) >= 0.5)
-  # a leader segment connects the label back to the line end
+  # Direct labels are one custom end-label geom (leader + text drawn at render
+  # time), not a build-time geom_text/geom_segment pair.
   expect_true(any(vapply(p$layers,
-    function(l) inherits(l$geom, "GeomSegment"), logical(1))))
+    function(l) inherits(l$geom, "GeomEndLabels"), logical(1))))
+})
+
+test_that("end-labels never overlap, even on a short device", {
+  skip_if_not_installed("ggplot2")
+  skip_if_not_installed("grid")
+  p <- plot_scopus_comparison(make_converging(6L))
+  # The same six converging topics overlapped at <= 3.5 in before the draw-time
+  # de-collision; now each label sits at least one rendered line apart at every
+  # size, including the app's short card.
+  for (h in c(4.4, 3.5, 2.8)) {
+    m <- rendered_label_gaps(p, h)
+    expect_identical(length(m$y), 6L)
+    expect_gte(min(diff(m$y)), m$line)
+  }
+})
+
+test_that("the spread is deterministic at a fixed size", {
+  skip_if_not_installed("ggplot2")
+  skip_if_not_installed("grid")
+  p <- plot_scopus_comparison(make_converging(6L))
+  expect_equal(rendered_label_gaps(p, 3.5)$y, rendered_label_gaps(p, 3.5)$y)
+})
+
+test_that("a single highlighted topic draws exactly one end-label", {
+  skip_if_not_installed("ggplot2")
+  skip_if_not_installed("grid")
+  p <- plot_scopus_comparison(make_converging(6L), highlight = "topic 3")
+  m <- rendered_label_gaps(p, 3.2)
+  expect_identical(length(m$y), 1L)
 })
 
 test_that("many topics fall back to a legend instead of direct labels", {
@@ -164,5 +230,5 @@ test_that("many topics fall back to a legend instead of direct labels", {
   p <- plot_scopus_comparison(cmp)
   expect_identical(p$theme$legend.position, "top")   # legend, not direct labels
   expect_false(any(vapply(p$layers,
-    function(l) inherits(l$geom, "GeomText"), logical(1))))
+    function(l) inherits(l$geom, "GeomEndLabels"), logical(1))))
 })

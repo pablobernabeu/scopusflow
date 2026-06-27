@@ -122,10 +122,14 @@ plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
   ymax_src <- if (show_band) df$ci_upper else df$comparison_percentage
   ymax_pad <- min(100, ceiling(max(ymax_src, na.rm = TRUE) / 5) * 5)
 
-  # Label the lines directly when they fit legibly once spread; otherwise the
-  # legend (set up at the foot of this function) is used instead.
-  gap <- ymax_pad * 0.055
-  direct <- length(topics) <= 8L && (length(topics) - 1L) * gap <= ymax_pad
+  # Label the lines directly when a legend is not needed; otherwise the legend
+  # (set up at the foot of this function) is used instead. The labels are spread
+  # to the real text height at draw time (see sf_geom_end_labels), but more than
+  # would fit one per line in a conservatively short panel would still collide, so
+  # beyond that count the legend is the backstop. One labelled line is about
+  # 0.16 inch (8.8 pt text with leading); the floor tracks the app's short card.
+  line_in <- 3.1 * (72.27 / 25.4) / 72.27 * 1.3
+  direct <- length(topics) <= min(8L, as.integer(2.2 / line_in))
 
   p <- ggplot2::ggplot(
     df,
@@ -151,26 +155,17 @@ plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
       ggplot2::scale_colour_viridis_d(option = "viridis", begin = 0.05,
                                       end = 0.85, name = NULL)
     if (direct) {
-      # Spread the right-edge labels vertically so converging lines do not
-      # produce overlapping labels, and draw a thin leader from each line's true
-      # endpoint to its (possibly nudged) label so the link is unambiguous.
+      # Spread the right-edge labels vertically so converging lines do not produce
+      # overlapping labels, and draw a thin leader from each line's true endpoint
+      # to its (nudged) label so the link is unambiguous. The spreading runs at
+      # draw time against the real text height (sf_geom_end_labels), so it holds at
+      # any figure size. Colour comes from the same viridis scale as the lines.
       nudge <- diff(range(yrs)) * 0.012 + 0.05
-      ends$label_y <- scopus_spread_positions(ends$comparison_percentage, gap)
-      over <- max(ends$label_y) - ymax_pad
-      if (over > 0) ends$label_y <- ends$label_y - over
-      p <- p +
-        ggplot2::geom_segment(
-          data = ends,
-          ggplot2::aes(x = .data$year, y = .data$comparison_percentage,
-                       xend = .data$year + nudge, yend = .data$label_y,
-                       colour = .data$label),
-          linewidth = 0.4, show.legend = FALSE
-        ) +
-        ggplot2::geom_text(
-          data = ends,
-          ggplot2::aes(label = .data$label, colour = .data$label, y = .data$label_y),
-          hjust = 0, nudge_x = nudge, size = 3.1, show.legend = FALSE
-        )
+      p <- p + sf_geom_end_labels(
+        ggplot2::aes(x = .data$year, y = .data$comparison_percentage,
+                     label = .data$label, colour = .data$label),
+        data = ends, nudge = nudge, ymax = ymax_pad
+      )
     }
   } else {
     df$is_hi <- df$abridged_query == highlight
@@ -189,10 +184,11 @@ plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
                          linewidth = 1.3) +
       ggplot2::geom_point(data = df[df$is_hi, , drop = FALSE], colour = accent,
                           size = 2.2, stroke = 0) +
-      ggplot2::geom_text(
-        data = ends[ends$is_hi, , drop = FALSE],
-        ggplot2::aes(label = .data$label), colour = accent, hjust = 0,
-        nudge_x = diff(range(yrs)) * 0.012 + 0.05, size = 3.1
+      sf_geom_end_labels(
+        ggplot2::aes(x = .data$year, y = .data$comparison_percentage,
+                     label = .data$label),
+        data = ends[ends$is_hi, , drop = FALSE], colour = accent,
+        nudge = diff(range(yrs)) * 0.012 + 0.05, ymax = ymax_pad
       )
   }
 
@@ -276,6 +272,79 @@ scopus_spread_positions <- function(values, gap) {
     }
   }
   adjusted
+}
+
+# Direct end-of-line labels that spread themselves apart at draw time. The label
+# block is handed to grid as a gTree whose `makeContent` method (below) runs when
+# the panel's physical size is finally known, so the minimum vertical gap is one
+# rendered line of text rather than a fixed fraction of the data range. That keeps
+# converging labels from overlapping at any figure size, the grid analogue of the
+# Python plot's redraw-time de-collision. Built lazily because ggplot2 is a soft
+# dependency; this is only reached after the caller has confirmed ggplot2 is
+# installed. `nudge` and `ymax` are in data units; `fontsize` is the label text
+# size (3.1 mm in geom_text terms) expressed in points.
+sf_geom_end_labels <- function(mapping = NULL, data = NULL, nudge = 0,
+                               ymax = NA_real_, ...) {
+  fontsize <- 3.1 * (72.27 / 25.4)
+  geom <- ggplot2::ggproto(
+    "GeomEndLabels", ggplot2::Geom,
+    required_aes = c("x", "y", "label"),
+    default_aes = ggplot2::aes(colour = "black"),
+    draw_key = ggplot2::draw_key_blank,
+    draw_panel = function(self, data, panel_params, coord, nudge = 0,
+                          ymax = NA_real_, fontsize = 8.82) {
+      d <- coord$transform(data, panel_params)
+      nudged <- data; nudged$x <- nudged$x + nudge   # label x, in the right margin
+      capped <- data; capped$y <- ymax               # the y-axis cap, for overflow
+      dn <- coord$transform(nudged, panel_params)
+      cap <- coord$transform(capped, panel_params)$y[1]
+      grid::gTree(
+        x0 = d$x, y0 = d$y, xlab = dn$x, ycap = cap,
+        label = as.character(data$label), col = d$colour,
+        lwd = 0.4 * (72.27 / 25.4), fontsize = fontsize,
+        cl = "sf_endlabels"
+      )
+    }
+  )
+  ggplot2::layer(
+    geom = geom, mapping = mapping, data = data, stat = "identity",
+    position = "identity", show.legend = FALSE, inherit.aes = FALSE,
+    params = list(nudge = nudge, ymax = ymax, fontsize = fontsize, ...)
+  )
+}
+
+#' Spread converging end-labels at draw time
+#'
+#' Internal grid method for the [plot_scopus_comparison()] direct labels. It runs
+#' whenever the label grob is drawn, when the panel viewport (and so the rendered
+#' text height) is finally known, and spreads the labels by at least one line of
+#' text so converging topics never overlap however the figure is sized. The panel
+#' coordinates are `[0, 1]` (npc), so the measured text height, the spread and the
+#' overflow shift are all in those units. Not called directly.
+#' @param x The `sf_endlabels` gTree built by `sf_geom_end_labels()`.
+#' @return The gTree with its leader-and-text children set.
+#' @keywords internal
+#' @exportS3Method grid::makeContent
+makeContent.sf_endlabels <- function(x) {
+  line <- grid::convertHeight(
+    grid::grobHeight(grid::textGrob("Ag", gp = grid::gpar(fontsize = x$fontsize))),
+    "npc", valueOnly = TRUE)
+  gap <- line * 1.3  # one rendered line plus a little leading, so text never touches
+  label_y <- scopus_spread_positions(x$y0, gap)
+  over <- max(label_y) - x$ycap
+  if (over > 0) label_y <- label_y - over
+  label_y[label_y < 0] <- 0  # graceful floor if the panel is too short to fit them all
+  seg <- grid::segmentsGrob(
+    grid::unit(x$x0, "npc"), grid::unit(x$y0, "npc"),
+    grid::unit(x$xlab, "npc"), grid::unit(label_y, "npc"),
+    gp = grid::gpar(col = x$col, lwd = x$lwd), name = "sf_endlabels_leaders"
+  )
+  txt <- grid::textGrob(
+    x$label, grid::unit(x$xlab, "npc"), grid::unit(label_y, "npc"),
+    hjust = 0, gp = grid::gpar(col = x$col, fontsize = x$fontsize),
+    name = "sf_endlabels_text"
+  )
+  grid::setChildren(x, grid::gList(seg, txt))
 }
 
 #' @rdname plot_scopus_comparison
