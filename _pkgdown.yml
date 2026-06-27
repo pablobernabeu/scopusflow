@@ -7,6 +7,22 @@ template:
       src: man/figures/logo.png
       alt: "scopusflow: a reproducible workflow layer for Scopus searches"
 
+authors:
+  Pablo Bernabeu:
+    href: https://pablobernabeu.github.io/
+
+home:
+  sidebar:
+    structure: [links, license, community, citation, authors, dev, custom]
+    components:
+      custom:
+        title: About the developer
+        text: >
+          [Pablo Bernabeu](https://pablobernabeu.github.io/) is a postdoctoral
+          researcher at the University of Oxford who works on research methods and
+          bibliometrics. He develops scopusflow alongside its
+          [Python twin](https://pablobernabeu.github.io/scopusflow-py/).
+
 navbar:
   structure:
     left: [intro, reference, articles, news]
