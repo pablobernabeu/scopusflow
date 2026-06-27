@@ -132,10 +132,27 @@ shaded band shows a Wilson score interval on each yearly share. Because
 ‘Scopus’ returns exact counts rather than a sample, the band is
 documented honestly as an illustrative stability range, not a confidence
 interval: it widens where the reference set is small, flagging volatile
-shares. The dependencies ggrepel, directlabels and scales were
+shares.
+
+Where several topics converge near the final year, their direct labels
+would stack. They are de-collided at draw time rather than at build
+time: the label block is a small custom ggplot2 `Geom` whose grob
+carries the endpoints to grid, and a `makeContent` method (registered on
+[`grid::makeContent`](https://rdrr.io/r/grid/makeContent.html)) spreads
+them when the panel’s physical size is finally known, using one rendered
+line of text as the minimum gap and a thin leader back to each line’s
+true end. Spreading against the rendered text height, not a fixed
+fraction of the data range, keeps labels legible at any figure size,
+including the app’s short result card, where a build-time gap
+overlapped. Beyond what fits one line per topic in a short panel the
+function still falls back to the legend. This needs only `grid`, which
+ships with R and is already attached by ggplot2, so it adds no external
+dependency. The dependencies ggrepel, directlabels and scales were
 considered for labelling and formatting and rejected, since the same
-results are reachable within ggplot2 and the package keeps its imports
-small. An exported theme helper was also rejected: with one plotting
+results, including this device-aware de-collision, are reachable within
+ggplot2 and base grid, and the package keeps its imports small; ggrepel
+would also make the figure depend on whether an optional package is
+installed. An exported theme helper was also rejected: with one plotting
 function it would add surface for no reuse, so the theme stays inline.
 
 ## API additions and rejected options
