@@ -18,8 +18,9 @@ v_green  <- "#35B779"
 v_blue   <- "#3B528B"
 
 # --- design knobs -----------------------------------------------------------
-name_fontsize <- 132   # larger wordmark (was visually ~96)
-lens_radius   <- 0.34  # slightly smaller magnifier (was ~0.40)
+name_fontsize <- 150   # wordmark size; sits in the hex's full-width band
+name_y        <- 0.47  # wordmark centre, low enough to clear the tapering top
+lens_radius   <- 0.36  # magnifier radius
 # ----------------------------------------------------------------------------
 
 # A regular hexagon with a vertex at top and bottom (flat vertical sides),
@@ -29,7 +30,7 @@ hx <- cos(hex_angle)
 hy <- sin(hex_angle)
 
 # Magnifier geometry.
-cx <- 0.02; cy <- -0.20           # lens centre
+cx <- 0.02; cy <- -0.13           # lens centre, lifted to balance the wordmark
 handle_angle <- -45 * pi / 180    # lower-right
 rim_x <- cx + lens_radius * cos(handle_angle)
 rim_y <- cy + lens_radius * sin(handle_angle)
@@ -78,9 +79,9 @@ render <- function() {
   grid.circle(cx, cy, r = lens_radius, default.units = "native",
               gp = gpar(col = glass, lwd = 26, fill = NA))
 
-  # Wordmark, prominent near the top.
+  # Wordmark, prominent in the hexagon's full-width band.
   grid.text(
-    "scopusflow", x = unit(0, "native"), y = unit(0.55, "native"),
+    "scopusflow", x = unit(0, "native"), y = unit(name_y, "native"),
     gp = gpar(col = "white", fontface = "bold", fontfamily = "sans",
               fontsize = name_fontsize)
   )
