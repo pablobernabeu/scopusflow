@@ -223,6 +223,16 @@ Elsevier entitlement, and some fields are available only in the
 citation("scopusflow")
 ```
 
+The [About
+page](https://pablobernabeu.github.io/scopusflow/articles/about.html)
+carries the same citation with a BibTeX entry, and a short note on the
+developer.
+
+## Licence
+
+MIT. ‘Scopus’ is a trademark of Elsevier. This package is an independent
+client and is not affiliated with or endorsed by Elsevier.
+
 ## Contributing
 
 Issues and pull requests are welcome. The [contributing
@@ -333,7 +343,7 @@ describes how it reports, and tries to resolve, any problem it finds.
 
 # Articles
 
-### All vignettes
+### Guides
 
 - [Analysing and visualising a
   literature](https://pablobernabeu.github.io/scopusflow/articles/analysing-a-literature.md):
@@ -345,8 +355,6 @@ describes how it reports, and tries to resolve, any problem it finds.
   disciplines](https://pablobernabeu.github.io/scopusflow/articles/designing-queries.md):
 - [Search plans and quota-aware
   retrieval](https://pablobernabeu.github.io/scopusflow/articles/plans-and-quota.md):
-- [Getting started with
-  scopusflow](https://pablobernabeu.github.io/scopusflow/articles/scopusflow.md):
 - [Tracking how a literature changes between
   retrievals](https://pablobernabeu.github.io/scopusflow/articles/tracking-literature-change.md):
 - [Using the code-free

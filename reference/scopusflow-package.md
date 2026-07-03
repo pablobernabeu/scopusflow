@@ -25,9 +25,9 @@ Useful links:
 ## Author
 
 **Maintainer**: Pablo Bernabeu <pcbernabeu@gmail.com>
-([ORCID](https://orcid.org/0000-0003-1083-2460)) \[copyright holder\]
+([ORCID](https://orcid.org/0000-0003-1083-2460))
 
 Authors:
 
 - Pablo Bernabeu <pcbernabeu@gmail.com>
-  ([ORCID](https://orcid.org/0000-0003-1083-2460)) \[copyright holder\]
+  ([ORCID](https://orcid.org/0000-0003-1083-2460))

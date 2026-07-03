@@ -3,8 +3,7 @@
 ## Authors
 
 - **[Pablo Bernabeu](https://pablobernabeu.github.io/)**. Author,
-  maintainer, copyright holder.
-  [](https://orcid.org/0000-0003-1083-2460)
+  maintainer. [](https://orcid.org/0000-0003-1083-2460)
 
 ## Citation
 

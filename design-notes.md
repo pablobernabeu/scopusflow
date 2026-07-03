@@ -341,10 +341,9 @@ machine. The app’s interface packages (`shiny`, `bslib`, `callr`,
 ## Assumptions
 
 On licensing, the original `rscopus_plus` code is licensed CC BY 4.0 and
-was written solely by Pablo Bernabeu. As the sole copyright holder he
-may relicense his own work, so scopusflow is released under the MIT
-licence, which is appropriate for software on CRAN. No third-party code
-was copied.
+was written solely by Pablo Bernabeu, who owns it outright and may
+relicense it, so scopusflow is released under the MIT licence, which is
+appropriate for software on CRAN. No third-party code was copied.
 
 On API access, users supply their own Elsevier API key under their own
 institutional agreement and the Elsevier API terms. The package neither

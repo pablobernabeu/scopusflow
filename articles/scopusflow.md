@@ -1,4 +1,4 @@
-# Getting started with scopusflow
+# Get started
 
 ``` r
 
