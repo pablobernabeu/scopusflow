@@ -220,6 +220,16 @@ subscribers.
 citation("scopusflow")
 ```
 
+The [About
+page](https://pablobernabeu.github.io/scopusflow/articles/about.html)
+carries the same citation with a BibTeX entry, and a short note on the
+developer.
+
+## Licence
+
+MIT. ‘Scopus’ is a trademark of Elsevier. This package is an independent
+client and is not affiliated with or endorsed by Elsevier.
+
 ## Contributing
 
 Issues and pull requests are welcome. The [contributing

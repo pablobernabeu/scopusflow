@@ -2,6 +2,7 @@ url: https://pablobernabeu.github.io/scopusflow/
 
 template:
   bootstrap: 5
+  light-switch: true
   opengraph:
     image:
       src: man/figures/logo.png
@@ -18,15 +19,37 @@ home:
       custom:
         title: About the developer
         text: >
-          [Pablo Bernabeu](https://pablobernabeu.github.io/) is a postdoctoral
-          researcher at the University of Oxford who works on research methods and
-          bibliometrics. He develops scopusflow alongside its
-          [Python twin](https://pablobernabeu.github.io/scopusflow-py/).
+          A short bio and the full citation, including a BibTeX entry, are on
+          the [About page](articles/about.html).
 
 navbar:
   structure:
-    left: [intro, reference, articles, news]
-    right: [search, github]
+    left: [intro, reference, articles, about, news]
+    right: [app, search, github, lightswitch]
+  components:
+    about:
+      text: About
+      href: articles/about.html
+    app:
+      text: App
+      href: articles/using-the-app.html
+
+# Listed explicitly so the About page can stay off the Articles index and
+# dropdown (title: internal) while the guides keep their automatic listing.
+articles:
+- title: Guides
+  navbar: Articles
+  contents:
+  - analysing-a-literature
+  - building-a-reference-set
+  - comparing-topics
+  - designing-queries
+  - plans-and-quota
+  - tracking-literature-change
+  - using-the-app
+- title: internal
+  contents:
+  - about
 
 reference:
 - title: Plan and size

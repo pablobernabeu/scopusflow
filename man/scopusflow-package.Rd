@@ -20,11 +20,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Pablo Bernabeu \email{pcbernabeu@gmail.com} (\href{https://orcid.org/0000-0003-1083-2460}{ORCID}) [copyright holder]
+\strong{Maintainer}: Pablo Bernabeu \email{pcbernabeu@gmail.com} (\href{https://orcid.org/0000-0003-1083-2460}{ORCID})
 
 Authors:
 \itemize{
-  \item Pablo Bernabeu \email{pcbernabeu@gmail.com} (\href{https://orcid.org/0000-0003-1083-2460}{ORCID}) [copyright holder]
+  \item Pablo Bernabeu \email{pcbernabeu@gmail.com} (\href{https://orcid.org/0000-0003-1083-2460}{ORCID})
 }
 
 }
