@@ -26,7 +26,11 @@ offset-based paging the 'Scopus' Search API refuses offsets of 5000 or more,
 so a single query yields at most 5000 records; set \code{cursor = TRUE}, or
 partition the search by year with \code{\link[=scopus_plan]{scopus_plan()}}, to go beyond that.}
 
-\item{view}{Either \code{"STANDARD"} or \code{"COMPLETE"}.}
+\item{view}{Either \code{"STANDARD"} or \code{"COMPLETE"}. \code{COMPLETE} adds an
+\code{authkeywords} column to \code{\link[=scopus_fetch]{scopus_fetch()}}/\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} output (see
+\code{\link[=scopus_records]{scopus_records()}}) at no extra cost beyond \code{COMPLETE}'s own smaller page
+size, which already means more requests, and so more quota, for the same
+number of records.}
 
 \item{page_size}{Integer records per page, or \code{NULL} (default) to use the
 most quota-efficient page the view allows (200 for \code{STANDARD}, 25 for

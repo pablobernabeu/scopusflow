@@ -135,7 +135,7 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
   # Concatenate entries once, then normalise a single time.
   all_entries <- unlist(pages, recursive = FALSE)
   if (is.null(all_entries)) all_entries <- list()
-  records <- scopus_records(list(entry = all_entries), query = wrapped)
+  records <- scopus_records(list(entry = all_entries), query = wrapped, view = view)
   attr(records, "total_results") <- total
   attr(records, "quota") <- quota
   records
@@ -206,7 +206,7 @@ scopus_fetch_cursor <- function(wrapped, date, view, page_size, max_results,
 
   all_entries <- unlist(pages, recursive = FALSE)
   if (is.null(all_entries)) all_entries <- list()
-  records <- scopus_records(list(entry = all_entries), query = wrapped)
+  records <- scopus_records(list(entry = all_entries), query = wrapped, view = view)
   attr(records, "total_results") <- total
   attr(records, "quota") <- quota
   records

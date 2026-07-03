@@ -23,7 +23,11 @@ scopus_trend(
 \item{field}{Optional 'Scopus' field tag to wrap the query in (see
 \code{\link[=scopus_plan]{scopus_plan()}}).}
 
-\item{view}{Either \code{"STANDARD"} or \code{"COMPLETE"}.}
+\item{view}{Either \code{"STANDARD"} or \code{"COMPLETE"}. \code{COMPLETE} adds an
+\code{authkeywords} column to \code{\link[=scopus_fetch]{scopus_fetch()}}/\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} output (see
+\code{\link[=scopus_records]{scopus_records()}}) at no extra cost beyond \code{COMPLETE}'s own smaller page
+size, which already means more requests, and so more quota, for the same
+number of records.}
 
 \item{api_key, inst_token}{Optional credentials, resolved by default from
 options or environment variables (see \code{\link[=scopus_has_key]{scopus_has_key()}}).}

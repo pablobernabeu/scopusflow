@@ -19,8 +19,8 @@ v_blue   <- "#3B528B"
 
 # --- design knobs -----------------------------------------------------------
 name_fontsize <- 150   # wordmark size; sits in the hex's full-width band
-name_y        <- 0.47  # wordmark centre, low enough to clear the tapering top
-lens_radius   <- 0.36  # magnifier radius
+name_y        <- 0.36  # wordmark centre, lowered further from the top vertex
+lens_radius   <- 0.28  # magnifier radius, smaller
 # ----------------------------------------------------------------------------
 
 # A regular hexagon with a vertex at top and bottom (flat vertical sides),
@@ -30,7 +30,7 @@ hx <- cos(hex_angle)
 hy <- sin(hex_angle)
 
 # Magnifier geometry.
-cx <- 0.02; cy <- -0.13           # lens centre, lifted to balance the wordmark
+cx <- 0.02; cy <- -0.25           # lens centre, lowered
 handle_angle <- -45 * pi / 180    # lower-right
 rim_x <- cx + lens_radius * cos(handle_angle)
 rim_y <- cy + lens_radius * sin(handle_angle)

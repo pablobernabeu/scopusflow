@@ -7,6 +7,10 @@
 scopus_abstract(
   ids,
   by = c("doi", "scopus_id"),
+  view = NULL,
+  include = character(),
+  cache_dir = NULL,
+  resume = TRUE,
   api_key = NULL,
   inst_token = NULL,
   verbose = FALSE
@@ -19,6 +23,33 @@ Identifiers or 'Scopus' record identifiers (with or without the
 
 \item{by}{Either \code{"doi"} or \code{"scopus_id"}, the kind of identifier in \code{ids}.}
 
+\item{view}{Optional character scalar naming the Abstract Retrieval view to
+request: one of \code{"META"}, \code{"META_ABS"}, \code{"REF"} or \code{"FULL"}. \code{NULL} (the
+default) omits the \code{view} parameter from the request entirely, exactly as
+scopusflow has always done, so existing calls that never mention \code{view}
+are unaffected. Retrieving \code{include = "references"} requires \code{view = "FULL"} or \code{view = "REF"}; see \emph{Details} for how the two differ and which
+to prefer.}
+
+\item{include}{Optional character vector naming extra fields to retrieve in
+the same request: \code{"references"} and/or \code{"keywords"}. Both require
+Abstract Retrieval's \code{FULL} or \code{REF} view (see \code{view}), an entitlement
+that is separate from ordinary abstract access and from 'Scopus' Search
+access, and that, per Elsevier's own documentation, some fields (notably
+author keywords) may need to be requested from your Scopus/Elsevier
+account contact even when the view itself is otherwise accessible. See
+\emph{Details}.}
+
+\item{cache_dir}{Optional directory for per-identifier cache files, as in
+\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}. \code{NULL} (the default) performs no caching. Worth
+setting whenever \code{include} is used: Abstract Retrieval draws on its own
+weekly quota, smaller than and separate from Search's, and every
+identifier here costs its own request, so re-running an interrupted batch
+without a cache re-spends quota already spent.}
+
+\item{resume}{Logical. When \code{TRUE} (the default) and \code{cache_dir} is set, an
+identifier whose cache file already exists is loaded from disk rather than
+requested again.}
+
 \item{api_key, inst_token}{Optional credentials (see \code{\link[=scopus_has_key]{scopus_has_key()}}).}
 
 \item{verbose}{Logical. When \code{TRUE}, progress is reported.}
@@ -29,28 +60,88 @@ columns \code{id} (the input identifier), \code{scopus_id}, \code{doi}, \code{ti
 \code{publication}, \code{year} and \code{citations}. A field the API does not return is
 \code{NA}. An identifier that cannot be retrieved (for example one not in
 'Scopus') yields a row of \code{NA}s with a warning, so a batch is not lost to a
-single failure.
+single failure. The number of Abstract Retrieval requests made and the
+most recently parsed quota (see \code{\link[=scopus_quota]{scopus_quota()}}) are attached as the
+\code{n_requests} and \code{quota} attributes, since this is a materially more
+expensive operation than a search call.
+
+When \code{include} names \code{"keywords"}, an \code{authkeywords} column is added: the
+document's author-supplied keywords, joined the same way as \code{authors}
+(\code{"; "}-separated), or \code{NA} when the document has none, or when the API
+omits the field for a given key's entitlement (see \emph{Details}).
+
+When \code{include} names \code{"references"}, a \code{references} list-column is added:
+one data frame per document, with one row per cited work, rather than a
+single joined string. Its columns are \code{position} (the reference's place in
+the bibliography), \code{id} (the 'Scopus' identifier of the cited work, when
+resolved), \code{doi}, \code{title}, \code{authors}, \code{source} (the journal or other
+venue), \code{year} and \code{citedbycount} (the cited work's own citation count;
+populated only under \code{view = "REF"}, \code{NA} under \code{"FULL"}). A document with
+no resolvable references yields a zero-row data frame, not \code{NA}, so the
+column can always be unnested. This is a leaner field set than
+pybliometrics' own \code{references} in the Python twin, which exposes several
+further fields pybliometrics already parses; see the Python package's
+equivalent documentation for that fuller shape.
 }
 \description{
 Fetches the abstract text and core metadata for one or more records from the
 Elsevier 'Scopus' Abstract Retrieval API. This complements the Search API used
 elsewhere in the package: a search returns many records with a few fields each,
 whereas this returns the fuller record, including the abstract, for a known
-identifier.
+identifier. Passing \code{include} adds author keywords and/or the document's
+reference list to the same request.
+}
+\details{
+Retrieving references or keywords needs Abstract Retrieval's \code{FULL} or \code{REF}
+view. In development, against a live key with full Abstract Retrieval
+access, \code{view = "FULL"} returned a complete, correctly counted reference
+list for every document tried. \code{view = "REF"} returned the identical,
+complete list in one case but a truncated (paginated) subset in another, on
+an otherwise identical request made moments apart, so \code{"FULL"} is
+recommended when your entitlement allows it. \code{"REF"} remains available for
+accounts entitled only to it; when the number of references returned does
+not match the document's own reported reference count, a warning is issued
+naming the identifier, since the list may be an incomplete page rather than
+the whole bibliography.
+
+Author keywords were not populated by either 'Scopus' Search's \code{COMPLETE}
+view (see \code{\link[=scopus_records]{scopus_records()}}) or Abstract Retrieval's \code{FULL} view in this
+package's own development testing, against a live, otherwise
+fully-entitled key, on documents that do carry author keywords in 'Scopus'
+itself. If your own keywords come back all \code{NA}, this is most likely an
+entitlement gap specific to that field, worth raising with your
+Scopus/Elsevier account contact, rather than the documents genuinely having
+none.
 }
 \section{API access}{
 
 This performs one request per identifier and requires a valid API key and
-internet access; full-text abstract access can also depend on your
-entitlement. See the \emph{API access} section of \code{\link[=scopus_count]{scopus_count()}} for the
-conditions that may be raised.
+internet access; full-text abstract access, and the \code{FULL}/\code{REF} views in
+particular, can also depend on your entitlement. A view or field your key is
+not entitled to raises a \code{scopus_error_forbidden} condition with a message
+naming the view and suggesting who to contact, rather than a generic HTTP
+failure; because entitlement is an account-level property, not a
+per-document one, retrieval stops at the first such failure instead of
+repeating it for every remaining identifier. See the \emph{API access} section of
+\code{\link[=scopus_count]{scopus_count()}} for the other conditions that may be raised.
 }
 
 \examples{
 \dontshow{if (scopusflow::scopus_has_key()) withAutoprint(\{ # examplesIf}
 scopus_abstract("10.1038/s41586-019-0001-1")
+
+# Author keywords and a structured reference list, in the same request.
+# Costs one Abstract Retrieval request per identifier, against a smaller,
+# separate weekly quota from Search; see the API access section above for
+# the entitlement this needs.
+rich <- scopus_abstract(
+  "10.1038/nature14539",
+  view = "FULL", include = c("references", "keywords")
+)
+rich$references[[1]]
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-\code{\link[=scopus_fetch]{scopus_fetch()}}, \code{\link[=scopus_extract_dois]{scopus_extract_dois()}}
+\code{\link[=scopus_fetch]{scopus_fetch()}}, \code{\link[=scopus_extract_dois]{scopus_extract_dois()}}, \code{\link[=scopus_corpus]{scopus_corpus()}} to
+assemble a minimal keyword/reference corpus across many documents.
 }

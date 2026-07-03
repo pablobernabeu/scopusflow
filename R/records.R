@@ -12,6 +12,12 @@
 #'   unchanged.
 #' @param query Optional character scalar recording the query that produced the
 #'   entries, kept in the `query` column for provenance.
+#' @param view Optional character scalar naming the Search API view the entries
+#'   came from. Pass `"COMPLETE"` to add an `authkeywords` column (see below);
+#'   any other value, including the default `NULL`, reproduces the original
+#'   columns exactly, so existing callers that never mention `view` see no
+#'   change at all. [scopus_fetch()] and [scopus_fetch_plan()] pass this through
+#'   automatically.
 #' @return A tibble of class `scopus_records` with the columns
 #'   `entry_number` (integer), `scopus_id` (character), `doi` (character),
 #'   `title` (character), `authors` (character, the creator names joined with
@@ -19,12 +25,28 @@
 #'   the cover date), `date` (character, the ISO cover date), `publication`
 #'   (character, the source title), `citations` (integer) and `query`
 #'   (character). A missing field becomes `NA`, and an empty result set yields a
-#'   zero-row tibble with the same columns.
+#'   zero-row tibble with the same columns. When `view = "COMPLETE"`, an
+#'   `authkeywords` column is added: the author-supplied keywords the 'Scopus'
+#'   Search API returns under that view, as a single string in 'Scopus'
+#'   own `" | "`-delimited form (`NA` when the document has none, or when the
+#'   API omits the field for a given key's entitlement; see *Details*).
 #' @details
 #' The 'Scopus' API signals an empty result set with a single sentinel entry that
 #' carries an `error` field and no identifier. This is detected and turned into a
 #' zero-row result rather than a spurious record, while a genuine record that also
 #' carries a per-entry `error` annotation is kept.
+#'
+#' Author keywords are only ever present under `view = "COMPLETE"`; the
+#' `STANDARD` view (the default throughout the package) never includes them,
+#' and `authkeywords` is not added to the output at all in that case, so
+#' existing code that inspects the column names of a `STANDARD`-view result is
+#' unaffected. Even under `COMPLETE` view, some 'Scopus' API keys do not return
+#' populated author keywords (this was observed directly against a live,
+#' otherwise fully-entitled key during development, on documents that do carry
+#' author keywords in 'Scopus' itself); if your own keywords come back all
+#' `NA`, the field is most likely gated by your account's entitlement rather
+#' than genuinely absent, and is worth raising with your 'Scopus'/Elsevier
+#' account contact.
 #' @examples
 #' # A minimal entry as the API would return it.
 #' raw <- list(entry = list(
@@ -39,8 +61,19 @@
 #'   )
 #' ))
 #' scopus_records(raw, query = "TITLE(example)")
+#'
+#' # A COMPLETE-view entry carrying author keywords.
+#' raw_complete <- list(entry = list(
+#'   list(
+#'     `dc:identifier` = "SCOPUS_ID:2",
+#'     `prism:doi` = "10.1000/def",
+#'     `dc:title` = "A second example",
+#'     authkeywords = "graphene | supercapacitor | energy storage"
+#'   )
+#' ))
+#' scopus_records(raw_complete, view = "COMPLETE")
 #' @export
-scopus_records <- function(x, query = NA_character_) {
+scopus_records <- function(x, query = NA_character_, view = NULL) {
   if (is_scopus_records(x)) {
     return(x)
   }
@@ -48,10 +81,13 @@ scopus_records <- function(x, query = NA_character_) {
   cols <- scopus_records_columns()
 
   if (length(entries) == 0L) {
-    return(new_scopus_records(cols, query = query))
+    return(new_scopus_records(cols, query = query, view = view))
   }
 
-  rows <- lapply(seq_along(entries), function(i) scopus_entry_to_row(entries[[i]], i, query))
+  rows <- lapply(
+    seq_along(entries),
+    function(i) scopus_entry_to_row(entries[[i]], i, query, view)
+  )
   # Accumulate as a list and bind once (never rbind() inside the loop).
   out <- do.call(rbind, c(rows, list(stringsAsFactors = FALSE)))
   tibble::new_tibble(
@@ -101,8 +137,10 @@ scopus_records_columns <- function() {
     "year", "date", "publication", "citations", "query")
 }
 
-# Build a zero/typed tibble of class scopus_records.
-new_scopus_records <- function(cols, query = NA_character_) {
+# Build a zero/typed tibble of class scopus_records. `authkeywords` is added
+# only for view = "COMPLETE", so a STANDARD-view (or view-less) empty result
+# keeps exactly the historical column set.
+new_scopus_records <- function(cols, query = NA_character_, view = NULL) {
   proto <- list(
     entry_number = integer(),
     scopus_id = character(),
@@ -115,11 +153,17 @@ new_scopus_records <- function(cols, query = NA_character_) {
     citations = integer(),
     query = character()
   )
+  if (identical(view, "COMPLETE")) {
+    proto$authkeywords <- character()
+    cols <- union(cols, "authkeywords")
+  }
   tibble::new_tibble(proto[cols], nrow = 0L, class = "scopus_records")
 }
 
-# Convert a single entry to a one-row data frame.
-scopus_entry_to_row <- function(entry, i, query) {
+# Convert a single entry to a one-row data frame. `authkeywords` is added only
+# for view = "COMPLETE" (see scopus_records()); other views, and the default
+# view = NULL, reproduce the original column set exactly.
+scopus_entry_to_row <- function(entry, i, query, view = NULL) {
   id_raw <- scopus_field(entry, "dc:identifier")
   scopus_id <- if (is.na(id_raw)) NA_character_ else sub("^SCOPUS_ID:", "", id_raw)
   date <- scopus_field(entry, "prism:coverDate")
@@ -127,7 +171,7 @@ scopus_entry_to_row <- function(entry, i, query) {
   citations <- scopus_field(entry, "citedby-count")
   citations <- if (is.na(citations)) NA_integer_ else suppressWarnings(as.integer(citations))
 
-  data.frame(
+  row <- data.frame(
     entry_number = as.integer(i),
     scopus_id = scopus_id,
     doi = scopus_field(entry, "prism:doi"),
@@ -140,6 +184,10 @@ scopus_entry_to_row <- function(entry, i, query) {
     query = query %||% NA_character_,
     stringsAsFactors = FALSE
   )
+  if (identical(view, "COMPLETE")) {
+    row$authkeywords <- scopus_field(entry, "authkeywords")
+  }
+  row
 }
 
 # Pull a character field from an entry, returning NA when absent. A field that

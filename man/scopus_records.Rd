@@ -14,7 +14,7 @@
 
 \method{autoplot}{scopus_records}(object, ...)
 
-scopus_records(x, query = NA_character_)
+scopus_records(x, query = NA_character_, view = NULL)
 
 is_scopus_records(x)
 }
@@ -27,6 +27,13 @@ is_scopus_records(x)
 
 \item{query}{Optional character scalar recording the query that produced the
 entries, kept in the \code{query} column for provenance.}
+
+\item{view}{Optional character scalar naming the Search API view the entries
+came from. Pass \code{"COMPLETE"} to add an \code{authkeywords} column (see below);
+any other value, including the default \code{NULL}, reproduces the original
+columns exactly, so existing callers that never mention \code{view} see no
+change at all. \code{\link[=scopus_fetch]{scopus_fetch()}} and \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} pass this through
+automatically.}
 }
 \value{
 The coercion methods return a plain \link[tibble:tibble]{tibble} or data
@@ -42,7 +49,11 @@ A tibble of class \code{scopus_records} with the columns
 the cover date), \code{date} (character, the ISO cover date), \code{publication}
 (character, the source title), \code{citations} (integer) and \code{query}
 (character). A missing field becomes \code{NA}, and an empty result set yields a
-zero-row tibble with the same columns.
+zero-row tibble with the same columns. When \code{view = "COMPLETE"}, an
+\code{authkeywords} column is added: the author-supplied keywords the 'Scopus'
+Search API returns under that view, as a single string in 'Scopus'
+own \code{" | "}-delimited form (\code{NA} when the document has none, or when the
+API omits the field for a given key's entitlement; see \emph{Details}).
 
 \code{is_scopus_records()} returns a length-one logical.
 }
@@ -58,6 +69,18 @@ The 'Scopus' API signals an empty result set with a single sentinel entry that
 carries an \code{error} field and no identifier. This is detected and turned into a
 zero-row result rather than a spurious record, while a genuine record that also
 carries a per-entry \code{error} annotation is kept.
+
+Author keywords are only ever present under \code{view = "COMPLETE"}; the
+\code{STANDARD} view (the default throughout the package) never includes them,
+and \code{authkeywords} is not added to the output at all in that case, so
+existing code that inspects the column names of a \code{STANDARD}-view result is
+unaffected. Even under \code{COMPLETE} view, some 'Scopus' API keys do not return
+populated author keywords (this was observed directly against a live,
+otherwise fully-entitled key during development, on documents that do carry
+author keywords in 'Scopus' itself); if your own keywords come back all
+\code{NA}, the field is most likely gated by your account's entitlement rather
+than genuinely absent, and is worth raising with your 'Scopus'/Elsevier
+account contact.
 }
 \examples{
 # A minimal entry as the API would return it.
@@ -73,4 +96,15 @@ raw <- list(entry = list(
   )
 ))
 scopus_records(raw, query = "TITLE(example)")
+
+# A COMPLETE-view entry carrying author keywords.
+raw_complete <- list(entry = list(
+  list(
+    `dc:identifier` = "SCOPUS_ID:2",
+    `prism:doi` = "10.1000/def",
+    `dc:title` = "A second example",
+    authkeywords = "graphene | supercapacitor | energy storage"
+  )
+))
+scopus_records(raw_complete, view = "COMPLETE")
 }

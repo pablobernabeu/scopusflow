@@ -86,15 +86,21 @@ scopus_fetch_plan <- function(plan,
   combined
 }
 
-# Bind a list of scopus_records tibbles into one, re-numbering entries.
+# Bind a list of scopus_records tibbles into one, re-numbering entries. Cells
+# can differ in columns, for example when resuming a cache written by an
+# older package version without the `authkeywords` column, so the union of
+# columns is taken and any cell missing one is filled with NA rather than
+# letting rbind() error on a column mismatch.
 scopus_bind_records <- function(records_list) {
   records_list <- Filter(Negate(is.null), records_list)
   if (length(records_list) == 0L) {
     return(new_scopus_records(scopus_records_columns()))
   }
+  all_cols <- Reduce(union, lapply(records_list, names))
   bound <- do.call(rbind, lapply(records_list, function(x) {
     class(x) <- setdiff(class(x), "scopus_records")
-    x
+    for (col in setdiff(all_cols, names(x))) x[[col]] <- NA
+    x[all_cols]
   }))
   bound$entry_number <- seq_len(nrow(bound))
   tibble::new_tibble(as.list(bound), nrow = nrow(bound), class = "scopus_records")

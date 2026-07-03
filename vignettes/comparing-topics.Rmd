@@ -99,6 +99,48 @@ narrows as the literature grows. Because 'Scopus' returns exact counts rather th
 a sample, the band is illustrative rather than a confidence interval, a point the
 `plot_scopus_comparison()` help page sets out.
 
+## When lines converge at the right end
+
+Direct labels are legible only if they do not overlap, and topics sometimes end
+the period at nearly the same share. `plot_scopus_comparison()` spreads
+converging labels apart automatically, at the point the figure is actually
+drawn, so they stay readable at any figure size rather than stacking into an
+unreadable pile. Here six sub-areas of materials-science research all end
+2013–2021 within three points of one another.
+
+```{r}
+years <- 2013:2021
+ends <- c(18, 18.6, 19.2, 19.8, 20.4, 21)
+names(ends) <- c("graphene", "perovskites", "MXenes", "COFs", "MOFs", "aerogels")
+ref_n <- round(seq(500, 2000, length.out = length(years)))
+converge <- function(end) round(end * (0.5 + 0.5 * (0:(length(years) - 1)) / (length(years) - 1)) * ref_n / 100)
+counts <- lapply(ends, converge)
+
+cmp_converging <- tibble::tibble(
+  query = "q",
+  query_type = c(rep("reference", length(years)),
+                 rep("comparison", length(counts) * length(years))),
+  abridged_query = c(rep("energy materials", length(years)),
+                     rep(names(counts), each = length(years))),
+  year = rep(years, length(counts) + 1),
+  n = c(ref_n, unlist(counts, use.names = FALSE)),
+  reference_n = rep(ref_n, length(counts) + 1),
+  comparison_percentage = 100 * c(ref_n, unlist(counts, use.names = FALSE)) /
+    rep(ref_n, length(counts) + 1),
+  average_comparison_percentage = c(rep(100, length(years)),
+                                    rep(ends, each = length(years)))
+)
+class(cmp_converging) <- c("scopus_comparison", class(cmp_converging))
+```
+
+```{r eval = has_ggplot2, fig.alt = "Six materials-science sub-areas converging to similar shares by 2021, with end labels automatically spread apart rather than overlapping", fig.width = 8, fig.height = 4.6}
+plot_scopus_comparison(cmp_converging)
+```
+
+Without this, six labels ending within three points of each other would print
+on top of one another; here every one is still readable, each still joined to
+its own line by a short leader.
+
 ## Drawing the eye to one topic
 
 When one topic is the focus of a figure, `highlight` draws it in an accent colour

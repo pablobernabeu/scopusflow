@@ -83,3 +83,42 @@ test_that("year is the leading four digits, or NA when malformed", {
   )))
   expect_equal(recs$year, c(2020L, NA_integer_, NA_integer_))
 })
+
+test_that("STANDARD view (and the view-less default) never carry authkeywords", {
+  entry <- list(`prism:doi` = "10.1/x", authkeywords = "graphene | supercapacitor")
+  recs_default <- scopus_records(list(entry = list(entry)))
+  recs_standard <- scopus_records(list(entry = list(entry)), view = "STANDARD")
+  expect_false("authkeywords" %in% names(recs_default))
+  expect_false("authkeywords" %in% names(recs_standard))
+  expect_identical(names(recs_default), scopusflow:::scopus_records_columns())
+})
+
+test_that("COMPLETE view adds a populated authkeywords column", {
+  recs <- scopus_records(
+    list(entry = list(list(
+      `prism:doi` = "10.1/x",
+      authkeywords = "graphene | supercapacitor | energy storage"
+    ))),
+    view = "COMPLETE"
+  )
+  expect_true("authkeywords" %in% names(recs))
+  expect_equal(recs$authkeywords, "graphene | supercapacitor | energy storage")
+})
+
+test_that("COMPLETE view adds an NA authkeywords column when the API omits it", {
+  # Reflects a real, observed case: a key entitled for COMPLETE view whose
+  # author-keyword field still comes back empty for every document.
+  recs <- scopus_records(
+    list(entry = list(list(`prism:doi` = "10.1/x"))),
+    view = "COMPLETE"
+  )
+  expect_true("authkeywords" %in% names(recs))
+  expect_true(is.na(recs$authkeywords))
+})
+
+test_that("an empty result under COMPLETE view still types the authkeywords column", {
+  recs <- scopus_records(list(entry = list()), view = "COMPLETE")
+  expect_equal(nrow(recs), 0L)
+  expect_true("authkeywords" %in% names(recs))
+  expect_type(recs$authkeywords, "character")
+})

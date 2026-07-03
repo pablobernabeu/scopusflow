@@ -17,8 +17,12 @@
 #'   When `NULL`, the query is used verbatim. See [scopus_field_tags()] for the
 #'   common tags.
 #' @param view Either `"STANDARD"` or `"COMPLETE"`. `COMPLETE` returns more
-#'   fields but requires a subscriber entitlement and is limited to a smaller
-#'   page size.
+#'   fields, including an `authkeywords` column (see [scopus_records()]), but
+#'   requires a subscriber entitlement and is limited to a smaller page size,
+#'   which means more requests, and so more quota, for the same number of
+#'   records. Even where `COMPLETE` view itself is accessible, the returned
+#'   author keywords can still be gated separately by your own account (see
+#'   [scopus_records()]).
 #' @param page_size Integer number of records to request per page, or `NULL`
 #'   (the default) to use the largest page the view allows. The 'Scopus' Search
 #'   API permits up to 200 records per page for the `STANDARD` view but only 25

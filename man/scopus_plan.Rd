@@ -31,8 +31,12 @@ When \code{NULL}, the query is used verbatim. See \code{\link[=scopus_field_tags
 common tags.}
 
 \item{view}{Either \code{"STANDARD"} or \code{"COMPLETE"}. \code{COMPLETE} returns more
-fields but requires a subscriber entitlement and is limited to a smaller
-page size.}
+fields, including an \code{authkeywords} column (see \code{\link[=scopus_records]{scopus_records()}}), but
+requires a subscriber entitlement and is limited to a smaller page size,
+which means more requests, and so more quota, for the same number of
+records. Even where \code{COMPLETE} view itself is accessible, the returned
+author keywords can still be gated separately by your own account (see
+\code{\link[=scopus_records]{scopus_records()}}).}
 
 \item{page_size}{Integer number of records to request per page, or \code{NULL}
 (the default) to use the largest page the view allows. The 'Scopus' Search

@@ -44,6 +44,7 @@ articles:
   - building-a-reference-set
   - comparing-topics
   - designing-queries
+  - keywords-and-references
   - plans-and-quota
   - tracking-literature-change
   - using-the-app
@@ -63,6 +64,7 @@ reference:
   - scopus_fetch
   - scopus_fetch_plan
   - scopus_abstract
+  - scopus_corpus
   - scopus_cache_dir
   - scopus_cache_clear
 - title: Records

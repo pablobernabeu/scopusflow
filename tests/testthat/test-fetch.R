@@ -167,3 +167,27 @@ test_that("a single request suffices when the page covers all results", {
   expect_equal(nrow(recs), 150L)
   expect_equal(calls, 1L)
 })
+
+test_that("scopus_fetch(view = 'COMPLETE') carries authkeywords through end to end", {
+  local_scopus_test_env()
+  entries <- list(
+    list(`prism:doi` = "10.1/a", authkeywords = "graphene | supercapacitor"),
+    list(`prism:doi` = "10.1/b")
+  )
+  httr2::local_mocked_responses(function(req) mock_search_results(entries, total = 2L))
+  recs <- scopus_fetch("anything", view = "COMPLETE", page_size = 25L)
+  expect_true("authkeywords" %in% names(recs))
+  expect_equal(recs$authkeywords, c("graphene | supercapacitor", NA_character_))
+})
+
+test_that("scopus_fetch(view = 'STANDARD') never carries authkeywords, even if present", {
+  local_scopus_test_env()
+  # A defensive check: even if a STANDARD-view response somehow carried the
+  # field, the column must not appear, since STANDARD-view output must stay
+  # byte-for-byte identical to the pre-existing schema.
+  entries <- list(list(`prism:doi` = "10.1/a", authkeywords = "should not appear"))
+  httr2::local_mocked_responses(function(req) mock_search_results(entries, total = 1L))
+  recs <- scopus_fetch("anything")
+  expect_false("authkeywords" %in% names(recs))
+  expect_identical(names(recs), scopusflow:::scopus_records_columns())
+})

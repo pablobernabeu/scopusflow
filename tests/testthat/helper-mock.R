@@ -120,6 +120,37 @@ mock_abstract <- function(core, status = 200L) {
   )
 }
 
+# An Abstract Retrieval response carrying the full top-level shape (coredata
+# plus, optionally, authkeywords and a FULL-view bibliography), for view =
+# "FULL" tests.
+mock_abstract_full <- function(core = list(), authkeywords = NULL,
+                               references = NULL, refcount = NULL, status = 200L) {
+  full <- list(coredata = core)
+  if (!is.null(authkeywords)) full$authkeywords <- authkeywords
+  if (!is.null(references) || !is.null(refcount)) {
+    bib <- list()
+    if (!is.null(refcount)) bib[["@refcount"]] <- as.character(refcount)
+    if (!is.null(references)) bib$reference <- references
+    full$item <- list(bibrecord = list(tail = list(bibliography = bib)))
+  }
+  mock_json_response(
+    list(`abstracts-retrieval-response` = full),
+    status = status
+  )
+}
+
+# An Abstract Retrieval response under view = "REF": only `references`, no
+# `coredata`, matching this view's distinct, leaner top-level shape.
+mock_abstract_ref <- function(references = list(), total = length(references), status = 200L) {
+  mock_json_response(
+    list(`abstracts-retrieval-response` = list(references = list(
+      `@total-references` = as.character(total),
+      reference = references
+    ))),
+    status = status
+  )
+}
+
 # Load the bundled static page fixture as a parsed list.
 load_page_fixture <- function() {
   path <- system.file("extdata", "scopus_page.json", package = "scopusflow")
