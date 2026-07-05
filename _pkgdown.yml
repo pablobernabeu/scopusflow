@@ -3,6 +3,17 @@ url: https://pablobernabeu.github.io/scopusflow/
 template:
   bootstrap: 5
   light-switch: true
+  bslib:
+    primary: "#0F6E6E"
+  # Fonts are loaded here as a plain stylesheet link (Spectral for headings,
+  # Inter for body, JetBrains Mono for code) and applied in pkgdown/extra.scss.
+  # This avoids depending on bslib's build-time font download and keeps the
+  # brand identical to the mkdocs twin.
+  includes:
+    in_header: |
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Spectral:ital,wght@0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   opengraph:
     image:
       src: man/figures/logo.png
@@ -12,19 +23,36 @@ authors:
   Pablo Bernabeu:
     href: https://pablobernabeu.github.io/
 
+footer:
+  structure:
+    left: [developed_by]
+    right: [legal, built_with]
+  components:
+    developed_by: >
+      Developed by [Pablo Bernabeu](https://pablobernabeu.github.io). Open,
+      reproducible research software in R and Python.
+    legal: >
+      MIT licensed. 'Scopus' is a trademark of Elsevier; scopusflow is an
+      independent client, not affiliated with or endorsed by Elsevier.
+
 home:
   sidebar:
-    structure: [links, license, community, citation, authors, dev, custom]
+    # The citation entry points at the About page, which carries the full
+    # citation with a copyable, downloadable BibTeX entry and a short bio,
+    # rather than pkgdown's default authors.html#citation.
+    structure: [links, license, community, citation, authors, dev]
     components:
-      custom:
-        title: About the developer
+      citation:
+        title: Citation
         text: >
-          A short bio and the full citation, including a BibTeX entry, are on
-          the [About page](articles/about.html).
+          [Citing scopusflow](articles/about.html) — with a copyable and
+          downloadable BibTeX entry.
 
 navbar:
+  # House order: Get started, Reference, Articles, Changelog, About on the left;
+  # App, search, GitHub and the light/dark switch on the right.
   structure:
-    left: [intro, reference, articles, about, news]
+    left: [intro, reference, articles, news, about]
     right: [app, search, github, lightswitch]
   components:
     about:
@@ -33,6 +61,8 @@ navbar:
     app:
       text: App
       href: articles/using-the-app.html
+      icon: fa-play
+      aria-label: The code-free app
 
 # Listed explicitly so the About page can stay off the Articles index and
 # dropdown (title: internal) while the guides keep their automatic listing.

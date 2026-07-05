@@ -19,14 +19,50 @@ If you use scopusflow in published work, please cite it.
 > Bibliographic Searches. R package version `r packageVersion("scopusflow")`.
 > https://github.com/pablobernabeu/scopusflow
 
-```
-@Manual{,
-  title = {{scopusflow}: A Reproducible Workflow Layer for 'Scopus' Bibliographic Searches},
-  author = {Pablo Bernabeu},
-  year = {2026},
-  note = {R package version `r packageVersion("scopusflow")`},
-  url = {https://github.com/pablobernabeu/scopusflow},
+```{r bibtex, echo = FALSE, results = "asis"}
+# Build the BibTeX entry from the installed version so it never drifts, then
+# render it with a copy button and a download link. The button uses the
+# browser clipboard API; the link is a self-contained data URI, so neither
+# depends on a static file being shipped alongside the site.
+ver <- as.character(utils::packageVersion("scopusflow"))
+bib <- paste(
+  "@Manual{scopusflow,",
+  "  title  = {{scopusflow}: A Reproducible Workflow Layer for 'Scopus' Bibliographic Searches},",
+  "  author = {Pablo Bernabeu},",
+  "  year   = {2026},",
+  sprintf("  note   = {R package version %s},", ver),
+  "  url    = {https://github.com/pablobernabeu/scopusflow},",
+  "}",
+  sep = "\n"
+)
+esc <- function(x) {
+  x <- gsub("&", "&amp;", x, fixed = TRUE)
+  x <- gsub("<", "&lt;", x, fixed = TRUE)
+  gsub(">", "&gt;", x, fixed = TRUE)
 }
+uri <- paste0(
+  "data:application/x-bibtex;charset=utf-8,",
+  utils::URLencode(bib, reserved = TRUE)
+)
+cat(sprintf(
+'<div class="citation-bibtex">
+<pre id="scopusflow-bibtex"><code>%s</code></pre>
+<p class="citation-bibtex-actions">
+<button type="button" class="btn btn-primary btn-sm" onclick="scopusflowCopyBibtex(this)">Copy BibTeX</button>
+<a class="btn btn-outline-primary btn-sm" download="scopusflow.bib" href="%s">Download .bib</a>
+</p>
+</div>
+<script>
+function scopusflowCopyBibtex(btn) {
+  var code = document.getElementById("scopusflow-bibtex");
+  navigator.clipboard.writeText(code.innerText).then(function () {
+    var label = btn.textContent;
+    btn.textContent = "Copied";
+    setTimeout(function () { btn.textContent = label; }, 1500);
+  });
+}
+</script>
+', esc(bib), uri))
 ```
 
 R users can also retrieve this citation directly with `citation("scopusflow")`.

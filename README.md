@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# scopusflow <img src="man/figures/logo.png" align="right" height="139" alt="" />
+# scopusflow <small>(R)</small> <img src="man/figures/logo.png" align="right" height="139" alt="" />
 
 <!-- badges: start -->
 
@@ -18,9 +18,9 @@ and optional resumable caching, normalises them to a stable tidy schema,
 tracks changes in DOI sets over time and compares publication trends
 across topics.
 
-A Python twin, [scopusflow for
-Python](https://github.com/pablobernabeu/scopusflow-py), offers the same
-workflow on top of
+This is the feature-parity twin of [the Python
+package](https://pablobernabeu.github.io/scopusflow-py/) of the same
+name, which offers the same workflow on top of
 [pybliometrics](https://pybliometrics.readthedocs.io).
 
 <img src="man/figures/README-readme-hero-1.png" alt="A line chart showing how deep-learning research spread into computer vision, natural language processing, medical imaging and drug discovery between 2013 and 2021" width="100%" />
