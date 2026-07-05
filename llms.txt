@@ -1,4 +1,4 @@
-# scopusflow
+# scopusflow (R)
 
 scopusflow is a reproducible, quota-aware workflow layer over the
 Elsevier [Scopus](https://dev.elsevier.com/sc_apis.html) Search API. It
@@ -8,9 +8,9 @@ and optional resumable caching, normalises them to a stable tidy schema,
 tracks changes in DOI sets over time and compares publication trends
 across topics.
 
-A Python twin, [scopusflow for
-Python](https://github.com/pablobernabeu/scopusflow-py), offers the same
-workflow on top of
+This is the feature-parity twin of [the Python
+package](https://pablobernabeu.github.io/scopusflow-py/) of the same
+name, which offers the same workflow on top of
 [pybliometrics](https://pybliometrics.readthedocs.io).
 
 ![A line chart showing how deep-learning research spread into computer

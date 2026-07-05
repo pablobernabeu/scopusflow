@@ -15,11 +15,14 @@
 <link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="A Reproducible Workflow Layer for Scopus Bibliographic Searches">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><script src="extra.js"></script><meta property="og:title" content="A Reproducible Workflow Layer for Scopus Bibliographic Searches">
 <meta name="description" content="A coherent, quota-aware workflow layer over the Elsevier Scopus Search API &lt;https://dev.elsevier.com/sc_apis.html&gt;. It builds reproducible search plans, retrieves records with rate-limit handling, retry with back-off and optional resumable caching, normalises results to a stable tidy schema, extracts and tracks changes in Digital Object Identifiers (DOIs), compares publication trends across topics and exports to formats compatible with downstream bibliometric tools. Network and API errors are surfaced as typed conditions so that callers can respond to them programmatically. Scopus is a trademark of Elsevier. This package is an independent client and is not affiliated with or endorsed by Elsevier.">
 <meta property="og:description" content="A coherent, quota-aware workflow layer over the Elsevier Scopus Search API &lt;https://dev.elsevier.com/sc_apis.html&gt;. It builds reproducible search plans, retrieves records with rate-limit handling, retry with back-off and optional resumable caching, normalises results to a stable tidy schema, extracts and tracks changes in Digital Object Identifiers (DOIs), compares publication trends across topics and exports to formats compatible with downstream bibliometric tools. Network and API errors are surfaced as typed conditions so that callers can respond to them programmatically. Scopus is a trademark of Elsevier. This package is an independent client and is not affiliated with or endorsed by Elsevier.">
 <meta property="og:image" content="https://pablobernabeu.github.io/scopusflow/reference/figures/logo.png">
 <meta property="og:image:alt" content="scopusflow: a reproducible workflow layer for Scopus searches">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Spectral:ital,wght@0,500;0,600;1,400&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -57,11 +60,11 @@
     <li><a class="dropdown-item" href="articles/index.html">More articles...</a></li>
   </ul>
 </li>
-<li class="nav-item"><a class="nav-link" href="articles/about.html">About</a></li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
+<li class="nav-item"><a class="nav-link" href="articles/about.html">About</a></li>
       </ul>
 <ul class="navbar-nav">
-<li class="nav-item"><a class="nav-link" href="articles/using-the-app.html">App</a></li>
+<li class="nav-item"><a class="nav-link" href="articles/using-the-app.html" aria-label="The code-free app"><span class="fa fa-play"></span> App</a></li>
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
@@ -83,13 +86,13 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header">
-<img src="logo.png" class="logo" alt=""><h1 id="scopusflow-">scopusflow <a class="anchor" aria-label="anchor" href="#scopusflow-"></a>
+<img src="logo.png" class="logo" alt=""><h1 id="scopusflow-r-">scopusflow <small>(R)</small> <a class="anchor" aria-label="anchor" href="#scopusflow-r-"></a>
 </h1>
 </div>
 <!-- badges: start -->
 
 <p>scopusflow is a reproducible, quota-aware workflow layer over the Elsevier <a href="https://dev.elsevier.com/sc_apis.html" class="external-link">Scopus</a> Search API. It turns one-off bibliographic queries into inspectable plans, retrieves records safely with pagination, rate-limit handling, retry with back-off and optional resumable caching, normalises them to a stable tidy schema, tracks changes in DOI sets over time and compares publication trends across topics.</p>
-<p>A Python twin, <a href="https://github.com/pablobernabeu/scopusflow-py" class="external-link">scopusflow for Python</a>, offers the same workflow on top of <a href="https://pybliometrics.readthedocs.io" class="external-link">pybliometrics</a>.</p>
+<p>This is the feature-parity twin of <a href="https://pablobernabeu.github.io/scopusflow-py/">the Python package</a> of the same name, which offers the same workflow on top of <a href="https://pybliometrics.readthedocs.io" class="external-link">pybliometrics</a>.</p>
 <p><img src="reference/figures/README-readme-hero-1.png" alt="A line chart showing how deep-learning research spread into computer vision, natural language processing, medical imaging and drug discovery between 2013 and 2021" width="100%"></p>
 <blockquote>
 <p>Scopus is a trademark of Elsevier. scopusflow is an independent client and is not affiliated with or endorsed by Elsevier. You will need your own Elsevier API key and should use it under Elsevier’s API terms.</p>
@@ -316,7 +319,7 @@
 <div class="citation">
 <h2 data-toc-skip>Citation</h2>
 <ul class="list-unstyled">
-<li><a href="authors.html#citation">Citing scopusflow</a></li>
+<li><p><a href="articles/about.html">Citing scopusflow</a> — with a copyable and downloadable BibTeX entry.</p></li>
 </ul>
 </div>
 
@@ -336,23 +339,16 @@
 </ul>
 </div>
 
-<div class="about-the-developer">
-<h2 data-toc-skip>About the developer</h2>
-<ul class="list-unstyled">
-<li><p>A short bio and the full citation, including a BibTeX entry, are on the <a href="articles/about.html">About page</a>.</p></li>
-</ul>
-</div>
-
   </aside>
 </div>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by <a href="https://pablobernabeu.github.io/" class="external-link">Pablo Bernabeu</a>.</p>
+  <p>Developed by <a href="https://pablobernabeu.github.io" class="external-link">Pablo Bernabeu</a>. Open, reproducible research software in R and Python.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>MIT licensed. ‘Scopus’ is a trademark of Elsevier; scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>
