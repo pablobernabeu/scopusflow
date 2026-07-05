@@ -7,11 +7,12 @@ articles:
   building-a-reference-set: building-a-reference-set.html
   comparing-topics: comparing-topics.html
   designing-queries: designing-queries.html
+  keywords-and-references: keywords-and-references.html
   plans-and-quota: plans-and-quota.html
   scopusflow: scopusflow.html
   tracking-literature-change: tracking-literature-change.html
   using-the-app: using-the-app.html
-last_built: 2026-07-03T08:06Z
+last_built: 2026-07-05T10:00Z
 urls:
   reference: https://pablobernabeu.github.io/scopusflow/reference
   article: https://pablobernabeu.github.io/scopusflow/articles

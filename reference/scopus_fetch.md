@@ -41,7 +41,14 @@ scopus_fetch(
 
 - view:
 
-  Either `"STANDARD"` or `"COMPLETE"`.
+  Either `"STANDARD"` or `"COMPLETE"`. `COMPLETE` adds an `authkeywords`
+  column to
+  `scopus_fetch()`/[`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
+  output (see
+  [`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md))
+  at no extra cost beyond `COMPLETE`'s own smaller page size, which
+  already means more requests, and so more quota, for the same number of
+  records.
 
 - page_size:
 

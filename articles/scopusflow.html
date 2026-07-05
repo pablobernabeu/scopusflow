@@ -45,6 +45,7 @@
     <li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
     <li><a class="dropdown-item" href="../articles/comparing-topics.html">Comparing topics over time</a></li>
     <li><a class="dropdown-item" href="../articles/designing-queries.html">Designing precise queries across disciplines</a></li>
+    <li><a class="dropdown-item" href="../articles/keywords-and-references.html">Author keywords and references</a></li>
     <li><a class="dropdown-item" href="../articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
     <li><a class="dropdown-item" href="../articles/tracking-literature-change.html">Tracking how a literature changes between retrievals</a></li>
     <li><a class="dropdown-item" href="../articles/using-the-app.html">Using the code-free app</a></li>
@@ -269,6 +270,18 @@ we reproduce here to show the plot:</p>
 <span>  <span class="fu"><a href="../reference/plot_scopus_comparison.html">plot_scopus_comparison</a></span><span class="op">(</span><span class="va">cmp</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p><img src="scopusflow_files/figure-html/unnamed-chunk-11-1.png" class="r-plt" alt="Line chart of two topics' share of the reference literature over time" width="672"></p>
+</div>
+<div class="section level2">
+<h2 id="author-keywords-and-references">Author keywords and references<a class="anchor" aria-label="anchor" href="#author-keywords-and-references"></a>
+</h2>
+<p>A search only returns the fields the Search API carries. Author
+keywords and a document’s own reference list need
+<code>view = "COMPLETE"</code> and Abstract Retrieval respectively, both
+at a materially different quota cost from an ordinary search;
+<code><a href="../articles/keywords-and-references.html">vignette("keywords-and-references")</a></code> walks through both, and
+<code><a href="../reference/scopus_corpus.html">scopus_corpus()</a></code>, which combines them into a minimal
+<code>id</code>/<code>title</code>/<code>year</code>/<code>keywords</code>/<code>references</code>
+shape for downstream tools.</p>
 </div>
 <div class="section level2">
 <h2 id="export-and-interoperability">Export and interoperability<a class="anchor" aria-label="anchor" href="#export-and-interoperability"></a>

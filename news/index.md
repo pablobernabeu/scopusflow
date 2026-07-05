@@ -33,6 +33,28 @@ This release adds a code-free app and reference-manager export.
   notification rather than a crash, floors a fractional maximum-records
   entry, drops duplicate comparison terms, and tells you when there is
   nothing to cancel.
+- \[[`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)\]
+  and
+  \[[`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)\]
+  add an `authkeywords` column when `view = "COMPLETE"` is requested, at
+  no cost beyond that view’s own smaller page size; `view = "STANDARD"`
+  output is unchanged.
+  \[[`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)\]
+  gains `view` and `include = c("references", "keywords")`, retrieving a
+  document’s own reference list (as a structured, per-citation data
+  frame, not a joined string) and author keywords via Abstract
+  Retrieval, with per-identifier caching, a `n_requests`/`quota`
+  attribute, and a clear, actionable error on an entitlement 403 that
+  stops the batch rather than repeating the same failure for every
+  identifier. A new
+  \[[`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)\]
+  combines a search result with this step into a minimal
+  `id`/`title`/`year`/`keywords`/`references` shape for downstream tools
+  such as keyword co-occurrence or citation-network analysis, without
+  replacing
+  \[[`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)\].
+  A new vignette, *Author keywords and references*, walks through all of
+  this with real DOIs.
 
 ## scopusflow 0.2.0
 

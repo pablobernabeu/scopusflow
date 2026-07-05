@@ -33,6 +33,7 @@ all consume it."><meta property="og:image" content="https://pablobernabeu.github
     <li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
     <li><a class="dropdown-item" href="../articles/comparing-topics.html">Comparing topics over time</a></li>
     <li><a class="dropdown-item" href="../articles/designing-queries.html">Designing precise queries across disciplines</a></li>
+    <li><a class="dropdown-item" href="../articles/keywords-and-references.html">Author keywords and references</a></li>
     <li><a class="dropdown-item" href="../articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
     <li><a class="dropdown-item" href="../articles/tracking-literature-change.html">Tracking how a literature changes between retrievals</a></li>
     <li><a class="dropdown-item" href="../articles/using-the-app.html">Using the code-free app</a></li>
@@ -82,7 +83,7 @@ all consume it.</p>
 <span><span class="co"># S3 method for class 'scopus_records'</span></span>
 <span><span class="fu">autoplot</span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">scopus_records</span><span class="op">(</span><span class="va">x</span>, query <span class="op">=</span> <span class="cn">NA_character_</span><span class="op">)</span></span>
+<span><span class="fu">scopus_records</span><span class="op">(</span><span class="va">x</span>, query <span class="op">=</span> <span class="cn">NA_character_</span>, view <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">is_scopus_records</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -107,6 +108,15 @@ all consume it.</p>
 <dd><p>Optional character scalar recording the query that produced the
 entries, kept in the <code>query</code> column for provenance.</p></dd>
 
+
+<dt id="arg-view">view<a class="anchor" aria-label="anchor" href="#arg-view"></a></dt>
+<dd><p>Optional character scalar naming the Search API view the entries
+came from. Pass <code>"COMPLETE"</code> to add an <code>authkeywords</code> column (see below);
+any other value, including the default <code>NULL</code>, reproduces the original
+columns exactly, so existing callers that never mention <code>view</code> see no
+change at all. <code><a href="scopus_fetch.html">scopus_fetch()</a></code> and <code><a href="scopus_fetch_plan.html">scopus_fetch_plan()</a></code> pass this through
+automatically.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -121,7 +131,11 @@ year.</p>
 the cover date), <code>date</code> (character, the ISO cover date), <code>publication</code>
 (character, the source title), <code>citations</code> (integer) and <code>query</code>
 (character). A missing field becomes <code>NA</code>, and an empty result set yields a
-zero-row tibble with the same columns.</p>
+zero-row tibble with the same columns. When <code>view = "COMPLETE"</code>, an
+<code>authkeywords</code> column is added: the author-supplied keywords the 'Scopus'
+Search API returns under that view, as a single string in 'Scopus'
+own <code>" | "</code>-delimited form (<code>NA</code> when the document has none, or when the
+API omits the field for a given key's entitlement; see <em>Details</em>).</p>
 <p><code>is_scopus_records()</code> returns a length-one logical.</p>
     </div>
     <div class="section level2">
@@ -130,6 +144,17 @@ zero-row tibble with the same columns.</p>
 carries an <code>error</code> field and no identifier. This is detected and turned into a
 zero-row result rather than a spurious record, while a genuine record that also
 carries a per-entry <code>error</code> annotation is kept.</p>
+<p>Author keywords are only ever present under <code>view = "COMPLETE"</code>; the
+<code>STANDARD</code> view (the default throughout the package) never includes them,
+and <code>authkeywords</code> is not added to the output at all in that case, so
+existing code that inspects the column names of a <code>STANDARD</code>-view result is
+unaffected. Even under <code>COMPLETE</code> view, some 'Scopus' API keys do not return
+populated author keywords (this was observed directly against a live,
+otherwise fully-entitled key during development, on documents that do carry
+author keywords in 'Scopus' itself); if your own keywords come back all
+<code>NA</code>, the field is most likely gated by your account's entitlement rather
+than genuinely absent, and is worth raising with your 'Scopus'/Elsevier
+account contact.</p>
     </div>
 
     <div class="section level2">
@@ -153,6 +178,23 @@ carries a per-entry <code>error</code> annotation is kept.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   entry_number scopus_id doi     title authors  year date  publication citations</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span>            1 1         10.100… An e… Doe J.   <span style="text-decoration: underline;">2</span>020 2020… Journal of…         7</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># A COMPLETE-view entry carrying author keywords.</span></span></span>
+<span class="r-in"><span><span class="va">raw_complete</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>entry <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    `dc:identifier` <span class="op">=</span> <span class="st">"SCOPUS_ID:2"</span>,</span></span>
+<span class="r-in"><span>    `prism:doi` <span class="op">=</span> <span class="st">"10.1000/def"</span>,</span></span>
+<span class="r-in"><span>    `dc:title` <span class="op">=</span> <span class="st">"A second example"</span>,</span></span>
+<span class="r-in"><span>    authkeywords <span class="op">=</span> <span class="st">"graphene | supercapacitor | energy storage"</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">scopus_records</span><span class="op">(</span><span class="va">raw_complete</span>, view <span class="op">=</span> <span class="st">"COMPLETE"</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> &lt;scopus_records&gt; 1 record</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 1 × 11</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   entry_number scopus_id doi     title authors  year date  publication citations</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span>            1 2         10.100… A se… <span style="color: #BB0000;">NA</span>         <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>                 <span style="color: #BB0000;">NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 2 more variables: query &lt;chr&gt;, authkeywords &lt;chr&gt;</span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

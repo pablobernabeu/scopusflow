@@ -3,11 +3,13 @@
 Elsevier 'Scopus' Abstract Retrieval API. This complements the Search API used
 elsewhere in the package: a search returns many records with a few fields each,
 whereas this returns the fuller record, including the abstract, for a known
-identifier."><meta property="og:description" content="Fetches the abstract text and core metadata for one or more records from the
+identifier. Passing include adds author keywords and/or the document's
+reference list to the same request."><meta property="og:description" content="Fetches the abstract text and core metadata for one or more records from the
 Elsevier 'Scopus' Abstract Retrieval API. This complements the Search API used
 elsewhere in the package: a search returns many records with a few fields each,
 whereas this returns the fuller record, including the abstract, for a known
-identifier."><meta property="og:image" content="https://pablobernabeu.github.io/scopusflow/reference/figures/logo.png"><meta property="og:image:alt" content="scopusflow: a reproducible workflow layer for Scopus searches"></head><body>
+identifier. Passing include adds author keywords and/or the document's
+reference list to the same request."><meta property="og:image" content="https://pablobernabeu.github.io/scopusflow/reference/figures/logo.png"><meta property="og:image:alt" content="scopusflow: a reproducible workflow layer for Scopus searches"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -33,6 +35,7 @@ identifier."><meta property="og:image" content="https://pablobernabeu.github.io/
     <li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
     <li><a class="dropdown-item" href="../articles/comparing-topics.html">Comparing topics over time</a></li>
     <li><a class="dropdown-item" href="../articles/designing-queries.html">Designing precise queries across disciplines</a></li>
+    <li><a class="dropdown-item" href="../articles/keywords-and-references.html">Author keywords and references</a></li>
     <li><a class="dropdown-item" href="../articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
     <li><a class="dropdown-item" href="../articles/tracking-literature-change.html">Tracking how a literature changes between retrievals</a></li>
     <li><a class="dropdown-item" href="../articles/using-the-app.html">Using the code-free app</a></li>
@@ -68,7 +71,8 @@ identifier."><meta property="og:image" content="https://pablobernabeu.github.io/
 Elsevier 'Scopus' Abstract Retrieval API. This complements the Search API used
 elsewhere in the package: a search returns many records with a few fields each,
 whereas this returns the fuller record, including the abstract, for a known
-identifier.</p>
+identifier. Passing <code>include</code> adds author keywords and/or the document's
+reference list to the same request.</p>
     </div>
 
     <div class="section level2">
@@ -76,6 +80,10 @@ identifier.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">scopus_abstract</span><span class="op">(</span></span>
 <span>  <span class="va">ids</span>,</span>
 <span>  by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"doi"</span>, <span class="st">"scopus_id"</span><span class="op">)</span>,</span>
+<span>  view <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  include <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  cache_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  resume <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  api_key <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  inst_token <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
@@ -96,6 +104,41 @@ Identifiers or 'Scopus' record identifiers (with or without the
 <dd><p>Either <code>"doi"</code> or <code>"scopus_id"</code>, the kind of identifier in <code>ids</code>.</p></dd>
 
 
+<dt id="arg-view">view<a class="anchor" aria-label="anchor" href="#arg-view"></a></dt>
+<dd><p>Optional character scalar naming the Abstract Retrieval view to
+request: one of <code>"META"</code>, <code>"META_ABS"</code>, <code>"REF"</code> or <code>"FULL"</code>. <code>NULL</code> (the
+default) omits the <code>view</code> parameter from the request entirely, exactly as
+scopusflow has always done, so existing calls that never mention <code>view</code>
+are unaffected. Retrieving <code>include = "references"</code> requires <code>view = "FULL"</code> or <code>view = "REF"</code>; see <em>Details</em> for how the two differ and which
+to prefer.</p></dd>
+
+
+<dt id="arg-include">include<a class="anchor" aria-label="anchor" href="#arg-include"></a></dt>
+<dd><p>Optional character vector naming extra fields to retrieve in
+the same request: <code>"references"</code> and/or <code>"keywords"</code>. Both require
+Abstract Retrieval's <code>FULL</code> or <code>REF</code> view (see <code>view</code>), an entitlement
+that is separate from ordinary abstract access and from 'Scopus' Search
+access, and that, per Elsevier's own documentation, some fields (notably
+author keywords) may need to be requested from your Scopus/Elsevier
+account contact even when the view itself is otherwise accessible. See
+<em>Details</em>.</p></dd>
+
+
+<dt id="arg-cache-dir">cache_dir<a class="anchor" aria-label="anchor" href="#arg-cache-dir"></a></dt>
+<dd><p>Optional directory for per-identifier cache files, as in
+<code><a href="scopus_fetch_plan.html">scopus_fetch_plan()</a></code>. <code>NULL</code> (the default) performs no caching. Worth
+setting whenever <code>include</code> is used: Abstract Retrieval draws on its own
+weekly quota, smaller than and separate from Search's, and every
+identifier here costs its own request, so re-running an interrupted batch
+without a cache re-spends quota already spent.</p></dd>
+
+
+<dt id="arg-resume">resume<a class="anchor" aria-label="anchor" href="#arg-resume"></a></dt>
+<dd><p>Logical. When <code>TRUE</code> (the default) and <code>cache_dir</code> is set, an
+identifier whose cache file already exists is loaded from disk rather than
+requested again.</p></dd>
+
+
 <dt id="arg-api-key-inst-token">api_key, inst_token<a class="anchor" aria-label="anchor" href="#arg-api-key-inst-token"></a></dt>
 <dd><p>Optional credentials (see <code><a href="scopus_has_key.html">scopus_has_key()</a></code>).</p></dd>
 
@@ -111,26 +154,83 @@ columns <code>id</code> (the input identifier), <code>scopus_id</code>, <code>do
 <code>publication</code>, <code>year</code> and <code>citations</code>. A field the API does not return is
 <code>NA</code>. An identifier that cannot be retrieved (for example one not in
 'Scopus') yields a row of <code>NA</code>s with a warning, so a batch is not lost to a
-single failure.</p>
+single failure. The number of Abstract Retrieval requests made and the
+most recently parsed quota (see <code><a href="scopus_quota.html">scopus_quota()</a></code>) are attached as the
+<code>n_requests</code> and <code>quota</code> attributes, since this is a materially more
+expensive operation than a search call.</p>
+<p>When <code>include</code> names <code>"keywords"</code>, an <code>authkeywords</code> column is added: the
+document's author-supplied keywords, joined the same way as <code>authors</code>
+(<code>"; "</code>-separated), or <code>NA</code> when the document has none, or when the API
+omits the field for a given key's entitlement (see <em>Details</em>).</p>
+<p>When <code>include</code> names <code>"references"</code>, a <code>references</code> list-column is added:
+one data frame per document, with one row per cited work, rather than a
+single joined string. Its columns are <code>position</code> (the reference's place in
+the bibliography), <code>id</code> (the 'Scopus' identifier of the cited work, when
+resolved), <code>doi</code>, <code>title</code>, <code>authors</code>, <code>source</code> (the journal or other
+venue), <code>year</code> and <code>citedbycount</code> (the cited work's own citation count;
+populated only under <code>view = "REF"</code>, <code>NA</code> under <code>"FULL"</code>). A document with
+no resolvable references yields a zero-row data frame, not <code>NA</code>, so the
+column can always be unnested. This is a leaner field set than
+pybliometrics' own <code>references</code> in the Python twin, which exposes several
+further fields pybliometrics already parses; see the Python package's
+equivalent documentation for that fuller shape.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Retrieving references or keywords needs Abstract Retrieval's <code>FULL</code> or <code>REF</code>
+view. In development, against a live key with full Abstract Retrieval
+access, <code>view = "FULL"</code> returned a complete, correctly counted reference
+list for every document tried. <code>view = "REF"</code> returned the identical,
+complete list in one case but a truncated (paginated) subset in another, on
+an otherwise identical request made moments apart, so <code>"FULL"</code> is
+recommended when your entitlement allows it. <code>"REF"</code> remains available for
+accounts entitled only to it; when the number of references returned does
+not match the document's own reported reference count, a warning is issued
+naming the identifier, since the list may be an incomplete page rather than
+the whole bibliography.</p>
+<p>Author keywords were not populated by either 'Scopus' Search's <code>COMPLETE</code>
+view (see <code><a href="scopus_records.html">scopus_records()</a></code>) or Abstract Retrieval's <code>FULL</code> view in this
+package's own development testing, against a live, otherwise
+fully-entitled key, on documents that do carry author keywords in 'Scopus'
+itself. If your own keywords come back all <code>NA</code>, this is most likely an
+entitlement gap specific to that field, worth raising with your
+Scopus/Elsevier account contact, rather than the documents genuinely having
+none.</p>
     </div>
     <div class="section level2">
     <h2 id="api-access">API access<a class="anchor" aria-label="anchor" href="#api-access"></a></h2>
 
 
 <p>This performs one request per identifier and requires a valid API key and
-internet access; full-text abstract access can also depend on your
-entitlement. See the <em>API access</em> section of <code><a href="scopus_count.html">scopus_count()</a></code> for the
-conditions that may be raised.</p>
+internet access; full-text abstract access, and the <code>FULL</code>/<code>REF</code> views in
+particular, can also depend on your entitlement. A view or field your key is
+not entitled to raises a <code>scopus_error_forbidden</code> condition with a message
+naming the view and suggesting who to contact, rather than a generic HTTP
+failure; because entitlement is an account-level property, not a
+per-document one, retrieval stops at the first such failure instead of
+repeating it for every remaining identifier. See the <em>API access</em> section of
+<code><a href="scopus_count.html">scopus_count()</a></code> for the other conditions that may be raised.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="scopus_fetch.html">scopus_fetch()</a></code>, <code><a href="scopus_extract_dois.html">scopus_extract_dois()</a></code></p></div>
+    <div class="dont-index"><p><code><a href="scopus_fetch.html">scopus_fetch()</a></code>, <code><a href="scopus_extract_dois.html">scopus_extract_dois()</a></code>, <code><a href="scopus_corpus.html">scopus_corpus()</a></code> to
+assemble a minimal keyword/reference corpus across many documents.</p></div>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># scopusflow::scopus_has_key()</span></span></span>
 <span class="r-in"><span><span class="fu">scopus_abstract</span><span class="op">(</span><span class="st">"10.1038/s41586-019-0001-1"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Author keywords and a structured reference list, in the same request.</span></span></span>
+<span class="r-in"><span><span class="co"># Costs one Abstract Retrieval request per identifier, against a smaller,</span></span></span>
+<span class="r-in"><span><span class="co"># separate weekly quota from Search; see the API access section above for</span></span></span>
+<span class="r-in"><span><span class="co"># the entitlement this needs.</span></span></span>
+<span class="r-in"><span><span class="va">rich</span> <span class="op">&lt;-</span> <span class="fu">scopus_abstract</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="st">"10.1038/nature14539"</span>,</span></span>
+<span class="r-in"><span>  view <span class="op">=</span> <span class="st">"FULL"</span>, include <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"references"</span>, <span class="st">"keywords"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">rich</span><span class="op">$</span><span class="va">references</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>

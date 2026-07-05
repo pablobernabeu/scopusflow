@@ -215,6 +215,18 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 ![Line chart of two topics' share of the reference literature over
 time](scopusflow_files/figure-html/unnamed-chunk-11-1.png)
 
+## Author keywords and references
+
+A search only returns the fields the Search API carries. Author keywords
+and a document’s own reference list need `view = "COMPLETE"` and
+Abstract Retrieval respectively, both at a materially different quota
+cost from an ordinary search;
+[`vignette("keywords-and-references")`](https://pablobernabeu.github.io/scopusflow/articles/keywords-and-references.md)
+walks through both, and
+[`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md),
+which combines them into a minimal
+`id`/`title`/`year`/`keywords`/`references` shape for downstream tools.
+
 ## Export and interoperability
 
 Hand results to `bibliometrix`-style workflows, or save and reload them:

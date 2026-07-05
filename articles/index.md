@@ -10,6 +10,8 @@
   time](https://pablobernabeu.github.io/scopusflow/articles/comparing-topics.md):
 - [Designing precise queries across
   disciplines](https://pablobernabeu.github.io/scopusflow/articles/designing-queries.md):
+- [Author keywords and
+  references](https://pablobernabeu.github.io/scopusflow/articles/keywords-and-references.md):
 - [Search plans and quota-aware
   retrieval](https://pablobernabeu.github.io/scopusflow/articles/plans-and-quota.md):
 - [Tracking how a literature changes between

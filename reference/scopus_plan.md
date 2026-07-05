@@ -46,9 +46,15 @@ is_scopus_plan(x)
 
 - view:
 
-  Either `"STANDARD"` or `"COMPLETE"`. `COMPLETE` returns more fields
+  Either `"STANDARD"` or `"COMPLETE"`. `COMPLETE` returns more fields,
+  including an `authkeywords` column (see
+  [`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)),
   but requires a subscriber entitlement and is limited to a smaller page
-  size.
+  size, which means more requests, and so more quota, for the same
+  number of records. Even where `COMPLETE` view itself is accessible,
+  the returned author keywords can still be gated separately by your own
+  account (see
+  [`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)).
 
 - page_size:
 

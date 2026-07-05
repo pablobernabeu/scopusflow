@@ -20,6 +20,8 @@
   : Execute a 'Scopus' search plan, with optional caching and resume
 - [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
   : Retrieve abstracts and richer metadata
+- [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
+  : Assemble a minimal, cross-tool corpus with keywords and references
 - [`scopus_cache_dir()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_dir.md)
   : Managed cache directory for scopusflow
 - [`scopus_cache_clear()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_clear.md)

@@ -338,6 +338,91 @@ machine. The app’s interface packages (`shiny`, `bslib`, `callr`,
 `fansi`) stay in Suggests and are required only inside
 [`run_app()`](https://pablobernabeu.github.io/scopusflow/reference/run_app.md).
 
+## Version 0.3.0 (continued): author keywords, references and a minimal corpus
+
+A downstream consumer (theoryforge) needed a keywords list and a
+references list per record, which neither the Search nor the Abstract
+Retrieval side of the package exposed, and which are otherwise only
+reachable by exporting from the ‘Scopus’ web interface. Before writing
+any of this, the actual API was checked directly against a live key
+(documented in each function’s roxygen under *Details*/*API access*),
+since a fixed reference guide can drift from what the API currently
+returns, and it had: the Search API’s `COMPLETE` view does carry an
+`authkeywords` field structurally (confirmed via `pybliometrics`‘s own
+`ScopusSearch` result schema in the Python twin), but it came back
+empty, on this key, even for documents that plainly carry author
+keywords in ’Scopus’ itself, and even under Abstract Retrieval’s `FULL`
+view, which populated everything else (`idxterms`, `citedby-count`, the
+full bibliography) correctly. This is documented as a likely entitlement
+gap specific to that one field, not a code defect, since there is no way
+to confirm the root cause without a second, differently-entitled key.
+
+`view = "FULL"` is the recommended default for references over
+`view = "REF"`, the opposite of what an older pybliometrics issue
+(`pybliometrics#81`) would suggest. In this package’s own live testing,
+`"FULL"` returned a complete, correctly counted reference list for two
+different documents, consistently, while `"REF"` returned an
+inconsistent, sometimes paginated subset (40 of 103 references on one
+call, all 103 on another, for the identical request made moments apart).
+[`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+therefore compares the returned count against the document’s own
+reported total and warns on a mismatch under either view, rather than
+trusting either view unconditionally.
+
+The `references` list-column carries a leaner, hand-picked field set
+(`position`, `id`, `doi`, `title`, `authors`, `source`, `year`,
+`citedbycount`) rather than every field the raw API exposes, because R
+has no equivalent of pybliometrics’ own parsing to lean on and
+re-deriving its full, implementation-specific field set (`authors_auid`,
+`authors_affiliationid`, `type`, `text`, `fulltext`, and so on) was
+judged not worth the parsing surface for what this package’s own users
+are likely to need. The Python twin, which already gets this for free
+from pybliometrics’ `Reference` namedtuple, exposes the fuller native
+shape instead; the difference is documented in both packages’ equivalent
+function so it is not a silent divergence.
+
+A 403 during
+[`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+now stops the whole batch rather than degrading to a per-identifier `NA`
+row and warning, unlike other per-identifier failures: entitlement is an
+account-level property, not a per-document one, so a 403 on the first
+identifier will recur on every remaining one, and repeating an
+already-known failure serves nobody. Implementing this surfaced a
+non-obvious [`tryCatch()`](https://rdrr.io/r/base/conditions.html)
+hazard worth recording: a condition raised *inside* one handler of a
+[`tryCatch()`](https://rdrr.io/r/base/conditions.html) call can still be
+caught by a sibling handler of that same call (verified directly, not
+assumed), so the abort could not simply be called from within the
+`scopus_error_forbidden` handler alongside a generic `scopus_error`
+handler in the same
+[`tryCatch()`](https://rdrr.io/r/base/conditions.html) — it had to be
+deferred to a sentinel checked immediately after the
+[`tryCatch()`](https://rdrr.io/r/base/conditions.html) call returns,
+outside any handler’s dynamic scope. A related, easier-to-miss scoping
+pitfall: `<<-` inside a bare block passed as
+[`tryCatch()`](https://rdrr.io/r/base/conditions.html)’s first argument
+(not a closure) still skips that block’s own environment, since a bare
+block is evaluated directly in the caller’s frame; a counter incremented
+there needs a plain `<-`, not `<<-`, even though the same counter
+genuinely does need `<<-` from within the handler functions, which are
+real closures.
+
+[`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
+assembles `id`/`title`/`year`/`keywords`/`references` from an existing
+`scopus_records` result plus one
+[`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+call, rather than duplicating the search step, since a caller ordinarily
+already has records in hand by the time keywords or references are
+wanted. It does not replace
+[`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md),
+which keeps its own established field-mapping convention for
+bibliometrix users; the two are complementary exports for different
+downstream tools, matching how
+[`as_bibtex()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)/[`as_ris()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
+sit alongside
+[`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)
+already.
+
 ## Assumptions
 
 On licensing, the original `rscopus_plus` code is licensed CC BY 4.0 and

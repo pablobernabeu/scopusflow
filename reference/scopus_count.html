@@ -31,6 +31,7 @@ simply report how large a topic is."><meta property="og:image" content="https://
     <li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
     <li><a class="dropdown-item" href="../articles/comparing-topics.html">Comparing topics over time</a></li>
     <li><a class="dropdown-item" href="../articles/designing-queries.html">Designing precise queries across disciplines</a></li>
+    <li><a class="dropdown-item" href="../articles/keywords-and-references.html">Author keywords and references</a></li>
     <li><a class="dropdown-item" href="../articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
     <li><a class="dropdown-item" href="../articles/tracking-literature-change.html">Tracking how a literature changes between retrievals</a></li>
     <li><a class="dropdown-item" href="../articles/using-the-app.html">Using the code-free app</a></li>
@@ -98,7 +99,11 @@ simply report how large a topic is.</p>
 
 
 <dt id="arg-view">view<a class="anchor" aria-label="anchor" href="#arg-view"></a></dt>
-<dd><p>Either <code>"STANDARD"</code> or <code>"COMPLETE"</code>.</p></dd>
+<dd><p>Either <code>"STANDARD"</code> or <code>"COMPLETE"</code>. <code>COMPLETE</code> adds an
+<code>authkeywords</code> column to <code><a href="scopus_fetch.html">scopus_fetch()</a></code>/<code><a href="scopus_fetch_plan.html">scopus_fetch_plan()</a></code> output (see
+<code><a href="scopus_records.html">scopus_records()</a></code>) at no extra cost beyond <code>COMPLETE</code>'s own smaller page
+size, which already means more requests, and so more quota, for the same
+number of records.</p></dd>
 
 
 <dt id="arg-api-key-inst-token">api_key, inst_token<a class="anchor" aria-label="anchor" href="#arg-api-key-inst-token"></a></dt>

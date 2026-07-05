@@ -269,6 +269,8 @@ describes how it reports, and tries to resolve, any problem it finds.
   : Execute a 'Scopus' search plan, with optional caching and resume
 - [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
   : Retrieve abstracts and richer metadata
+- [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
+  : Assemble a minimal, cross-tool corpus with keywords and references
 - [`scopus_cache_dir()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_dir.md)
   : Managed cache directory for scopusflow
 - [`scopus_cache_clear()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_clear.md)
@@ -353,6 +355,8 @@ describes how it reports, and tries to resolve, any problem it finds.
   time](https://pablobernabeu.github.io/scopusflow/articles/comparing-topics.md):
 - [Designing precise queries across
   disciplines](https://pablobernabeu.github.io/scopusflow/articles/designing-queries.md):
+- [Author keywords and
+  references](https://pablobernabeu.github.io/scopusflow/articles/keywords-and-references.md):
 - [Search plans and quota-aware
   retrieval](https://pablobernabeu.github.io/scopusflow/articles/plans-and-quota.md):
 - [Tracking how a literature changes between
