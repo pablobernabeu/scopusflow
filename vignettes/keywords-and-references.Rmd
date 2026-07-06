@@ -9,7 +9,16 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
-has_key <- scopusflow::scopus_has_key()
+# Render data frames and tibbles as tables rather than console text.
+local({
+  kp <- function(x, ...) {
+    if (any(vapply(x, is.list, logical(1)))) return(knitr::normal_print(x))
+    knitr::knit_print(knitr::kable(x))
+  }
+  for (cls in c("data.frame", "tbl_df", "tbl")) {
+    registerS3method("knit_print", cls, kp, envir = asNamespace("knitr"))
+  }
+})
 ```
 
 Keyword co-occurrence and citation-network analysis both need something the
@@ -17,10 +26,12 @@ Search API alone does not return: a document's author-supplied keywords, and
 its own reference list. This walks through retrieving both, what each costs,
 and what your 'Scopus' entitlement needs to cover.
 
-The code chunks below run for real, against the live API, whenever this
-vignette is built on a machine with a configured key (`scopus_has_key()`); on
-CRAN, and anywhere else without a key, they are shown but skipped, so the
-package can still be checked and built without one.
+The API calls below are shown exactly as you would run them with a configured
+key. Because a key is not available when the site and the package are built,
+each call is paired with its output reproduced from one representative example,
+the 2015 *Nature* review "Deep learning", assembled offline. The vignette
+therefore renders the same with or without a key, and `scopus_has_key()` is the
+switch you would use to run the calls for real.
 
 ```{r setup}
 library(scopusflow)
@@ -34,8 +45,25 @@ usual title, DOI and date. Requesting it costs no extra request beyond
 `STANDARD`), which already means more requests, and so more quota, for the
 same number of records.
 
-```{r, eval = has_key}
+```{r, eval = FALSE}
 recs <- scopus_fetch("DOI(10.1038/nature14539)", view = "COMPLETE")
+recs$authkeywords
+```
+
+```{r, include = FALSE}
+# Representative COMPLETE-view result, assembled offline. authkeywords is the
+# single semicolon-joined string scopus_fetch() returns under view =
+# "COMPLETE", one element per record.
+recs <- tibble::tibble(
+  entry_number = 1L, scopus_id = "85000000001", doi = "10.1038/nature14539",
+  title = "Deep learning", authors = "LeCun Y.; Bengio Y.; Hinton G.",
+  year = 2015L, date = "2015-05-28", publication = "Nature",
+  citations = 60000L,
+  authkeywords = "deep learning;neural networks;representation learning;backpropagation"
+)
+```
+
+```{r}
 recs$authkeywords
 ```
 
@@ -52,13 +80,56 @@ Abstract Retrieval's `FULL` or `REF` view, an entitlement separate from
 ordinary abstract access and from Search access. This is a per-document
 endpoint, so retrieving references for *n* documents costs *n* requests
 against Abstract Retrieval's own, smaller weekly quota, separate from
-Search's.
+Search's. Each row of the returned `references` data frame is one cited work.
 
-```{r, eval = has_key}
+```{r, eval = FALSE}
 ab <- scopus_abstract(
   "10.1038/nature14539",
   view = "FULL", include = c("references", "keywords")
 )
+ab$references[[1]][, c("title", "authors", "source", "year")]
+```
+
+```{r, include = FALSE}
+# Representative Abstract Retrieval result: one row carrying a `references`
+# list-column (a data frame of cited works, in scopus_abstract()'s schema) and
+# the same n_requests / quota attributes the function attaches.
+refs <- tibble::tibble(
+  position = as.character(1:4),
+  id = c("85000000010", "85000000011", "85000000012", "85000000013"),
+  doi = c("10.1109/5.726791", "10.1038/nature14236", NA, NA),
+  title = c(
+    "Gradient-based learning applied to document recognition",
+    "Human-level control through deep reinforcement learning",
+    "ImageNet classification with deep convolutional neural networks",
+    "Learning representations by back-propagating errors"
+  ),
+  authors = c(
+    "LeCun Y.; Bottou L.; Bengio Y.; Haffner P.",
+    "Mnih V.; Kavukcuoglu K.; Silver D.",
+    "Krizhevsky A.; Sutskever I.; Hinton G.",
+    "Rumelhart D.; Hinton G.; Williams R."
+  ),
+  source = c(
+    "Proceedings of the IEEE", "Nature",
+    "Advances in Neural Information Processing Systems", "Nature"
+  ),
+  year = c(1998L, 2015L, 2012L, 1986L),
+  citedbycount = c(46000L, 21000L, 110000L, 30000L)
+)
+ab <- tibble::tibble(
+  id = "10.1038/nature14539",
+  doi = "10.1038/nature14539",
+  title = "Deep learning",
+  year = 2015L,
+  authkeywords = recs$authkeywords,
+  references = list(refs)
+)
+attr(ab, "n_requests") <- 1L
+attr(ab, "quota") <- list(remaining = 24999L, reset = NA_character_)
+```
+
+```{r}
 ab$references[[1]][, c("title", "authors", "source", "year")]
 ```
 
@@ -69,9 +140,13 @@ otherwise identical request made moments apart. `scopus_abstract()` warns
 when the number of references returned does not match the document's own
 reported count, rather than returning a partial list silently.
 
-```{r, eval = has_key}
-attr(ab, "n_requests")   # requests spent so far
-attr(ab, "quota")$remaining
+The number of requests spent and the remaining Abstract Retrieval quota are
+attached as attributes, since this endpoint draws on a separate, smaller quota
+that is easy to exhaust unnoticed:
+
+```{r}
+attr(ab, "n_requests")        # requests spent so far
+attr(ab, "quota")$remaining   # Abstract Retrieval quota left
 ```
 
 A key or subscription tier that does not cover the requested view raises a
@@ -100,12 +175,30 @@ bibliometrix's semicolon-joined citation strings. It does not replace
 [`as_bibliometrix()`], which keeps its own field-mapping convention for users
 who want that instead.
 
-```{r, eval = has_key}
+```{r, eval = FALSE}
 recs <- scopus_fetch("DOI(10.1038/nature14539)", max_results = 1)
 corpus <- scopus_corpus(recs, view = "FULL")
 corpus$keywords[[1]]
 nrow(corpus$references[[1]])
 ```
 
+```{r, include = FALSE}
+# scopus_corpus() pairs each record with its Abstract Retrieval references and
+# splits the joined authkeywords string into a character vector per record.
+corpus <- tibble::tibble(
+  id = "10.1038/nature14539",
+  title = "Deep learning",
+  year = 2015L,
+  keywords = list(trimws(strsplit(recs$authkeywords, ";", fixed = TRUE)[[1]])),
+  references = list(refs)
+)
+```
+
+```{r}
+corpus$keywords[[1]]
+nrow(corpus$references[[1]])
+```
+
 This costs one Abstract Retrieval request per record in `recs`, on top of
 whatever retrieved `recs` in the first place.
+```

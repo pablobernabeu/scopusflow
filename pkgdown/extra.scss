@@ -90,6 +90,10 @@ h1, h2, h3, h4, h5, h6,
 [data-bs-theme="dark"] h2,
 [data-bs-theme="dark"] h3,
 [data-bs-theme="dark"] h4 { color: #EAF1F4; }
+// The home hero title carries a higher-specificity light-mode colour (below),
+// so its dark-mode colour must match that specificity to take effect; without
+// this the wordmark stays deep-navy on the dark page and all but disappears.
+[data-bs-theme="dark"] .template-home .page-header h1 { color: #EAF1F4; }
 
 h1 { font-size: 2.35rem; }
 h2 {
@@ -137,6 +141,8 @@ h3 { font-size: 1.25rem; margin-top: 1.8rem; }
 }
 .navbar .nav-item:has(.fa-play) .nav-link:hover,
 .navbar .nav-link:has(.fa-play):hover { color: var(--brand-amber-light); }
+// Give the App link room to breathe before the search box that follows it.
+.navbar .navbar-nav .nav-item:has(.fa-play) { margin-right: .9rem; }
 
 // The icon buttons on the right (search, github, light switch)
 .navbar .navbar-nav .nav-link .fa,
@@ -238,8 +244,25 @@ pre code { color: inherit; background: none; }
 }
 [data-bs-theme="dark"] :not(pre) > code { color: var(--brand-teal-light); background: rgba(91, 199, 199, .12); }
 
-// Inline output blocks pkgdown prints with #>
-pre .co, pre .fu { opacity: .95; }
+// The code block is deep-navy in BOTH modes, but pkgdown's light-mode syntax
+// colours are tuned for a light background and wash out on it (comments come
+// out near-black, for instance). Re-map the tokens to one high-contrast,
+// brand-coherent palette that reads the same in light and dark. The selector
+// `pre.sourceCode code span.X` matches pkgdown's dark rule specificity, and,
+// being appended after it, wins in both modes.
+pre.sourceCode code {
+  span.co, span.do { color: #8FA9B5; font-style: italic; }              // comments
+  span.st, span.sc, span.ss, span.vs, span.ch, span.bu,
+  span.im { color: #9DE0A6; }                                           // strings
+  span.fu { color: #F2B860; }                                           // function calls
+  span.kw, span.cf, span.dt { color: #F2B860; font-weight: 600; }       // keywords, control
+  span.op { color: #AAB7BF; }                                           // operators
+  span.dv, span.fl, span.bn, span.an, span.in { color: #CBD6A6; }       // numbers
+  span.cn, span.cv, span.at, span.ot { color: #6FD3D3; }                // constants (TRUE/NULL), args
+  span.va { color: #DCE6EC; }                                           // variables
+  span.al, span.er, span.wa { color: #F0888F; }                         // warnings, errors
+  span.pp { color: #D6C2E8; }                                           // preprocessor
+}
 
 // ---------------------------------------------------------------------------
 // Blockquotes / callouts (the Elsevier trademark disclaimer etc.)

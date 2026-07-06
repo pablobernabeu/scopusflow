@@ -9,6 +9,16 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+# Render data frames and tibbles as tables rather than console text.
+local({
+  kp <- function(x, ...) {
+    if (any(vapply(x, is.list, logical(1)))) return(knitr::normal_print(x))
+    knitr::knit_print(knitr::kable(x))
+  }
+  for (cls in c("data.frame", "tbl_df", "tbl")) {
+    registerS3method("knit_print", cls, kp, envir = asNamespace("knitr"))
+  }
+})
 ```
 
 ```{r setup}
