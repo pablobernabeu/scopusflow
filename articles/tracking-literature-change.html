@@ -42,9 +42,7 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Articles</h6></li>
-    <li><a class="dropdown-item" href="../articles/analysing-a-literature.html">Analysing and visualising a literature</a></li>
+<li><a class="dropdown-item" href="../articles/analysing-a-literature.html">Analysing and visualising a literature</a></li>
     <li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
     <li><a class="dropdown-item" href="../articles/comparing-topics.html">Comparing topics over time</a></li>
     <li><a class="dropdown-item" href="../articles/designing-queries.html">Designing precise queries across disciplines</a></li>
@@ -52,8 +50,6 @@
     <li><a class="dropdown-item" href="../articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
     <li><a class="dropdown-item" href="../articles/tracking-literature-change.html">Tracking how a literature changes between retrievals</a></li>
     <li><a class="dropdown-item" href="../articles/using-the-app.html">Using the code-free app</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -148,31 +144,69 @@ removed or unchanged between the two retrievals, and prints the counts
 in each category.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">changes</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_diff_dois.html">scopus_diff_dois</a></span><span class="op">(</span>old <span class="op">=</span> <span class="va">baseline</span>, new <span class="op">=</span> <span class="va">later</span><span class="op">)</span></span>
-<span><span class="va">changes</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">&lt;scopus_doi_diff&gt;</span> 2 added, 3 removed, 3 unchanged</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 8 × 2</span></span></span>
-<span><span class="co">#&gt;   doi                            status   </span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                          <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 10.1038/s41586-023-0008-8      added    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 10.1126/science.abc1234        added    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 10.1002/adma.202100001         removed  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 10.1016/S1470-2045(20)30013-9  removed  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> 10.1038/s41558-018-0085-1      removed  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> 10.1038/s41586-019-0001-1      unchanged</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> 10.1038/s41586-020-0002-2      unchanged</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span> 10.1103/PhysRevLett.116.061102 unchanged</span></span></code></pre></div>
+<span><span class="va">changes</span></span></code></pre></div>
+<table class="table">
+<thead><tr class="header">
+<th align="left">doi</th>
+<th align="left">status</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">10.1038/s41586-023-0008-8</td>
+<td align="left">added</td>
+</tr>
+<tr class="even">
+<td align="left">10.1126/science.abc1234</td>
+<td align="left">added</td>
+</tr>
+<tr class="odd">
+<td align="left">10.1002/adma.202100001</td>
+<td align="left">removed</td>
+</tr>
+<tr class="even">
+<td align="left">10.1016/S1470-2045(20)30013-9</td>
+<td align="left">removed</td>
+</tr>
+<tr class="odd">
+<td align="left">10.1038/s41558-018-0085-1</td>
+<td align="left">removed</td>
+</tr>
+<tr class="even">
+<td align="left">10.1038/s41586-019-0001-1</td>
+<td align="left">unchanged</td>
+</tr>
+<tr class="odd">
+<td align="left">10.1038/s41586-020-0002-2</td>
+<td align="left">unchanged</td>
+</tr>
+<tr class="even">
+<td align="left">10.1103/PhysRevLett.116.061102</td>
+<td align="left">unchanged</td>
+</tr>
+</tbody>
+</table>
 <p>The newly indexed papers come back as <code>added</code>, the records
 present both times as <code>unchanged</code>, and anything dropped from
 the later pull as <code>removed</code>. To act on one category, filter
 the table.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">changes</span><span class="op">[</span><span class="va">changes</span><span class="op">$</span><span class="va">status</span> <span class="op">==</span> <span class="st">"added"</span>, <span class="op">]</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">&lt;scopus_doi_diff&gt;</span> 2 added, 0 removed, 0 unchanged</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 2</span></span></span>
-<span><span class="co">#&gt;   doi                       status</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                     <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 10.1038/s41586-023-0008-8 added </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 10.1126/science.abc1234   added</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">changes</span><span class="op">[</span><span class="va">changes</span><span class="op">$</span><span class="va">status</span> <span class="op">==</span> <span class="st">"added"</span>, <span class="op">]</span></span></code></pre></div>
+<table class="table">
+<thead><tr class="header">
+<th align="left">doi</th>
+<th align="left">status</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">10.1038/s41586-023-0008-8</td>
+<td align="left">added</td>
+</tr>
+<tr class="even">
+<td align="left">10.1126/science.abc1234</td>
+<td align="left">added</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section level2">
 <h2 id="merging-without-duplicates">Merging without duplicates<a class="anchor" aria-label="anchor" href="#merging-without-duplicates"></a>

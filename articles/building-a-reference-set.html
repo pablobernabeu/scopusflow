@@ -42,9 +42,7 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Articles</h6></li>
-    <li><a class="dropdown-item" href="../articles/analysing-a-literature.html">Analysing and visualising a literature</a></li>
+<li><a class="dropdown-item" href="../articles/analysing-a-literature.html">Analysing and visualising a literature</a></li>
     <li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
     <li><a class="dropdown-item" href="../articles/comparing-topics.html">Comparing topics over time</a></li>
     <li><a class="dropdown-item" href="../articles/designing-queries.html">Designing precise queries across disciplines</a></li>
@@ -52,8 +50,6 @@
     <li><a class="dropdown-item" href="../articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
     <li><a class="dropdown-item" href="../articles/tracking-literature-change.html">Tracking how a literature changes between retrievals</a></li>
     <li><a class="dropdown-item" href="../articles/using-the-app.html">Using the code-free app</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -119,22 +115,133 @@ into tidyverse or base workflows. <code>as_tibble()</code> and
 <code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> make that explicit when a downstream tool
 expects a plain frame.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html" class="external-link">as_tibble</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 10</span></span></span>
-<span><span class="co">#&gt;   entry_number scopus_id   doi   title authors  year date  publication citations</span></span>
-<span><span class="co">#&gt;          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>            1 85000000001 10.1… Geno… Zhang …  <span style="text-decoration: underline;">2</span>019 2019… Nature            540</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>            2 85000000002 10.1… Deep… Kumar …  <span style="text-decoration: underline;">2</span>020 2020… Nature            210</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>            3 85000000003 10.1… Clim… Okafor…  <span style="text-decoration: underline;">2</span>018 2018… Nature Cli…       122</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>            4 85000000004 10.1… Grap… Tanaka…  <span style="text-decoration: underline;">2</span>021 2021… Advanced M…        45</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>            5 85000000005 10.1… Chec… Garcia…  <span style="text-decoration: underline;">2</span>020 2020… The Lancet…       388</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>            6 85000000006 10.1… Obse… Abbott…  <span style="text-decoration: underline;">2</span>016 2016… Physical R…      <span style="text-decoration: underline;">4</span>200</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: query &lt;chr&gt;</span></span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"title"</span>, <span class="st">"year"</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="co">#&gt;                                                          title year</span></span>
-<span><span class="co">#&gt; 1 Genome editing with CRISPR-Cas9: principles and applications 2019</span></span>
-<span><span class="co">#&gt; 2           Deep learning for medical image analysis: a review 2020</span></span>
-<span><span class="co">#&gt; 3              Climate change adaptation in coastal megacities 2018</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html" class="external-link">as_tibble</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="5%">
+<col width="5%">
+<col width="13%">
+<col width="30%">
+<col width="4%">
+<col width="2%">
+<col width="4%">
+<col width="10%">
+<col width="4%">
+<col width="17%">
+</colgroup>
+<thead><tr class="header">
+<th align="right">entry_number</th>
+<th align="left">scopus_id</th>
+<th align="left">doi</th>
+<th align="left">title</th>
+<th align="left">authors</th>
+<th align="right">year</th>
+<th align="left">date</th>
+<th align="left">publication</th>
+<th align="right">citations</th>
+<th align="left">query</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">85000000001</td>
+<td align="left">10.1038/s41586-019-0001-1</td>
+<td align="left">Genome editing with CRISPR-Cas9: principles and
+applications</td>
+<td align="left">Zhang F.</td>
+<td align="right">2019</td>
+<td align="left">2019-04-12</td>
+<td align="left">Nature</td>
+<td align="right">540</td>
+<td align="left">illustrative multi-disciplinary sample</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">85000000002</td>
+<td align="left">10.1038/s41586-020-0002-2</td>
+<td align="left">Deep learning for medical image analysis: a review</td>
+<td align="left">Kumar S.</td>
+<td align="right">2020</td>
+<td align="left">2020-02-20</td>
+<td align="left">Nature</td>
+<td align="right">210</td>
+<td align="left">illustrative multi-disciplinary sample</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">85000000003</td>
+<td align="left">10.1038/s41558-018-0085-1</td>
+<td align="left">Climate change adaptation in coastal megacities</td>
+<td align="left">Okafor N.</td>
+<td align="right">2018</td>
+<td align="left">2018-03-19</td>
+<td align="left">Nature Climate Change</td>
+<td align="right">122</td>
+<td align="left">illustrative multi-disciplinary sample</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="left">85000000004</td>
+<td align="left">10.1002/adma.202100001</td>
+<td align="left">Graphene electrodes for next-generation energy
+storage</td>
+<td align="left">Tanaka H.</td>
+<td align="right">2021</td>
+<td align="left">2021-01-15</td>
+<td align="left">Advanced Materials</td>
+<td align="right">45</td>
+<td align="left">illustrative multi-disciplinary sample</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="left">85000000005</td>
+<td align="left">10.1016/S1470-2045(20)30013-9</td>
+<td align="left">Checkpoint inhibitors in cancer immunotherapy</td>
+<td align="left">Garcia M.</td>
+<td align="right">2020</td>
+<td align="left">2020-07-01</td>
+<td align="left">The Lancet Oncology</td>
+<td align="right">388</td>
+<td align="left">illustrative multi-disciplinary sample</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="left">85000000006</td>
+<td align="left">10.1103/PhysRevLett.116.061102</td>
+<td align="left">Observation of gravitational waves from a binary black
+hole merger</td>
+<td align="left">Abbott B.</td>
+<td align="right">2016</td>
+<td align="left">2016-02-11</td>
+<td align="left">Physical Review Letters</td>
+<td align="right">4200</td>
+<td align="left">illustrative multi-disciplinary sample</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"title"</span>, <span class="st">"year"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
+<table class="table">
+<thead><tr class="header">
+<th align="left">title</th>
+<th align="right">year</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Genome editing with CRISPR-Cas9: principles and
+applications</td>
+<td align="right">2019</td>
+</tr>
+<tr class="even">
+<td align="left">Deep learning for medical image analysis: a review</td>
+<td align="right">2020</td>
+</tr>
+<tr class="odd">
+<td align="left">Climate change adaptation in coastal megacities</td>
+<td align="right">2018</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section level2">
 <h2 id="a-clean-deduplicated-doi-list">A clean, deduplicated DOI list<a class="anchor" aria-label="anchor" href="#a-clean-deduplicated-doi-list"></a>
@@ -143,7 +250,7 @@ expects a plain frame.</p>
 <code><a href="../reference/scopus_extract_dois.html">scopus_extract_dois()</a></code> pulls them out, normalises them and
 removes duplicates, so the same article imports once even when its DOI
 was stored with a resolver prefix or in a different case.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dois</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span></span>
 <span><span class="va">dois</span></span>
 <span><span class="co">#&gt; [1] "10.1038/s41586-019-0001-1"      "10.1038/s41586-020-0002-2"     </span></span>
@@ -151,7 +258,7 @@ was stored with a resolver prefix or in a different case.</p>
 <span><span class="co">#&gt; [5] "10.1016/S1470-2045(20)30013-9"  "10.1103/PhysRevLett.116.061102"</span></span></code></pre></div>
 <p>The list can be written to a single-column CSV at a path you choose.
 Nothing is written unless a path is given.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"reference-set.csv"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">example_records</span>, file <span class="op">=</span> <span class="va">out</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span>
@@ -168,7 +275,7 @@ carries more. <code><a href="../reference/as_bibtex.html">as_ris()</a></code> an
 the set in the two interchange formats that reference managers read, so
 a search moves straight into Zotero, EndNote or a LaTeX bibliography.
 Each record becomes one entry, with its authors split out.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fu"><a href="../reference/as_bibtex.html">as_ris</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">320</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; TY  - JOUR</span></span>
 <span><span class="co">#&gt; TI  - Genome editing with CRISPR-Cas9: principles and applications</span></span>
@@ -187,7 +294,7 @@ Each record becomes one entry, with its authors split out.</p>
 <span><span class="co">#&gt; DO  - 10.1038/s41586-020-00</span></span></code></pre></div>
 <p>Pass a <code>file</code> to write the whole set; nothing is written
 without one.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bib</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"reference-set.bib"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/as_bibtex.html">as_bibtex</a></span><span class="op">(</span><span class="va">example_records</span>, file <span class="op">=</span> <span class="va">bib</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -197,26 +304,83 @@ without one.</p>
 <p><code><a href="../reference/as_bibliometrix.html">as_bibliometrix()</a></code> re-maps the records to the tagged
 column layout that the <a href="https://www.bibliometrix.org" class="external-link">bibliometrix</a> package and the
 wider ISI convention expect.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">m</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/as_bibliometrix.html">as_bibliometrix</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span></span>
-<span><span class="va">m</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AU"</span>, <span class="st">"TI"</span>, <span class="st">"PY"</span>, <span class="st">"SO"</span>, <span class="st">"TC"</span>, <span class="st">"DB"</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="co">#&gt;          AU                                                                 TI</span></span>
-<span><span class="co">#&gt; 1  ZHANG F.       GENOME EDITING WITH CRISPR-CAS9: PRINCIPLES AND APPLICATIONS</span></span>
-<span><span class="co">#&gt; 2  KUMAR S.                 DEEP LEARNING FOR MEDICAL IMAGE ANALYSIS: A REVIEW</span></span>
-<span><span class="co">#&gt; 3 OKAFOR N.                    CLIMATE CHANGE ADAPTATION IN COASTAL MEGACITIES</span></span>
-<span><span class="co">#&gt; 4 TANAKA H.             GRAPHENE ELECTRODES FOR NEXT-GENERATION ENERGY STORAGE</span></span>
-<span><span class="co">#&gt; 5 GARCIA M.                      CHECKPOINT INHIBITORS IN CANCER IMMUNOTHERAPY</span></span>
-<span><span class="co">#&gt; 6 ABBOTT B. OBSERVATION OF GRAVITATIONAL WAVES FROM A BINARY BLACK HOLE MERGER</span></span>
-<span><span class="co">#&gt;     PY                      SO   TC     DB</span></span>
-<span><span class="co">#&gt; 1 2019                  NATURE  540 SCOPUS</span></span>
-<span><span class="co">#&gt; 2 2020                  NATURE  210 SCOPUS</span></span>
-<span><span class="co">#&gt; 3 2018   NATURE CLIMATE CHANGE  122 SCOPUS</span></span>
-<span><span class="co">#&gt; 4 2021      ADVANCED MATERIALS   45 SCOPUS</span></span>
-<span><span class="co">#&gt; 5 2020     THE LANCET ONCOLOGY  388 SCOPUS</span></span>
-<span><span class="co">#&gt; 6 2016 PHYSICAL REVIEW LETTERS 4200 SCOPUS</span></span></code></pre></div>
+<span><span class="va">m</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AU"</span>, <span class="st">"TI"</span>, <span class="st">"PY"</span>, <span class="st">"SO"</span>, <span class="st">"TC"</span>, <span class="st">"DB"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="8%">
+<col width="56%">
+<col width="4%">
+<col width="20%">
+<col width="4%">
+<col width="5%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">AU</th>
+<th align="left">TI</th>
+<th align="right">PY</th>
+<th align="left">SO</th>
+<th align="right">TC</th>
+<th align="left">DB</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">ZHANG F.</td>
+<td align="left">GENOME EDITING WITH CRISPR-CAS9: PRINCIPLES AND
+APPLICATIONS</td>
+<td align="right">2019</td>
+<td align="left">NATURE</td>
+<td align="right">540</td>
+<td align="left">SCOPUS</td>
+</tr>
+<tr class="even">
+<td align="left">KUMAR S.</td>
+<td align="left">DEEP LEARNING FOR MEDICAL IMAGE ANALYSIS: A REVIEW</td>
+<td align="right">2020</td>
+<td align="left">NATURE</td>
+<td align="right">210</td>
+<td align="left">SCOPUS</td>
+</tr>
+<tr class="odd">
+<td align="left">OKAFOR N.</td>
+<td align="left">CLIMATE CHANGE ADAPTATION IN COASTAL MEGACITIES</td>
+<td align="right">2018</td>
+<td align="left">NATURE CLIMATE CHANGE</td>
+<td align="right">122</td>
+<td align="left">SCOPUS</td>
+</tr>
+<tr class="even">
+<td align="left">TANAKA H.</td>
+<td align="left">GRAPHENE ELECTRODES FOR NEXT-GENERATION ENERGY
+STORAGE</td>
+<td align="right">2021</td>
+<td align="left">ADVANCED MATERIALS</td>
+<td align="right">45</td>
+<td align="left">SCOPUS</td>
+</tr>
+<tr class="odd">
+<td align="left">GARCIA M.</td>
+<td align="left">CHECKPOINT INHIBITORS IN CANCER IMMUNOTHERAPY</td>
+<td align="right">2020</td>
+<td align="left">THE LANCET ONCOLOGY</td>
+<td align="right">388</td>
+<td align="left">SCOPUS</td>
+</tr>
+<tr class="even">
+<td align="left">ABBOTT B.</td>
+<td align="left">OBSERVATION OF GRAVITATIONAL WAVES FROM A BINARY BLACK
+HOLE MERGER</td>
+<td align="right">2016</td>
+<td align="left">PHYSICAL REVIEW LETTERS</td>
+<td align="right">4200</td>
+<td align="left">SCOPUS</td>
+</tr>
+</tbody>
+</table>
 <p>From there the usual bibliometrix entry points apply. This step needs
 that package, so it is shown but not run.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"bibliometrix"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">bibliometrix</span><span class="fu">::</span><span class="fu">biblioAnalysis</span><span class="op">(</span><span class="fu"><a href="../reference/as_bibliometrix.html">as_bibliometrix</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">results</span>, k <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
@@ -232,7 +396,7 @@ or BibTeX export read with <code>bibliometrix::convert2df()</code>.</p>
 <p>To pick the work up in a later session, save the records and read
 them back. The <code>.rds</code> form preserves the types and class
 exactly, while <code>.csv</code> is portable plain text.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"records.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/write_scopus_records.html">write_scopus_records</a></span><span class="op">(</span><span class="va">example_records</span>, <span class="va">path</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="../reference/write_scopus_records.html">read_scopus_records</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span>, <span class="va">example_records</span><span class="op">)</span></span>

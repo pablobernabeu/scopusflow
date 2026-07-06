@@ -26,14 +26,13 @@ plan <- scopus_plan(
   partition = "year"
 )
 plan
-#> <scopus_plan> (3 cells, view "STANDARD", partition "year")
-#> # A tibble: 3 × 6
-#>    cell query                              date   year view     page_size
-#> * <int> <chr>                              <chr> <int> <chr>        <int>
-#> 1     1 TITLE-ABS-KEY(machine translation) 2018   2018 STANDARD       200
-#> 2     2 TITLE-ABS-KEY(machine translation) 2019   2019 STANDARD       200
-#> 3     3 TITLE-ABS-KEY(machine translation) 2020   2020 STANDARD       200
 ```
+
+| cell | query                              | date | year | view     | page_size |
+|-----:|:-----------------------------------|:-----|-----:|:---------|----------:|
+|    1 | TITLE-ABS-KEY(machine translation) | 2018 | 2018 | STANDARD |       200 |
+|    2 | TITLE-ABS-KEY(machine translation) | 2019 | 2019 | STANDARD |       200 |
+|    3 | TITLE-ABS-KEY(machine translation) | 2020 | 2020 | STANDARD |       200 |
 
 Each row is one query cell. Field tags wrap the query and years become a
 date filter:
@@ -85,17 +84,19 @@ set, which we use here to continue offline:
 
 records <- example_records
 records
-#> <scopus_records> 6 records
-#> query: "illustrative multi-disciplinary sample"
-#> # A tibble: 6 × 9
-#>   entry_number scopus_id   doi   title authors  year date  publication citations
-#>          <int> <chr>       <chr> <chr> <chr>   <int> <chr> <chr>           <int>
-#> 1            1 85000000001 10.1… Geno… Zhang …  2019 2019… Nature            540
-#> 2            2 85000000002 10.1… Deep… Kumar …  2020 2020… Nature            210
-#> 3            3 85000000003 10.1… Clim… Okafor…  2018 2018… Nature Cli…       122
-#> 4            4 85000000004 10.1… Grap… Tanaka…  2021 2021… Advanced M…        45
-#> 5            5 85000000005 10.1… Chec… Garcia…  2020 2020… The Lancet…       388
-#> 6            6 85000000006 10.1… Obse… Abbott…  2016 2016… Physical R…      4200
+```
+
+| entry_number | scopus_id | doi | title | authors | year | date | publication | citations | query |
+|---:|:---|:---|:---|:---|---:|:---|:---|---:|:---|
+| 1 | 85000000001 | 10.1038/s41586-019-0001-1 | Genome editing with CRISPR-Cas9: principles and applications | Zhang F. | 2019 | 2019-04-12 | Nature | 540 | illustrative multi-disciplinary sample |
+| 2 | 85000000002 | 10.1038/s41586-020-0002-2 | Deep learning for medical image analysis: a review | Kumar S. | 2020 | 2020-02-20 | Nature | 210 | illustrative multi-disciplinary sample |
+| 3 | 85000000003 | 10.1038/s41558-018-0085-1 | Climate change adaptation in coastal megacities | Okafor N. | 2018 | 2018-03-19 | Nature Climate Change | 122 | illustrative multi-disciplinary sample |
+| 4 | 85000000004 | 10.1002/adma.202100001 | Graphene electrodes for next-generation energy storage | Tanaka H. | 2021 | 2021-01-15 | Advanced Materials | 45 | illustrative multi-disciplinary sample |
+| 5 | 85000000005 | 10.1016/S1470-2045(20)30013-9 | Checkpoint inhibitors in cancer immunotherapy | Garcia M. | 2020 | 2020-07-01 | The Lancet Oncology | 388 | illustrative multi-disciplinary sample |
+| 6 | 85000000006 | 10.1103/PhysRevLett.116.061102 | Observation of gravitational waves from a binary black hole merger | Abbott B. | 2016 | 2016-02-11 | Physical Review Letters | 4200 | illustrative multi-disciplinary sample |
+
+``` r
+
 
 # A record set is a classed tibble; is_scopus_records() confirms the contract.
 is_scopus_records(records)
@@ -122,18 +123,17 @@ dois
 # Suppose a later retrieval added one DOI and dropped another.
 later <- c(dois[-1], "10.1000/example.999")
 scopus_diff_dois(old = dois, new = later)
-#> <scopus_doi_diff> 1 added, 1 removed, 5 unchanged
-#> # A tibble: 7 × 2
-#>   doi                            status   
-#>   <chr>                          <fct>    
-#> 1 10.1000/example.999            added    
-#> 2 10.1038/s41586-019-0001-1      removed  
-#> 3 10.1002/adma.202100001         unchanged
-#> 4 10.1016/S1470-2045(20)30013-9  unchanged
-#> 5 10.1038/s41558-018-0085-1      unchanged
-#> 6 10.1038/s41586-020-0002-2      unchanged
-#> 7 10.1103/PhysRevLett.116.061102 unchanged
 ```
+
+| doi                            | status    |
+|:-------------------------------|:----------|
+| 10.1000/example.999            | added     |
+| 10.1038/s41586-019-0001-1      | removed   |
+| 10.1002/adma.202100001         | unchanged |
+| 10.1016/S1470-2045(20)30013-9  | unchanged |
+| 10.1038/s41558-018-0085-1      | unchanged |
+| 10.1038/s41586-020-0002-2      | unchanged |
+| 10.1103/PhysRevLett.116.061102 | unchanged |
 
 You can write the DOIs to a path you specify:
 
@@ -180,30 +180,28 @@ cmp <- tibble::tibble(
 )
 class(cmp) <- c("scopus_comparison", class(cmp))
 cmp
-#> <scopus_comparison> (3 topics)
-#> # A tibble: 18 × 8
-#>    query query_type abridged_query  year     n reference_n comparison_percentage
-#>    <chr> <chr>      <chr>          <int> <dbl>       <dbl>                 <dbl>
-#>  1 q     reference  language lear…  2015   100         100                   100
-#>  2 q     reference  language lear…  2016   100         100                   100
-#>  3 q     reference  language lear…  2017   100         100                   100
-#>  4 q     reference  language lear…  2018   100         100                   100
-#>  5 q     reference  language lear…  2019   100         100                   100
-#>  6 q     reference  language lear…  2020   100         100                   100
-#>  7 q     comparison effect size     2015    20         100                    20
-#>  8 q     comparison effect size     2016    24         100                    24
-#>  9 q     comparison effect size     2017    30         100                    30
-#> 10 q     comparison effect size     2018    33         100                    33
-#> 11 q     comparison effect size     2019    40         100                    40
-#> 12 q     comparison effect size     2020    45         100                    45
-#> 13 q     comparison Bayesian        2015     5         100                     5
-#> 14 q     comparison Bayesian        2016     7         100                     7
-#> 15 q     comparison Bayesian        2017     9         100                     9
-#> 16 q     comparison Bayesian        2018    12         100                    12
-#> 17 q     comparison Bayesian        2019    15         100                    15
-#> 18 q     comparison Bayesian        2020    19         100                    19
-#> # ℹ 1 more variable: average_comparison_percentage <dbl>
 ```
+
+| query | query_type | abridged_query | year | n | reference_n | comparison_percentage | average_comparison_percentage |
+|:---|:---|:---|---:|---:|---:|---:|---:|
+| q | reference | language learning | 2015 | 100 | 100 | 100 | 100.0 |
+| q | reference | language learning | 2016 | 100 | 100 | 100 | 100.0 |
+| q | reference | language learning | 2017 | 100 | 100 | 100 | 100.0 |
+| q | reference | language learning | 2018 | 100 | 100 | 100 | 100.0 |
+| q | reference | language learning | 2019 | 100 | 100 | 100 | 100.0 |
+| q | reference | language learning | 2020 | 100 | 100 | 100 | 100.0 |
+| q | comparison | effect size | 2015 | 20 | 100 | 20 | 32.0 |
+| q | comparison | effect size | 2016 | 24 | 100 | 24 | 32.0 |
+| q | comparison | effect size | 2017 | 30 | 100 | 30 | 32.0 |
+| q | comparison | effect size | 2018 | 33 | 100 | 33 | 32.0 |
+| q | comparison | effect size | 2019 | 40 | 100 | 40 | 32.0 |
+| q | comparison | effect size | 2020 | 45 | 100 | 45 | 32.0 |
+| q | comparison | Bayesian | 2015 | 5 | 100 | 5 | 11.2 |
+| q | comparison | Bayesian | 2016 | 7 | 100 | 7 | 11.2 |
+| q | comparison | Bayesian | 2017 | 9 | 100 | 9 | 11.2 |
+| q | comparison | Bayesian | 2018 | 12 | 100 | 12 | 11.2 |
+| q | comparison | Bayesian | 2019 | 15 | 100 | 15 | 11.2 |
+| q | comparison | Bayesian | 2020 | 19 | 100 | 19 | 11.2 |
 
 ``` r
 
@@ -234,27 +232,19 @@ Hand results to `bibliometrix`-style workflows, or save and reload them:
 ``` r
 
 head(as_bibliometrix(records))
-#>          AU                                                                 TI
-#> 1  ZHANG F.       GENOME EDITING WITH CRISPR-CAS9: PRINCIPLES AND APPLICATIONS
-#> 2  KUMAR S.                 DEEP LEARNING FOR MEDICAL IMAGE ANALYSIS: A REVIEW
-#> 3 OKAFOR N.                    CLIMATE CHANGE ADAPTATION IN COASTAL MEGACITIES
-#> 4 TANAKA H.             GRAPHENE ELECTRODES FOR NEXT-GENERATION ENERGY STORAGE
-#> 5 GARCIA M.                      CHECKPOINT INHIBITORS IN CANCER IMMUNOTHERAPY
-#> 6 ABBOTT B. OBSERVATION OF GRAVITATIONAL WAVES FROM A BINARY BLACK HOLE MERGER
-#>                        SO                             DI   PY   TC          UT
-#> 1                  NATURE      10.1038/s41586-019-0001-1 2019  540 85000000001
-#> 2                  NATURE      10.1038/s41586-020-0002-2 2020  210 85000000002
-#> 3   NATURE CLIMATE CHANGE      10.1038/s41558-018-0085-1 2018  122 85000000003
-#> 4      ADVANCED MATERIALS         10.1002/adma.202100001 2021   45 85000000004
-#> 5     THE LANCET ONCOLOGY  10.1016/S1470-2045(20)30013-9 2020  388 85000000005
-#> 6 PHYSICAL REVIEW LETTERS 10.1103/PhysRevLett.116.061102 2016 4200 85000000006
-#>       DB
-#> 1 SCOPUS
-#> 2 SCOPUS
-#> 3 SCOPUS
-#> 4 SCOPUS
-#> 5 SCOPUS
-#> 6 SCOPUS
+```
+
+| AU | TI | SO | DI | PY | TC | UT | DB |
+|:---|:---|:---|:---|---:|---:|:---|:---|
+| ZHANG F. | GENOME EDITING WITH CRISPR-CAS9: PRINCIPLES AND APPLICATIONS | NATURE | 10.1038/s41586-019-0001-1 | 2019 | 540 | 85000000001 | SCOPUS |
+| KUMAR S. | DEEP LEARNING FOR MEDICAL IMAGE ANALYSIS: A REVIEW | NATURE | 10.1038/s41586-020-0002-2 | 2020 | 210 | 85000000002 | SCOPUS |
+| OKAFOR N. | CLIMATE CHANGE ADAPTATION IN COASTAL MEGACITIES | NATURE CLIMATE CHANGE | 10.1038/s41558-018-0085-1 | 2018 | 122 | 85000000003 | SCOPUS |
+| TANAKA H. | GRAPHENE ELECTRODES FOR NEXT-GENERATION ENERGY STORAGE | ADVANCED MATERIALS | 10.1002/adma.202100001 | 2021 | 45 | 85000000004 | SCOPUS |
+| GARCIA M. | CHECKPOINT INHIBITORS IN CANCER IMMUNOTHERAPY | THE LANCET ONCOLOGY | 10.1016/S1470-2045(20)30013-9 | 2020 | 388 | 85000000005 | SCOPUS |
+| ABBOTT B. | OBSERVATION OF GRAVITATIONAL WAVES FROM A BINARY BLACK HOLE MERGER | PHYSICAL REVIEW LETTERS | 10.1103/PhysRevLett.116.061102 | 2016 | 4200 | 85000000006 | SCOPUS |
+
+``` r
+
 
 path <- file.path(tempdir(), "records.rds")
 write_scopus_records(records, path)

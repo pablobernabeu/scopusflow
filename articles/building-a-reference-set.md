@@ -36,22 +36,27 @@ explicit when a downstream tool expects a plain frame.
 ``` r
 
 tibble::as_tibble(example_records)
-#> # A tibble: 6 × 10
-#>   entry_number scopus_id   doi   title authors  year date  publication citations
-#>          <int> <chr>       <chr> <chr> <chr>   <int> <chr> <chr>           <int>
-#> 1            1 85000000001 10.1… Geno… Zhang …  2019 2019… Nature            540
-#> 2            2 85000000002 10.1… Deep… Kumar …  2020 2020… Nature            210
-#> 3            3 85000000003 10.1… Clim… Okafor…  2018 2018… Nature Cli…       122
-#> 4            4 85000000004 10.1… Grap… Tanaka…  2021 2021… Advanced M…        45
-#> 5            5 85000000005 10.1… Chec… Garcia…  2020 2020… The Lancet…       388
-#> 6            6 85000000006 10.1… Obse… Abbott…  2016 2016… Physical R…      4200
-#> # ℹ 1 more variable: query <chr>
-as.data.frame(example_records)[1:3, c("title", "year")]
-#>                                                          title year
-#> 1 Genome editing with CRISPR-Cas9: principles and applications 2019
-#> 2           Deep learning for medical image analysis: a review 2020
-#> 3              Climate change adaptation in coastal megacities 2018
 ```
+
+| entry_number | scopus_id | doi | title | authors | year | date | publication | citations | query |
+|---:|:---|:---|:---|:---|---:|:---|:---|---:|:---|
+| 1 | 85000000001 | 10.1038/s41586-019-0001-1 | Genome editing with CRISPR-Cas9: principles and applications | Zhang F. | 2019 | 2019-04-12 | Nature | 540 | illustrative multi-disciplinary sample |
+| 2 | 85000000002 | 10.1038/s41586-020-0002-2 | Deep learning for medical image analysis: a review | Kumar S. | 2020 | 2020-02-20 | Nature | 210 | illustrative multi-disciplinary sample |
+| 3 | 85000000003 | 10.1038/s41558-018-0085-1 | Climate change adaptation in coastal megacities | Okafor N. | 2018 | 2018-03-19 | Nature Climate Change | 122 | illustrative multi-disciplinary sample |
+| 4 | 85000000004 | 10.1002/adma.202100001 | Graphene electrodes for next-generation energy storage | Tanaka H. | 2021 | 2021-01-15 | Advanced Materials | 45 | illustrative multi-disciplinary sample |
+| 5 | 85000000005 | 10.1016/S1470-2045(20)30013-9 | Checkpoint inhibitors in cancer immunotherapy | Garcia M. | 2020 | 2020-07-01 | The Lancet Oncology | 388 | illustrative multi-disciplinary sample |
+| 6 | 85000000006 | 10.1103/PhysRevLett.116.061102 | Observation of gravitational waves from a binary black hole merger | Abbott B. | 2016 | 2016-02-11 | Physical Review Letters | 4200 | illustrative multi-disciplinary sample |
+
+``` r
+
+as.data.frame(example_records)[1:3, c("title", "year")]
+```
+
+| title                                                        | year |
+|:-------------------------------------------------------------|-----:|
+| Genome editing with CRISPR-Cas9: principles and applications | 2019 |
+| Deep learning for medical image analysis: a review           | 2020 |
+| Climate change adaptation in coastal megacities              | 2018 |
 
 ## A clean, deduplicated DOI list
 
@@ -134,21 +139,16 @@ convention expect.
 
 m <- as_bibliometrix(example_records)
 m[, c("AU", "TI", "PY", "SO", "TC", "DB")]
-#>          AU                                                                 TI
-#> 1  ZHANG F.       GENOME EDITING WITH CRISPR-CAS9: PRINCIPLES AND APPLICATIONS
-#> 2  KUMAR S.                 DEEP LEARNING FOR MEDICAL IMAGE ANALYSIS: A REVIEW
-#> 3 OKAFOR N.                    CLIMATE CHANGE ADAPTATION IN COASTAL MEGACITIES
-#> 4 TANAKA H.             GRAPHENE ELECTRODES FOR NEXT-GENERATION ENERGY STORAGE
-#> 5 GARCIA M.                      CHECKPOINT INHIBITORS IN CANCER IMMUNOTHERAPY
-#> 6 ABBOTT B. OBSERVATION OF GRAVITATIONAL WAVES FROM A BINARY BLACK HOLE MERGER
-#>     PY                      SO   TC     DB
-#> 1 2019                  NATURE  540 SCOPUS
-#> 2 2020                  NATURE  210 SCOPUS
-#> 3 2018   NATURE CLIMATE CHANGE  122 SCOPUS
-#> 4 2021      ADVANCED MATERIALS   45 SCOPUS
-#> 5 2020     THE LANCET ONCOLOGY  388 SCOPUS
-#> 6 2016 PHYSICAL REVIEW LETTERS 4200 SCOPUS
 ```
+
+| AU | TI | PY | SO | TC | DB |
+|:---|:---|---:|:---|---:|:---|
+| ZHANG F. | GENOME EDITING WITH CRISPR-CAS9: PRINCIPLES AND APPLICATIONS | 2019 | NATURE | 540 | SCOPUS |
+| KUMAR S. | DEEP LEARNING FOR MEDICAL IMAGE ANALYSIS: A REVIEW | 2020 | NATURE | 210 | SCOPUS |
+| OKAFOR N. | CLIMATE CHANGE ADAPTATION IN COASTAL MEGACITIES | 2018 | NATURE CLIMATE CHANGE | 122 | SCOPUS |
+| TANAKA H. | GRAPHENE ELECTRODES FOR NEXT-GENERATION ENERGY STORAGE | 2021 | ADVANCED MATERIALS | 45 | SCOPUS |
+| GARCIA M. | CHECKPOINT INHIBITORS IN CANCER IMMUNOTHERAPY | 2020 | THE LANCET ONCOLOGY | 388 | SCOPUS |
+| ABBOTT B. | OBSERVATION OF GRAVITATIONAL WAVES FROM A BINARY BLACK HOLE MERGER | 2016 | PHYSICAL REVIEW LETTERS | 4200 | SCOPUS |
 
 From there the usual bibliometrix entry points apply. This step needs
 that package, so it is shown but not run.

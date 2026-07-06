@@ -42,9 +42,7 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Articles</h6></li>
-    <li><a class="dropdown-item" href="../articles/analysing-a-literature.html">Analysing and visualising a literature</a></li>
+<li><a class="dropdown-item" href="../articles/analysing-a-literature.html">Analysing and visualising a literature</a></li>
     <li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
     <li><a class="dropdown-item" href="../articles/comparing-topics.html">Comparing topics over time</a></li>
     <li><a class="dropdown-item" href="../articles/designing-queries.html">Designing precise queries across disciplines</a></li>
@@ -52,8 +50,6 @@
     <li><a class="dropdown-item" href="../articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
     <li><a class="dropdown-item" href="../articles/tracking-literature-change.html">Tracking how a literature changes between retrievals</a></li>
     <li><a class="dropdown-item" href="../articles/using-the-app.html">Using the code-free app</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -115,14 +111,51 @@ resumed.</p>
 <span>  field     <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span>,</span>
 <span>  partition <span class="op">=</span> <span class="st">"year"</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">plan</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">&lt;scopus_plan&gt;</span> (3 cells, view <span style="color: #0000BB;">"STANDARD"</span>, partition <span style="color: #0000BB;">"year"</span>)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 6</span></span></span>
-<span><span class="co">#&gt;    cell query                              date   year view     page_size</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">*</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                              <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>     1 TITLE-ABS-KEY(machine translation) 2018   <span style="text-decoration: underline;">2</span>018 STANDARD       200</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>     2 TITLE-ABS-KEY(machine translation) 2019   <span style="text-decoration: underline;">2</span>019 STANDARD       200</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>     3 TITLE-ABS-KEY(machine translation) 2020   <span style="text-decoration: underline;">2</span>020 STANDARD       200</span></span></code></pre></div>
+<span><span class="va">plan</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="7%">
+<col width="50%">
+<col width="7%">
+<col width="7%">
+<col width="13%">
+<col width="14%">
+</colgroup>
+<thead><tr class="header">
+<th align="right">cell</th>
+<th align="left">query</th>
+<th align="left">date</th>
+<th align="right">year</th>
+<th align="left">view</th>
+<th align="right">page_size</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">TITLE-ABS-KEY(machine translation)</td>
+<td align="left">2018</td>
+<td align="right">2018</td>
+<td align="left">STANDARD</td>
+<td align="right">200</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">TITLE-ABS-KEY(machine translation)</td>
+<td align="left">2019</td>
+<td align="right">2019</td>
+<td align="left">STANDARD</td>
+<td align="right">200</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">TITLE-ABS-KEY(machine translation)</td>
+<td align="left">2020</td>
+<td align="right">2020</td>
+<td align="left">STANDARD</td>
+<td align="right">200</td>
+</tr>
+</tbody>
+</table>
 <p>Each row is one query cell. Field tags wrap the query and years
 become a date filter:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
@@ -162,19 +195,112 @@ they share one stable schema. The package ships a small, already
 normalised set, which we use here to continue offline:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">records</span> <span class="op">&lt;-</span> <span class="va">example_records</span></span>
-<span><span class="va">records</span></span>
-<span><span class="co">#&gt; &lt;scopus_records&gt; 6 records</span></span>
-<span><span class="co">#&gt; query: <span style="color: #0000BB;">"illustrative multi-disciplinary sample"</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 9</span></span></span>
-<span><span class="co">#&gt;   entry_number scopus_id   doi   title authors  year date  publication citations</span></span>
-<span><span class="co">#&gt;          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>            1 85000000001 10.1… Geno… Zhang …  <span style="text-decoration: underline;">2</span>019 2019… Nature            540</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>            2 85000000002 10.1… Deep… Kumar …  <span style="text-decoration: underline;">2</span>020 2020… Nature            210</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>            3 85000000003 10.1… Clim… Okafor…  <span style="text-decoration: underline;">2</span>018 2018… Nature Cli…       122</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>            4 85000000004 10.1… Grap… Tanaka…  <span style="text-decoration: underline;">2</span>021 2021… Advanced M…        45</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>            5 85000000005 10.1… Chec… Garcia…  <span style="text-decoration: underline;">2</span>020 2020… The Lancet…       388</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>            6 85000000006 10.1… Obse… Abbott…  <span style="text-decoration: underline;">2</span>016 2016… Physical R…      <span style="text-decoration: underline;">4</span>200</span></span>
-<span></span>
+<span><span class="va">records</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="5%">
+<col width="5%">
+<col width="13%">
+<col width="30%">
+<col width="4%">
+<col width="2%">
+<col width="4%">
+<col width="10%">
+<col width="4%">
+<col width="17%">
+</colgroup>
+<thead><tr class="header">
+<th align="right">entry_number</th>
+<th align="left">scopus_id</th>
+<th align="left">doi</th>
+<th align="left">title</th>
+<th align="left">authors</th>
+<th align="right">year</th>
+<th align="left">date</th>
+<th align="left">publication</th>
+<th align="right">citations</th>
+<th align="left">query</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">85000000001</td>
+<td align="left">10.1038/s41586-019-0001-1</td>
+<td align="left">Genome editing with CRISPR-Cas9: principles and
+applications</td>
+<td align="left">Zhang F.</td>
+<td align="right">2019</td>
+<td align="left">2019-04-12</td>
+<td align="left">Nature</td>
+<td align="right">540</td>
+<td align="left">illustrative multi-disciplinary sample</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">85000000002</td>
+<td align="left">10.1038/s41586-020-0002-2</td>
+<td align="left">Deep learning for medical image analysis: a review</td>
+<td align="left">Kumar S.</td>
+<td align="right">2020</td>
+<td align="left">2020-02-20</td>
+<td align="left">Nature</td>
+<td align="right">210</td>
+<td align="left">illustrative multi-disciplinary sample</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">85000000003</td>
+<td align="left">10.1038/s41558-018-0085-1</td>
+<td align="left">Climate change adaptation in coastal megacities</td>
+<td align="left">Okafor N.</td>
+<td align="right">2018</td>
+<td align="left">2018-03-19</td>
+<td align="left">Nature Climate Change</td>
+<td align="right">122</td>
+<td align="left">illustrative multi-disciplinary sample</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="left">85000000004</td>
+<td align="left">10.1002/adma.202100001</td>
+<td align="left">Graphene electrodes for next-generation energy
+storage</td>
+<td align="left">Tanaka H.</td>
+<td align="right">2021</td>
+<td align="left">2021-01-15</td>
+<td align="left">Advanced Materials</td>
+<td align="right">45</td>
+<td align="left">illustrative multi-disciplinary sample</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="left">85000000005</td>
+<td align="left">10.1016/S1470-2045(20)30013-9</td>
+<td align="left">Checkpoint inhibitors in cancer immunotherapy</td>
+<td align="left">Garcia M.</td>
+<td align="right">2020</td>
+<td align="left">2020-07-01</td>
+<td align="left">The Lancet Oncology</td>
+<td align="right">388</td>
+<td align="left">illustrative multi-disciplinary sample</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="left">85000000006</td>
+<td align="left">10.1103/PhysRevLett.116.061102</td>
+<td align="left">Observation of gravitational waves from a binary black
+hole merger</td>
+<td align="left">Abbott B.</td>
+<td align="right">2016</td>
+<td align="left">2016-02-11</td>
+<td align="left">Physical Review Letters</td>
+<td align="right">4200</td>
+<td align="left">illustrative multi-disciplinary sample</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
 <span><span class="co"># A record set is a classed tibble; is_scopus_records() confirms the contract.</span></span>
 <span><span class="fu"><a href="../reference/scopus_records.html">is_scopus_records</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
@@ -186,7 +312,7 @@ response, flattening the nested result into one row per record.</p>
 </h2>
 <p>Extract a clean, deduplicated DOI list for import into a reference
 manager, and compare two retrievals to see exactly what changed:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dois</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span>
 <span><span class="va">dois</span></span>
 <span><span class="co">#&gt; [1] "10.1038/s41586-019-0001-1"      "10.1038/s41586-020-0002-2"     </span></span>
@@ -195,20 +321,45 @@ manager, and compare two retrievals to see exactly what changed:</p>
 <span></span>
 <span><span class="co"># Suppose a later retrieval added one DOI and dropped another.</span></span>
 <span><span class="va">later</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">dois</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>, <span class="st">"10.1000/example.999"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/scopus_diff_dois.html">scopus_diff_dois</a></span><span class="op">(</span>old <span class="op">=</span> <span class="va">dois</span>, new <span class="op">=</span> <span class="va">later</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">&lt;scopus_doi_diff&gt;</span> 1 added, 1 removed, 5 unchanged</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 7 × 2</span></span></span>
-<span><span class="co">#&gt;   doi                            status   </span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                          <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 10.1000/example.999            added    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 10.1038/s41586-019-0001-1      removed  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> 10.1002/adma.202100001         unchanged</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> 10.1016/S1470-2045(20)30013-9  unchanged</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> 10.1038/s41558-018-0085-1      unchanged</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> 10.1038/s41586-020-0002-2      unchanged</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span> 10.1103/PhysRevLett.116.061102 unchanged</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/scopus_diff_dois.html">scopus_diff_dois</a></span><span class="op">(</span>old <span class="op">=</span> <span class="va">dois</span>, new <span class="op">=</span> <span class="va">later</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<thead><tr class="header">
+<th align="left">doi</th>
+<th align="left">status</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">10.1000/example.999</td>
+<td align="left">added</td>
+</tr>
+<tr class="even">
+<td align="left">10.1038/s41586-019-0001-1</td>
+<td align="left">removed</td>
+</tr>
+<tr class="odd">
+<td align="left">10.1002/adma.202100001</td>
+<td align="left">unchanged</td>
+</tr>
+<tr class="even">
+<td align="left">10.1016/S1470-2045(20)30013-9</td>
+<td align="left">unchanged</td>
+</tr>
+<tr class="odd">
+<td align="left">10.1038/s41558-018-0085-1</td>
+<td align="left">unchanged</td>
+</tr>
+<tr class="even">
+<td align="left">10.1038/s41586-020-0002-2</td>
+<td align="left">unchanged</td>
+</tr>
+<tr class="odd">
+<td align="left">10.1103/PhysRevLett.116.061102</td>
+<td align="left">unchanged</td>
+</tr>
+</tbody>
+</table>
 <p>You can write the DOIs to a path you specify:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"dois.csv"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">records</span>, file <span class="op">=</span> <span class="va">out</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span>
@@ -223,14 +374,14 @@ manager, and compare two retrievals to see exactly what changed:</p>
 <p><code><a href="../reference/scopus_compare_topics.html">scopus_compare_topics()</a></code> issues one count request per
 term per year, so it needs the API. Its output has a fixed shape, which
 we reproduce here to show the plot:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_compare_topics.html">scopus_compare_topics</a></span><span class="op">(</span></span>
 <span>  reference_query  <span class="op">=</span> <span class="st">"language learning"</span>,</span>
 <span>  comparison_terms <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"effect size"</span>, <span class="st">"Bayesian"</span><span class="op">)</span>,</span>
 <span>  years            <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2020</span>,</span>
 <span>  field            <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># A stand-in comparison object with the same columns scopus_compare_topics()</span></span>
 <span><span class="co"># returns, so the plotting step is reproducible offline.</span></span>
 <span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
@@ -244,31 +395,212 @@ we reproduce here to show the plot:</p>
 <span>  average_comparison_percentage <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">32</span>, <span class="fl">11.2</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">cmp</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"scopus_comparison"</span>, <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">cmp</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">cmp</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">&lt;scopus_comparison&gt;</span> (3 topics)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 18 × 8</span></span></span>
-<span><span class="co">#&gt;    query query_type abridged_query  year     n reference_n comparison_percentage</span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>                 <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> q     reference  language lear…  <span style="text-decoration: underline;">2</span>015   100         100                   100</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> q     reference  language lear…  <span style="text-decoration: underline;">2</span>016   100         100                   100</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> q     reference  language lear…  <span style="text-decoration: underline;">2</span>017   100         100                   100</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> q     reference  language lear…  <span style="text-decoration: underline;">2</span>018   100         100                   100</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> q     reference  language lear…  <span style="text-decoration: underline;">2</span>019   100         100                   100</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> q     reference  language lear…  <span style="text-decoration: underline;">2</span>020   100         100                   100</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> q     comparison effect size     <span style="text-decoration: underline;">2</span>015    20         100                    20</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> q     comparison effect size     <span style="text-decoration: underline;">2</span>016    24         100                    24</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> q     comparison effect size     <span style="text-decoration: underline;">2</span>017    30         100                    30</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> q     comparison effect size     <span style="text-decoration: underline;">2</span>018    33         100                    33</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span> q     comparison effect size     <span style="text-decoration: underline;">2</span>019    40         100                    40</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span> q     comparison effect size     <span style="text-decoration: underline;">2</span>020    45         100                    45</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">13</span> q     comparison Bayesian        <span style="text-decoration: underline;">2</span>015     5         100                     5</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">14</span> q     comparison Bayesian        <span style="text-decoration: underline;">2</span>016     7         100                     7</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">15</span> q     comparison Bayesian        <span style="text-decoration: underline;">2</span>017     9         100                     9</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">16</span> q     comparison Bayesian        <span style="text-decoration: underline;">2</span>018    12         100                    12</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">17</span> q     comparison Bayesian        <span style="text-decoration: underline;">2</span>019    15         100                    15</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">18</span> q     comparison Bayesian        <span style="text-decoration: underline;">2</span>020    19         100                    19</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: average_comparison_percentage &lt;dbl&gt;</span></span></span></code></pre></div>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<span><span class="va">cmp</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="5%">
+<col width="10%">
+<col width="16%">
+<col width="4%">
+<col width="3%">
+<col width="11%">
+<col width="20%">
+<col width="27%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">query</th>
+<th align="left">query_type</th>
+<th align="left">abridged_query</th>
+<th align="right">year</th>
+<th align="right">n</th>
+<th align="right">reference_n</th>
+<th align="right">comparison_percentage</th>
+<th align="right">average_comparison_percentage</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">q</td>
+<td align="left">reference</td>
+<td align="left">language learning</td>
+<td align="right">2015</td>
+<td align="right">100</td>
+<td align="right">100</td>
+<td align="right">100</td>
+<td align="right">100.0</td>
+</tr>
+<tr class="even">
+<td align="left">q</td>
+<td align="left">reference</td>
+<td align="left">language learning</td>
+<td align="right">2016</td>
+<td align="right">100</td>
+<td align="right">100</td>
+<td align="right">100</td>
+<td align="right">100.0</td>
+</tr>
+<tr class="odd">
+<td align="left">q</td>
+<td align="left">reference</td>
+<td align="left">language learning</td>
+<td align="right">2017</td>
+<td align="right">100</td>
+<td align="right">100</td>
+<td align="right">100</td>
+<td align="right">100.0</td>
+</tr>
+<tr class="even">
+<td align="left">q</td>
+<td align="left">reference</td>
+<td align="left">language learning</td>
+<td align="right">2018</td>
+<td align="right">100</td>
+<td align="right">100</td>
+<td align="right">100</td>
+<td align="right">100.0</td>
+</tr>
+<tr class="odd">
+<td align="left">q</td>
+<td align="left">reference</td>
+<td align="left">language learning</td>
+<td align="right">2019</td>
+<td align="right">100</td>
+<td align="right">100</td>
+<td align="right">100</td>
+<td align="right">100.0</td>
+</tr>
+<tr class="even">
+<td align="left">q</td>
+<td align="left">reference</td>
+<td align="left">language learning</td>
+<td align="right">2020</td>
+<td align="right">100</td>
+<td align="right">100</td>
+<td align="right">100</td>
+<td align="right">100.0</td>
+</tr>
+<tr class="odd">
+<td align="left">q</td>
+<td align="left">comparison</td>
+<td align="left">effect size</td>
+<td align="right">2015</td>
+<td align="right">20</td>
+<td align="right">100</td>
+<td align="right">20</td>
+<td align="right">32.0</td>
+</tr>
+<tr class="even">
+<td align="left">q</td>
+<td align="left">comparison</td>
+<td align="left">effect size</td>
+<td align="right">2016</td>
+<td align="right">24</td>
+<td align="right">100</td>
+<td align="right">24</td>
+<td align="right">32.0</td>
+</tr>
+<tr class="odd">
+<td align="left">q</td>
+<td align="left">comparison</td>
+<td align="left">effect size</td>
+<td align="right">2017</td>
+<td align="right">30</td>
+<td align="right">100</td>
+<td align="right">30</td>
+<td align="right">32.0</td>
+</tr>
+<tr class="even">
+<td align="left">q</td>
+<td align="left">comparison</td>
+<td align="left">effect size</td>
+<td align="right">2018</td>
+<td align="right">33</td>
+<td align="right">100</td>
+<td align="right">33</td>
+<td align="right">32.0</td>
+</tr>
+<tr class="odd">
+<td align="left">q</td>
+<td align="left">comparison</td>
+<td align="left">effect size</td>
+<td align="right">2019</td>
+<td align="right">40</td>
+<td align="right">100</td>
+<td align="right">40</td>
+<td align="right">32.0</td>
+</tr>
+<tr class="even">
+<td align="left">q</td>
+<td align="left">comparison</td>
+<td align="left">effect size</td>
+<td align="right">2020</td>
+<td align="right">45</td>
+<td align="right">100</td>
+<td align="right">45</td>
+<td align="right">32.0</td>
+</tr>
+<tr class="odd">
+<td align="left">q</td>
+<td align="left">comparison</td>
+<td align="left">Bayesian</td>
+<td align="right">2015</td>
+<td align="right">5</td>
+<td align="right">100</td>
+<td align="right">5</td>
+<td align="right">11.2</td>
+</tr>
+<tr class="even">
+<td align="left">q</td>
+<td align="left">comparison</td>
+<td align="left">Bayesian</td>
+<td align="right">2016</td>
+<td align="right">7</td>
+<td align="right">100</td>
+<td align="right">7</td>
+<td align="right">11.2</td>
+</tr>
+<tr class="odd">
+<td align="left">q</td>
+<td align="left">comparison</td>
+<td align="left">Bayesian</td>
+<td align="right">2017</td>
+<td align="right">9</td>
+<td align="right">100</td>
+<td align="right">9</td>
+<td align="right">11.2</td>
+</tr>
+<tr class="even">
+<td align="left">q</td>
+<td align="left">comparison</td>
+<td align="left">Bayesian</td>
+<td align="right">2018</td>
+<td align="right">12</td>
+<td align="right">100</td>
+<td align="right">12</td>
+<td align="right">11.2</td>
+</tr>
+<tr class="odd">
+<td align="left">q</td>
+<td align="left">comparison</td>
+<td align="left">Bayesian</td>
+<td align="right">2019</td>
+<td align="right">15</td>
+<td align="right">100</td>
+<td align="right">15</td>
+<td align="right">11.2</td>
+</tr>
+<tr class="even">
+<td align="left">q</td>
+<td align="left">comparison</td>
+<td align="left">Bayesian</td>
+<td align="right">2020</td>
+<td align="right">19</td>
+<td align="right">100</td>
+<td align="right">19</td>
+<td align="right">11.2</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"ggplot2"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="../reference/plot_scopus_comparison.html">plot_scopus_comparison</a></span><span class="op">(</span><span class="va">cmp</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
@@ -291,30 +623,97 @@ shape for downstream tools.</p>
 </h2>
 <p>Hand results to <code>bibliometrix</code>-style workflows, or save
 and reload them:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="../reference/as_bibliometrix.html">as_bibliometrix</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;          AU                                                                 TI</span></span>
-<span><span class="co">#&gt; 1  ZHANG F.       GENOME EDITING WITH CRISPR-CAS9: PRINCIPLES AND APPLICATIONS</span></span>
-<span><span class="co">#&gt; 2  KUMAR S.                 DEEP LEARNING FOR MEDICAL IMAGE ANALYSIS: A REVIEW</span></span>
-<span><span class="co">#&gt; 3 OKAFOR N.                    CLIMATE CHANGE ADAPTATION IN COASTAL MEGACITIES</span></span>
-<span><span class="co">#&gt; 4 TANAKA H.             GRAPHENE ELECTRODES FOR NEXT-GENERATION ENERGY STORAGE</span></span>
-<span><span class="co">#&gt; 5 GARCIA M.                      CHECKPOINT INHIBITORS IN CANCER IMMUNOTHERAPY</span></span>
-<span><span class="co">#&gt; 6 ABBOTT B. OBSERVATION OF GRAVITATIONAL WAVES FROM A BINARY BLACK HOLE MERGER</span></span>
-<span><span class="co">#&gt;                        SO                             DI   PY   TC          UT</span></span>
-<span><span class="co">#&gt; 1                  NATURE      10.1038/s41586-019-0001-1 2019  540 85000000001</span></span>
-<span><span class="co">#&gt; 2                  NATURE      10.1038/s41586-020-0002-2 2020  210 85000000002</span></span>
-<span><span class="co">#&gt; 3   NATURE CLIMATE CHANGE      10.1038/s41558-018-0085-1 2018  122 85000000003</span></span>
-<span><span class="co">#&gt; 4      ADVANCED MATERIALS         10.1002/adma.202100001 2021   45 85000000004</span></span>
-<span><span class="co">#&gt; 5     THE LANCET ONCOLOGY  10.1016/S1470-2045(20)30013-9 2020  388 85000000005</span></span>
-<span><span class="co">#&gt; 6 PHYSICAL REVIEW LETTERS 10.1103/PhysRevLett.116.061102 2016 4200 85000000006</span></span>
-<span><span class="co">#&gt;       DB</span></span>
-<span><span class="co">#&gt; 1 SCOPUS</span></span>
-<span><span class="co">#&gt; 2 SCOPUS</span></span>
-<span><span class="co">#&gt; 3 SCOPUS</span></span>
-<span><span class="co">#&gt; 4 SCOPUS</span></span>
-<span><span class="co">#&gt; 5 SCOPUS</span></span>
-<span><span class="co">#&gt; 6 SCOPUS</span></span>
-<span></span>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="../reference/as_bibliometrix.html">as_bibliometrix</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<table style="width:100%;" class="table">
+<colgroup>
+<col width="6%">
+<col width="41%">
+<col width="14%">
+<col width="19%">
+<col width="3%">
+<col width="3%">
+<col width="7%">
+<col width="4%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">AU</th>
+<th align="left">TI</th>
+<th align="left">SO</th>
+<th align="left">DI</th>
+<th align="right">PY</th>
+<th align="right">TC</th>
+<th align="left">UT</th>
+<th align="left">DB</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">ZHANG F.</td>
+<td align="left">GENOME EDITING WITH CRISPR-CAS9: PRINCIPLES AND
+APPLICATIONS</td>
+<td align="left">NATURE</td>
+<td align="left">10.1038/s41586-019-0001-1</td>
+<td align="right">2019</td>
+<td align="right">540</td>
+<td align="left">85000000001</td>
+<td align="left">SCOPUS</td>
+</tr>
+<tr class="even">
+<td align="left">KUMAR S.</td>
+<td align="left">DEEP LEARNING FOR MEDICAL IMAGE ANALYSIS: A REVIEW</td>
+<td align="left">NATURE</td>
+<td align="left">10.1038/s41586-020-0002-2</td>
+<td align="right">2020</td>
+<td align="right">210</td>
+<td align="left">85000000002</td>
+<td align="left">SCOPUS</td>
+</tr>
+<tr class="odd">
+<td align="left">OKAFOR N.</td>
+<td align="left">CLIMATE CHANGE ADAPTATION IN COASTAL MEGACITIES</td>
+<td align="left">NATURE CLIMATE CHANGE</td>
+<td align="left">10.1038/s41558-018-0085-1</td>
+<td align="right">2018</td>
+<td align="right">122</td>
+<td align="left">85000000003</td>
+<td align="left">SCOPUS</td>
+</tr>
+<tr class="even">
+<td align="left">TANAKA H.</td>
+<td align="left">GRAPHENE ELECTRODES FOR NEXT-GENERATION ENERGY
+STORAGE</td>
+<td align="left">ADVANCED MATERIALS</td>
+<td align="left">10.1002/adma.202100001</td>
+<td align="right">2021</td>
+<td align="right">45</td>
+<td align="left">85000000004</td>
+<td align="left">SCOPUS</td>
+</tr>
+<tr class="odd">
+<td align="left">GARCIA M.</td>
+<td align="left">CHECKPOINT INHIBITORS IN CANCER IMMUNOTHERAPY</td>
+<td align="left">THE LANCET ONCOLOGY</td>
+<td align="left">10.1016/S1470-2045(20)30013-9</td>
+<td align="right">2020</td>
+<td align="right">388</td>
+<td align="left">85000000005</td>
+<td align="left">SCOPUS</td>
+</tr>
+<tr class="even">
+<td align="left">ABBOTT B.</td>
+<td align="left">OBSERVATION OF GRAVITATIONAL WAVES FROM A BINARY BLACK
+HOLE MERGER</td>
+<td align="left">PHYSICAL REVIEW LETTERS</td>
+<td align="left">10.1103/PhysRevLett.116.061102</td>
+<td align="right">2016</td>
+<td align="right">4200</td>
+<td align="left">85000000006</td>
+<td align="left">SCOPUS</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
 <span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"records.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/write_scopus_records.html">write_scopus_records</a></span><span class="op">(</span><span class="va">records</span>, <span class="va">path</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="../reference/write_scopus_records.html">read_scopus_records</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span>, <span class="va">records</span><span class="op">)</span></span>
@@ -326,7 +725,7 @@ and reload them:</p>
 <p>Network and API problems surface as typed conditions, all inheriting
 from <code>scopus_error</code>, so a workflow can respond to them in
 code:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/scopus_fetch.html">scopus_fetch</a></span><span class="op">(</span><span class="st">"..."</span><span class="op">)</span>,</span>
 <span>  scopus_error_no_key     <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"No API key configured."</span><span class="op">)</span>,</span>

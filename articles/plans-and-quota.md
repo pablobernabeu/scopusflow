@@ -33,22 +33,22 @@ The recognised field tags, and what each one searches, are listed by
 ``` r
 
 scopus_field_tags()
-#> # A tibble: 12 × 2
-#>    tag                searches                                  
-#>    <chr>              <chr>                                     
-#>  1 TITLE              Words in the document title               
-#>  2 TITLE-ABS-KEY      Title, abstract and keywords              
-#>  3 TITLE-ABS-KEY-AUTH Title, abstract, keywords and author names
-#>  4 ABS                Abstract text                             
-#>  5 KEY                Indexed and author keywords               
-#>  6 AUTH               Author names                              
-#>  7 AUTHKEY            Author-supplied keywords                  
-#>  8 AFFIL              Affiliation, any part                     
-#>  9 AFFILORG           Affiliation organisation name             
-#> 10 SRCTITLE           Source (publication) title                
-#> 11 DOI                Digital Object Identifier                 
-#> 12 ALL                All available fields
 ```
+
+| tag                | searches                                   |
+|:-------------------|:-------------------------------------------|
+| TITLE              | Words in the document title                |
+| TITLE-ABS-KEY      | Title, abstract and keywords               |
+| TITLE-ABS-KEY-AUTH | Title, abstract, keywords and author names |
+| ABS                | Abstract text                              |
+| KEY                | Indexed and author keywords                |
+| AUTH               | Author names                               |
+| AUTHKEY            | Author-supplied keywords                   |
+| AFFIL              | Affiliation, any part                      |
+| AFFILORG           | Affiliation organisation name              |
+| SRCTITLE           | Source (publication) title                 |
+| DOI                | Digital Object Identifier                  |
+| ALL                | All available fields                       |
 
 ## Describing the search as a plan
 
@@ -60,22 +60,21 @@ under the 5000-record ceiling, since each year becomes its own cell.
 
 plan <- scopus_plan(q, years = 2010:2020, partition = "year")
 plan
-#> <scopus_plan> (11 cells, view "STANDARD", partition "year")
-#> # A tibble: 11 × 6
-#>     cell query                                       date   year view  page_size
-#>  * <int> <chr>                                       <chr> <int> <chr>     <int>
-#>  1     1 TITLE-ABS-KEY(language learning) AND TITLE… 2010   2010 STAN…       200
-#>  2     2 TITLE-ABS-KEY(language learning) AND TITLE… 2011   2011 STAN…       200
-#>  3     3 TITLE-ABS-KEY(language learning) AND TITLE… 2012   2012 STAN…       200
-#>  4     4 TITLE-ABS-KEY(language learning) AND TITLE… 2013   2013 STAN…       200
-#>  5     5 TITLE-ABS-KEY(language learning) AND TITLE… 2014   2014 STAN…       200
-#>  6     6 TITLE-ABS-KEY(language learning) AND TITLE… 2015   2015 STAN…       200
-#>  7     7 TITLE-ABS-KEY(language learning) AND TITLE… 2016   2016 STAN…       200
-#>  8     8 TITLE-ABS-KEY(language learning) AND TITLE… 2017   2017 STAN…       200
-#>  9     9 TITLE-ABS-KEY(language learning) AND TITLE… 2018   2018 STAN…       200
-#> 10    10 TITLE-ABS-KEY(language learning) AND TITLE… 2019   2019 STAN…       200
-#> 11    11 TITLE-ABS-KEY(language learning) AND TITLE… 2020   2020 STAN…       200
 ```
+
+| cell | query | date | year | view | page_size |
+|---:|:---|:---|---:|:---|---:|
+| 1 | TITLE-ABS-KEY(language learning) AND TITLE-ABS-KEY(effect size) | 2010 | 2010 | STANDARD | 200 |
+| 2 | TITLE-ABS-KEY(language learning) AND TITLE-ABS-KEY(effect size) | 2011 | 2011 | STANDARD | 200 |
+| 3 | TITLE-ABS-KEY(language learning) AND TITLE-ABS-KEY(effect size) | 2012 | 2012 | STANDARD | 200 |
+| 4 | TITLE-ABS-KEY(language learning) AND TITLE-ABS-KEY(effect size) | 2013 | 2013 | STANDARD | 200 |
+| 5 | TITLE-ABS-KEY(language learning) AND TITLE-ABS-KEY(effect size) | 2014 | 2014 | STANDARD | 200 |
+| 6 | TITLE-ABS-KEY(language learning) AND TITLE-ABS-KEY(effect size) | 2015 | 2015 | STANDARD | 200 |
+| 7 | TITLE-ABS-KEY(language learning) AND TITLE-ABS-KEY(effect size) | 2016 | 2016 | STANDARD | 200 |
+| 8 | TITLE-ABS-KEY(language learning) AND TITLE-ABS-KEY(effect size) | 2017 | 2017 | STANDARD | 200 |
+| 9 | TITLE-ABS-KEY(language learning) AND TITLE-ABS-KEY(effect size) | 2018 | 2018 | STANDARD | 200 |
+| 10 | TITLE-ABS-KEY(language learning) AND TITLE-ABS-KEY(effect size) | 2019 | 2019 | STANDARD | 200 |
+| 11 | TITLE-ABS-KEY(language learning) AND TITLE-ABS-KEY(effect size) | 2020 | 2020 | STANDARD | 200 |
 
 Each cell carries the query, the year, the view and the page size. The
 page size deserves a moment’s attention, because it is where quota is
@@ -182,18 +181,16 @@ for a single query and by the bundled `example_records`.
 ``` r
 
 example_records
-#> <scopus_records> 6 records
-#> query: "illustrative multi-disciplinary sample"
-#> # A tibble: 6 × 9
-#>   entry_number scopus_id   doi   title authors  year date  publication citations
-#>          <int> <chr>       <chr> <chr> <chr>   <int> <chr> <chr>           <int>
-#> 1            1 85000000001 10.1… Geno… Zhang …  2019 2019… Nature            540
-#> 2            2 85000000002 10.1… Deep… Kumar …  2020 2020… Nature            210
-#> 3            3 85000000003 10.1… Clim… Okafor…  2018 2018… Nature Cli…       122
-#> 4            4 85000000004 10.1… Grap… Tanaka…  2021 2021… Advanced M…        45
-#> 5            5 85000000005 10.1… Chec… Garcia…  2020 2020… The Lancet…       388
-#> 6            6 85000000006 10.1… Obse… Abbott…  2016 2016… Physical R…      4200
 ```
+
+| entry_number | scopus_id | doi | title | authors | year | date | publication | citations | query |
+|---:|:---|:---|:---|:---|---:|:---|:---|---:|:---|
+| 1 | 85000000001 | 10.1038/s41586-019-0001-1 | Genome editing with CRISPR-Cas9: principles and applications | Zhang F. | 2019 | 2019-04-12 | Nature | 540 | illustrative multi-disciplinary sample |
+| 2 | 85000000002 | 10.1038/s41586-020-0002-2 | Deep learning for medical image analysis: a review | Kumar S. | 2020 | 2020-02-20 | Nature | 210 | illustrative multi-disciplinary sample |
+| 3 | 85000000003 | 10.1038/s41558-018-0085-1 | Climate change adaptation in coastal megacities | Okafor N. | 2018 | 2018-03-19 | Nature Climate Change | 122 | illustrative multi-disciplinary sample |
+| 4 | 85000000004 | 10.1002/adma.202100001 | Graphene electrodes for next-generation energy storage | Tanaka H. | 2021 | 2021-01-15 | Advanced Materials | 45 | illustrative multi-disciplinary sample |
+| 5 | 85000000005 | 10.1016/S1470-2045(20)30013-9 | Checkpoint inhibitors in cancer immunotherapy | Garcia M. | 2020 | 2020-07-01 | The Lancet Oncology | 388 | illustrative multi-disciplinary sample |
+| 6 | 85000000006 | 10.1103/PhysRevLett.116.061102 | Observation of gravitational waves from a binary black hole merger | Abbott B. | 2016 | 2016-02-11 | Physical Review Letters | 4200 | illustrative multi-disciplinary sample |
 
 ## Combining separate retrievals
 
@@ -207,18 +204,16 @@ duplicate entry numbers.
 ``` r
 
 scopus_combine(example_records, example_records, dedupe = TRUE)
-#> <scopus_records> 6 records
-#> query: "illustrative multi-disciplinary sample"
-#> # A tibble: 6 × 9
-#>   entry_number scopus_id   doi   title authors  year date  publication citations
-#>          <int> <chr>       <chr> <chr> <chr>   <int> <chr> <chr>           <int>
-#> 1            1 85000000001 10.1… Geno… Zhang …  2019 2019… Nature            540
-#> 2            2 85000000002 10.1… Deep… Kumar …  2020 2020… Nature            210
-#> 3            3 85000000003 10.1… Clim… Okafor…  2018 2018… Nature Cli…       122
-#> 4            4 85000000004 10.1… Grap… Tanaka…  2021 2021… Advanced M…        45
-#> 5            5 85000000005 10.1… Chec… Garcia…  2020 2020… The Lancet…       388
-#> 6            6 85000000006 10.1… Obse… Abbott…  2016 2016… Physical R…      4200
 ```
+
+| entry_number | scopus_id | doi | title | authors | year | date | publication | citations | query |
+|---:|:---|:---|:---|:---|---:|:---|:---|---:|:---|
+| 1 | 85000000001 | 10.1038/s41586-019-0001-1 | Genome editing with CRISPR-Cas9: principles and applications | Zhang F. | 2019 | 2019-04-12 | Nature | 540 | illustrative multi-disciplinary sample |
+| 2 | 85000000002 | 10.1038/s41586-020-0002-2 | Deep learning for medical image analysis: a review | Kumar S. | 2020 | 2020-02-20 | Nature | 210 | illustrative multi-disciplinary sample |
+| 3 | 85000000003 | 10.1038/s41558-018-0085-1 | Climate change adaptation in coastal megacities | Okafor N. | 2018 | 2018-03-19 | Nature Climate Change | 122 | illustrative multi-disciplinary sample |
+| 4 | 85000000004 | 10.1002/adma.202100001 | Graphene electrodes for next-generation energy storage | Tanaka H. | 2021 | 2021-01-15 | Advanced Materials | 45 | illustrative multi-disciplinary sample |
+| 5 | 85000000005 | 10.1016/S1470-2045(20)30013-9 | Checkpoint inhibitors in cancer immunotherapy | Garcia M. | 2020 | 2020-07-01 | The Lancet Oncology | 388 | illustrative multi-disciplinary sample |
+| 6 | 85000000006 | 10.1103/PhysRevLett.116.061102 | Observation of gravitational waves from a binary black hole merger | Abbott B. | 2016 | 2016-02-11 | Physical Review Letters | 4200 | illustrative multi-disciplinary sample |
 
 ## When the ceiling bites
 

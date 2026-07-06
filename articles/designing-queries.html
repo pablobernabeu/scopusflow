@@ -42,9 +42,7 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Articles</h6></li>
-    <li><a class="dropdown-item" href="../articles/analysing-a-literature.html">Analysing and visualising a literature</a></li>
+<li><a class="dropdown-item" href="../articles/analysing-a-literature.html">Analysing and visualising a literature</a></li>
     <li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
     <li><a class="dropdown-item" href="../articles/comparing-topics.html">Comparing topics over time</a></li>
     <li><a class="dropdown-item" href="../articles/designing-queries.html">Designing precise queries across disciplines</a></li>
@@ -52,8 +50,6 @@
     <li><a class="dropdown-item" href="../articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
     <li><a class="dropdown-item" href="../articles/tracking-literature-change.html">Tracking how a literature changes between retrievals</a></li>
     <li><a class="dropdown-item" href="../articles/using-the-app.html">Using the code-free app</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -108,22 +104,63 @@ query is shown as the literal string it produces.</p>
 <p>A field tag restricts a query to part of a record.
 <code><a href="../reference/scopus_field_tags.html">scopus_field_tags()</a></code> lists the common ones.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_field_tags.html">scopus_field_tags</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 12 × 2</span></span></span>
-<span><span class="co">#&gt;    tag                searches                                  </span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                                     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> TITLE              Words in the document title               </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> TITLE-ABS-KEY      Title, abstract and keywords              </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> TITLE-ABS-KEY-AUTH Title, abstract, keywords and author names</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> ABS                Abstract text                             </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> KEY                Indexed and author keywords               </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> AUTH               Author names                              </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> AUTHKEY            Author-supplied keywords                  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> AFFIL              Affiliation, any part                     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> AFFILORG           Affiliation organisation name             </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> SRCTITLE           Source (publication) title                </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span> DOI                Digital Object Identifier                 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span> ALL                All available fields</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_field_tags.html">scopus_field_tags</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<thead><tr class="header">
+<th align="left">tag</th>
+<th align="left">searches</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">TITLE</td>
+<td align="left">Words in the document title</td>
+</tr>
+<tr class="even">
+<td align="left">TITLE-ABS-KEY</td>
+<td align="left">Title, abstract and keywords</td>
+</tr>
+<tr class="odd">
+<td align="left">TITLE-ABS-KEY-AUTH</td>
+<td align="left">Title, abstract, keywords and author names</td>
+</tr>
+<tr class="even">
+<td align="left">ABS</td>
+<td align="left">Abstract text</td>
+</tr>
+<tr class="odd">
+<td align="left">KEY</td>
+<td align="left">Indexed and author keywords</td>
+</tr>
+<tr class="even">
+<td align="left">AUTH</td>
+<td align="left">Author names</td>
+</tr>
+<tr class="odd">
+<td align="left">AUTHKEY</td>
+<td align="left">Author-supplied keywords</td>
+</tr>
+<tr class="even">
+<td align="left">AFFIL</td>
+<td align="left">Affiliation, any part</td>
+</tr>
+<tr class="odd">
+<td align="left">AFFILORG</td>
+<td align="left">Affiliation organisation name</td>
+</tr>
+<tr class="even">
+<td align="left">SRCTITLE</td>
+<td align="left">Source (publication) title</td>
+</tr>
+<tr class="odd">
+<td align="left">DOI</td>
+<td align="left">Digital Object Identifier</td>
+</tr>
+<tr class="even">
+<td align="left">ALL</td>
+<td align="left">All available fields</td>
+</tr>
+</tbody>
+</table>
 <p>The most generally useful tag is <code>TITLE-ABS-KEY</code>, which
 searches the title, abstract and keywords together, broad enough to
 catch a topic without the noise of a full-text match.</p>
@@ -178,19 +215,99 @@ API’s 5000-record ceiling.</p>
 <span><span class="va">q</span></span>
 <span><span class="co">#&gt; [1] "TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS-KEY(immunology)"</span></span>
 <span><span class="va">plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="va">q</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2022</span>, partition <span class="op">=</span> <span class="st">"year"</span><span class="op">)</span></span>
-<span><span class="va">plan</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">&lt;scopus_plan&gt;</span> (8 cells, view <span style="color: #0000BB;">"STANDARD"</span>, partition <span style="color: #0000BB;">"year"</span>)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 8 × 6</span></span></span>
-<span><span class="co">#&gt;    cell query                                        date   year view  page_size</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">*</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                                        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>     1 TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS… 2015   <span style="text-decoration: underline;">2</span>015 STAN…       200</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>     2 TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS… 2016   <span style="text-decoration: underline;">2</span>016 STAN…       200</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>     3 TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS… 2017   <span style="text-decoration: underline;">2</span>017 STAN…       200</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>     4 TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS… 2018   <span style="text-decoration: underline;">2</span>018 STAN…       200</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>     5 TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS… 2019   <span style="text-decoration: underline;">2</span>019 STAN…       200</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>     6 TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS… 2020   <span style="text-decoration: underline;">2</span>020 STAN…       200</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span>     7 TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS… 2021   <span style="text-decoration: underline;">2</span>021 STAN…       200</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span>     8 TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS… 2022   <span style="text-decoration: underline;">2</span>022 STAN…       200</span></span></code></pre></div>
+<span><span class="va">plan</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="5%">
+<col width="63%">
+<col width="5%">
+<col width="5%">
+<col width="9%">
+<col width="10%">
+</colgroup>
+<thead><tr class="header">
+<th align="right">cell</th>
+<th align="left">query</th>
+<th align="left">date</th>
+<th align="right">year</th>
+<th align="left">view</th>
+<th align="right">page_size</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">TITLE-ABS-KEY(gut microbiome) AND
+TITLE-ABS-KEY(immunology)</td>
+<td align="left">2015</td>
+<td align="right">2015</td>
+<td align="left">STANDARD</td>
+<td align="right">200</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">TITLE-ABS-KEY(gut microbiome) AND
+TITLE-ABS-KEY(immunology)</td>
+<td align="left">2016</td>
+<td align="right">2016</td>
+<td align="left">STANDARD</td>
+<td align="right">200</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">TITLE-ABS-KEY(gut microbiome) AND
+TITLE-ABS-KEY(immunology)</td>
+<td align="left">2017</td>
+<td align="right">2017</td>
+<td align="left">STANDARD</td>
+<td align="right">200</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="left">TITLE-ABS-KEY(gut microbiome) AND
+TITLE-ABS-KEY(immunology)</td>
+<td align="left">2018</td>
+<td align="right">2018</td>
+<td align="left">STANDARD</td>
+<td align="right">200</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="left">TITLE-ABS-KEY(gut microbiome) AND
+TITLE-ABS-KEY(immunology)</td>
+<td align="left">2019</td>
+<td align="right">2019</td>
+<td align="left">STANDARD</td>
+<td align="right">200</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="left">TITLE-ABS-KEY(gut microbiome) AND
+TITLE-ABS-KEY(immunology)</td>
+<td align="left">2020</td>
+<td align="right">2020</td>
+<td align="left">STANDARD</td>
+<td align="right">200</td>
+</tr>
+<tr class="odd">
+<td align="right">7</td>
+<td align="left">TITLE-ABS-KEY(gut microbiome) AND
+TITLE-ABS-KEY(immunology)</td>
+<td align="left">2021</td>
+<td align="right">2021</td>
+<td align="left">STANDARD</td>
+<td align="right">200</td>
+</tr>
+<tr class="even">
+<td align="right">8</td>
+<td align="left">TITLE-ABS-KEY(gut microbiome) AND
+TITLE-ABS-KEY(immunology)</td>
+<td align="left">2022</td>
+<td align="right">2022</td>
+<td align="left">STANDARD</td>
+<td align="right">200</td>
+</tr>
+</tbody>
+</table>
 <p>The plan is ready to size and run, which contacts the API.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_count.html">scopus_count</a></span><span class="op">(</span><span class="va">q</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2022</span><span class="op">)</span></span>

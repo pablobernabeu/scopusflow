@@ -42,9 +42,7 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Articles</h6></li>
-    <li><a class="dropdown-item" href="../articles/analysing-a-literature.html">Analysing and visualising a literature</a></li>
+<li><a class="dropdown-item" href="../articles/analysing-a-literature.html">Analysing and visualising a literature</a></li>
     <li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
     <li><a class="dropdown-item" href="../articles/comparing-topics.html">Comparing topics over time</a></li>
     <li><a class="dropdown-item" href="../articles/designing-queries.html">Designing precise queries across disciplines</a></li>
@@ -52,8 +50,6 @@
     <li><a class="dropdown-item" href="../articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
     <li><a class="dropdown-item" href="../articles/tracking-literature-change.html">Tracking how a literature changes between retrievals</a></li>
     <li><a class="dropdown-item" href="../articles/using-the-app.html">Using the code-free app</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -116,22 +112,63 @@ mistakes that creep in when fragments are pasted together by hand.</p>
 <p>The recognised field tags, and what each one searches, are listed by
 <code><a href="../reference/scopus_field_tags.html">scopus_field_tags()</a></code>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_field_tags.html">scopus_field_tags</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 12 × 2</span></span></span>
-<span><span class="co">#&gt;    tag                searches                                  </span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                                     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> TITLE              Words in the document title               </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> TITLE-ABS-KEY      Title, abstract and keywords              </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> TITLE-ABS-KEY-AUTH Title, abstract, keywords and author names</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> ABS                Abstract text                             </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> KEY                Indexed and author keywords               </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> AUTH               Author names                              </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> AUTHKEY            Author-supplied keywords                  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> AFFIL              Affiliation, any part                     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> AFFILORG           Affiliation organisation name             </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> SRCTITLE           Source (publication) title                </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span> DOI                Digital Object Identifier                 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span> ALL                All available fields</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_field_tags.html">scopus_field_tags</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<thead><tr class="header">
+<th align="left">tag</th>
+<th align="left">searches</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">TITLE</td>
+<td align="left">Words in the document title</td>
+</tr>
+<tr class="even">
+<td align="left">TITLE-ABS-KEY</td>
+<td align="left">Title, abstract and keywords</td>
+</tr>
+<tr class="odd">
+<td align="left">TITLE-ABS-KEY-AUTH</td>
+<td align="left">Title, abstract, keywords and author names</td>
+</tr>
+<tr class="even">
+<td align="left">ABS</td>
+<td align="left">Abstract text</td>
+</tr>
+<tr class="odd">
+<td align="left">KEY</td>
+<td align="left">Indexed and author keywords</td>
+</tr>
+<tr class="even">
+<td align="left">AUTH</td>
+<td align="left">Author names</td>
+</tr>
+<tr class="odd">
+<td align="left">AUTHKEY</td>
+<td align="left">Author-supplied keywords</td>
+</tr>
+<tr class="even">
+<td align="left">AFFIL</td>
+<td align="left">Affiliation, any part</td>
+</tr>
+<tr class="odd">
+<td align="left">AFFILORG</td>
+<td align="left">Affiliation organisation name</td>
+</tr>
+<tr class="even">
+<td align="left">SRCTITLE</td>
+<td align="left">Source (publication) title</td>
+</tr>
+<tr class="odd">
+<td align="left">DOI</td>
+<td align="left">Digital Object Identifier</td>
+</tr>
+<tr class="even">
+<td align="left">ALL</td>
+<td align="left">All available fields</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section level2">
 <h2 id="describing-the-search-as-a-plan">Describing the search as a plan<a class="anchor" aria-label="anchor" href="#describing-the-search-as-a-plan"></a>
@@ -141,22 +178,126 @@ reviewed and re-run. Partitioning by year is the recommended way to stay
 under the 5000-record ceiling, since each year becomes its own cell.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="va">q</span>, years <span class="op">=</span> <span class="fl">2010</span><span class="op">:</span><span class="fl">2020</span>, partition <span class="op">=</span> <span class="st">"year"</span><span class="op">)</span></span>
-<span><span class="va">plan</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">&lt;scopus_plan&gt;</span> (11 cells, view <span style="color: #0000BB;">"STANDARD"</span>, partition <span style="color: #0000BB;">"year"</span>)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 11 × 6</span></span></span>
-<span><span class="co">#&gt;     cell query                                       date   year view  page_size</span></span>
-<span><span class="co">#&gt;  <span style="color: #BCBCBC;">*</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                                       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>     1 TITLE-ABS-KEY(language learning) AND TITLE… 2010   <span style="text-decoration: underline;">2</span>010 STAN…       200</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>     2 TITLE-ABS-KEY(language learning) AND TITLE… 2011   <span style="text-decoration: underline;">2</span>011 STAN…       200</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>     3 TITLE-ABS-KEY(language learning) AND TITLE… 2012   <span style="text-decoration: underline;">2</span>012 STAN…       200</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>     4 TITLE-ABS-KEY(language learning) AND TITLE… 2013   <span style="text-decoration: underline;">2</span>013 STAN…       200</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>     5 TITLE-ABS-KEY(language learning) AND TITLE… 2014   <span style="text-decoration: underline;">2</span>014 STAN…       200</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>     6 TITLE-ABS-KEY(language learning) AND TITLE… 2015   <span style="text-decoration: underline;">2</span>015 STAN…       200</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>     7 TITLE-ABS-KEY(language learning) AND TITLE… 2016   <span style="text-decoration: underline;">2</span>016 STAN…       200</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>     8 TITLE-ABS-KEY(language learning) AND TITLE… 2017   <span style="text-decoration: underline;">2</span>017 STAN…       200</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>     9 TITLE-ABS-KEY(language learning) AND TITLE… 2018   <span style="text-decoration: underline;">2</span>018 STAN…       200</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>    10 TITLE-ABS-KEY(language learning) AND TITLE… 2019   <span style="text-decoration: underline;">2</span>019 STAN…       200</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span>    11 TITLE-ABS-KEY(language learning) AND TITLE… 2020   <span style="text-decoration: underline;">2</span>020 STAN…       200</span></span></code></pre></div>
+<span><span class="va">plan</span></span></code></pre></div>
+<table style="width:100%;" class="table">
+<colgroup>
+<col width="5%">
+<col width="65%">
+<col width="5%">
+<col width="5%">
+<col width="9%">
+<col width="10%">
+</colgroup>
+<thead><tr class="header">
+<th align="right">cell</th>
+<th align="left">query</th>
+<th align="left">date</th>
+<th align="right">year</th>
+<th align="left">view</th>
+<th align="right">page_size</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">TITLE-ABS-KEY(language learning) AND
+TITLE-ABS-KEY(effect size)</td>
+<td align="left">2010</td>
+<td align="right">2010</td>
+<td align="left">STANDARD</td>
+<td align="right">200</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">TITLE-ABS-KEY(language learning) AND
+TITLE-ABS-KEY(effect size)</td>
+<td align="left">2011</td>
+<td align="right">2011</td>
+<td align="left">STANDARD</td>
+<td align="right">200</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">TITLE-ABS-KEY(language learning) AND
+TITLE-ABS-KEY(effect size)</td>
+<td align="left">2012</td>
+<td align="right">2012</td>
+<td align="left">STANDARD</td>
+<td align="right">200</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="left">TITLE-ABS-KEY(language learning) AND
+TITLE-ABS-KEY(effect size)</td>
+<td align="left">2013</td>
+<td align="right">2013</td>
+<td align="left">STANDARD</td>
+<td align="right">200</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="left">TITLE-ABS-KEY(language learning) AND
+TITLE-ABS-KEY(effect size)</td>
+<td align="left">2014</td>
+<td align="right">2014</td>
+<td align="left">STANDARD</td>
+<td align="right">200</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="left">TITLE-ABS-KEY(language learning) AND
+TITLE-ABS-KEY(effect size)</td>
+<td align="left">2015</td>
+<td align="right">2015</td>
+<td align="left">STANDARD</td>
+<td align="right">200</td>
+</tr>
+<tr class="odd">
+<td align="right">7</td>
+<td align="left">TITLE-ABS-KEY(language learning) AND
+TITLE-ABS-KEY(effect size)</td>
+<td align="left">2016</td>
+<td align="right">2016</td>
+<td align="left">STANDARD</td>
+<td align="right">200</td>
+</tr>
+<tr class="even">
+<td align="right">8</td>
+<td align="left">TITLE-ABS-KEY(language learning) AND
+TITLE-ABS-KEY(effect size)</td>
+<td align="left">2017</td>
+<td align="right">2017</td>
+<td align="left">STANDARD</td>
+<td align="right">200</td>
+</tr>
+<tr class="odd">
+<td align="right">9</td>
+<td align="left">TITLE-ABS-KEY(language learning) AND
+TITLE-ABS-KEY(effect size)</td>
+<td align="left">2018</td>
+<td align="right">2018</td>
+<td align="left">STANDARD</td>
+<td align="right">200</td>
+</tr>
+<tr class="even">
+<td align="right">10</td>
+<td align="left">TITLE-ABS-KEY(language learning) AND
+TITLE-ABS-KEY(effect size)</td>
+<td align="left">2019</td>
+<td align="right">2019</td>
+<td align="left">STANDARD</td>
+<td align="right">200</td>
+</tr>
+<tr class="odd">
+<td align="right">11</td>
+<td align="left">TITLE-ABS-KEY(language learning) AND
+TITLE-ABS-KEY(effect size)</td>
+<td align="left">2020</td>
+<td align="right">2020</td>
+<td align="left">STANDARD</td>
+<td align="right">200</td>
+</tr>
+</tbody>
+</table>
 <p>Each cell carries the query, the year, the view and the page size.
 The page size deserves a moment’s attention, because it is where quota
 is won or lost.</p>
@@ -240,18 +381,110 @@ are shown but not run, so the article does not touch a real cache:</p>
 returned by <code><a href="../reference/scopus_fetch.html">scopus_fetch()</a></code> for a single query and by the
 bundled <code>example_records</code>.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">example_records</span></span>
-<span><span class="co">#&gt; &lt;scopus_records&gt; 6 records</span></span>
-<span><span class="co">#&gt; query: <span style="color: #0000BB;">"illustrative multi-disciplinary sample"</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 9</span></span></span>
-<span><span class="co">#&gt;   entry_number scopus_id   doi   title authors  year date  publication citations</span></span>
-<span><span class="co">#&gt;          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>            1 85000000001 10.1… Geno… Zhang …  <span style="text-decoration: underline;">2</span>019 2019… Nature            540</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>            2 85000000002 10.1… Deep… Kumar …  <span style="text-decoration: underline;">2</span>020 2020… Nature            210</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>            3 85000000003 10.1… Clim… Okafor…  <span style="text-decoration: underline;">2</span>018 2018… Nature Cli…       122</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>            4 85000000004 10.1… Grap… Tanaka…  <span style="text-decoration: underline;">2</span>021 2021… Advanced M…        45</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>            5 85000000005 10.1… Chec… Garcia…  <span style="text-decoration: underline;">2</span>020 2020… The Lancet…       388</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>            6 85000000006 10.1… Obse… Abbott…  <span style="text-decoration: underline;">2</span>016 2016… Physical R…      <span style="text-decoration: underline;">4</span>200</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">example_records</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="5%">
+<col width="5%">
+<col width="13%">
+<col width="30%">
+<col width="4%">
+<col width="2%">
+<col width="4%">
+<col width="10%">
+<col width="4%">
+<col width="17%">
+</colgroup>
+<thead><tr class="header">
+<th align="right">entry_number</th>
+<th align="left">scopus_id</th>
+<th align="left">doi</th>
+<th align="left">title</th>
+<th align="left">authors</th>
+<th align="right">year</th>
+<th align="left">date</th>
+<th align="left">publication</th>
+<th align="right">citations</th>
+<th align="left">query</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">85000000001</td>
+<td align="left">10.1038/s41586-019-0001-1</td>
+<td align="left">Genome editing with CRISPR-Cas9: principles and
+applications</td>
+<td align="left">Zhang F.</td>
+<td align="right">2019</td>
+<td align="left">2019-04-12</td>
+<td align="left">Nature</td>
+<td align="right">540</td>
+<td align="left">illustrative multi-disciplinary sample</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">85000000002</td>
+<td align="left">10.1038/s41586-020-0002-2</td>
+<td align="left">Deep learning for medical image analysis: a review</td>
+<td align="left">Kumar S.</td>
+<td align="right">2020</td>
+<td align="left">2020-02-20</td>
+<td align="left">Nature</td>
+<td align="right">210</td>
+<td align="left">illustrative multi-disciplinary sample</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">85000000003</td>
+<td align="left">10.1038/s41558-018-0085-1</td>
+<td align="left">Climate change adaptation in coastal megacities</td>
+<td align="left">Okafor N.</td>
+<td align="right">2018</td>
+<td align="left">2018-03-19</td>
+<td align="left">Nature Climate Change</td>
+<td align="right">122</td>
+<td align="left">illustrative multi-disciplinary sample</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="left">85000000004</td>
+<td align="left">10.1002/adma.202100001</td>
+<td align="left">Graphene electrodes for next-generation energy
+storage</td>
+<td align="left">Tanaka H.</td>
+<td align="right">2021</td>
+<td align="left">2021-01-15</td>
+<td align="left">Advanced Materials</td>
+<td align="right">45</td>
+<td align="left">illustrative multi-disciplinary sample</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="left">85000000005</td>
+<td align="left">10.1016/S1470-2045(20)30013-9</td>
+<td align="left">Checkpoint inhibitors in cancer immunotherapy</td>
+<td align="left">Garcia M.</td>
+<td align="right">2020</td>
+<td align="left">2020-07-01</td>
+<td align="left">The Lancet Oncology</td>
+<td align="right">388</td>
+<td align="left">illustrative multi-disciplinary sample</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="left">85000000006</td>
+<td align="left">10.1103/PhysRevLett.116.061102</td>
+<td align="left">Observation of gravitational waves from a binary black
+hole merger</td>
+<td align="left">Abbott B.</td>
+<td align="right">2016</td>
+<td align="left">2016-02-11</td>
+<td align="left">Physical Review Letters</td>
+<td align="right">4200</td>
+<td align="left">illustrative multi-disciplinary sample</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section level2">
 <h2 id="combining-separate-retrievals">Combining separate retrievals<a class="anchor" aria-label="anchor" href="#combining-separate-retrievals"></a>
@@ -261,18 +494,110 @@ bundled <code>example_records</code>.</p>
 duplicates by Scopus identifier or DOI. This is preferable to
 <code><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind()</a></code>, which would leave duplicate entry numbers.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_combine.html">scopus_combine</a></span><span class="op">(</span><span class="va">example_records</span>, <span class="va">example_records</span>, dedupe <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; &lt;scopus_records&gt; 6 records</span></span>
-<span><span class="co">#&gt; query: <span style="color: #0000BB;">"illustrative multi-disciplinary sample"</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 9</span></span></span>
-<span><span class="co">#&gt;   entry_number scopus_id   doi   title authors  year date  publication citations</span></span>
-<span><span class="co">#&gt;          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>            1 85000000001 10.1… Geno… Zhang …  <span style="text-decoration: underline;">2</span>019 2019… Nature            540</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>            2 85000000002 10.1… Deep… Kumar …  <span style="text-decoration: underline;">2</span>020 2020… Nature            210</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>            3 85000000003 10.1… Clim… Okafor…  <span style="text-decoration: underline;">2</span>018 2018… Nature Cli…       122</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>            4 85000000004 10.1… Grap… Tanaka…  <span style="text-decoration: underline;">2</span>021 2021… Advanced M…        45</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>            5 85000000005 10.1… Chec… Garcia…  <span style="text-decoration: underline;">2</span>020 2020… The Lancet…       388</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>            6 85000000006 10.1… Obse… Abbott…  <span style="text-decoration: underline;">2</span>016 2016… Physical R…      <span style="text-decoration: underline;">4</span>200</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_combine.html">scopus_combine</a></span><span class="op">(</span><span class="va">example_records</span>, <span class="va">example_records</span>, dedupe <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="5%">
+<col width="5%">
+<col width="13%">
+<col width="30%">
+<col width="4%">
+<col width="2%">
+<col width="4%">
+<col width="10%">
+<col width="4%">
+<col width="17%">
+</colgroup>
+<thead><tr class="header">
+<th align="right">entry_number</th>
+<th align="left">scopus_id</th>
+<th align="left">doi</th>
+<th align="left">title</th>
+<th align="left">authors</th>
+<th align="right">year</th>
+<th align="left">date</th>
+<th align="left">publication</th>
+<th align="right">citations</th>
+<th align="left">query</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">85000000001</td>
+<td align="left">10.1038/s41586-019-0001-1</td>
+<td align="left">Genome editing with CRISPR-Cas9: principles and
+applications</td>
+<td align="left">Zhang F.</td>
+<td align="right">2019</td>
+<td align="left">2019-04-12</td>
+<td align="left">Nature</td>
+<td align="right">540</td>
+<td align="left">illustrative multi-disciplinary sample</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">85000000002</td>
+<td align="left">10.1038/s41586-020-0002-2</td>
+<td align="left">Deep learning for medical image analysis: a review</td>
+<td align="left">Kumar S.</td>
+<td align="right">2020</td>
+<td align="left">2020-02-20</td>
+<td align="left">Nature</td>
+<td align="right">210</td>
+<td align="left">illustrative multi-disciplinary sample</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">85000000003</td>
+<td align="left">10.1038/s41558-018-0085-1</td>
+<td align="left">Climate change adaptation in coastal megacities</td>
+<td align="left">Okafor N.</td>
+<td align="right">2018</td>
+<td align="left">2018-03-19</td>
+<td align="left">Nature Climate Change</td>
+<td align="right">122</td>
+<td align="left">illustrative multi-disciplinary sample</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="left">85000000004</td>
+<td align="left">10.1002/adma.202100001</td>
+<td align="left">Graphene electrodes for next-generation energy
+storage</td>
+<td align="left">Tanaka H.</td>
+<td align="right">2021</td>
+<td align="left">2021-01-15</td>
+<td align="left">Advanced Materials</td>
+<td align="right">45</td>
+<td align="left">illustrative multi-disciplinary sample</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="left">85000000005</td>
+<td align="left">10.1016/S1470-2045(20)30013-9</td>
+<td align="left">Checkpoint inhibitors in cancer immunotherapy</td>
+<td align="left">Garcia M.</td>
+<td align="right">2020</td>
+<td align="left">2020-07-01</td>
+<td align="left">The Lancet Oncology</td>
+<td align="right">388</td>
+<td align="left">illustrative multi-disciplinary sample</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="left">85000000006</td>
+<td align="left">10.1103/PhysRevLett.116.061102</td>
+<td align="left">Observation of gravitational waves from a binary black
+hole merger</td>
+<td align="left">Abbott B.</td>
+<td align="right">2016</td>
+<td align="left">2016-02-11</td>
+<td align="left">Physical Review Letters</td>
+<td align="right">4200</td>
+<td align="left">illustrative multi-disciplinary sample</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section level2">
 <h2 id="when-the-ceiling-bites">When the ceiling bites<a class="anchor" aria-label="anchor" href="#when-the-ceiling-bites"></a>

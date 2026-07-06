@@ -42,9 +42,7 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Articles</h6></li>
-    <li><a class="dropdown-item" href="../articles/analysing-a-literature.html">Analysing and visualising a literature</a></li>
+<li><a class="dropdown-item" href="../articles/analysing-a-literature.html">Analysing and visualising a literature</a></li>
     <li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
     <li><a class="dropdown-item" href="../articles/comparing-topics.html">Comparing topics over time</a></li>
     <li><a class="dropdown-item" href="../articles/designing-queries.html">Designing precise queries across disciplines</a></li>
@@ -52,8 +50,6 @@
     <li><a class="dropdown-item" href="../articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
     <li><a class="dropdown-item" href="../articles/tracking-literature-change.html">Tracking how a literature changes between retrievals</a></li>
     <li><a class="dropdown-item" href="../articles/using-the-app.html">Using the code-free app</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -99,11 +95,13 @@ something the Search API alone does not return: a document’s
 author-supplied keywords, and its own reference list. This walks through
 retrieving both, what each costs, and what your ‘Scopus’ entitlement
 needs to cover.</p>
-<p>The code chunks below run for real, against the live API, whenever
-this vignette is built on a machine with a configured key
-(<code><a href="../reference/scopus_has_key.html">scopus_has_key()</a></code>); on CRAN, and anywhere else without a
-key, they are shown but skipped, so the package can still be checked and
-built without one.</p>
+<p>The API calls below are shown exactly as you would run them with a
+configured key. Because a key is not available when the site and the
+package are built, each call is paired with its output reproduced from
+one representative example, the 2015 <em>Nature</em> review “Deep
+learning”, assembled offline. The vignette therefore renders the same
+with or without a key, and <code><a href="../reference/scopus_has_key.html">scopus_has_key()</a></code> is the switch
+you would use to run the calls for real.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pablobernabeu/scopusflow" class="external-link">scopusflow</a></span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
@@ -118,6 +116,9 @@ quota, for the same number of records.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">recs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch.html">scopus_fetch</a></span><span class="op">(</span><span class="st">"DOI(10.1038/nature14539)"</span>, view <span class="op">=</span> <span class="st">"COMPLETE"</span><span class="op">)</span></span>
 <span><span class="va">recs</span><span class="op">$</span><span class="va">authkeywords</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">recs</span><span class="op">$</span><span class="va">authkeywords</span></span>
+<span><span class="co">#&gt; [1] "deep learning;neural networks;representation learning;backpropagation"</span></span></code></pre></div>
 <p>In development, this field came back <code>NA</code> even on a live,
 otherwise fully-entitled key, for documents that do carry author
 keywords in ‘Scopus’ itself, which points to an entitlement gap specific
@@ -133,13 +134,61 @@ needs Abstract Retrieval’s <code>FULL</code> or <code>REF</code> view,
 an entitlement separate from ordinary abstract access and from Search
 access. This is a per-document endpoint, so retrieving references for
 <em>n</em> documents costs <em>n</em> requests against Abstract
-Retrieval’s own, smaller weekly quota, separate from Search’s.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+Retrieval’s own, smaller weekly quota, separate from Search’s. Each row
+of the returned <code>references</code> data frame is one cited
+work.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ab</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_abstract.html">scopus_abstract</a></span><span class="op">(</span></span>
 <span>  <span class="st">"10.1038/nature14539"</span>,</span>
 <span>  view <span class="op">=</span> <span class="st">"FULL"</span>, include <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"references"</span>, <span class="st">"keywords"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">ab</span><span class="op">$</span><span class="va">references</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"title"</span>, <span class="st">"authors"</span>, <span class="st">"source"</span>, <span class="st">"year"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ab</span><span class="op">$</span><span class="va">references</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"title"</span>, <span class="st">"authors"</span>, <span class="st">"source"</span>, <span class="st">"year"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="39%">
+<col width="26%">
+<col width="30%">
+<col width="3%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">title</th>
+<th align="left">authors</th>
+<th align="left">source</th>
+<th align="right">year</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Gradient-based learning applied to document
+recognition</td>
+<td align="left">LeCun Y.; Bottou L.; Bengio Y.; Haffner P.</td>
+<td align="left">Proceedings of the IEEE</td>
+<td align="right">1998</td>
+</tr>
+<tr class="even">
+<td align="left">Human-level control through deep reinforcement
+learning</td>
+<td align="left">Mnih V.; Kavukcuoglu K.; Silver D.</td>
+<td align="left">Nature</td>
+<td align="right">2015</td>
+</tr>
+<tr class="odd">
+<td align="left">ImageNet classification with deep convolutional neural
+networks</td>
+<td align="left">Krizhevsky A.; Sutskever I.; Hinton G.</td>
+<td align="left">Advances in Neural Information Processing Systems</td>
+<td align="right">2012</td>
+</tr>
+<tr class="even">
+<td align="left">Learning representations by back-propagating
+errors</td>
+<td align="left">Rumelhart D.; Hinton G.; Williams R.</td>
+<td align="left">Nature</td>
+<td align="right">1986</td>
+</tr>
+</tbody>
+</table>
 <p><code>view = "FULL"</code> is the recommended default: in
 development, it returned a complete, correctly counted reference list
 for every document tried, while <code>view = "REF"</code> returned an
@@ -147,9 +196,14 @@ inconsistent, sometimes-truncated subset, on an otherwise identical
 request made moments apart. <code><a href="../reference/scopus_abstract.html">scopus_abstract()</a></code> warns when
 the number of references returned does not match the document’s own
 reported count, rather than returning a partial list silently.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">ab</span>, <span class="st">"n_requests"</span><span class="op">)</span>   <span class="co"># requests spent so far</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">ab</span>, <span class="st">"quota"</span><span class="op">)</span><span class="op">$</span><span class="va">remaining</span></span></code></pre></div>
+<p>The number of requests spent and the remaining Abstract Retrieval
+quota are attached as attributes, since this endpoint draws on a
+separate, smaller quota that is easy to exhaust unnoticed:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">ab</span>, <span class="st">"n_requests"</span><span class="op">)</span>        <span class="co"># requests spent so far</span></span>
+<span><span class="co">#&gt; [1] 1</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">ab</span>, <span class="st">"quota"</span><span class="op">)</span><span class="op">$</span><span class="va">remaining</span>   <span class="co"># Abstract Retrieval quota left</span></span>
+<span><span class="co">#&gt; [1] 24999</span></span></code></pre></div>
 <p>A key or subscription tier that does not cover the requested view
 raises a <code>scopus_error_forbidden</code> condition naming the view,
 rather than a generic HTTP failure, and stops the whole batch rather
@@ -158,7 +212,7 @@ entitlement is an account-level property, not a per-document one.</p>
 <p>For more than a handful of identifiers, pass <code>cache_dir</code>
 so an interrupted or quota-limited batch resumes without re-spending
 quota already spent:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ab</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_abstract.html">scopus_abstract</a></span><span class="op">(</span></span>
 <span>  <span class="va">dois</span>, view <span class="op">=</span> <span class="st">"FULL"</span>, include <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"references"</span>, <span class="st">"keywords"</span><span class="op">)</span>,</span>
 <span>  cache_dir <span class="op">=</span> <span class="st">"abstract-cache"</span></span>
@@ -176,14 +230,20 @@ list-column of data frames), rather than bibliometrix’s semicolon-joined
 citation strings. It does not replace [<code><a href="../reference/as_bibliometrix.html">as_bibliometrix()</a></code>],
 which keeps its own field-mapping convention for users who want that
 instead.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">recs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch.html">scopus_fetch</a></span><span class="op">(</span><span class="st">"DOI(10.1038/nature14539)"</span>, max_results <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">corpus</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_corpus.html">scopus_corpus</a></span><span class="op">(</span><span class="va">recs</span>, view <span class="op">=</span> <span class="st">"FULL"</span><span class="op">)</span></span>
 <span><span class="va">corpus</span><span class="op">$</span><span class="va">keywords</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">corpus</span><span class="op">$</span><span class="va">references</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">corpus</span><span class="op">$</span><span class="va">keywords</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
+<span><span class="co">#&gt; [1] "deep learning"           "neural networks"        </span></span>
+<span><span class="co">#&gt; [3] "representation learning" "backpropagation"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">corpus</span><span class="op">$</span><span class="va">references</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 4</span></span></code></pre></div>
 <p>This costs one Abstract Retrieval request per record in
 <code>recs</code>, on top of whatever retrieved <code>recs</code> in the
-first place.</p>
+first place. ```</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

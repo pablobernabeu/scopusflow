@@ -19,24 +19,28 @@ several names are split, so each contributor is counted once per record.
 ``` r
 
 scopus_top(example_records, by = "source")
-#> # A tibble: 5 × 2
-#>   value                       n
-#> * <chr>                   <int>
-#> 1 Nature                      2
-#> 2 Advanced Materials          1
-#> 3 Nature Climate Change       1
-#> 4 Physical Review Letters     1
-#> 5 The Lancet Oncology         1
-scopus_top(example_records, by = "author", n = 5)
-#> # A tibble: 5 × 2
-#>   value         n
-#> * <chr>     <int>
-#> 1 Abbott B.     1
-#> 2 Garcia M.     1
-#> 3 Kumar S.      1
-#> 4 Okafor N.     1
-#> 5 Tanaka H.     1
 ```
+
+| value                   |   n |
+|:------------------------|----:|
+| Nature                  |   2 |
+| Advanced Materials      |   1 |
+| Nature Climate Change   |   1 |
+| Physical Review Letters |   1 |
+| The Lancet Oncology     |   1 |
+
+``` r
+
+scopus_top(example_records, by = "author", n = 5)
+```
+
+| value     |   n |
+|:----------|----:|
+| Abbott B. |   1 |
+| Garcia M. |   1 |
+| Kumar S.  |   1 |
+| Okafor N. |   1 |
+| Tanaka H. |   1 |
 
 ``` r
 
@@ -130,20 +134,26 @@ ab <- tibble::tibble(
 )
 class(ab) <- c("scopus_abstracts", class(ab))
 ab
-#> <scopus_abstracts> (2 records)
-#> # A tibble: 2 × 8
-#>   id                  scopus_id doi   title abstract publication  year citations
-#>   <chr>               <chr>     <chr> <chr> <chr>    <chr>       <int>     <int>
-#> 1 10.1038/s41586-019… 85060000… 10.1… A si… Here we… Nature       2019       420
-#> 2 10.1103/PhysRevLet… 84960000… 10.1… Obse… On 14 S… Physical R…  2016      5400
+```
+
+| id | scopus_id | doi | title | abstract | publication | year | citations |
+|:---|:---|:---|:---|:---|:---|---:|---:|
+| 10.1038/s41586-019-0001-1 | 85060000001 | 10.1038/s41586-019-0001-1 | A single-cell atlas of gene expression | Here we present a comprehensive single-cell survey of … | Nature | 2019 | 420 |
+| 10.1103/PhysRevLett.116.061102 | 84960000002 | 10.1103/PhysRevLett.116.061102 | Observation of gravitational waves from a binary black hole merger | On 14 September 2015 the two detectors of LIGO observed … | Physical Review Letters | 2016 | 5400 |
+
+``` r
+
 
 ab[, c("doi", "title", "year")]
-#> <scopus_abstracts> (2 records)
-#> # A tibble: 2 × 3
-#>   doi                            title                                      year
-#>   <chr>                          <chr>                                     <int>
-#> 1 10.1038/s41586-019-0001-1      A single-cell atlas of gene expression     2019
-#> 2 10.1103/PhysRevLett.116.061102 Observation of gravitational waves from …  2016
+```
+
+| doi | title | year |
+|:---|:---|---:|
+| 10.1038/s41586-019-0001-1 | A single-cell atlas of gene expression | 2019 |
+| 10.1103/PhysRevLett.116.061102 | Observation of gravitational waves from a binary black hole merger | 2016 |
+
+``` r
+
 substr(ab$abstract[2], 1, 40)
 #> [1] "On 14 September 2015 the two detectors o"
 ```

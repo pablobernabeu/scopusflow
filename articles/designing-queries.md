@@ -22,22 +22,22 @@ lists the common ones.
 ``` r
 
 scopus_field_tags()
-#> # A tibble: 12 × 2
-#>    tag                searches                                  
-#>    <chr>              <chr>                                     
-#>  1 TITLE              Words in the document title               
-#>  2 TITLE-ABS-KEY      Title, abstract and keywords              
-#>  3 TITLE-ABS-KEY-AUTH Title, abstract, keywords and author names
-#>  4 ABS                Abstract text                             
-#>  5 KEY                Indexed and author keywords               
-#>  6 AUTH               Author names                              
-#>  7 AUTHKEY            Author-supplied keywords                  
-#>  8 AFFIL              Affiliation, any part                     
-#>  9 AFFILORG           Affiliation organisation name             
-#> 10 SRCTITLE           Source (publication) title                
-#> 11 DOI                Digital Object Identifier                 
-#> 12 ALL                All available fields
 ```
+
+| tag                | searches                                   |
+|:-------------------|:-------------------------------------------|
+| TITLE              | Words in the document title                |
+| TITLE-ABS-KEY      | Title, abstract and keywords               |
+| TITLE-ABS-KEY-AUTH | Title, abstract, keywords and author names |
+| ABS                | Abstract text                              |
+| KEY                | Indexed and author keywords                |
+| AUTH               | Author names                               |
+| AUTHKEY            | Author-supplied keywords                   |
+| AFFIL              | Affiliation, any part                      |
+| AFFILORG           | Affiliation organisation name              |
+| SRCTITLE           | Source (publication) title                 |
+| DOI                | Digital Object Identifier                  |
+| ALL                | All available fields                       |
 
 The most generally useful tag is `TITLE-ABS-KEY`, which searches the
 title, abstract and keywords together, broad enough to catch a topic
@@ -99,19 +99,18 @@ q
 #> [1] "TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS-KEY(immunology)"
 plan <- scopus_plan(q, years = 2015:2022, partition = "year")
 plan
-#> <scopus_plan> (8 cells, view "STANDARD", partition "year")
-#> # A tibble: 8 × 6
-#>    cell query                                        date   year view  page_size
-#> * <int> <chr>                                        <chr> <int> <chr>     <int>
-#> 1     1 TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS… 2015   2015 STAN…       200
-#> 2     2 TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS… 2016   2016 STAN…       200
-#> 3     3 TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS… 2017   2017 STAN…       200
-#> 4     4 TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS… 2018   2018 STAN…       200
-#> 5     5 TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS… 2019   2019 STAN…       200
-#> 6     6 TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS… 2020   2020 STAN…       200
-#> 7     7 TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS… 2021   2021 STAN…       200
-#> 8     8 TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS… 2022   2022 STAN…       200
 ```
+
+| cell | query | date | year | view | page_size |
+|---:|:---|:---|---:|:---|---:|
+| 1 | TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS-KEY(immunology) | 2015 | 2015 | STANDARD | 200 |
+| 2 | TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS-KEY(immunology) | 2016 | 2016 | STANDARD | 200 |
+| 3 | TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS-KEY(immunology) | 2017 | 2017 | STANDARD | 200 |
+| 4 | TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS-KEY(immunology) | 2018 | 2018 | STANDARD | 200 |
+| 5 | TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS-KEY(immunology) | 2019 | 2019 | STANDARD | 200 |
+| 6 | TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS-KEY(immunology) | 2020 | 2020 | STANDARD | 200 |
+| 7 | TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS-KEY(immunology) | 2021 | 2021 | STANDARD | 200 |
+| 8 | TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS-KEY(immunology) | 2022 | 2022 | STANDARD | 200 |
 
 The plan is ready to size and run, which contacts the API.
 

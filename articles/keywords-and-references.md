@@ -6,11 +6,14 @@ keywords, and its own reference list. This walks through retrieving
 both, what each costs, and what your ‘Scopus’ entitlement needs to
 cover.
 
-The code chunks below run for real, against the live API, whenever this
-vignette is built on a machine with a configured key
-([`scopus_has_key()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_has_key.md));
-on CRAN, and anywhere else without a key, they are shown but skipped, so
-the package can still be checked and built without one.
+The API calls below are shown exactly as you would run them with a
+configured key. Because a key is not available when the site and the
+package are built, each call is paired with its output reproduced from
+one representative example, the 2015 *Nature* review “Deep learning”,
+assembled offline. The vignette therefore renders the same with or
+without a key, and
+[`scopus_has_key()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_has_key.md)
+is the switch you would use to run the calls for real.
 
 ``` r
 
@@ -31,6 +34,12 @@ recs <- scopus_fetch("DOI(10.1038/nature14539)", view = "COMPLETE")
 recs$authkeywords
 ```
 
+``` r
+
+recs$authkeywords
+#> [1] "deep learning;neural networks;representation learning;backpropagation"
+```
+
 In development, this field came back `NA` even on a live, otherwise
 fully-entitled key, for documents that do carry author keywords in
 ‘Scopus’ itself, which points to an entitlement gap specific to this one
@@ -45,7 +54,8 @@ Abstract Retrieval’s `FULL` or `REF` view, an entitlement separate from
 ordinary abstract access and from Search access. This is a per-document
 endpoint, so retrieving references for *n* documents costs *n* requests
 against Abstract Retrieval’s own, smaller weekly quota, separate from
-Search’s.
+Search’s. Each row of the returned `references` data frame is one cited
+work.
 
 ``` r
 
@@ -56,6 +66,18 @@ ab <- scopus_abstract(
 ab$references[[1]][, c("title", "authors", "source", "year")]
 ```
 
+``` r
+
+ab$references[[1]][, c("title", "authors", "source", "year")]
+```
+
+| title | authors | source | year |
+|:---|:---|:---|---:|
+| Gradient-based learning applied to document recognition | LeCun Y.; Bottou L.; Bengio Y.; Haffner P. | Proceedings of the IEEE | 1998 |
+| Human-level control through deep reinforcement learning | Mnih V.; Kavukcuoglu K.; Silver D. | Nature | 2015 |
+| ImageNet classification with deep convolutional neural networks | Krizhevsky A.; Sutskever I.; Hinton G. | Advances in Neural Information Processing Systems | 2012 |
+| Learning representations by back-propagating errors | Rumelhart D.; Hinton G.; Williams R. | Nature | 1986 |
+
 `view = "FULL"` is the recommended default: in development, it returned
 a complete, correctly counted reference list for every document tried,
 while `view = "REF"` returned an inconsistent, sometimes-truncated
@@ -65,10 +87,16 @@ warns when the number of references returned does not match the
 document’s own reported count, rather than returning a partial list
 silently.
 
+The number of requests spent and the remaining Abstract Retrieval quota
+are attached as attributes, since this endpoint draws on a separate,
+smaller quota that is easy to exhaust unnoticed:
+
 ``` r
 
-attr(ab, "n_requests")   # requests spent so far
-attr(ab, "quota")$remaining
+attr(ab, "n_requests")        # requests spent so far
+#> [1] 1
+attr(ab, "quota")$remaining   # Abstract Retrieval quota left
+#> [1] 24999
 ```
 
 A key or subscription tier that does not cover the requested view raises
@@ -109,5 +137,14 @@ corpus$keywords[[1]]
 nrow(corpus$references[[1]])
 ```
 
+``` r
+
+corpus$keywords[[1]]
+#> [1] "deep learning"           "neural networks"        
+#> [3] "representation learning" "backpropagation"
+nrow(corpus$references[[1]])
+#> [1] 4
+```
+
 This costs one Abstract Retrieval request per record in `recs`, on top
-of whatever retrieved `recs` in the first place.
+of whatever retrieved `recs` in the first place. \`\`\`

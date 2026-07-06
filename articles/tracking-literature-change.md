@@ -63,19 +63,18 @@ retrievals, and prints the counts in each category.
 
 changes <- scopus_diff_dois(old = baseline, new = later)
 changes
-#> <scopus_doi_diff> 2 added, 3 removed, 3 unchanged
-#> # A tibble: 8 × 2
-#>   doi                            status   
-#>   <chr>                          <fct>    
-#> 1 10.1038/s41586-023-0008-8      added    
-#> 2 10.1126/science.abc1234        added    
-#> 3 10.1002/adma.202100001         removed  
-#> 4 10.1016/S1470-2045(20)30013-9  removed  
-#> 5 10.1038/s41558-018-0085-1      removed  
-#> 6 10.1038/s41586-019-0001-1      unchanged
-#> 7 10.1038/s41586-020-0002-2      unchanged
-#> 8 10.1103/PhysRevLett.116.061102 unchanged
 ```
+
+| doi                            | status    |
+|:-------------------------------|:----------|
+| 10.1038/s41586-023-0008-8      | added     |
+| 10.1126/science.abc1234        | added     |
+| 10.1002/adma.202100001         | removed   |
+| 10.1016/S1470-2045(20)30013-9  | removed   |
+| 10.1038/s41558-018-0085-1      | removed   |
+| 10.1038/s41586-019-0001-1      | unchanged |
+| 10.1038/s41586-020-0002-2      | unchanged |
+| 10.1103/PhysRevLett.116.061102 | unchanged |
 
 The newly indexed papers come back as `added`, the records present both
 times as `unchanged`, and anything dropped from the later pull as
@@ -84,13 +83,12 @@ times as `unchanged`, and anything dropped from the later pull as
 ``` r
 
 changes[changes$status == "added", ]
-#> <scopus_doi_diff> 2 added, 0 removed, 0 unchanged
-#> # A tibble: 2 × 2
-#>   doi                       status
-#>   <chr>                     <fct> 
-#> 1 10.1038/s41586-023-0008-8 added 
-#> 2 10.1126/science.abc1234   added
 ```
+
+| doi                       | status |
+|:--------------------------|:-------|
+| 10.1038/s41586-023-0008-8 | added  |
+| 10.1126/science.abc1234   | added  |
 
 ## Merging without duplicates
 
