@@ -48,6 +48,10 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: JamesIves/github-pages-deploy-action@v4.5.0
         with:
-          clean: false
+          # clean: true so files dropped from the build (e.g. a page whose
+          # source moved out of pkgdown's scan path) are removed from the live
+          # site rather than lingering as orphans. gh-pages holds only the
+          # pkgdown output, so a full mirror is safe.
+          clean: true
           branch: gh-pages
           folder: docs

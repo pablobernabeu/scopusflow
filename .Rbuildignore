@@ -1,7 +1,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^README\.Rmd$
-^design-notes\.md$
+^dev$
 ^project-state\.md$
 ^data-raw$
 ^cran-comments\.md$

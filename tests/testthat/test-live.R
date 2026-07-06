@@ -73,7 +73,7 @@ test_that("a live COMPLETE-view fetch adds the authkeywords column", {
   # recurring live test here, since this file runs on an unattended schedule
   # and that path draws on its own, smaller, per-document quota. It has been
   # verified directly against a live key during development instead (see
-  # design-notes.md).
+  # dev/design-notes.md).
   skip_live()
   withr::local_options(scopusflow.api_key = NULL)
   recs <- scopus_fetch("TITLE-ABS-KEY(bibliometrics)", years = 2020, max_results = 1, view = "COMPLETE")
