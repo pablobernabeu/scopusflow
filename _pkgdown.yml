@@ -37,14 +37,24 @@ footer:
 
 home:
   sidebar:
-    # Point the citation entry at the About page (which carries the citation
-    # and BibTeX) rather than pkgdown's default authors.html#citation.
+    # Slim the right sidebar: the citation points at the About page (not
+    # pkgdown's authors.html#citation), the licence is one British-spelled link
+    # (the default "MIT + file LICENSE" line also links a stub page the deploy
+    # prunes), and Community shows only the contributing guide.
     structure: [links, license, community, citation, authors, dev]
     components:
       citation:
         title: Citation
         text: >
-          [How to cite scopusflow](articles/about.html).
+          [How to cite scopusflow](articles/about.html)
+      license:
+        title: Licence
+        text: >
+          [MIT licence](LICENSE.html)
+      community:
+        title: Community
+        text: >
+          [Contributing guide](CONTRIBUTING.html)
 
 navbar:
   # House order: Get started, Reference, Articles, Changelog, About on the left;

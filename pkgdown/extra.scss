@@ -148,6 +148,17 @@ h3 { font-size: 1.25rem; margin-top: 1.8rem; }
 .navbar .navbar-nav .nav-link .fa,
 .navbar #search-input { color: rgba(255, 255, 255, .85); }
 .navbar-nav .dropdown-menu { border-color: var(--bs-border-color); }
+// Dropdown rows: a clear brand-tinted hover, legible in both modes.
+.navbar .dropdown-menu {
+  --bs-dropdown-link-hover-bg: rgba(33, 166, 166, .14);
+  --bs-dropdown-link-hover-color: var(--brand-primary-ink);
+  --bs-dropdown-link-active-bg: var(--brand-primary);
+  --bs-dropdown-link-active-color: #fff;
+}
+[data-bs-theme="dark"] .navbar .dropdown-menu {
+  --bs-dropdown-link-hover-bg: rgba(91, 199, 199, .18);
+  --bs-dropdown-link-hover-color: #EAF1F4;
+}
 
 // ---------------------------------------------------------------------------
 // Home hero
@@ -306,16 +317,25 @@ blockquote p:last-child { margin-bottom: 0; }
   --bs-btn-active-bg: var(--brand-primary-ink);
 }
 a { text-underline-offset: .15em; }
+// Content links: underline on hover so the highlight is unmistakable in both
+// modes, on top of the amber hover colour set through --bs-link-hover-color.
+main a:hover, .contents a:hover, #pkgdown-sidebar a:hover { text-decoration: underline; }
 
 // ---------------------------------------------------------------------------
 // Footer — the deep-navy signature band
 // ---------------------------------------------------------------------------
 footer {
   margin-top: 3rem;
-  padding: 2rem 0 2.4rem;
+  // Inset the content so it is not flush against the viewport edges, and lay
+  // the two columns out with room between them.
+  padding: 2rem clamp(1.25rem, 4vw, 4rem) 2.4rem;
   background: var(--brand-ink);
   border-top: 3px solid var(--brand-teal);
   color: rgba(255, 255, 255, .78);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: .5rem 2.5rem;
 }
 footer a { color: var(--brand-amber-light); }
 footer a:hover { color: #fff; }
