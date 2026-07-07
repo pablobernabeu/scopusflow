@@ -19,7 +19,9 @@ This release adds a code-free app and reference-manager export.
   final year no longer overlap, and falls back to a legend when there are too
   many topics to label legibly. The labels are spread when the figure is drawn,
   against the rendered text height, so they stay legible at any figure size,
-  including a short panel such as the app's result card.
+  including a short panel such as the app's result card. Each leader is drawn
+  semi-transparent, so one passing behind another topic's label does not
+  compete with the text.
 * The app is steadier under stress. It refuses to start a comparison while a
   harvest is running, surfaces any comparison failure as a notification rather
   than a crash, floors a fractional maximum-records entry, drops duplicate

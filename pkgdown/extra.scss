@@ -26,6 +26,7 @@
   --brand-teal-light:   #5BC7C7;  // teal for dark backgrounds
   --brand-amber:        #E8A33D;  // warm accent — the App link, hover, rules
   --brand-amber-light:  #F2B860;
+  --brand-amber-dark:   #9C5A00;  // AA-contrast amber for link hover on light paper
   --brand-paper:        #FBFAF6;  // warm off-white page
   --brand-card:         #FFFFFF;
   --brand-border:       #E7E1D5;  // warm hairline
@@ -47,7 +48,7 @@
   --bs-secondary-color:  var(--brand-muted);
   --bs-link-color:       var(--brand-primary);
   --bs-link-color-rgb:   15, 110, 110;
-  --bs-link-hover-color: var(--brand-amber);
+  --bs-link-hover-color: var(--brand-amber-dark);
   --bs-border-color:     var(--brand-border);
   --bs-emphasis-color:   var(--brand-ink);
 }

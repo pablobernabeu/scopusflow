@@ -337,7 +337,11 @@ makeContent.sf_endlabels <- function(x) {
   seg <- grid::segmentsGrob(
     grid::unit(x$x0, "npc"), grid::unit(x$y0, "npc"),
     grid::unit(x$xlab, "npc"), grid::unit(label_y, "npc"),
-    gp = grid::gpar(col = x$col, lwd = x$lwd), name = "sf_endlabels_leaders"
+    # Draw the leaders semi-transparent so a leader that passes behind another
+    # topic's label does not compete with the text for legibility; the label
+    # text itself (below) stays fully opaque.
+    gp = grid::gpar(col = grDevices::adjustcolor(x$col, alpha.f = 0.4), lwd = x$lwd),
+    name = "sf_endlabels_leaders"
   )
   txt <- grid::textGrob(
     x$label, grid::unit(x$xlab, "npc"), grid::unit(label_y, "npc"),
