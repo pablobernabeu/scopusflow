@@ -40,7 +40,7 @@ languages.
 ## Licence
 
 scopusflow is released under the [MIT
-licence](https://pablobernabeu.github.io/scopusflow/LICENSE.md).
+licence](https://pablobernabeu.github.io/scopusflow/LICENSE.html).
 ‘Scopus’ is a trademark of Elsevier. scopusflow is an independent client
 and is not affiliated with or endorsed by Elsevier.
 
@@ -50,7 +50,7 @@ Releases are tagged on GitHub and archived on Zenodo. The concept DOI
 [10.5281/zenodo.21252669](https://doi.org/10.5281/zenodo.21252669)
 always resolves to the latest archived version, so a citation stays
 current without naming a version. The
-[changelog](https://pablobernabeu.github.io/scopusflow/news/index.md)
+[changelog](https://pablobernabeu.github.io/scopusflow/news/index.html)
 records what changed in each release.
 
 ## Contributing and support
@@ -58,7 +58,7 @@ records what changed in each release.
 Bugs and feature requests are best raised on the [GitHub issues
 page](https://github.com/pablobernabeu/scopusflow/issues), and the
 [contributing
-guide](https://pablobernabeu.github.io/scopusflow/CONTRIBUTING.md)
+guide](https://pablobernabeu.github.io/scopusflow/CONTRIBUTING.html)
 describes the development setup and the conventions the package follows.
 Because the package works with an Elsevier API key, please never paste a
 key or any other secret into an issue.
