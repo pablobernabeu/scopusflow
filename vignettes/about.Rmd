@@ -17,7 +17,7 @@ If you use scopusflow in published work, please cite it.
 
 > Bernabeu, P. (2026). scopusflow: A Reproducible Workflow Layer for 'Scopus'
 > Bibliographic Searches. R package version `r packageVersion("scopusflow")`.
-> https://github.com/pablobernabeu/scopusflow
+> https://doi.org/10.5281/zenodo.21252669
 
 ```{r bibtex, echo = FALSE, results = "asis"}
 # Build the BibTeX entry from the installed version so it never drifts, then
@@ -31,7 +31,8 @@ bib <- paste(
   "  author = {Pablo Bernabeu},",
   "  year   = {2026},",
   sprintf("  note   = {R package version %s},", ver),
-  "  url    = {https://github.com/pablobernabeu/scopusflow},",
+  "  doi    = {10.5281/zenodo.21252669},",
+  "  url    = {https://doi.org/10.5281/zenodo.21252669},",
   "}",
   sep = "\n"
 )
