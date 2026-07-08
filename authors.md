@@ -8,16 +8,17 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/pablobernabeu/scopusflow/blob/v0.3.0/inst/CITATION)
+[`inst/CITATION`](https://github.com/pablobernabeu/scopusflow/blob/main/inst/CITATION)
 
 Bernabeu, P. (2026). scopusflow: A Reproducible Workflow Layer for
 'Scopus' Bibliographic Searches. R package version 0.3.0.
-https://github.com/pablobernabeu/scopusflow
+https://doi.org/10.5281/zenodo.21252669
 
     @Manual{,
       title = {{scopusflow}: A Reproducible Workflow Layer for 'Scopus' Bibliographic Searches},
       author = {Pablo Bernabeu},
       year = {2026},
       note = {R package version 0.3.0},
-      url = {https://github.com/pablobernabeu/scopusflow},
+      doi = {10.5281/zenodo.21252669},
+      url = {https://doi.org/10.5281/zenodo.21252669},
     }
