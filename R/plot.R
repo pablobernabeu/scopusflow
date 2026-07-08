@@ -334,21 +334,17 @@ makeContent.sf_endlabels <- function(x) {
   over <- max(label_y) - x$ycap
   if (over > 0) label_y <- label_y - over
   label_y[label_y < 0] <- 0  # graceful floor if the panel is too short to fit them all
-  seg <- grid::segmentsGrob(
-    grid::unit(x$x0, "npc"), grid::unit(x$y0, "npc"),
-    grid::unit(x$xlab, "npc"), grid::unit(label_y, "npc"),
-    # Draw the leaders semi-transparent so a leader that passes behind another
-    # topic's label does not compete with the text for legibility; the label
-    # text itself (below) stays fully opaque.
-    gp = grid::gpar(col = grDevices::adjustcolor(x$col, alpha.f = 0.4), lwd = x$lwd),
-    name = "sf_endlabels_leaders"
-  )
+  # No leader lines: where labels converge they must be nudged apart, and a
+  # leader from each line's end to its nudged label then cuts across the
+  # neighbouring labels' text. The labels are colour-matched to their lines and
+  # spread in the same order as the line ends, so the link stays clear without
+  # one.
   txt <- grid::textGrob(
     x$label, grid::unit(x$xlab, "npc"), grid::unit(label_y, "npc"),
     hjust = 0, gp = grid::gpar(col = x$col, fontsize = x$fontsize),
     name = "sf_endlabels_text"
   )
-  grid::setChildren(x, grid::gList(seg, txt))
+  grid::setChildren(x, grid::gList(txt))
 }
 
 #' @rdname plot_scopus_comparison

@@ -243,9 +243,13 @@ pre {
   color: #E7EDF0;
   border-radius: 10px;
   border: 1px solid rgba(33, 166, 166, .25);
-  padding: 1rem 1.1rem;
-  font-size: .86rem;
-  line-height: 1.55;
+  padding: .85rem 1rem;
+  // Smaller than the prose so long output lines fit the column, and scroll
+  // inside the block rather than stretching it when they cannot.
+  font-size: .78rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  max-width: 100%;
 }
 pre code { color: inherit; background: none; }
 :not(pre) > code {
