@@ -22,14 +22,15 @@ This release adds a code-free app and reference-manager export.
   search can be carried into Zotero, EndNote, Mendeley or a LaTeX
   bibliography.
 - \[[`plot_scopus_comparison()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_comparison.md)\]
-  now spreads the direct line labels vertically and draws a leader from
-  each label to its line, so topics that converge near the final year no
-  longer overlap, and falls back to a legend when there are too many
-  topics to label legibly. The labels are spread when the figure is
-  drawn, against the rendered text height, so they stay legible at any
-  figure size, including a short panel such as the app’s result card.
-  Each leader is drawn semi-transparent, so one passing behind another
-  topic’s label does not compete with the text.
+  now spreads the direct line labels vertically so topics that converge
+  near the final year no longer overlap, and falls back to a legend when
+  there are too many topics to label legibly. The labels are spread when
+  the figure is drawn, against the rendered text height, so they stay
+  legible at any figure size, including a short panel such as the app’s
+  result card. They carry no leader lines: the labels are colour-matched
+  to their lines and spread in the same order as the line ends, so the
+  link is clear without a leader that would otherwise cut across
+  neighbouring labels.
 - The app is steadier under stress. It refuses to start a comparison
   while a harvest is running, surfaces any comparison failure as a
   notification rather than a crash, floors a fractional maximum-records
