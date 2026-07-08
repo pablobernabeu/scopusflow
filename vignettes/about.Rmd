@@ -15,8 +15,8 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 
 If you use scopusflow in published work, please cite it.
 
-> Bernabeu, P. (2026). scopusflow: A Reproducible Workflow Layer for 'Scopus'
-> Bibliographic Searches. R package version `r packageVersion("scopusflow")`.
+> Bernabeu, P. (2026). scopusflow: A reproducible workflow layer for 'Scopus'
+> bibliographic searches. R package version `r packageVersion("scopusflow")`.
 > https://doi.org/10.5281/zenodo.21252669
 
 ```{r bibtex, echo = FALSE, results = "asis"}
@@ -27,7 +27,7 @@ If you use scopusflow in published work, please cite it.
 ver <- as.character(utils::packageVersion("scopusflow"))
 bib <- paste(
   "@Manual{scopusflow,",
-  "  title  = {{scopusflow}: A Reproducible Workflow Layer for 'Scopus' Bibliographic Searches},",
+  "  title  = {{scopusflow}: A reproducible workflow layer for '{Scopus}' bibliographic searches},",
   "  author = {Pablo Bernabeu},",
   "  year   = {2026},",
   sprintf("  note   = {R package version %s},", ver),
@@ -78,3 +78,25 @@ and is a Fellow of the Software Sustainability Institute. scopusflow and its
 [Python twin](https://pablobernabeu.github.io/scopusflow-py/) are part of that
 work, keeping a search reproducible and its results legible across both
 languages.
+
+## Licence
+
+scopusflow is released under the [MIT licence](../LICENSE.html). 'Scopus' is a
+trademark of Elsevier. scopusflow is an independent client and is not
+affiliated with or endorsed by Elsevier.
+
+## Versioning and archival
+
+Releases are tagged on GitHub and archived on Zenodo. The concept DOI
+[10.5281/zenodo.21252669](https://doi.org/10.5281/zenodo.21252669) always
+resolves to the latest archived version, so a citation stays current without
+naming a version. The [changelog](../news/index.html) records what changed in
+each release.
+
+## Contributing and support
+
+Bugs and feature requests are best raised on the
+[GitHub issues page](https://github.com/pablobernabeu/scopusflow/issues), and
+the [contributing guide](../CONTRIBUTING.html) describes the development setup
+and the conventions the package follows. Because the package works with an
+Elsevier API key, please never paste a key or any other secret into an issue.

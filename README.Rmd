@@ -153,7 +153,7 @@ plot_scopus_comparison(cmp)
 
 # 6. Read the abstract of a known record, or harvest a whole large query past
 #    the 5000-record ceiling with cursor pagination.
-scopus_abstract("10.1038/s41586-019-0001-1")
+scopus_abstract("10.1103/PhysRevLett.116.061102")
 all_records <- scopus_fetch("TITLE-ABS-KEY(microplastics)", cursor = TRUE)
 ```
 

@@ -1,6 +1,7 @@
 API's
 autoplot
 bibliometrix
+bibliometrix's
 BibTeX
 bslib
 callr
@@ -18,6 +19,7 @@ LaTeX
 Lifecycle
 Mendeley
 npc
+OpenAlex's
 ORCID
 pybliometrics
 resumable
@@ -25,6 +27,10 @@ RIS
 saveable
 Scopus
 Scopus’
+Search's
 tibble
 tidyverse
+unnested
+zenodo
+Zenodo
 Zotero

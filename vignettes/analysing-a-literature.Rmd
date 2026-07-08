@@ -89,7 +89,7 @@ an identifier that cannot be found yields a row of `NA`s with a warning rather
 than stopping the run.
 
 ```{r eval = FALSE}
-ab <- scopus_abstract(c("10.1038/s41586-019-0001-1", "10.1103/PhysRevLett.116.061102"))
+ab <- scopus_abstract(c("10.1038/nature14539", "10.1103/PhysRevLett.116.061102"))
 ```
 
 The result is a tibble of class `scopus_abstracts`, one row per identifier. To
@@ -97,16 +97,16 @@ show its shape without a key, here is a stand-in with the same columns.
 
 ```{r}
 ab <- tibble::tibble(
-  id          = c("10.1038/s41586-019-0001-1", "10.1103/PhysRevLett.116.061102"),
+  id          = c("10.1038/nature14539", "10.1103/PhysRevLett.116.061102"),
   scopus_id   = c("85060000001", "84960000002"),
-  doi         = c("10.1038/s41586-019-0001-1", "10.1103/PhysRevLett.116.061102"),
-  title       = c("A single-cell atlas of gene expression",
+  doi         = c("10.1038/nature14539", "10.1103/PhysRevLett.116.061102"),
+  title       = c("Deep learning",
                   "Observation of gravitational waves from a binary black hole merger"),
-  abstract    = c("Here we present a comprehensive single-cell survey of ...",
+  abstract    = c("Deep learning allows computational models that are ...",
                   "On 14 September 2015 the two detectors of LIGO observed ..."),
   publication = c("Nature", "Physical Review Letters"),
-  year        = c(2019L, 2016L),
-  citations   = c(420L, 5400L)
+  year        = c(2015L, 2016L),
+  citations   = c(42000L, 5400L)
 )
 class(ab) <- c("scopus_abstracts", class(ab))
 ab

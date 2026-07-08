@@ -2,15 +2,15 @@ citHeader("To cite scopusflow in publications, use:")
 
 bibentry(
   bibtype  = "Manual",
-  title    = "{scopusflow}: A Reproducible Workflow Layer for 'Scopus' Bibliographic Searches",
+  title    = "{scopusflow}: A reproducible workflow layer for '{Scopus}' bibliographic searches",
   author   = person("Pablo", "Bernabeu", comment = c(ORCID = "0000-0003-1083-2460")),
   year     = "2026",
   note     = sprintf("R package version %s", meta$Version),
   doi      = "10.5281/zenodo.21252669",
   url      = "https://doi.org/10.5281/zenodo.21252669",
   textVersion = paste0(
-    "Bernabeu, P. (2026). scopusflow: A Reproducible Workflow Layer for ",
-    "'Scopus' Bibliographic Searches. R package version ", meta$Version, ". ",
+    "Bernabeu, P. (2026). scopusflow: A reproducible workflow layer for ",
+    "'Scopus' bibliographic searches. R package version ", meta$Version, ". ",
     "https://doi.org/10.5281/zenodo.21252669"
   )
 )
