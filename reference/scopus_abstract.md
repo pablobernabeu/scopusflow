@@ -163,7 +163,7 @@ to assemble a minimal keyword/reference corpus across many documents.
 
 ``` r
 if (FALSE) { # scopusflow::scopus_has_key()
-scopus_abstract("10.1038/s41586-019-0001-1")
+scopus_abstract("10.1103/PhysRevLett.116.061102")
 
 # Author keywords and a structured reference list, in the same request.
 # Costs one Abstract Retrieval request per identifier, against a smaller,

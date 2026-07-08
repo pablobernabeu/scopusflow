@@ -1,5 +1,5 @@
 pandoc: 3.8.3
-pkgdown: 2.2.0
+pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   about: about.html
@@ -12,7 +12,7 @@ articles:
   scopusflow: scopusflow.html
   tracking-literature-change: tracking-literature-change.html
   using-the-app: using-the-app.html
-last_built: 2026-07-08T02:30Z
+last_built: 2026-07-08T20:46Z
 urls:
   reference: https://pablobernabeu.github.io/scopusflow/reference
   article: https://pablobernabeu.github.io/scopusflow/articles

@@ -111,7 +111,7 @@ is resilient, so an identifier that cannot be found yields a row of
 
 ``` r
 
-ab <- scopus_abstract(c("10.1038/s41586-019-0001-1", "10.1103/PhysRevLett.116.061102"))
+ab <- scopus_abstract(c("10.1038/nature14539", "10.1103/PhysRevLett.116.061102"))
 ```
 
 The result is a tibble of class `scopus_abstracts`, one row per
@@ -121,16 +121,16 @@ same columns.
 ``` r
 
 ab <- tibble::tibble(
-  id          = c("10.1038/s41586-019-0001-1", "10.1103/PhysRevLett.116.061102"),
+  id          = c("10.1038/nature14539", "10.1103/PhysRevLett.116.061102"),
   scopus_id   = c("85060000001", "84960000002"),
-  doi         = c("10.1038/s41586-019-0001-1", "10.1103/PhysRevLett.116.061102"),
-  title       = c("A single-cell atlas of gene expression",
+  doi         = c("10.1038/nature14539", "10.1103/PhysRevLett.116.061102"),
+  title       = c("Deep learning",
                   "Observation of gravitational waves from a binary black hole merger"),
-  abstract    = c("Here we present a comprehensive single-cell survey of ...",
+  abstract    = c("Deep learning allows computational models that are ...",
                   "On 14 September 2015 the two detectors of LIGO observed ..."),
   publication = c("Nature", "Physical Review Letters"),
-  year        = c(2019L, 2016L),
-  citations   = c(420L, 5400L)
+  year        = c(2015L, 2016L),
+  citations   = c(42000L, 5400L)
 )
 class(ab) <- c("scopus_abstracts", class(ab))
 ab
@@ -138,7 +138,7 @@ ab
 
 | id | scopus_id | doi | title | abstract | publication | year | citations |
 |:---|:---|:---|:---|:---|:---|---:|---:|
-| 10.1038/s41586-019-0001-1 | 85060000001 | 10.1038/s41586-019-0001-1 | A single-cell atlas of gene expression | Here we present a comprehensive single-cell survey of … | Nature | 2019 | 420 |
+| 10.1038/nature14539 | 85060000001 | 10.1038/nature14539 | Deep learning | Deep learning allows computational models that are … | Nature | 2015 | 42000 |
 | 10.1103/PhysRevLett.116.061102 | 84960000002 | 10.1103/PhysRevLett.116.061102 | Observation of gravitational waves from a binary black hole merger | On 14 September 2015 the two detectors of LIGO observed … | Physical Review Letters | 2016 | 5400 |
 
 ``` r
@@ -149,7 +149,7 @@ ab[, c("doi", "title", "year")]
 
 | doi | title | year |
 |:---|:---|---:|
-| 10.1038/s41586-019-0001-1 | A single-cell atlas of gene expression | 2019 |
+| 10.1038/nature14539 | Deep learning | 2015 |
 | 10.1103/PhysRevLett.116.061102 | Observation of gravitational waves from a binary black hole merger | 2016 |
 
 ``` r

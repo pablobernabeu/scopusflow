@@ -206,22 +206,22 @@ or ‘Scopus’ identifier. A batch is resilient, so an identifier that
 cannot be found yields a row of <code>NA</code>s with a warning rather
 than stopping the run.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">ab</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_abstract.html">scopus_abstract</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"10.1038/s41586-019-0001-1"</span>, <span class="st">"10.1103/PhysRevLett.116.061102"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">ab</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_abstract.html">scopus_abstract</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"10.1038/nature14539"</span>, <span class="st">"10.1103/PhysRevLett.116.061102"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>The result is a tibble of class <code>scopus_abstracts</code>, one
 row per identifier. To show its shape without a key, here is a stand-in
 with the same columns.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ab</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
-<span>  id          <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"10.1038/s41586-019-0001-1"</span>, <span class="st">"10.1103/PhysRevLett.116.061102"</span><span class="op">)</span>,</span>
+<span>  id          <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"10.1038/nature14539"</span>, <span class="st">"10.1103/PhysRevLett.116.061102"</span><span class="op">)</span>,</span>
 <span>  scopus_id   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"85060000001"</span>, <span class="st">"84960000002"</span><span class="op">)</span>,</span>
-<span>  doi         <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"10.1038/s41586-019-0001-1"</span>, <span class="st">"10.1103/PhysRevLett.116.061102"</span><span class="op">)</span>,</span>
-<span>  title       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A single-cell atlas of gene expression"</span>,</span>
+<span>  doi         <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"10.1038/nature14539"</span>, <span class="st">"10.1103/PhysRevLett.116.061102"</span><span class="op">)</span>,</span>
+<span>  title       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Deep learning"</span>,</span>
 <span>                  <span class="st">"Observation of gravitational waves from a binary black hole merger"</span><span class="op">)</span>,</span>
-<span>  abstract    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Here we present a comprehensive single-cell survey of ..."</span>,</span>
+<span>  abstract    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Deep learning allows computational models that are ..."</span>,</span>
 <span>                  <span class="st">"On 14 September 2015 the two detectors of LIGO observed ..."</span><span class="op">)</span>,</span>
 <span>  publication <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Nature"</span>, <span class="st">"Physical Review Letters"</span><span class="op">)</span>,</span>
-<span>  year        <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2019L</span>, <span class="fl">2016L</span><span class="op">)</span>,</span>
-<span>  citations   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">420L</span>, <span class="fl">5400L</span><span class="op">)</span></span>
+<span>  year        <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2015L</span>, <span class="fl">2016L</span><span class="op">)</span>,</span>
+<span>  citations   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">42000L</span>, <span class="fl">5400L</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">ab</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"scopus_abstracts"</span>, <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">ab</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">ab</span></span></code></pre></div>
@@ -248,15 +248,15 @@ with the same columns.</p>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left">10.1038/s41586-019-0001-1</td>
+<td align="left">10.1038/nature14539</td>
 <td align="left">85060000001</td>
-<td align="left">10.1038/s41586-019-0001-1</td>
-<td align="left">A single-cell atlas of gene expression</td>
-<td align="left">Here we present a comprehensive single-cell survey of
+<td align="left">10.1038/nature14539</td>
+<td align="left">Deep learning</td>
+<td align="left">Deep learning allows computational models that are
 …</td>
 <td align="left">Nature</td>
-<td align="right">2019</td>
-<td align="right">420</td>
+<td align="right">2015</td>
+<td align="right">42000</td>
 </tr>
 <tr class="even">
 <td align="left">10.1103/PhysRevLett.116.061102</td>
@@ -288,9 +288,9 @@ hole merger</td>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left">10.1038/s41586-019-0001-1</td>
-<td align="left">A single-cell atlas of gene expression</td>
-<td align="right">2019</td>
+<td align="left">10.1038/nature14539</td>
+<td align="left">Deep learning</td>
+<td align="right">2015</td>
 </tr>
 <tr class="even">
 <td align="left">10.1103/PhysRevLett.116.061102</td>
@@ -334,7 +334,7 @@ when you want the complete set at once.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>MIT licensed. ‘Scopus’ is a trademark of Elsevier; scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>MIT licensed. ‘Scopus’ is a trademark of Elsevier; scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>
