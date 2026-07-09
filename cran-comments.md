@@ -13,14 +13,18 @@ package builds, loads and checks without them.
 
 ## Test environments
 
-* Local: Windows 11, R 4.5.1
+* Local: Windows 11, R 4.6.1 (2026-07-08)
 * GitHub Actions: windows-latest, macOS-latest, ubuntu-latest (release),
   ubuntu-latest (devel and oldrel-1), plus a depends-only run
 * win-builder: R-devel and R-release
 
 ## R CMD check results
 
-0 errors | 0 warnings | 0 notes locally.
+0 errors | 0 warnings | 0 notes locally. When a live 'Scopus' API key is
+configured, the local check additionally reports an example-timing note,
+because the `@examplesIf scopus_has_key()` examples then run against the live
+API; on machines without a key, including CRAN, those examples are skipped and
+the note does not arise.
 
 On some platforms a single note may list possibly misspelled words in the
 DESCRIPTION ("DOIs", "Elsevier", "bibliometric", "resumable"). These are spelled
