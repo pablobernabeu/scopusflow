@@ -75,6 +75,7 @@ Shaded bands convey how stable each yearly share is.</p>
 <span>  pub_count_in_legend <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  highlight <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  interval <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  legend_inside <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -105,6 +106,16 @@ grey, which is useful when one topic is the focus of a figure.</p></dd>
 <dd><p>Logical. When <code>TRUE</code> (the default), a shaded band around each
 line shows a Wilson interval on the yearly share. See <em>Details</em> for how to
 read it.</p></dd>
+
+
+<dt id="arg-legend-inside">legend_inside<a class="anchor" aria-label="anchor" href="#arg-legend-inside"></a></dt>
+<dd><p>Logical. When <code>TRUE</code>, and a legend is drawn (that is,
+when <code>highlight</code> is not set), the legend is placed inside the plotting
+panel, in whichever corner has the most free space, on a small
+semi-transparent background, rather than above the panel. Direct line
+labelling is suppressed so the in-panel legend carries the topic key.
+Defaults to <code>FALSE</code>, which keeps the legend above the panel, or the direct
+line labels a few topics would otherwise receive.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -154,6 +165,8 @@ indexing lag or coverage, which are the larger real uncertainties.</p>
 <span class="r-plt img"><img src="plot_scopus_comparison-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="fu">plot_scopus_comparison</span><span class="op">(</span><span class="va">cmp</span>, highlight <span class="op">=</span> <span class="st">"drug discovery"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="plot_scopus_comparison-2.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu">plot_scopus_comparison</span><span class="op">(</span><span class="va">cmp</span>, legend_inside <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="plot_scopus_comparison-3.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

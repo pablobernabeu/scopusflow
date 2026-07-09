@@ -130,21 +130,24 @@ rather than as a misleading zero.
 
 ``` r
 
-plot_scopus_comparison(cmp)
+plot_scopus_comparison(cmp, legend_inside = TRUE)
 ```
 
 ![Four application areas' share of the deep-learning literature from
-2013 to 2021, with shaded uncertainty
-bands](comparing-topics_files/figure-html/unnamed-chunk-4-1.png)
+2013 to 2021, with shaded uncertainty bands and an in-panel
+legend](comparing-topics_files/figure-html/unnamed-chunk-4-1.png)
 
-The chart uses whole-number year breaks, a colour-blind-safe palette
-and, because there are only a few topics, labels the lines directly so
-the reader need not match colours to a legend. Each label carries the
-topic’s total record count. The shaded band around each line is a Wilson
-stability range: it is wide in the early years, when the reference set
-is small and the share would move easily, and narrows as the literature
-grows. Because ‘Scopus’ returns exact counts rather than a sample, the
-band is illustrative rather than a confidence interval, a point the
+Here `legend_inside = TRUE` places the topic key inside the panel, in
+whichever corner has the most free space, rather than labelling each
+line at its end. Left at its default the chart uses whole-number year
+breaks, a colour-blind-safe palette and, because there are only a few
+topics, labels the lines directly so the reader need not match colours
+to a legend. Each label carries the topic’s total record count. The
+shaded band around each line is a Wilson stability range: it is wide in
+the early years, when the reference set is small and the share would
+move easily, and narrows as the literature grows. Because ‘Scopus’
+returns exact counts rather than a sample, the band is illustrative
+rather than a confidence interval, a point the
 [`plot_scopus_comparison()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_comparison.md)
 help page sets out.
 

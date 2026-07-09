@@ -636,16 +636,19 @@ recorded as <code>NA</code> rather than as a misleading zero.</p>
 <h2 id="a-first-plot">A first plot<a class="anchor" aria-label="anchor" href="#a-first-plot"></a>
 </h2>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_scopus_comparison.html">plot_scopus_comparison</a></span><span class="op">(</span><span class="va">cmp</span><span class="op">)</span></span></code></pre></div>
-<p><img src="comparing-topics_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="Four application areas' share of the deep-learning literature from 2013 to 2021, with shaded uncertainty bands" width="768"></p>
-<p>The chart uses whole-number year breaks, a colour-blind-safe palette
-and, because there are only a few topics, labels the lines directly so
-the reader need not match colours to a legend. Each label carries the
-topic’s total record count. The shaded band around each line is a Wilson
-stability range: it is wide in the early years, when the reference set
-is small and the share would move easily, and narrows as the literature
-grows. Because ‘Scopus’ returns exact counts rather than a sample, the
-band is illustrative rather than a confidence interval, a point the
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_scopus_comparison.html">plot_scopus_comparison</a></span><span class="op">(</span><span class="va">cmp</span>, legend_inside <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p><img src="comparing-topics_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="Four application areas' share of the deep-learning literature from 2013 to 2021, with shaded uncertainty bands and an in-panel legend" width="768"></p>
+<p>Here <code>legend_inside = TRUE</code> places the topic key inside
+the panel, in whichever corner has the most free space, rather than
+labelling each line at its end. Left at its default the chart uses
+whole-number year breaks, a colour-blind-safe palette and, because there
+are only a few topics, labels the lines directly so the reader need not
+match colours to a legend. Each label carries the topic’s total record
+count. The shaded band around each line is a Wilson stability range: it
+is wide in the early years, when the reference set is small and the
+share would move easily, and narrows as the literature grows. Because
+‘Scopus’ returns exact counts rather than a sample, the band is
+illustrative rather than a confidence interval, a point the
 <code><a href="../reference/plot_scopus_comparison.html">plot_scopus_comparison()</a></code> help page sets out.</p>
 </div>
 <div class="section level2">
