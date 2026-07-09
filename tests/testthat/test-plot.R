@@ -214,6 +214,34 @@ test_that("a single highlighted topic draws exactly one end-label", {
   expect_identical(length(m$y), 1L)
 })
 
+test_that("legend_inside is accepted and returns a ggplot with an in-panel legend", {
+  skip_if_not_installed("ggplot2")
+  p <- plot_scopus_comparison(make_comparison(), legend_inside = TRUE)
+  expect_s3_class(p, "ggplot")
+  # A legend replaces the direct end-labels, positioned inside the panel.
+  pos <- p$theme$legend.position
+  inside_pos <- identical(pos, "inside") || (is.numeric(pos) && length(pos) == 2L)
+  expect_true(inside_pos)
+  expect_false(any(vapply(p$layers,
+    function(l) inherits(l$geom, "GeomEndLabels"), logical(1))))
+})
+
+test_that("legend_inside picks the emptiest panel corner", {
+  # Points cluster in the lower-left, so the top-right corner is freest.
+  corner <- scopusflow:::sf_free_corner(
+    x = c(1, 1.2, 1.4), y = c(1, 1.2, 1.4),
+    xlim = c(0, 10), ylim = c(0, 10)
+  )
+  expect_equal(corner, c(1, 1))
+})
+
+test_that("the default leaves legend_inside off (behaviour unchanged)", {
+  skip_if_not_installed("ggplot2")
+  p <- plot_scopus_comparison(make_comparison())
+  # Few topics: direct end-labels, no legend, as before.
+  expect_identical(p$theme$legend.position, "none")
+})
+
 test_that("many topics fall back to a legend instead of direct labels", {
   skip_if_not_installed("ggplot2")
   cmp <- tibble::tibble(

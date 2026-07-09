@@ -96,13 +96,16 @@ no defined share and is recorded as `NA` rather than as a misleading zero.
 
 ## A first plot
 
-```{r eval = has_ggplot2, fig.alt = "Four application areas' share of the deep-learning literature from 2013 to 2021, with shaded uncertainty bands", fig.width = 8, fig.height = 4.6}
-plot_scopus_comparison(cmp)
+```{r eval = has_ggplot2, fig.alt = "Four application areas' share of the deep-learning literature from 2013 to 2021, with shaded uncertainty bands and an in-panel legend", fig.width = 8, fig.height = 4.6}
+plot_scopus_comparison(cmp, legend_inside = TRUE)
 ```
 
-The chart uses whole-number year breaks, a colour-blind-safe palette and, because
-there are only a few topics, labels the lines directly so the reader need not
-match colours to a legend. Each label carries the topic's total record count. The
+Here `legend_inside = TRUE` places the topic key inside the panel, in whichever
+corner has the most free space, rather than labelling each line at its end. Left
+at its default the chart uses whole-number year breaks, a colour-blind-safe
+palette and, because there are only a few topics, labels the lines directly so the
+reader need not match colours to a legend. Each label carries the topic's total
+record count. The
 shaded band around each line is a Wilson stability range: it is wide in the early
 years, when the reference set is small and the share would move easily, and
 narrows as the literature grows. Because 'Scopus' returns exact counts rather than

@@ -14,6 +14,10 @@ This release adds a code-free app and reference-manager export.
 * [`as_bibtex()`] and [`as_ris()`] export a record set to the BibTeX and RIS
   interchange formats, so a search can be carried into Zotero, EndNote, Mendeley
   or a LaTeX bibliography.
+* [`plot_scopus_comparison()`] gains `legend_inside`. When set, and a legend is
+  drawn, it is placed inside the panel in whichever corner has the most free
+  space, on a small semi-transparent background, rather than above the panel.
+  The default keeps the previous behaviour.
 * [`plot_scopus_comparison()`] now spreads the direct line labels vertically so
   topics that converge near the final year no longer overlap, and falls back to
   a legend when there are too many topics to label legibly. The labels are

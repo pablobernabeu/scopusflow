@@ -15,6 +15,13 @@
 #' @param interval Logical. When `TRUE` (the default), a shaded band around each
 #'   line shows a Wilson interval on the yearly share. See *Details* for how to
 #'   read it.
+#' @param legend_inside Logical. When `TRUE`, and a legend is drawn (that is,
+#'   when `highlight` is not set), the legend is placed inside the plotting
+#'   panel, in whichever corner has the most free space, on a small
+#'   semi-transparent background, rather than above the panel. Direct line
+#'   labelling is suppressed so the in-panel legend carries the topic key.
+#'   Defaults to `FALSE`, which keeps the legend above the panel, or the direct
+#'   line labels a few topics would otherwise receive.
 #' @param ... Currently unused, present for S3 consistency.
 #' @return A [ggplot2::ggplot] object. Printing it draws the plot.
 #' @details
@@ -44,9 +51,12 @@
 #' class(cmp) <- c("scopus_comparison", class(cmp))
 #' plot_scopus_comparison(cmp)
 #' plot_scopus_comparison(cmp, highlight = "drug discovery")
+#' plot_scopus_comparison(cmp, legend_inside = TRUE)
 #' @export
 plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
-                                   highlight = NULL, interval = TRUE, ...) {
+                                   highlight = NULL, interval = TRUE,
+                                   legend_inside = FALSE, ...) {
+  legend_inside <- isTRUE(legend_inside)
   if (!inherits(x, "scopus_comparison")) {
     rlang::abort(
       "`x` must be a `scopus_comparison` object from scopus_compare_topics().",
@@ -130,6 +140,10 @@ plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
   # 0.16 inch (8.8 pt text with leading); the floor tracks the app's short card.
   line_in <- 3.1 * (72.27 / 25.4) / 72.27 * 1.3
   direct <- length(topics) <= min(8L, as.integer(2.2 / line_in))
+  # An in-panel legend replaces the direct labels: it becomes the topic key, so
+  # the right-margin labels are switched off and the legend (positioned at the
+  # foot of this function) carries the mapping instead.
+  if (legend_inside && is.null(highlight)) direct <- FALSE
 
   p <- ggplot2::ggplot(
     df,
@@ -153,7 +167,8 @@ plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
       ggplot2::geom_point(ggplot2::aes(colour = .data$label), size = 1.8,
                           stroke = 0) +
       ggplot2::scale_colour_viridis_d(option = "viridis", begin = 0.05,
-                                      end = 0.85, name = NULL)
+                                      end = 0.85,
+                                      name = if (legend_inside) "Topic" else NULL)
     if (direct) {
       # Spread the right-edge labels vertically so converging lines do not produce
       # overlapping labels, and draw a thin leader from each line's true endpoint
@@ -213,7 +228,13 @@ plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
     )
   }
 
-  p +
+  # A legend is drawn only when the lines are neither directly labelled nor
+  # reduced to a highlighted pair. When one is drawn and `legend_inside` is set,
+  # it sits inside the panel in the emptiest corner; otherwise it sits above.
+  has_legend <- !direct && is.null(highlight)
+  inside <- has_legend && legend_inside
+
+  p <- p +
     ggplot2::scale_x_continuous(
       breaks = brk, minor_breaks = NULL,
       expand = ggplot2::expansion(mult = c(0.01, if (labelled) 0.03 else 0.02))
@@ -241,8 +262,60 @@ plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
       plot.title.position = "plot",
       plot.caption = ggplot2::element_text(colour = "grey45", size = 8),
       plot.margin = ggplot2::margin(5.5, label_room, 5.5, 5.5),
-      legend.position = if (direct || !is.null(highlight)) "none" else "top"
+      legend.position = if (!has_legend) "none" else if (inside) "inside" else "top"
     )
+
+  if (inside) {
+    corner <- sf_free_corner(df$year, df$comparison_percentage,
+                             xlim = range(yrs), ylim = c(0, ymax_pad))
+    p <- p + sf_inside_legend_theme(corner)
+  }
+  p
+}
+
+# Pick the panel corner with the most free space for an in-panel legend. The data
+# are normalised to the panel's [0, 1] extent, and each corner is scored by its
+# distance to the nearest plotted point; the farthest (emptiest) corner wins. The
+# return value is the corner in npc coordinates, `c(x, y)` with each 0 or 1.
+sf_free_corner <- function(x, y, xlim, ylim) {
+  dx <- diff(xlim); dy <- diff(ylim)
+  xn <- if (dx > 0) (x - xlim[1]) / dx else rep(0.5, length(x))
+  yn <- if (dy > 0) (y - ylim[1]) / dy else rep(0.5, length(y))
+  ok <- is.finite(xn) & is.finite(yn)
+  xn <- xn[ok]; yn <- yn[ok]
+  corners <- list(c(0, 1), c(1, 1), c(0, 0), c(1, 0))  # TL, TR, BL, BR
+  if (length(xn) == 0L) return(corners[[1]])
+  clearance <- vapply(corners, function(cn) {
+    min(sqrt((xn - cn[1])^2 + (yn - cn[2])^2))
+  }, numeric(1))
+  corners[[which.max(clearance)]]
+}
+
+# Theme fragment that anchors the legend inside the panel at `corner` (npc, each
+# component 0 or 1), on a small semi-transparent background, mirroring depictr's
+# in-panel legend. A short inset keeps it clear of the panel edge, and the legend
+# is justified to the same corner so it grows inward. The coordinate-based
+# placement moved from `legend.position = c(x, y)` to the "inside" position plus
+# `legend.position.inside` in ggplot2 3.5.0, so both spellings are supported.
+sf_inside_legend_theme <- function(corner) {
+  inset <- 0.02
+  pos <- c(if (corner[1] == 0) inset else 1 - inset,
+           if (corner[2] == 0) inset else 1 - inset)
+  bg <- grDevices::adjustcolor("white", alpha.f = 0.7)
+  common <- ggplot2::theme(
+    legend.justification = corner,
+    legend.background = ggplot2::element_rect(fill = bg, colour = NA),
+    legend.key = ggplot2::element_rect(fill = NA, colour = NA),
+    legend.margin = ggplot2::margin(3, 5, 3, 5),
+    legend.title = ggplot2::element_text(size = 9),
+    legend.text = ggplot2::element_text(size = 8)
+  )
+  if (utils::packageVersion("ggplot2") >= "3.5.0") {
+    common + ggplot2::theme(legend.position = "inside",
+                            legend.position.inside = pos)
+  } else {
+    common + ggplot2::theme(legend.position = pos)
+  }
 }
 
 # Wilson score interval on a binomial share, returned as percentages in [0, 100].

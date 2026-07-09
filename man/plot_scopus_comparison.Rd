@@ -10,6 +10,7 @@ plot_scopus_comparison(
   pub_count_in_legend = TRUE,
   highlight = NULL,
   interval = TRUE,
+  legend_inside = FALSE,
   ...
 )
 
@@ -28,6 +29,14 @@ grey, which is useful when one topic is the focus of a figure.}
 \item{interval}{Logical. When \code{TRUE} (the default), a shaded band around each
 line shows a Wilson interval on the yearly share. See \emph{Details} for how to
 read it.}
+
+\item{legend_inside}{Logical. When \code{TRUE}, and a legend is drawn (that is,
+when \code{highlight} is not set), the legend is placed inside the plotting
+panel, in whichever corner has the most free space, on a small
+semi-transparent background, rather than above the panel. Direct line
+labelling is suppressed so the in-panel legend carries the topic key.
+Defaults to \code{FALSE}, which keeps the legend above the panel, or the direct
+line labels a few topics would otherwise receive.}
 
 \item{...}{Currently unused, present for S3 consistency.}
 
@@ -71,6 +80,7 @@ cmp <- tibble::tibble(
 class(cmp) <- c("scopus_comparison", class(cmp))
 plot_scopus_comparison(cmp)
 plot_scopus_comparison(cmp, highlight = "drug discovery")
+plot_scopus_comparison(cmp, legend_inside = TRUE)
 \dontshow{\}) # examplesIf}
 }
 \seealso{
