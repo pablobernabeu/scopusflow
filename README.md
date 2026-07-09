@@ -3,9 +3,11 @@
 
 # scopusflow <small>(R)</small> <img src="man/figures/logo.png" align="right" height="139" alt="" />
 
+<!-- badges: start -->
 [![R-CMD-check](https://github.com/pablobernabeu/scopusflow/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/pablobernabeu/scopusflow/actions/workflows/R-CMD-check.yaml)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/license/MIT)
+<!-- badges: end -->
 
 scopusflow is a reproducible, quota-aware workflow layer over the
 Elsevier [Scopus](https://dev.elsevier.com/sc_apis.html) Search API. It
