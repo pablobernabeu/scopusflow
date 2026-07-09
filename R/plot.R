@@ -171,10 +171,10 @@ plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
                                       name = if (legend_inside) "Topic" else NULL)
     if (direct) {
       # Spread the right-edge labels vertically so converging lines do not produce
-      # overlapping labels, and draw a thin leader from each line's true endpoint
-      # to its (nudged) label so the link is unambiguous. The spreading runs at
-      # draw time against the real text height (sf_geom_end_labels), so it holds at
-      # any figure size. Colour comes from the same viridis scale as the lines.
+      # overlapping labels. The spreading runs at draw time against the real text
+      # height (sf_geom_end_labels), so it holds at any figure size. The labels
+      # carry no leader lines: colour (the same viridis scale as the lines) and
+      # order link each label to its line.
       nudge <- diff(range(yrs)) * 0.012 + 0.05
       p <- p + sf_geom_end_labels(
         ggplot2::aes(x = .data$year, y = .data$comparison_percentage,
@@ -395,7 +395,7 @@ sf_geom_end_labels <- function(mapping = NULL, data = NULL, nudge = 0,
 #' coordinates are `[0, 1]` (npc), so the measured text height, the spread and the
 #' overflow shift are all in those units. Not called directly.
 #' @param x The `sf_endlabels` gTree built by `sf_geom_end_labels()`.
-#' @return The gTree with its leader-and-text children set.
+#' @return The gTree with its text children set.
 #' @keywords internal
 #' @exportS3Method grid::makeContent
 makeContent.sf_endlabels <- function(x) {

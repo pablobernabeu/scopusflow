@@ -44,6 +44,32 @@ This release adds a code-free app and reference-manager export.
   tools such as keyword co-occurrence or citation-network analysis, without
   replacing [`as_bibliometrix()`]. A new vignette, *Author keywords and
   references*, walks through all of this with real DOIs.
+* [`scopus_fetch_plan()`] compares each checkpoint's recorded query with the
+  plan cell before loading it, refetching and overwriting the checkpoint on a
+  mismatch, so two different plans pointed at the same `cache_dir` cannot
+  serve each other's records. A checkpoint that carries no query information
+  (a zero-row cell, or one written by an older scopusflow) loads as before,
+  and a cache directory is still best kept to a single plan.
+* [`scopus_abstract()`] keys its per-identifier cache by the requested
+  `include` set as well as the view, so a resumed run that asks for different
+  extras refetches rather than being served a cached row missing the
+  requested columns. Rows whose columns differ, as with a cache written by an
+  older scopusflow, are filled to the union of columns instead of failing to
+  bind.
+* [`scopus_abstract()`] rejects `include = "keywords"` without `view =
+  "FULL"` up front, since the `REF` response carries no author keywords;
+  previously the request was accepted and yielded `NA` silently.
+  [`scopus_corpus()`] requests only references under `view = "REF"`
+  accordingly, with empty `keywords`.
+* [`read_scopus_records()`] keeps the `authkeywords` column a
+  `COMPLETE`-view record set carries, so the CSV round-trip is stable for
+  that view too.
+* The warning on a query that exceeds the 5000-record offset ceiling suggests
+  `scopus_fetch(cursor = TRUE)` as well as partitioning with
+  [`scopus_plan()`].
+* The no-key error renders its guidance (the option name, the `api_key`
+  argument and the key-request URL) through cli instead of leaking raw
+  markup.
 
 # scopusflow 0.2.0
 

@@ -5,6 +5,7 @@
 ^project-state\.md$
 ^data-raw$
 ^cran-comments\.md$
+^CITATION\.cff$
 ^CLAUDE\.md$
 ^\.claude$
 ^\.github$

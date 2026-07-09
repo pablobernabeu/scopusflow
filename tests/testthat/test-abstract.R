@@ -102,6 +102,16 @@ test_that("view and include are validated", {
     scopus_abstract("x", view = "META", include = "references"),
     class = "scopus_error_bad_input"
   )
+  # Keywords need FULL: the REF response carries no author keywords, so
+  # accepting REF (or the default view) would only yield a silent NA column.
+  expect_error(
+    scopus_abstract("x", include = "keywords"),
+    class = "scopus_error_bad_input"
+  )
+  expect_error(
+    scopus_abstract("x", view = "REF", include = "keywords"),
+    class = "scopus_error_bad_input"
+  )
 })
 
 test_that("include = 'keywords' under FULL view adds a populated authkeywords column", {
@@ -274,6 +284,52 @@ test_that("caching writes per-identifier files and resume avoids re-fetching", {
   ab <- scopus_abstract(c("10.1/a", "10.1/b"), cache_dir = cache, resume = TRUE)
   expect_equal(calls, first_calls)  # served from cache, no new requests
   expect_equal(nrow(ab), 2L)
+})
+
+test_that("the cache key carries the include set, so extras are not served stale", {
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  httr2::local_mocked_responses(function(req) {
+    mock_abstract_full(
+      core = list(`prism:doi` = "10.1/a"),
+      authkeywords = list(`author-keyword` = list(list(`$` = "graphene")))
+    )
+  })
+  scopus_abstract("10.1/a", view = "FULL", cache_dir = cache, resume = TRUE)
+  # The same identifier with extras requested is a different cache entry, so
+  # the keywords arrive rather than the cached keyword-less row being served.
+  ab <- scopus_abstract(
+    "10.1/a", view = "FULL", include = "keywords",
+    cache_dir = cache, resume = TRUE
+  )
+  expect_true("authkeywords" %in% names(ab))
+  expect_equal(ab$authkeywords, "graphene")
+})
+
+test_that("rows with differing columns are filled to the union, not a bind error", {
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  httr2::local_mocked_responses(function(req) {
+    mock_abstract_full(
+      core = list(`prism:doi` = "10.1/b"),
+      authkeywords = list(`author-keyword` = list(list(`$` = "graphene")))
+    )
+  })
+  # A hand-migrated or legacy cache entry can hold a row with fewer columns
+  # than a freshly fetched one; the batch must bind on the column union
+  # rather than erroring, as scopus_bind_records() already does for plans.
+  legacy <- scopusflow:::scopus_abstract_row("10.1/a", list())
+  saveRDS(legacy, file.path(
+    cache,
+    sprintf("id-FULL-keywords-%s.rds", scopusflow:::scopus_safe_filename("10.1/a"))
+  ))
+  ab <- scopus_abstract(
+    c("10.1/a", "10.1/b"), view = "FULL", include = "keywords",
+    cache_dir = cache, resume = TRUE
+  )
+  expect_equal(nrow(ab), 2L)
+  expect_true(is.na(ab$authkeywords[1]))
+  expect_equal(ab$authkeywords[2], "graphene")
 })
 
 test_that("n_requests and quota are attached, since this is quota-costly per document", {

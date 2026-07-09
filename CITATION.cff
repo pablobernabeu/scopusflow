@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use scopusflow, please cite it as below."
+title: "scopusflow: A reproducible workflow layer for 'Scopus' bibliographic searches"
+abstract: "A quota-aware workflow layer over the Elsevier 'Scopus' Search API. It builds reproducible search plans, retrieves records with rate-limit handling and resumable caching, normalises results to a stable tidy schema, tracks changes in DOI sets over time, compares publication trends across topics and exports to downstream bibliometric tools."
+type: software
+authors:
+  - family-names: Bernabeu
+    given-names: Pablo
+    orcid: "https://orcid.org/0000-0003-1083-2460"
+    email: pcbernabeu@gmail.com
+version: "0.3.0"
+date-released: "2026-07-09"
+doi: "10.5281/zenodo.21252669"
+license: MIT
+repository-code: "https://github.com/pablobernabeu/scopusflow"
+url: "https://pablobernabeu.github.io/scopusflow/"
+keywords:
+  - bibliometrics
+  - Scopus
+  - literature search
+  - reproducible research
+  - quota-aware retrieval

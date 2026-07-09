@@ -120,6 +120,6 @@ In a live setting the later retrieval would come from the API rather than a
 synthetic list, with everything else unchanged.
 
 ```{r eval = FALSE}
-later <- scopus_fetch("TITLE-ABS-KEY(CRISPR)", field = "TITLE-ABS-KEY")
+later <- scopus_fetch("CRISPR", field = "TITLE-ABS-KEY")
 scopus_diff_dois(old = read_scopus_records(path), new = later)
 ```

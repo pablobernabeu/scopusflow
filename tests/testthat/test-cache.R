@@ -29,6 +29,33 @@ test_that("caching writes per-cell files and resume avoids re-fetching", {
   expect_equal(nrow(recs), 2L)
 })
 
+test_that("a checkpoint from a different plan is refetched, not served", {
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  calls <- 0L
+  httr2::local_mocked_responses(function(req) {
+    calls <<- calls + 1L
+    mock_corpus(total = 1L)(req)
+  })
+
+  plan_a <- scopus_plan("graphene", years = 2020)
+  scopus_fetch_plan(plan_a, cache_dir = cache, resume = TRUE)
+  first_calls <- calls
+
+  # A different plan pointed at the same cache_dir must not be served plan A's
+  # records: the mismatching checkpoint is a cache miss, refetched and
+  # overwritten.
+  plan_b <- scopus_plan("perovskite", years = 2020)
+  recs <- scopus_fetch_plan(plan_b, cache_dir = cache, resume = TRUE)
+  expect_gt(calls, first_calls)
+  expect_true(all(recs$query == plan_b$query[1]))
+
+  # The overwritten checkpoint then serves plan B from cache.
+  calls_after <- calls
+  scopus_fetch_plan(plan_b, cache_dir = cache, resume = TRUE)
+  expect_equal(calls, calls_after)
+})
+
 test_that("scopus_fetch_plan validates its inputs", {
   local_scopus_test_env()
   expect_error(scopus_fetch_plan(list()), class = "scopus_error_bad_input")

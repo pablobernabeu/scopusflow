@@ -53,9 +53,12 @@ scopus_abort_status <- function(status, resp = NULL, call = rlang::caller_env())
   )
 }
 
-# Abort because no API key is available.
+# Abort because no API key is available. Raised through cli_abort() (which
+# wraps rlang::abort(), so the condition classes are unchanged) rather than
+# rlang::abort() directly, because the message carries inline cli spans that
+# rlang alone would print as raw markup.
 scopus_abort_no_key <- function(call = rlang::caller_env()) {
-  rlang::abort(
+  cli::cli_abort(
     message = c(
       "No 'Scopus' API key was found.",
       i = "Set the SCOPUS_API_KEY environment variable, the {.code scopusflow.api_key} option, or pass {.arg api_key}.",

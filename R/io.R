@@ -3,6 +3,8 @@
 #' Save a [scopus_records] tibble to disk and read it back, with a stable
 #' round-trip. The file extension selects the format. An `.rds` file preserves
 #' the types and class exactly, while a `.csv` file is portable plain text.
+#' The optional `authkeywords` column a `view = "COMPLETE"` retrieval adds
+#' (see [scopus_records()]) round-trips through both formats.
 #'
 #' @param x A [scopus_records] tibble to write.
 #' @param path Explicit file path. The functions read from, or write to, exactly
@@ -60,9 +62,13 @@ read_scopus_records <- function(path) {
   scopus_coerce_records(raw)
 }
 
-# Coerce a read-in data frame back to the typed scopus_records schema.
+# Coerce a read-in data frame back to the typed scopus_records schema. A
+# COMPLETE-view record set carries an extra authkeywords column beyond the
+# standard schema; it is kept, so the CSV round-trip is stable for that view
+# too rather than silently dropping the column on read.
 scopus_coerce_records <- function(raw) {
   cols <- scopus_records_columns()
+  if ("authkeywords" %in% names(raw)) cols <- union(cols, "authkeywords")
   for (nm in cols) {
     if (is.null(raw[[nm]])) raw[[nm]] <- NA
   }

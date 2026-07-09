@@ -30,6 +30,19 @@ test_that("an empty record set round-trips through CSV", {
   expect_type(back$year, "integer")
 })
 
+test_that("a COMPLETE-view authkeywords column survives the CSV round-trip", {
+  recs <- scopus_records(
+    list(entry = list(list(`prism:doi` = "10.1/a",
+                           authkeywords = "graphene | supercapacitor"))),
+    query = "q", view = "COMPLETE"
+  )
+  path <- withr::local_tempfile(fileext = ".csv")
+  write_scopus_records(recs, path)
+  back <- read_scopus_records(path)
+  expect_true("authkeywords" %in% names(back))
+  expect_equal(back$authkeywords, "graphene | supercapacitor")
+})
+
 test_that("a title with comma, quote and newline survives CSV round-trip", {
   recs <- scopus_records(list(entry = list(
     list(`dc:identifier` = "SCOPUS_ID:1", `prism:doi` = "10.1/a",

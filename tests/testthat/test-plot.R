@@ -173,14 +173,14 @@ rendered_label_gaps <- function(p, height, width = 8) {
   list(y = ys, line = line)
 }
 
-test_that("converging topics get a self-spreading end-label layer with leaders", {
+test_that("converging topics get a self-spreading end-label layer", {
   skip_if_not_installed("ggplot2")
   cmp <- make_comparison()
   cmp$comparison_percentage[cmp$year == max(cmp$year) &
                               cmp$query_type == "comparison"] <- c(20, 20.1)
   p <- plot_scopus_comparison(cmp)
-  # Direct labels are one custom end-label geom (leader + text drawn at render
-  # time), not a build-time geom_text/geom_segment pair.
+  # Direct labels are one custom end-label geom (text spread at render time,
+  # with no leader lines), not a build-time geom_text/geom_segment pair.
   expect_true(any(vapply(p$layers,
     function(l) inherits(l$geom, "GeomEndLabels"), logical(1))))
 })

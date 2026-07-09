@@ -31,13 +31,14 @@ are unaffected. Retrieving \code{include = "references"} requires \code{view = "
 to prefer.}
 
 \item{include}{Optional character vector naming extra fields to retrieve in
-the same request: \code{"references"} and/or \code{"keywords"}. Both require
-Abstract Retrieval's \code{FULL} or \code{REF} view (see \code{view}), an entitlement
-that is separate from ordinary abstract access and from 'Scopus' Search
-access, and that, per Elsevier's own documentation, some fields (notably
-author keywords) may need to be requested from your Scopus/Elsevier
-account contact even when the view itself is otherwise accessible. See
-\emph{Details}.}
+the same request: \code{"references"} and/or \code{"keywords"}. \code{"references"}
+requires \code{view = "FULL"} or \code{view = "REF"}, and \code{"keywords"} requires
+\code{view = "FULL"}, since the \code{REF} response carries no author keywords.
+Either way this is an entitlement that is separate from ordinary abstract
+access and from 'Scopus' Search access, and, per Elsevier's own
+documentation, some fields (notably author keywords) may need to be
+requested from your Scopus/Elsevier account contact even when the view
+itself is otherwise accessible. See \emph{Details}.}
 
 \item{cache_dir}{Optional directory for per-identifier cache files, as in
 \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}. \code{NULL} (the default) performs no caching. Worth
@@ -92,8 +93,8 @@ identifier. Passing \code{include} adds author keywords and/or the document's
 reference list to the same request.
 }
 \details{
-Retrieving references or keywords needs Abstract Retrieval's \code{FULL} or \code{REF}
-view. In development, against a live key with full Abstract Retrieval
+Retrieving references needs Abstract Retrieval's \code{FULL} or \code{REF} view, and
+keywords need \code{FULL}. In development, against a live key with full Abstract Retrieval
 access, \code{view = "FULL"} returned a complete, correctly counted reference
 list for every document tried. \code{view = "REF"} returned the identical,
 complete list in one case but a truncated (paginated) subset in another, on

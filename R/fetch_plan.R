@@ -11,7 +11,12 @@
 #'   `NULL` performs no caching. Pass an explicit path you control, or
 #'   `scopus_cache_dir()` to use a managed, clearable cache under
 #'   [tools::R_user_dir()]. Caching happens only when you opt in through this
-#'   argument.
+#'   argument. A cache directory serves one plan: cells are checkpointed by
+#'   their position in the plan, so give each distinct plan its own directory.
+#'   As a safeguard, a checkpoint whose records carry a different query than
+#'   the plan cell is treated as a cache miss, refetched and overwritten; a
+#'   checkpoint written by an older scopusflow that carries no query
+#'   information is loaded as before.
 #' @param resume Logical. When `TRUE` and `cache_dir` is set, a cell whose cache
 #'   file already exists is loaded from disk rather than fetched again.
 #' @param api_key,inst_token Optional credentials (see [scopus_has_key()]).
@@ -63,9 +68,17 @@ scopus_fetch_plan <- function(plan,
     }
 
     if (!is.null(cache_file) && resume && file.exists(cache_file)) {
-      if (verbose) cli::cli_inform("Cell {i}/{nrow(plan)}: loaded from cache.")
-      results[[i]] <- readRDS(cache_file)
-      next
+      cached <- readRDS(cache_file)
+      if (scopus_cell_cache_matches(cached, cell$query)) {
+        if (verbose) cli::cli_inform("Cell {i}/{nrow(plan)}: loaded from cache.")
+        results[[i]] <- cached
+        next
+      }
+      if (verbose) {
+        cli::cli_inform(
+          "Cell {i}/{nrow(plan)}: checkpoint holds a different query; refetching."
+        )
+      }
     }
 
     if (verbose) {
@@ -84,6 +97,25 @@ scopus_fetch_plan <- function(plan,
   combined <- scopus_bind_records(results)
   attr(combined, "plan") <- plan
   combined
+}
+
+# Whether a cached checkpoint can serve a plan cell. Records written by
+# scopus_fetch_core() carry the wrapped query in their `query` column, so a
+# checkpoint left behind by a different plan sharing the same cache_dir is
+# recognised and treated as a cache miss: the cell is refetched and the
+# checkpoint overwritten. A checkpoint that carries no query information (a
+# zero-row cell, or one written by an older scopusflow) is loaded as before.
+# The Python twin applies the same query comparison on resume.
+scopus_cell_cache_matches <- function(cached, query) {
+  q <- if (is.data.frame(cached)) cached[["query"]] else NULL
+  if (is.null(q)) {
+    return(TRUE)
+  }
+  q <- unique(q[!is.na(q)])
+  if (length(q) == 0L) {
+    return(TRUE)
+  }
+  length(q) == 1L && identical(q, query)
 }
 
 # Bind a list of scopus_records tibbles into one, re-numbering entries. Cells

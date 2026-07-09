@@ -52,14 +52,14 @@ recs$authkeywords
 
 ```{r, include = FALSE}
 # Representative COMPLETE-view result, assembled offline. authkeywords is the
-# single semicolon-joined string scopus_fetch() returns under view =
-# "COMPLETE", one element per record.
+# single string scopus_fetch() returns under view = "COMPLETE", one element
+# per record, in Scopus' own " | "-delimited form.
 recs <- tibble::tibble(
   entry_number = 1L, scopus_id = "85000000001", doi = "10.1038/nature14539",
   title = "Deep learning", authors = "LeCun Y.; Bengio Y.; Hinton G.",
   year = 2015L, date = "2015-05-28", publication = "Nature",
   citations = 60000L,
-  authkeywords = "deep learning;neural networks;representation learning;backpropagation"
+  authkeywords = "deep learning | neural networks | representation learning | backpropagation"
 )
 ```
 
@@ -122,7 +122,9 @@ ab <- tibble::tibble(
   doi = "10.1038/nature14539",
   title = "Deep learning",
   year = 2015L,
-  authkeywords = recs$authkeywords,
+  # scopus_abstract() joins keywords "; ", like its authors column; only
+  # Search's COMPLETE view uses the " | " form shown above.
+  authkeywords = "deep learning; neural networks; representation learning; backpropagation",
   references = list(refs)
 )
 attr(ab, "n_requests") <- 1L
@@ -184,12 +186,13 @@ nrow(corpus$references[[1]])
 
 ```{r, include = FALSE}
 # scopus_corpus() pairs each record with its Abstract Retrieval references and
-# splits the joined authkeywords string into a character vector per record.
+# splits scopus_abstract()'s "; "-joined authkeywords string into a character
+# vector per record.
 corpus <- tibble::tibble(
   id = "10.1038/nature14539",
   title = "Deep learning",
   year = 2015L,
-  keywords = list(trimws(strsplit(recs$authkeywords, ";", fixed = TRUE)[[1]])),
+  keywords = list(trimws(strsplit(ab$authkeywords, ";", fixed = TRUE)[[1]])),
   references = list(refs)
 )
 ```
@@ -201,4 +204,3 @@ nrow(corpus$references[[1]])
 
 This costs one Abstract Retrieval request per record in `recs`, on top of
 whatever retrieved `recs` in the first place.
-```

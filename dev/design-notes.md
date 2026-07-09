@@ -114,7 +114,10 @@ stack. They are de-collided at draw time rather than at build time: the label
 block is a small custom ggplot2 `Geom` whose grob carries the endpoints to grid,
 and a `makeContent` method (registered on `grid::makeContent`) spreads them when
 the panel's physical size is finally known, using one rendered line of text as
-the minimum gap and a thin leader back to each line's true end. Spreading against
+the minimum gap. The labels carry no leader lines: they are colour-matched to
+their lines and spread in the same order as the line ends, and a leader from a
+line's end to its nudged label would cut across the neighbouring labels' text.
+Spreading against
 the rendered text height, not a fixed fraction of the data range, keeps labels
 legible at any figure size, including the app's short result card, where a
 build-time gap overlapped. Beyond what fits one line per topic in a short panel

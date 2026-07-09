@@ -19,13 +19,14 @@
 #'   "FULL"` or `view = "REF"`; see *Details* for how the two differ and which
 #'   to prefer.
 #' @param include Optional character vector naming extra fields to retrieve in
-#'   the same request: `"references"` and/or `"keywords"`. Both require
-#'   Abstract Retrieval's `FULL` or `REF` view (see `view`), an entitlement
-#'   that is separate from ordinary abstract access and from 'Scopus' Search
-#'   access, and that, per Elsevier's own documentation, some fields (notably
-#'   author keywords) may need to be requested from your Scopus/Elsevier
-#'   account contact even when the view itself is otherwise accessible. See
-#'   *Details*.
+#'   the same request: `"references"` and/or `"keywords"`. `"references"`
+#'   requires `view = "FULL"` or `view = "REF"`, and `"keywords"` requires
+#'   `view = "FULL"`, since the `REF` response carries no author keywords.
+#'   Either way this is an entitlement that is separate from ordinary abstract
+#'   access and from 'Scopus' Search access, and, per Elsevier's own
+#'   documentation, some fields (notably author keywords) may need to be
+#'   requested from your Scopus/Elsevier account contact even when the view
+#'   itself is otherwise accessible. See *Details*.
 #' @param cache_dir Optional directory for per-identifier cache files, as in
 #'   [scopus_fetch_plan()]. `NULL` (the default) performs no caching. Worth
 #'   setting whenever `include` is used: Abstract Retrieval draws on its own
@@ -65,8 +66,8 @@
 #'   further fields pybliometrics already parses; see the Python package's
 #'   equivalent documentation for that fuller shape.
 #' @details
-#' Retrieving references or keywords needs Abstract Retrieval's `FULL` or `REF`
-#' view. In development, against a live key with full Abstract Retrieval
+#' Retrieving references needs Abstract Retrieval's `FULL` or `REF` view, and
+#' keywords need `FULL`. In development, against a live key with full Abstract Retrieval
 #' access, `view = "FULL"` returned a complete, correctly counted reference
 #' list for every document tried. `view = "REF"` returned the identical,
 #' complete list in one case but a truncated (paginated) subset in another, on
@@ -133,6 +134,14 @@ scopus_abstract <- function(ids,
       class = "scopus_error_bad_input"
     )
   }
+  # The REF response carries no author keywords, so accepting it (or the
+  # default view) here would only yield a silent all-NA column.
+  if ("keywords" %in% include && !identical(view, "FULL")) {
+    rlang::abort(
+      "Retrieving `include = \"keywords\"` needs `view = \"FULL\"`.",
+      class = "scopus_error_bad_input"
+    )
+  }
   if (!is.character(ids) || length(ids) == 0L || anyNA(ids) ||
       !all(nzchar(trimws(ids)))) {
     rlang::abort(
@@ -158,6 +167,13 @@ scopus_abstract <- function(ids,
   quota <- NULL
   forbidden <- NULL
 
+  # The requested extras are part of the cache key (sorted, so the encoding is
+  # stable however `include` was ordered): a resumed run that asks for
+  # different extras must refetch rather than be served a cached row missing
+  # the requested columns. The Python twin keys its abstract cache the same
+  # way.
+  include_key <- if (length(include) == 0L) "none" else paste(sort(include), collapse = "-")
+
   rows <- vector("list", length(ids))
   for (i in seq_along(ids)) {
     cache_file <- if (is.null(cache_dir)) {
@@ -165,7 +181,10 @@ scopus_abstract <- function(ids,
     } else {
       file.path(
         cache_dir,
-        sprintf("id-%s-%s.rds", view %||% "default", scopus_safe_filename(ids[i]))
+        sprintf(
+          "id-%s-%s-%s.rds",
+          view %||% "default", include_key, scopus_safe_filename(ids[i])
+        )
       )
     }
     if (!is.null(cache_file) && resume && file.exists(cache_file)) {
@@ -229,6 +248,17 @@ scopus_abstract <- function(ids,
     rows[[i]] <- row
   }
 
+  # Union the columns before binding, as scopus_bind_records() does for plan
+  # cells: a row loaded from a cache written with a different column set (for
+  # example by an older scopusflow) can carry fewer columns than a freshly
+  # fetched one, and rbind() would error on the mismatch.
+  all_cols <- Reduce(union, lapply(rows, names))
+  rows <- lapply(rows, function(x) {
+    for (col in setdiff(all_cols, names(x))) {
+      x[[col]] <- if (col == "references") list(NULL) else NA
+    }
+    x[all_cols]
+  })
   out <- do.call(rbind, rows)
   out <- tibble::new_tibble(as.list(out), nrow = nrow(out), class = "scopus_abstracts")
   attr(out, "n_requests") <- n_requests

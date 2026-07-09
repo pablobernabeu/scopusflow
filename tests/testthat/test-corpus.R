@@ -38,6 +38,19 @@ test_that("a document with no keywords gets an empty (not NA) keywords vector", 
   expect_equal(corpus$keywords[[1]], character())
 })
 
+test_that("under REF view only references are requested and keywords are empty", {
+  local_scopus_test_env()
+  records <- tibble::tibble(doi = "10.1/a", title = "A study", year = 2020L)
+  httr2::local_mocked_responses(function(req) {
+    mock_abstract_ref(references = list(
+      list(`@id` = "1", `ref-info` = list(`ref-title` = list(`ref-titletext` = "A cited work")))
+    ), total = 1)
+  })
+  corpus <- scopus_corpus(records, view = "REF")
+  expect_equal(corpus$keywords[[1]], character())
+  expect_equal(nrow(corpus$references[[1]]), 1L)
+})
+
 test_that("records with a missing identifier are dropped with a warning", {
   local_scopus_test_env()
   records <- tibble::tibble(doi = c("10.1/a", NA), title = c("A", "B"), year = c(2020L, 2021L))

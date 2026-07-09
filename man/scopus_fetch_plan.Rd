@@ -23,7 +23,12 @@ scopus_fetch_plan(
 \code{NULL} performs no caching. Pass an explicit path you control, or
 \code{scopus_cache_dir()} to use a managed, clearable cache under
 \code{\link[tools:R_user_dir]{tools::R_user_dir()}}. Caching happens only when you opt in through this
-argument.}
+argument. A cache directory serves one plan: cells are checkpointed by
+their position in the plan, so give each distinct plan its own directory.
+As a safeguard, a checkpoint whose records carry a different query than
+the plan cell is treated as a cache miss, refetched and overwritten; a
+checkpoint written by an older scopusflow that carries no query
+information is loaded as before.}
 
 \item{resume}{Logical. When \code{TRUE} and \code{cache_dir} is set, a cell whose cache
 file already exists is loaded from disk rather than fetched again.}

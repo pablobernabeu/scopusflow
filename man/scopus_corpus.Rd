@@ -27,7 +27,9 @@ scopus_corpus(
 returned a complete, correctly counted reference list for every document
 tried, while \code{"REF"} returned an inconsistent, sometimes-truncated
 subset (see \code{\link[=scopus_abstract]{scopus_abstract()}}'s documentation for the details and for
-the entitlement each view needs).}
+the entitlement each view needs). The \code{REF} response also carries no
+author keywords, so under that view only the references are requested
+and \code{keywords} is empty for every record.}
 
 \item{cache_dir, resume}{As in \code{\link[=scopus_abstract]{scopus_abstract()}}: an optional directory
 for per-identifier cache files, and whether an existing one is reused.
@@ -43,8 +45,8 @@ smaller weekly quota.}
 A tibble with columns \code{id} (the identifier \code{records} was looked up
 by), \code{title}, \code{year}, \code{keywords} (a list-column: a character vector of
 the document's author keywords, split out of \code{\link[=scopus_abstract]{scopus_abstract()}}'s
-joined \code{authkeywords} string, empty when the document has none or the
-field is unavailable) and \code{references} (a list-column: each entry is the
+joined \code{authkeywords} string, empty when the document has none, the
+field is unavailable or \code{view = "REF"}) and \code{references} (a list-column: each entry is the
 \code{references} data frame \code{\link[=scopus_abstract]{scopus_abstract()}} returns for that document,
 with one row per cited work). A record in \code{records} whose identifier is
 \code{NA} is dropped, with a warning naming how many.

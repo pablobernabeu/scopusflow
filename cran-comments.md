@@ -4,8 +4,12 @@ This is an update of scopusflow, from 0.1.0 to 0.3.0. It adds cursor-based
 pagination (to retrieve beyond the API's 5000-record offset ceiling), an
 abstract-retrieval function, an analysis and plotting layer (annual trends and
 top-source/author tallies), reference-manager export (as_bibtex(), as_ris()),
-and a local, code-free Shiny app (run_app()). The changes are listed in NEWS.md.
-There are no user-facing breaking changes.
+and a local, code-free Shiny app (run_app()). It also adds author-keyword
+retrieval (view = "COMPLETE" in searches, include = "keywords" in
+scopus_abstract()), structured per-citation reference lists
+(scopus_abstract(include = "references")) and an exported scopus_corpus() that
+assembles a minimal keyword/reference corpus from a record set. The changes are
+listed in NEWS.md. There are no user-facing breaking changes.
 
 The app's interface packages (shiny, bslib, callr, fansi) are in Suggests and
 used only inside run_app(), which is guarded with rlang::check_installed(); the

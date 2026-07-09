@@ -20,7 +20,9 @@
 #'   returned a complete, correctly counted reference list for every document
 #'   tried, while `"REF"` returned an inconsistent, sometimes-truncated
 #'   subset (see [scopus_abstract()]'s documentation for the details and for
-#'   the entitlement each view needs).
+#'   the entitlement each view needs). The `REF` response also carries no
+#'   author keywords, so under that view only the references are requested
+#'   and `keywords` is empty for every record.
 #' @param cache_dir,resume As in [scopus_abstract()]: an optional directory
 #'   for per-identifier cache files, and whether an existing one is reused.
 #'   Worth setting for anything beyond a handful of records, since this
@@ -31,8 +33,8 @@
 #' @return A tibble with columns `id` (the identifier `records` was looked up
 #'   by), `title`, `year`, `keywords` (a list-column: a character vector of
 #'   the document's author keywords, split out of [scopus_abstract()]'s
-#'   joined `authkeywords` string, empty when the document has none or the
-#'   field is unavailable) and `references` (a list-column: each entry is the
+#'   joined `authkeywords` string, empty when the document has none, the
+#'   field is unavailable or `view = "REF"`) and `references` (a list-column: each entry is the
 #'   `references` data frame [scopus_abstract()] returns for that document,
 #'   with one row per cited work). A record in `records` whose identifier is
 #'   `NA` is dropped, with a warning naming how many.
@@ -88,13 +90,18 @@ scopus_corpus <- function(records,
   }
   records <- records[keep, , drop = FALSE]
 
+  # The REF response carries no author keywords (scopus_abstract() rejects the
+  # combination), so under that view only the references are requested and
+  # every record's keywords come back empty.
+  include <- if (identical(view, "FULL")) c("references", "keywords") else "references"
   ab <- scopus_abstract(
-    ids[keep], by = by, view = view, include = c("references", "keywords"),
+    ids[keep], by = by, view = view, include = include,
     cache_dir = cache_dir, resume = resume,
     api_key = api_key, inst_token = inst_token, verbose = verbose
   )
 
-  keywords <- lapply(ab$authkeywords, function(x) {
+  authkeywords <- ab[["authkeywords"]] %||% rep(NA_character_, nrow(ab))
+  keywords <- lapply(authkeywords, function(x) {
     if (length(x) != 1L || is.na(x)) character() else trimws(strsplit(x, ";", fixed = TRUE)[[1]])
   })
 

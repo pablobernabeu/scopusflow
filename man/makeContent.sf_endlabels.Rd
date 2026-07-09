@@ -10,7 +10,7 @@
 \item{x}{The \code{sf_endlabels} gTree built by \code{sf_geom_end_labels()}.}
 }
 \value{
-The gTree with its leader-and-text children set.
+The gTree with its text children set.
 }
 \description{
 Internal grid method for the \code{\link[=plot_scopus_comparison]{plot_scopus_comparison()}} direct labels. It runs

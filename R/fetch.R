@@ -96,7 +96,8 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
     rlang::warn(
       sprintf(
         paste0("This query matches %s records, but the 'Scopus' API returns at ",
-               "most the first %d. Partition by year with scopus_plan() to go further."),
+               "most the first %d under offset paging. Use scopus_fetch(cursor ",
+               "= TRUE), or partition by year with scopus_plan(), to go further."),
         format(total, big.mark = ","), hard_cap
       ),
       class = "scopus_warning_capped"

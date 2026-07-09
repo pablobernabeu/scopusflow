@@ -5,8 +5,11 @@ bibliometrix's
 BibTeX
 bslib
 callr
+checkpointed
 clearable
+cli
 CMD
+CR
 deduplicated
 deduplication
 DOIs
@@ -22,6 +25,9 @@ npc
 OpenAlex's
 ORCID
 pybliometrics
+refetched
+refetches
+refetching
 resumable
 RIS
 saveable
