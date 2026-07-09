@@ -136,6 +136,6 @@ than a synthetic list, with everything else unchanged.
 
 ``` r
 
-later <- scopus_fetch("TITLE-ABS-KEY(CRISPR)", field = "TITLE-ABS-KEY")
+later <- scopus_fetch("CRISPR", field = "TITLE-ABS-KEY")
 scopus_diff_dois(old = read_scopus_records(path), new = later)
 ```

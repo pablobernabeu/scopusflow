@@ -111,13 +111,14 @@ to prefer.</p></dd>
 
 <dt id="arg-include">include<a class="anchor" aria-label="anchor" href="#arg-include"></a></dt>
 <dd><p>Optional character vector naming extra fields to retrieve in
-the same request: <code>"references"</code> and/or <code>"keywords"</code>. Both require
-Abstract Retrieval's <code>FULL</code> or <code>REF</code> view (see <code>view</code>), an entitlement
-that is separate from ordinary abstract access and from 'Scopus' Search
-access, and that, per Elsevier's own documentation, some fields (notably
-author keywords) may need to be requested from your Scopus/Elsevier
-account contact even when the view itself is otherwise accessible. See
-<em>Details</em>.</p></dd>
+the same request: <code>"references"</code> and/or <code>"keywords"</code>. <code>"references"</code>
+requires <code>view = "FULL"</code> or <code>view = "REF"</code>, and <code>"keywords"</code> requires
+<code>view = "FULL"</code>, since the <code>REF</code> response carries no author keywords.
+Either way this is an entitlement that is separate from ordinary abstract
+access and from 'Scopus' Search access, and, per Elsevier's own
+documentation, some fields (notably author keywords) may need to be
+requested from your Scopus/Elsevier account contact even when the view
+itself is otherwise accessible. See <em>Details</em>.</p></dd>
 
 
 <dt id="arg-cache-dir">cache_dir<a class="anchor" aria-label="anchor" href="#arg-cache-dir"></a></dt>
@@ -173,8 +174,8 @@ equivalent documentation for that fuller shape.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Retrieving references or keywords needs Abstract Retrieval's <code>FULL</code> or <code>REF</code>
-view. In development, against a live key with full Abstract Retrieval
+    <p>Retrieving references needs Abstract Retrieval's <code>FULL</code> or <code>REF</code> view, and
+keywords need <code>FULL</code>. In development, against a live key with full Abstract Retrieval
 access, <code>view = "FULL"</code> returned a complete, correctly counted reference
 list for every document tried. <code>view = "REF"</code> returned the identical,
 complete list in one case but a truncated (paginated) subset in another, on

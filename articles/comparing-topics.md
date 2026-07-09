@@ -199,7 +199,8 @@ overlapping](comparing-topics_files/figure-html/unnamed-chunk-6-1.png)
 
 Without this, six labels ending within three points of each other would
 print on top of one another; here every one is still readable, each
-still joined to its own line by a short leader.
+colour-matched to its own line and spread in the same order as the line
+ends.
 
 ## Drawing the eye to one topic
 

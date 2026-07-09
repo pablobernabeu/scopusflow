@@ -240,7 +240,7 @@ renumbering but without de-duplicating, so it is the building block that
 <p>In a live setting the later retrieval would come from the API rather
 than a synthetic list, with everything else unchanged.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">later</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch.html">scopus_fetch</a></span><span class="op">(</span><span class="st">"TITLE-ABS-KEY(CRISPR)"</span>, field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">later</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch.html">scopus_fetch</a></span><span class="op">(</span><span class="st">"CRISPR"</span>, field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/scopus_diff_dois.html">scopus_diff_dois</a></span><span class="op">(</span>old <span class="op">=</span> <span class="fu"><a href="../reference/write_scopus_records.html">read_scopus_records</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span>, new <span class="op">=</span> <span class="va">later</span><span class="op">)</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

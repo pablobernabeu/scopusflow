@@ -24,4 +24,4 @@ makeContent(x)
 
 ## Value
 
-The gTree with its leader-and-text children set.
+The gTree with its text children set.

@@ -95,7 +95,12 @@ bound once into a single <a href="scopus_records.html">scopus_records</a> tibble
 <code>NULL</code> performs no caching. Pass an explicit path you control, or
 <code><a href="scopus_cache_dir.html">scopus_cache_dir()</a></code> to use a managed, clearable cache under
 <code><a href="https://rdrr.io/r/tools/userdir.html" class="external-link">tools::R_user_dir()</a></code>. Caching happens only when you opt in through this
-argument.</p></dd>
+argument. A cache directory serves one plan: cells are checkpointed by
+their position in the plan, so give each distinct plan its own directory.
+As a safeguard, a checkpoint whose records carry a different query than
+the plan cell is treated as a cache miss, refetched and overwritten; a
+checkpoint written by an older scopusflow that carries no query
+information is loaded as before.</p></dd>
 
 
 <dt id="arg-resume">resume<a class="anchor" aria-label="anchor" href="#arg-resume"></a></dt>

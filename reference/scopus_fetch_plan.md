@@ -41,7 +41,13 @@ scopus_fetch_plan(
   [`scopus_cache_dir()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_dir.md)
   to use a managed, clearable cache under
   [`tools::R_user_dir()`](https://rdrr.io/r/tools/userdir.html). Caching
-  happens only when you opt in through this argument.
+  happens only when you opt in through this argument. A cache directory
+  serves one plan: cells are checkpointed by their position in the plan,
+  so give each distinct plan its own directory. As a safeguard, a
+  checkpoint whose records carry a different query than the plan cell is
+  treated as a cache miss, refetched and overwritten; a checkpoint
+  written by an older scopusflow that carries no query information is
+  loaded as before.
 
 - resume:
 

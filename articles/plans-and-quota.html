@@ -94,11 +94,11 @@
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pablobernabeu/scopusflow" class="external-link">scopusflow</a></span><span class="op">)</span></span></code></pre></div>
 <p>The Elsevier Scopus Search API is generous but bounded. A weekly
 quota limits how many requests you may make, a short-term rate limit
-caps how fast you may make them, and no single query will return more
-than its first 5000 records. This article shows how scopusflow works
-within those bounds so that a large retrieval is reproducible, efficient
-and resumable. The steps that contact the API need a key and are not run
-here. Everything else runs offline.</p>
+caps how fast you may make them, and under the ordinary offset paging no
+single query will return more than its first 5000 records. This article
+shows how scopusflow works within those bounds so that a large retrieval
+is reproducible, efficient and resumable. The steps that contact the API
+need a key and are not run here. Everything else runs offline.</p>
 <div class="section level2">
 <h2 id="a-query-built-safely">A query, built safely<a class="anchor" aria-label="anchor" href="#a-query-built-safely"></a>
 </h2>
@@ -371,6 +371,12 @@ off rather than paying for the same cells again.</p>
 <span>  resume <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">records</span></span></code></pre></div>
+<p>A cache directory serves one plan. Cells are checkpointed by their
+position in the plan, so pointing a second, different plan at the same
+directory would pair its cells with the first plan’s checkpoints.
+<code><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan()</a></code> compares each checkpoint’s recorded
+query with the plan cell before loading it and refetches on a mismatch,
+but the clean arrangement is a separate directory per plan.</p>
 <p>The cache lives under <code><a href="../reference/scopus_cache_dir.html">scopus_cache_dir()</a></code>. To force a
 fresh retrieval, empty it with <code><a href="../reference/scopus_cache_clear.html">scopus_cache_clear()</a></code>. Both
 are shown but not run, so the article does not touch a real cache:</p>
@@ -602,12 +608,17 @@ hole merger</td>
 <div class="section level2">
 <h2 id="when-the-ceiling-bites">When the ceiling bites<a class="anchor" aria-label="anchor" href="#when-the-ceiling-bites"></a>
 </h2>
-<p>A query matching more than 5000 records cannot be retrieved in full
-from a single call. <code><a href="../reference/scopus_fetch.html">scopus_fetch()</a></code> returns the first 5000
-and warns. The remedy is to split the search by year, or by any other
-facet, so that each cell stays under the ceiling.
+<p>Under offset paging, a query matching more than 5000 records cannot
+be retrieved in full from a single call. <code><a href="../reference/scopus_fetch.html">scopus_fetch()</a></code>
+returns the first 5000 and warns. One remedy is to split the search by
+year, or by any other facet, so that each cell stays under the ceiling;
 <code><a href="../reference/scopus_count.html">scopus_count()</a></code> tells you in advance whether a split is
-needed.</p>
+needed. The other is <code>scopus_fetch(cursor = TRUE)</code>, which
+follows the API’s cursor instead of an offset and retrieves the whole
+set in one call, at the price of deep-paging rather than relevance
+order. The <em>Analysing a literature</em> article weighs the two: a
+plan gives cached, resumable cells, the cursor a complete set in a
+single pass.</p>
 </div>
 <div class="section level2">
 <h2 id="handling-interruptions">Handling interruptions<a class="anchor" aria-label="anchor" href="#handling-interruptions"></a>

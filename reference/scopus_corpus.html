@@ -117,7 +117,9 @@ convention for users who want bibliometrix's tag names instead.</p>
 returned a complete, correctly counted reference list for every document
 tried, while <code>"REF"</code> returned an inconsistent, sometimes-truncated
 subset (see <code><a href="scopus_abstract.html">scopus_abstract()</a></code>'s documentation for the details and for
-the entitlement each view needs).</p></dd>
+the entitlement each view needs). The <code>REF</code> response also carries no
+author keywords, so under that view only the references are requested
+and <code>keywords</code> is empty for every record.</p></dd>
 
 
 <dt id="arg-cache-dir-resume">cache_dir, resume<a class="anchor" aria-label="anchor" href="#arg-cache-dir-resume"></a></dt>
@@ -141,8 +143,8 @@ smaller weekly quota.</p></dd>
     <p>A tibble with columns <code>id</code> (the identifier <code>records</code> was looked up
 by), <code>title</code>, <code>year</code>, <code>keywords</code> (a list-column: a character vector of
 the document's author keywords, split out of <code><a href="scopus_abstract.html">scopus_abstract()</a></code>'s
-joined <code>authkeywords</code> string, empty when the document has none or the
-field is unavailable) and <code>references</code> (a list-column: each entry is the
+joined <code>authkeywords</code> string, empty when the document has none, the
+field is unavailable or <code>view = "REF"</code>) and <code>references</code> (a list-column: each entry is the
 <code>references</code> data frame <code><a href="scopus_abstract.html">scopus_abstract()</a></code> returns for that document,
 with one row per cited work). A record in <code>records</code> whose identifier is
 <code>NA</code> is dropped, with a warning naming how many.</p>

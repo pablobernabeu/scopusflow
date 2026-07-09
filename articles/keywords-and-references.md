@@ -37,7 +37,7 @@ recs$authkeywords
 ``` r
 
 recs$authkeywords
-#> [1] "deep learning;neural networks;representation learning;backpropagation"
+#> [1] "deep learning | neural networks | representation learning | backpropagation"
 ```
 
 In development, this field came back `NA` even on a live, otherwise
@@ -147,4 +147,4 @@ nrow(corpus$references[[1]])
 ```
 
 This costs one Abstract Retrieval request per record in `recs`, on top
-of whatever retrieved `recs` in the first place. \`\`\`
+of whatever retrieved `recs` in the first place.

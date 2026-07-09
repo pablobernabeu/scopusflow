@@ -57,7 +57,9 @@ scopus_corpus(
   `"REF"` returned an inconsistent, sometimes-truncated subset (see
   [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)'s
   documentation for the details and for the entitlement each view
-  needs).
+  needs). The `REF` response also carries no author keywords, so under
+  that view only the references are requested and `keywords` is empty
+  for every record.
 
 - cache_dir, resume:
 
@@ -83,9 +85,9 @@ A tibble with columns `id` (the identifier `records` was looked up by),
 `title`, `year`, `keywords` (a list-column: a character vector of the
 document's author keywords, split out of
 [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)'s
-joined `authkeywords` string, empty when the document has none or the
-field is unavailable) and `references` (a list-column: each entry is the
-`references` data frame
+joined `authkeywords` string, empty when the document has none, the
+field is unavailable or `view = "REF"`) and `references` (a list-column:
+each entry is the `references` data frame
 [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
 returns for that document, with one row per cited work). A record in
 `records` whose identifier is `NA` is dropped, with a warning naming how

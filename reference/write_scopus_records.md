@@ -4,7 +4,10 @@ Save a
 [scopus_records](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
 tibble to disk and read it back, with a stable round-trip. The file
 extension selects the format. An `.rds` file preserves the types and
-class exactly, while a `.csv` file is portable plain text.
+class exactly, while a `.csv` file is portable plain text. The optional
+`authkeywords` column a `view = "COMPLETE"` retrieval adds (see
+[`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md))
+round-trips through both formats.
 
 ## Usage
 

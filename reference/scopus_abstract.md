@@ -49,13 +49,14 @@ scopus_abstract(
 - include:
 
   Optional character vector naming extra fields to retrieve in the same
-  request: `"references"` and/or `"keywords"`. Both require Abstract
-  Retrieval's `FULL` or `REF` view (see `view`), an entitlement that is
-  separate from ordinary abstract access and from 'Scopus' Search
-  access, and that, per Elsevier's own documentation, some fields
-  (notably author keywords) may need to be requested from your
-  Scopus/Elsevier account contact even when the view itself is otherwise
-  accessible. See *Details*.
+  request: `"references"` and/or `"keywords"`. `"references"` requires
+  `view = "FULL"` or `view = "REF"`, and `"keywords"` requires
+  `view = "FULL"`, since the `REF` response carries no author keywords.
+  Either way this is an entitlement that is separate from ordinary
+  abstract access and from 'Scopus' Search access, and, per Elsevier's
+  own documentation, some fields (notably author keywords) may need to
+  be requested from your Scopus/Elsevier account contact even when the
+  view itself is otherwise accessible. See *Details*.
 
 - cache_dir:
 
@@ -116,17 +117,18 @@ see the Python package's equivalent documentation for that fuller shape.
 
 ## Details
 
-Retrieving references or keywords needs Abstract Retrieval's `FULL` or
-`REF` view. In development, against a live key with full Abstract
-Retrieval access, `view = "FULL"` returned a complete, correctly counted
-reference list for every document tried. `view = "REF"` returned the
-identical, complete list in one case but a truncated (paginated) subset
-in another, on an otherwise identical request made moments apart, so
-`"FULL"` is recommended when your entitlement allows it. `"REF"` remains
-available for accounts entitled only to it; when the number of
-references returned does not match the document's own reported reference
-count, a warning is issued naming the identifier, since the list may be
-an incomplete page rather than the whole bibliography.
+Retrieving references needs Abstract Retrieval's `FULL` or `REF` view,
+and keywords need `FULL`. In development, against a live key with full
+Abstract Retrieval access, `view = "FULL"` returned a complete,
+correctly counted reference list for every document tried.
+`view = "REF"` returned the identical, complete list in one case but a
+truncated (paginated) subset in another, on an otherwise identical
+request made moments apart, so `"FULL"` is recommended when your
+entitlement allows it. `"REF"` remains available for accounts entitled
+only to it; when the number of references returned does not match the
+document's own reported reference count, a warning is issued naming the
+identifier, since the list may be an incomplete page rather than the
+whole bibliography.
 
 Author keywords were not populated by either 'Scopus' Search's
 `COMPLETE` view (see

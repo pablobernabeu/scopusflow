@@ -206,15 +206,22 @@ All `scopus_error_*` conditions inherit from `scopus_error`.
 
 ## Limitations
 
-A few limits are worth keeping in mind. The Scopus Search API returns at
-most 5000 records for a single query, so a large search is best
-partitioned by year.
+A few limits are worth keeping in mind. Under ordinary offset paging the
+Scopus Search API returns at most the first 5000 records of a query, so
+a large search is best partitioned by year with
+[`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md)
+or harvested in one pass with `scopus_fetch(cursor = TRUE)`, which
+trades relevance order for completeness.
 [`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)
-maps the core descriptive fields the Search API returns, and an analysis
-that needs full affiliations or cited references will still call for a
-complete Scopus export. What you can retrieve also depends on your
-Elsevier entitlement, and some fields are available only in the
-`COMPLETE` view and to subscribers.
+maps the core descriptive fields the Search API returns; structured
+reference lists are available through
+`scopus_abstract(include = "references")` and
+[`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md),
+but an analysis that needs full affiliations, or bibliometrix’s own
+cited-reference (CR) field, will still call for a complete Scopus
+export. What you can retrieve also depends on your Elsevier entitlement,
+and some fields are available only in the `COMPLETE` view and to
+subscribers.
 
 ## Citation
 

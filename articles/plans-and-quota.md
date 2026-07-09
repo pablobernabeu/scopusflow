@@ -7,11 +7,11 @@ library(scopusflow)
 
 The Elsevier Scopus Search API is generous but bounded. A weekly quota
 limits how many requests you may make, a short-term rate limit caps how
-fast you may make them, and no single query will return more than its
-first 5000 records. This article shows how scopusflow works within those
-bounds so that a large retrieval is reproducible, efficient and
-resumable. The steps that contact the API need a key and are not run
-here. Everything else runs offline.
+fast you may make them, and under the ordinary offset paging no single
+query will return more than its first 5000 records. This article shows
+how scopusflow works within those bounds so that a large retrieval is
+reproducible, efficient and resumable. The steps that contact the API
+need a key and are not run here. Everything else runs offline.
 
 ## A query, built safely
 
@@ -162,6 +162,14 @@ records <- scopus_fetch_plan(
 records
 ```
 
+A cache directory serves one plan. Cells are checkpointed by their
+position in the plan, so pointing a second, different plan at the same
+directory would pair its cells with the first plan’s checkpoints.
+[`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
+compares each checkpoint’s recorded query with the plan cell before
+loading it and refetches on a mismatch, but the clean arrangement is a
+separate directory per plan.
+
 The cache lives under
 [`scopus_cache_dir()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_dir.md).
 To force a fresh retrieval, empty it with
@@ -217,13 +225,18 @@ scopus_combine(example_records, example_records, dedupe = TRUE)
 
 ## When the ceiling bites
 
-A query matching more than 5000 records cannot be retrieved in full from
-a single call.
+Under offset paging, a query matching more than 5000 records cannot be
+retrieved in full from a single call.
 [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
-returns the first 5000 and warns. The remedy is to split the search by
-year, or by any other facet, so that each cell stays under the ceiling.
+returns the first 5000 and warns. One remedy is to split the search by
+year, or by any other facet, so that each cell stays under the ceiling;
 [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md)
-tells you in advance whether a split is needed.
+tells you in advance whether a split is needed. The other is
+`scopus_fetch(cursor = TRUE)`, which follows the API’s cursor instead of
+an offset and retrieves the whole set in one call, at the price of
+deep-paging rather than relevance order. The *Analysing a literature*
+article weighs the two: a plan gives cached, resumable cells, the cursor
+a complete set in a single pass.
 
 ## Handling interruptions
 
