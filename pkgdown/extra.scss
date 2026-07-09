@@ -321,6 +321,16 @@ blockquote p:last-child { margin-bottom: 0; }
   --bs-btn-hover-border-color: var(--brand-primary-ink);
   --bs-btn-active-bg: var(--brand-primary-ink);
 }
+// Outline buttons (About page's Copy and Download .bib controls) take their
+// colour from --bs-primary, too dark on the navy dark-mode page; use the light
+// teal so the control stays legible.
+[data-bs-theme="dark"] .btn-outline-primary {
+  --bs-btn-color: var(--brand-teal-light);
+  --bs-btn-border-color: var(--brand-teal-light);
+  --bs-btn-hover-color: var(--brand-ink);
+  --bs-btn-hover-bg: var(--brand-teal-light);
+  --bs-btn-hover-border-color: var(--brand-teal-light);
+}
 a { text-underline-offset: .15em; }
 // Content links: underline on hover so the highlight is unmistakable in both
 // modes, on top of the amber hover colour set through --bs-link-hover-color.

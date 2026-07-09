@@ -40,7 +40,7 @@ of the same shape.
 
 For each year and each comparison term, the function counts the records matching
 the reference topic *and* that term, and expresses it as a percentage of the
-records matching the reference *alone*. A value of 30% for "computer vision" in
+records matching the reference *alone*. A value of 30% for 'computer vision' in
 2020 means that 30% of the deep-learning records that year also mention computer
 vision. The reference is the denominator, so it sits at 100% by construction and
 is not drawn.

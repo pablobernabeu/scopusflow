@@ -32,8 +32,9 @@ footer:
       Developed by [Pablo Bernabeu](https://pablobernabeu.github.io). Open,
       reproducible research software in R and Python.
     legal: >
-      MIT licensed. 'Scopus' is a trademark of Elsevier; scopusflow is an
-      independent client, not affiliated with or endorsed by Elsevier.
+      Released under the [MIT licence](LICENSE.html). 'Scopus' is a trademark of
+      Elsevier; scopusflow is an independent client, not affiliated with or
+      endorsed by Elsevier.
 
 home:
   sidebar:
@@ -45,8 +46,10 @@ home:
     components:
       citation:
         title: Citation
-        text: >
+        text: |
           [How to cite scopusflow](articles/about.html)
+
+          [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21252669.svg)](https://doi.org/10.5281/zenodo.21252669)
       license:
         title: Licence
         text: >
