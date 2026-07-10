@@ -1,6 +1,6 @@
 ## Submission
 
-This is an update of scopusflow, from 0.1.0 to 0.3.0. It adds cursor-based
+This is an update of scopusflow, from 0.1.0 to 0.2.0. It adds cursor-based
 pagination (to retrieve beyond the API's 5000-record offset ceiling), an
 abstract-retrieval function, an analysis and plotting layer (annual trends and
 top-source/author tallies), reference-manager export (as_bibtex(), as_ris()),
@@ -20,10 +20,9 @@ package builds, loads and checks without them.
 
 ## Test environments
 
-* Local: Windows 11, R 4.6.1 (2026-07-08)
+* Local: Windows 11, R 4.6.1 (R CMD check --as-cran, 2026-07-10)
 * GitHub Actions: windows-latest, macOS-latest, ubuntu-latest (release),
   ubuntu-latest (devel and oldrel-1), plus a depends-only run
-* win-builder: R-devel and R-release
 
 ## R CMD check results
 

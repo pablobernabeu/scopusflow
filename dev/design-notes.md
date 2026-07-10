@@ -284,7 +284,7 @@ window in the process environment without a net gain on a single-user machine.
 The app's interface packages (`shiny`, `bslib`, `callr`, `fansi`) stay in
 Suggests and are required only inside `run_app()`.
 
-## Version 0.3.0 (continued): author keywords, references and a minimal corpus
+## Version 0.2.0 (continued): author keywords, references and a minimal corpus
 
 A downstream consumer (theoryforge) needed a keywords list and a references
 list per record, which neither the Search nor the Abstract Retrieval side of
