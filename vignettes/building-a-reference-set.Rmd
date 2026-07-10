@@ -77,7 +77,7 @@ A DOI list is enough for an import-by-identifier, but a full record carries more
 reference managers read, so a search moves straight into Zotero, EndNote or a
 LaTeX bibliography. Each record becomes one entry, with its authors split out.
 
-```{r}
+```{r, comment = "", collapse = FALSE}
 cat(substr(as_ris(example_records), 1, 320))
 ```
 
