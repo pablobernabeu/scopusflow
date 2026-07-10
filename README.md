@@ -17,8 +17,8 @@ Elsevier [Scopus](https://dev.elsevier.com/sc_apis.html) Search API. It
 turns one-off bibliographic queries into inspectable plans, retrieves
 records safely with pagination, rate-limit handling, retry with back-off
 and optional resumable caching, normalises them to a stable tidy schema,
-tracks changes in DOI sets over time and compares publication trends
-across topics.
+tracks changes in DOI sets over time, sizes sets of concepts and their
+intersections and compares publication trends across topics.
 
 This is the feature-parity twin of [the Python
 package](https://pablobernabeu.github.io/scopusflow-py/) of the same
@@ -145,7 +145,19 @@ cmp <- scopus_compare_topics(
 )
 plot_scopus_comparison(cmp)
 
-# 6. Read the abstract of a known record, or harvest a whole large query past
+# 6. Size a niche against the fields around it: count a set of concepts and
+#    their intersections, at one quota-cheap count request per row.
+sets <- scopus_intersections(
+  concepts = c(
+    "semantic priming"  = "semantic priming",
+    "mental simulation" = "mental simulation"
+  ),
+  intersections = list(c("semantic priming", "mental simulation")),
+  field = "TITLE-ABS-KEY"
+)
+plot_scopus_intersections(sets, highlight = sets$label[sets$type == "intersection"])
+
+# 7. Read the abstract of a known record, or harvest a whole large query past
 #    the 5000-record ceiling with cursor pagination.
 scopus_abstract("10.1103/PhysRevLett.116.061102")
 all_records <- scopus_fetch("TITLE-ABS-KEY(microplastics)", cursor = TRUE)

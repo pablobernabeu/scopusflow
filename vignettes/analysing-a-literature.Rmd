@@ -80,6 +80,51 @@ class(tr) <- c("scopus_trend", class(tr))
 plot_scopus_trend(tr)
 ```
 
+## Where a niche sits
+
+A study that crosses two or more fields is best introduced by sizing those
+fields and their overlap: each parent literature may hold thousands of records
+while their intersection holds a handful, which is the niche the study
+occupies. `scopus_intersections()` counts a named set of concepts and any
+requested intersections of them, at one count request per row, so the whole
+landscape is as cheap as a few `scopus_count()` calls. Concept values may be
+bare terms, wrapped in `field` for you, or complete field-tagged expressions,
+used exactly as given.
+
+```{r eval = FALSE}
+sets <- scopus_intersections(
+  concepts = c(
+    "semantic priming"  = "semantic priming",
+    "mental simulation" = "mental simulation"
+  ),
+  intersections = list(c("semantic priming", "mental simulation")),
+  field = "TITLE-ABS-KEY"
+)
+plot_scopus_intersections(sets, highlight = sets$label[sets$type == "intersection"])
+```
+
+As above, the result has a fixed shape, which we reproduce here to show the
+plot. The lollipop chart uses a log-scale axis, so the small intersection stays
+legible beside its large parent fields, and the highlighted row draws the eye
+to the niche itself.
+
+```{r eval = has_ggplot2, fig.alt = "A log-scale lollipop chart showing two large concepts and their small intersection, with the intersection highlighted", fig.width = 7.5, fig.height = 2.6}
+sets <- tibble::tibble(
+  label = c("semantic priming", "mental simulation",
+            "semantic priming × mental simulation"),
+  query = c("TITLE-ABS-KEY(semantic priming)",
+            "TITLE-ABS-KEY(mental simulation)",
+            "(TITLE-ABS-KEY(semantic priming)) AND (TITLE-ABS-KEY(mental simulation))"),
+  n = c(6600, 2100, 15),
+  type = c("concept", "concept", "intersection"),
+  size = c(1L, 1L, 2L),
+  members = c("semantic priming", "mental simulation",
+              "semantic priming; mental simulation")
+)
+class(sets) <- c("scopus_intersections", class(sets))
+plot_scopus_intersections(sets, highlight = sets$label[3])
+```
+
 ## Reading the fuller record
 
 The Search API returns a few fields per record. To read the abstract and the

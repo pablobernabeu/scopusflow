@@ -145,9 +145,11 @@ reference:
   - scopus_trend
   - scopus_top
   - scopus_compare_topics
+  - scopus_intersections
   - plot_scopus_trend
   - plot_scopus_top
   - plot_scopus_comparison
+  - plot_scopus_intersections
 - title: Export and I/O
   contents:
   - as_bibliometrix

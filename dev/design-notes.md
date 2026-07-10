@@ -351,6 +351,48 @@ convention for bibliometrix users; the two are complementary exports for
 different downstream tools, matching how `as_bibtex()`/`as_ris()` sit
 alongside `as_bibliometrix()` already.
 
+## Concept and intersection sizing
+
+`scopus_intersections()` and `plot_scopus_intersections()` size a named set of
+concepts and their intersections, the magnitude snapshot that introduces where
+a study or a niche sits within a wider literature. It is a separate pair
+rather than an extension of `scopus_compare_topics()` because it answers a
+different question: the comparison tracks topics' shares of a reference over
+time (one request per term per year), whereas this counts each concept and
+each requested intersection once (one request per row), so a whole landscape
+costs a handful of count requests. The pair was ported from a prototype
+developed and tested against the live API in a real literature review, and two
+of its details are deliberate rather than incidental.
+
+First, a concept value that already reads as a complete field-tagged
+expression (matched by `^[A-Z][A-Z-]*\(`) is used exactly as given instead of
+being wrapped in `field` again. Passing an already-wrapped query through a
+further field wrap produces a nested tag such as `TITLE-ABS-KEY(TITLE(x))`,
+which the live API rejects as malformed with HTTP 400; the guard is what lets
+one call mix bare terms with hand-built expressions. A related quota courtesy:
+every row's label and query is assembled, and label collisions (for example an
+`abbrev` that maps two concepts to one short form) rejected, before the first
+request is sent, so no invalid call spends quota. Counts are kept as doubles,
+consistent with `scopus_count()` and the overflow lesson recorded above.
+
+Second, in the plot, each count label sits at `n * gap_mult` rather than
+`n + constant`: on a log axis only a constant ratio renders as a constant
+pixel gap, so an additive nudge would hug the large counts and overshoot the
+small ones. The ratio is in turn derived from the axis's own span
+(`gap_mult <- 10^(gap_frac * log10(hi / lo))`, with `gap_frac` about 0.024,
+some 2.4% of the panel width) rather than fixed, because a magic constant
+tuned on one dataset was observed to read well beside wide many-digit labels
+yet touch the point beside single-digit ones once the span narrowed. The prototype's widened right margin (28 pt) is kept as the companion to
+`clip = "off"`: on a very wide span the largest count label can spill past the
+panel, and the default margin was measured to clip its trailing digits. Rows
+counting zero cannot sit on a log axis, so the plot drops them with a warning
+and a caption note while the object keeps them, since an empty intersection is
+itself a finding. The axis breaks come from a small internal helper
+(`scopus_log_breaks()`, powers of ten interleaved with `3 * 10^k` on narrow
+spans) rather than from the scales package, which would otherwise have to be
+added to Suggests for a single call; the colours reuse the package palette,
+with the comparison plot's accent marking the optional highlight.
+
 ## Assumptions
 
 On licensing, the original `rscopus_plus` code is licensed CC BY 4.0 and was
