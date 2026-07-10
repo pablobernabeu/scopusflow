@@ -82,12 +82,16 @@ Nothing is written unless a path is given.
 
 out <- file.path(tempdir(), "reference-set.csv")
 scopus_extract_dois(example_records, file = out)
-readLines(out)
-#> [1] "\"doi\""                            "\"10.1038/s41586-019-0001-1\""     
-#> [3] "\"10.1038/s41586-020-0002-2\""      "\"10.1038/s41558-018-0085-1\""     
-#> [5] "\"10.1002/adma.202100001\""         "\"10.1016/S1470-2045(20)30013-9\"" 
-#> [7] "\"10.1103/PhysRevLett.116.061102\""
+writeLines(readLines(out))
 ```
+
+    "doi"
+    "10.1038/s41586-019-0001-1"
+    "10.1038/s41586-020-0002-2"
+    "10.1038/s41558-018-0085-1"
+    "10.1002/adma.202100001"
+    "10.1016/S1470-2045(20)30013-9"
+    "10.1103/PhysRevLett.116.061102"
 
 ## Into a reference manager
 

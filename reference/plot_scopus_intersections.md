@@ -13,12 +13,7 @@ order of magnitude or six.
 ## Usage
 
 ``` r
-plot_scopus_intersections(
-  x,
-  highlight = NULL,
-  highlight_label = "Highlighted",
-  ...
-)
+plot_scopus_intersections(x, highlight = NULL, highlight_label = NULL, ...)
 
 # S3 method for class 'scopus_intersections'
 autoplot(object, ...)
@@ -38,7 +33,11 @@ autoplot(object, ...)
 
 - highlight_label:
 
-  Legend label for the highlighted rows.
+  Legend label for the highlighted rows. The default, `NULL`, derives
+  the label from what is highlighted: "Focal intersection" when every
+  highlighted row is an intersection, "Focal concept" when every one is
+  a concept, and "Focal set" for a mixture. Supply a string to use that
+  instead.
 
 - ...:
 

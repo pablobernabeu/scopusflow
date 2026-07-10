@@ -105,7 +105,28 @@ is_scopus_records(records)
 
 [`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
 produces this same shape from a raw API response, flattening the nested
-result into one row per record.
+result into one row per record:
+
+``` r
+
+# A couple of records in the shape the Scopus API returns them.
+raw <- list(entry = list(
+  list(`dc:identifier` = "SCOPUS_ID:1", `prism:doi` = "10.1000/aaa",
+       `dc:title` = "A reproducible workflow", `dc:creator` = "Smith J.",
+       `prism:publicationName` = "J. Bibliometrics",
+       `prism:coverDate` = "2020-05-01", `citedby-count` = "12"),
+  list(`dc:identifier` = "SCOPUS_ID:2", `prism:doi` = "10.1000/bbb",
+       `dc:title` = "Quota-aware querying", `dc:creator` = "Doe A.",
+       `prism:publicationName` = "Scientometrics Today",
+       `prism:coverDate` = "2021-01-10", `citedby-count` = "3")
+))
+scopus_records(raw, query = "TITLE-ABS-KEY(workflow)")
+```
+
+| entry_number | scopus_id | doi | title | authors | year | date | publication | citations | query |
+|---:|:---|:---|:---|:---|---:|:---|:---|---:|:---|
+| 1 | 1 | 10.1000/aaa | A reproducible workflow | Smith J. | 2020 | 2020-05-01 | J. Bibliometrics | 12 | TITLE-ABS-KEY(workflow) |
+| 2 | 2 | 10.1000/bbb | Quota-aware querying | Doe A. | 2021 | 2021-01-10 | Scientometrics Today | 3 | TITLE-ABS-KEY(workflow) |
 
 ## DOIs and change tracking
 
@@ -135,24 +156,30 @@ scopus_diff_dois(old = dois, new = later)
 | 10.1038/s41586-020-0002-2      | unchanged |
 | 10.1103/PhysRevLett.116.061102 | unchanged |
 
-You can write the DOIs to a path you specify:
+You can write the DOIs to a path you specify, and read the file back to
+see exactly what lands on disk:
 
 ``` r
 
 out <- file.path(tempdir(), "dois.csv")
 scopus_extract_dois(records, file = out)
-readLines(out)
-#> [1] "\"doi\""                            "\"10.1038/s41586-019-0001-1\""     
-#> [3] "\"10.1038/s41586-020-0002-2\""      "\"10.1038/s41558-018-0085-1\""     
-#> [5] "\"10.1002/adma.202100001\""         "\"10.1016/S1470-2045(20)30013-9\"" 
-#> [7] "\"10.1103/PhysRevLett.116.061102\""
+writeLines(readLines(out))
 ```
+
+    "doi"
+    "10.1038/s41586-019-0001-1"
+    "10.1038/s41586-020-0002-2"
+    "10.1038/s41558-018-0085-1"
+    "10.1002/adma.202100001"
+    "10.1016/S1470-2045(20)30013-9"
+    "10.1103/PhysRevLett.116.061102"
 
 ## Comparing topic trends
 
 [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
-issues one count request per term per year, so it needs the API. Its
-output has a fixed shape, which we reproduce here to show the plot:
+measures how the internal emphasis of a literature shifts, expressed as
+each comparison topic’s yearly share of the reference literature. It
+issues one count request per term per year, so it needs the API:
 
 ``` r
 
@@ -162,56 +189,16 @@ cmp <- scopus_compare_topics(
   years            = 2015:2020,
   field            = "TITLE-ABS-KEY"
 )
+plot_scopus_comparison(cmp)
 ```
 
-``` r
-
-# A stand-in comparison object with the same columns scopus_compare_topics()
-# returns, so the plotting step is reproducible offline.
-cmp <- tibble::tibble(
-  query = "q",
-  query_type = rep(c("reference", "comparison", "comparison"), each = 6),
-  abridged_query = rep(c("language learning", "effect size", "Bayesian"), each = 6),
-  year = rep(2015:2020, 3),
-  n = c(rep(100, 6), 20, 24, 30, 33, 40, 45, 5, 7, 9, 12, 15, 19),
-  reference_n = rep(100, 18),
-  comparison_percentage = c(rep(100, 6), 20, 24, 30, 33, 40, 45, 5, 7, 9, 12, 15, 19),
-  average_comparison_percentage = rep(c(100, 32, 11.2), each = 6)
-)
-class(cmp) <- c("scopus_comparison", class(cmp))
-cmp
-```
-
-| query | query_type | abridged_query | year | n | reference_n | comparison_percentage | average_comparison_percentage |
-|:---|:---|:---|---:|---:|---:|---:|---:|
-| q | reference | language learning | 2015 | 100 | 100 | 100 | 100.0 |
-| q | reference | language learning | 2016 | 100 | 100 | 100 | 100.0 |
-| q | reference | language learning | 2017 | 100 | 100 | 100 | 100.0 |
-| q | reference | language learning | 2018 | 100 | 100 | 100 | 100.0 |
-| q | reference | language learning | 2019 | 100 | 100 | 100 | 100.0 |
-| q | reference | language learning | 2020 | 100 | 100 | 100 | 100.0 |
-| q | comparison | effect size | 2015 | 20 | 100 | 20 | 32.0 |
-| q | comparison | effect size | 2016 | 24 | 100 | 24 | 32.0 |
-| q | comparison | effect size | 2017 | 30 | 100 | 30 | 32.0 |
-| q | comparison | effect size | 2018 | 33 | 100 | 33 | 32.0 |
-| q | comparison | effect size | 2019 | 40 | 100 | 40 | 32.0 |
-| q | comparison | effect size | 2020 | 45 | 100 | 45 | 32.0 |
-| q | comparison | Bayesian | 2015 | 5 | 100 | 5 | 11.2 |
-| q | comparison | Bayesian | 2016 | 7 | 100 | 7 | 11.2 |
-| q | comparison | Bayesian | 2017 | 9 | 100 | 9 | 11.2 |
-| q | comparison | Bayesian | 2018 | 12 | 100 | 12 | 11.2 |
-| q | comparison | Bayesian | 2019 | 15 | 100 | 15 | 11.2 |
-| q | comparison | Bayesian | 2020 | 19 | 100 | 19 | 11.2 |
-
-``` r
-
-if (requireNamespace("ggplot2", quietly = TRUE)) {
-  plot_scopus_comparison(cmp)
-}
-```
-
-![Line chart of two topics' share of the reference literature over
-time](scopusflow_files/figure-html/unnamed-chunk-11-1.png)
+The result is a tidy table with one row per topic and year, which
+[`plot_scopus_comparison()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_comparison.md)
+draws with direct line labels, a colour-blind-safe palette and shaded
+stability bands.
+[`vignette("comparing-topics")`](https://pablobernabeu.github.io/scopusflow/articles/comparing-topics.md)
+builds the object offline, shows the plot in its variations and explains
+how to read the bands.
 
 ## Author keywords and references
 

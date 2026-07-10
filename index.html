@@ -46,12 +46,12 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="articles/analysing-a-literature.html">Analysing and visualising a literature</a></li>
-    <li><a class="dropdown-item" href="articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
-    <li><a class="dropdown-item" href="articles/comparing-topics.html">Comparing topics over time</a></li>
-    <li><a class="dropdown-item" href="articles/designing-queries.html">Designing precise queries across disciplines</a></li>
-    <li><a class="dropdown-item" href="articles/keywords-and-references.html">Author keywords and references</a></li>
+<li><a class="dropdown-item" href="articles/designing-queries.html">Designing precise queries across disciplines</a></li>
     <li><a class="dropdown-item" href="articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
+    <li><a class="dropdown-item" href="articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
+    <li><a class="dropdown-item" href="articles/analysing-a-literature.html">Analysing and visualising a literature</a></li>
+    <li><a class="dropdown-item" href="articles/keywords-and-references.html">Author keywords and references</a></li>
+    <li><a class="dropdown-item" href="articles/comparing-topics.html">Comparing topics over time</a></li>
     <li><a class="dropdown-item" href="articles/tracking-literature-change.html">Tracking how a literature changes between retrievals</a></li>
     <li><a class="dropdown-item" href="articles/using-the-app.html">Using the code-free app</a></li>
   </ul>
@@ -113,130 +113,38 @@
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="quick-start-offline">Quick start (offline)<a class="anchor" aria-label="anchor" href="#quick-start-offline"></a>
+<h2 id="the-workflow-in-brief">The workflow in brief<a class="anchor" aria-label="anchor" href="#the-workflow-in-brief"></a>
 </h2>
-<p>Every retrieval returns a <code>scopus_records</code> tibble with a stable schema, so the downstream helpers can be shown without any network access:</p>
+<p>With a key configured, a search runs as a plan: compose the query, size it, execute it with caching, then export or analyse the result. These calls contact the API and consume quota, so they are not run here:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># A couple of records in the shape the Scopus API returns them.</span></span>
-<span><span class="va">raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>entry <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>`dc:identifier` <span class="op">=</span> <span class="st">"SCOPUS_ID:1"</span>, `prism:doi` <span class="op">=</span> <span class="st">"10.1000/aaa"</span>,</span>
-<span>       `dc:title` <span class="op">=</span> <span class="st">"A reproducible workflow"</span>, `dc:creator` <span class="op">=</span> <span class="st">"Smith J."</span>,</span>
-<span>       `prism:publicationName` <span class="op">=</span> <span class="st">"J. Bibliometrics"</span>,</span>
-<span>       `prism:coverDate` <span class="op">=</span> <span class="st">"2020-05-01"</span>, `citedby-count` <span class="op">=</span> <span class="st">"12"</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>`dc:identifier` <span class="op">=</span> <span class="st">"SCOPUS_ID:2"</span>, `prism:doi` <span class="op">=</span> <span class="st">"10.1000/bbb"</span>,</span>
-<span>       `dc:title` <span class="op">=</span> <span class="st">"Quota-aware querying"</span>, `dc:creator` <span class="op">=</span> <span class="st">"Doe A."</span>,</span>
-<span>       `prism:publicationName` <span class="op">=</span> <span class="st">"Scientometrics Today"</span>,</span>
-<span>       `prism:coverDate` <span class="op">=</span> <span class="st">"2021-01-10"</span>, `citedby-count` <span class="op">=</span> <span class="st">"3"</span><span class="op">)</span></span>
-<span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scopus_records.html">scopus_records</a></span><span class="op">(</span><span class="va">raw</span>, query <span class="op">=</span> <span class="st">"TITLE-ABS-KEY(workflow)"</span><span class="op">)</span></span>
-<span><span class="va">records</span></span>
-<span><span class="co">#&gt; &lt;scopus_records&gt; 2 records</span></span>
-<span><span class="co">#&gt; query: "TITLE-ABS-KEY(workflow)"</span></span>
-<span><span class="co">#&gt; # A tibble: 2 × 9</span></span>
-<span><span class="co">#&gt;   entry_number scopus_id doi     title authors  year date  publication citations</span></span>
-<span><span class="co">#&gt;          &lt;int&gt; &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt;   &lt;int&gt; &lt;chr&gt; &lt;chr&gt;           &lt;int&gt;</span></span>
-<span><span class="co">#&gt; 1            1 1         10.100… A re… Smith …  2020 2020… J. Bibliom…        12</span></span>
-<span><span class="co">#&gt; 2            2 2         10.100… Quot… Doe A.   2021 2021… Scientomet…         3</span></span>
-<span></span>
-<span><span class="co"># Extract and deduplicate DOIs.</span></span>
-<span><span class="fu"><a href="reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "10.1000/aaa" "10.1000/bbb"</span></span>
-<span></span>
-<span><span class="co"># Track what changed since a previous retrieval.</span></span>
-<span><span class="fu"><a href="reference/scopus_diff_dois.html">scopus_diff_dois</a></span><span class="op">(</span>old <span class="op">=</span> <span class="st">"10.1000/aaa"</span>, new <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"10.1000/aaa"</span>, <span class="st">"10.1000/bbb"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; &lt;scopus_doi_diff&gt; 1 added, 0 removed, 1 unchanged</span></span>
-<span><span class="co">#&gt; # A tibble: 2 × 2</span></span>
-<span><span class="co">#&gt;   doi         status   </span></span>
-<span><span class="co">#&gt;   &lt;chr&gt;       &lt;fct&gt;    </span></span>
-<span><span class="co">#&gt; 1 10.1000/bbb added    </span></span>
-<span><span class="co">#&gt; 2 10.1000/aaa unchanged</span></span>
-<span></span>
-<span><span class="co"># Tally the most frequent sources or authors.</span></span>
-<span><span class="fu"><a href="reference/scopus_top.html">scopus_top</a></span><span class="op">(</span><span class="va">records</span>, by <span class="op">=</span> <span class="st">"source"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; # A tibble: 2 × 2</span></span>
-<span><span class="co">#&gt;   value                    n</span></span>
-<span><span class="co">#&gt; * &lt;chr&gt;                &lt;int&gt;</span></span>
-<span><span class="co">#&gt; 1 J. Bibliometrics         1</span></span>
-<span><span class="co">#&gt; 2 Scientometrics Today     1</span></span>
-<span></span>
-<span><span class="co"># Hand off to bibliometrix-style analysis.</span></span>
-<span><span class="fu"><a href="reference/as_bibliometrix.html">as_bibliometrix</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span>
-<span><span class="co">#&gt;         AU                      TI                   SO          DI   PY TC UT</span></span>
-<span><span class="co">#&gt; 1 SMITH J. A REPRODUCIBLE WORKFLOW     J. BIBLIOMETRICS 10.1000/aaa 2020 12  1</span></span>
-<span><span class="co">#&gt; 2   DOE A.    QUOTA-AWARE QUERYING SCIENTOMETRICS TODAY 10.1000/bbb 2021  3  2</span></span>
-<span><span class="co">#&gt;       DB</span></span>
-<span><span class="co">#&gt; 1 SCOPUS</span></span>
-<span><span class="co">#&gt; 2 SCOPUS</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="live-workflow">Live workflow<a class="anchor" aria-label="anchor" href="#live-workflow"></a>
-</h2>
-<p>With a key configured, the same pieces compose into a real retrieval. These calls contact the API and consume quota, so they are not run here:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># 1. Compose a field-tagged query, then a reproducible plan partitioned by</span></span>
-<span><span class="co">#    year to stay under the API's start &lt; 5000 ceiling.</span></span>
+<code class="sourceCode R"><span><span class="co"># Compose a field-tagged query, then a reproducible plan partitioned by</span></span>
+<span><span class="co"># year to stay under the API's start &lt; 5000 ceiling.</span></span>
 <span><span class="va">q</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"perovskite"</span>, <span class="st">"solar cell"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span>
 <span><span class="va">plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="va">q</span>, years <span class="op">=</span> <span class="fl">2012</span><span class="op">:</span><span class="fl">2022</span>, partition <span class="op">=</span> <span class="st">"year"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># 2. Size it before spending quota.</span></span>
+<span><span class="co"># Size the search before spending quota, then execute, caching each year</span></span>
+<span><span class="co"># so an interrupted run can resume.</span></span>
 <span><span class="fu"><a href="reference/scopus_count.html">scopus_count</a></span><span class="op">(</span><span class="va">q</span>, years <span class="op">=</span> <span class="fl">2012</span><span class="op">:</span><span class="fl">2022</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 3. Execute, caching each year so an interrupted run can resume.</span></span>
 <span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scopus_fetch_plan.html">scopus_fetch_plan</a></span><span class="op">(</span><span class="va">plan</span>, cache_dir <span class="op">=</span> <span class="fu"><a href="reference/scopus_cache_dir.html">scopus_cache_dir</a></span><span class="op">(</span><span class="op">)</span>, resume <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># 4. Save a clean DOI list, or export the records for a reference manager</span></span>
-<span><span class="co">#    (Zotero, EndNote, Mendeley) or a LaTeX bibliography.</span></span>
+<span><span class="co"># Save a clean DOI list, or export the records for a reference manager</span></span>
+<span><span class="co"># (Zotero, EndNote, Mendeley) or a LaTeX bibliography.</span></span>
 <span><span class="fu"><a href="reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">records</span>, file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"dois.csv"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/as_bibtex.html">as_bibtex</a></span><span class="op">(</span><span class="va">records</span>, file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"records.bib"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/as_bibtex.html">as_ris</a></span><span class="op">(</span><span class="va">records</span>, file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"records.ris"</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 5. Compare how a method spreads across application areas over time.</span></span>
-<span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scopus_compare_topics.html">scopus_compare_topics</a></span><span class="op">(</span></span>
-<span>  reference_query  <span class="op">=</span> <span class="st">"deep learning"</span>,</span>
-<span>  comparison_terms <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"computer vision"</span>, <span class="st">"drug discovery"</span>, <span class="st">"medical imaging"</span><span class="op">)</span>,</span>
-<span>  years            <span class="op">=</span> <span class="fl">2013</span><span class="op">:</span><span class="fl">2022</span>,</span>
-<span>  field            <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span></span>
-<span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/plot_scopus_comparison.html">plot_scopus_comparison</a></span><span class="op">(</span><span class="va">cmp</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 6. Size a niche against the fields around it: count a set of concepts and</span></span>
-<span><span class="co">#    their intersections, at one quota-cheap count request per row.</span></span>
-<span><span class="va">sets</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scopus_intersections.html">scopus_intersections</a></span><span class="op">(</span></span>
-<span>  concepts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>    <span class="st">"semantic priming"</span>  <span class="op">=</span> <span class="st">"semantic priming"</span>,</span>
-<span>    <span class="st">"mental simulation"</span> <span class="op">=</span> <span class="st">"mental simulation"</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  intersections <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"semantic priming"</span>, <span class="st">"mental simulation"</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span></span>
-<span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/plot_scopus_intersections.html">plot_scopus_intersections</a></span><span class="op">(</span><span class="va">sets</span>, highlight <span class="op">=</span> <span class="va">sets</span><span class="op">$</span><span class="va">label</span><span class="op">[</span><span class="va">sets</span><span class="op">$</span><span class="va">type</span> <span class="op">==</span> <span class="st">"intersection"</span><span class="op">]</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 7. Read the abstract of a known record, or harvest a whole large query past</span></span>
-<span><span class="co">#    the 5000-record ceiling with cursor pagination.</span></span>
-<span><span class="fu"><a href="reference/scopus_abstract.html">scopus_abstract</a></span><span class="op">(</span><span class="st">"10.1103/PhysRevLett.116.061102"</span><span class="op">)</span></span>
-<span><span class="va">all_records</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scopus_fetch.html">scopus_fetch</a></span><span class="op">(</span><span class="st">"TITLE-ABS-KEY(microplastics)"</span>, cursor <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="reference/as_bibtex.html">as_bibtex</a></span><span class="op">(</span><span class="va">records</span>, file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"records.bib"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>The <a href="https://pablobernabeu.github.io/scopusflow/articles/scopusflow.html">Get started</a> vignette walks this workflow offline, on records bundled with the package, and the <a href="https://pablobernabeu.github.io/scopusflow/articles/index.html">articles</a> each cover one part in depth: designing queries, search plans and quota, building a reference set, analysing and visualising a literature (trends, top sources and authors, concept intersections, abstracts and cursor-paged harvests), author keywords and references, comparing topics over time (the chart above) and tracking how a literature changes between retrievals.</p>
 </div>
 <div class="section level2">
 <h2 id="code-free-app">Code-free app<a class="anchor" aria-label="anchor" href="#code-free-app"></a>
 </h2>
 <p><code><a href="reference/run_app.html">run_app()</a></code> opens a local Shiny app that drives the whole workflow without writing code, and mirrors every choice back as a runnable R script, so it works as an on-ramp to the package rather than a replacement. It runs on your own machine, so your API key never leaves it, and a demo mode lets you try the flow with synthetic data and no key.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/run_app.html">run_app</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>The retrieval runs in a background process with a live progress terminal. Records appear as a table and as plots, with one-click export to RDS, DOIs, BibTeX and RIS, and a Compare topics tab draws the same topic comparison shown above. It needs the suggested packages shiny, bslib and callr.</p>
+<p>The retrieval runs in a background process with a live progress terminal, and records appear as a table and as plots with one-click export. It needs the suggested packages shiny, bslib and callr. The <a href="https://pablobernabeu.github.io/scopusflow/articles/using-the-app.html">Using the code-free app</a> article walks through every panel.</p>
 </div>
 <div class="section level2">
 <h2 id="quotas-rate-limits-and-errors">Quotas, rate limits and errors<a class="anchor" aria-label="anchor" href="#quotas-rate-limits-and-errors"></a>
 </h2>
-<p>The Scopus API enforces a weekly quota and a short-term rate limit, and ordinary offset paging returns at most the first 5000 records of any query (use <code>scopus_fetch(cursor = TRUE)</code> to go beyond that). scopusflow works within these limits rather than around them. It requests the largest page each view allows, 200 records for <code>STANDARD</code> and 25 for <code>COMPLETE</code>, so that a retrieval uses as few requests, and as little quota, as it can. This is the same approach <code>rscopus</code> takes. The quota and rate-limit headers are parsed by <code><a href="reference/scopus_quota.html">scopus_quota()</a></code>, transient failures such as HTTP 429 and the 5xx range are retried with back-off that honours <code>Retry-After</code>, and an offset-paged query is capped at 5000 records with a warning that suggests cursor paging or partitioning by year. A failure arrives as a typed condition, so a workflow can respond to it in code:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="reference/scopus_count.html">scopus_count</a></span><span class="op">(</span><span class="st">"..."</span><span class="op">)</span>,</span>
-<span>  scopus_error_no_key   <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"Set SCOPUS_API_KEY first."</span><span class="op">)</span>,</span>
-<span>  scopus_error_rate_limit <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"Slow down: "</span>, <span class="fu"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">conditionMessage</a></span><span class="op">(</span><span class="va">e</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  scopus_error          <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"Scopus problem: "</span>, <span class="fu"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">conditionMessage</a></span><span class="op">(</span><span class="va">e</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>All <code>scopus_error_*</code> conditions inherit from <code>scopus_error</code>.</p>
+<p>The Scopus API enforces a weekly quota and a short-term rate limit, and ordinary offset paging returns at most the first 5000 records of any query (use <code>scopus_fetch(cursor = TRUE)</code> to go beyond that). scopusflow works within these limits rather than around them. It requests the largest page each view allows, 200 records for <code>STANDARD</code> and 25 for <code>COMPLETE</code>, so that a retrieval uses as few requests, and as little quota, as it can. This is the same approach <code>rscopus</code> takes. The quota and rate-limit headers are parsed by <code><a href="reference/scopus_quota.html">scopus_quota()</a></code>, transient failures such as HTTP 429 and the 5xx range are retried with back-off that honours <code>Retry-After</code>, and an offset-paged query is capped at 5000 records with a warning that suggests cursor paging or partitioning by year. A failure arrives as a typed condition (every <code>scopus_error_*</code> condition inherits from <code>scopus_error</code>), so a workflow can respond to it in code. The Get started vignette shows the <code><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch()</a></code> pattern.</p>
 </div>
 <div class="section level2">
 <h2 id="how-it-compares">How it compares<a class="anchor" aria-label="anchor" href="#how-it-compares"></a>
@@ -283,7 +191,7 @@
 <div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
 </h2>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span><span class="st">"scopusflow"</span><span class="op">)</span></span></code></pre></div>
 <p>The <a href="https://pablobernabeu.github.io/scopusflow/articles/about.html">About page</a> carries the same citation with a BibTeX entry, and a short note on the developer.</p>
 </div>

@@ -42,12 +42,12 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/analysing-a-literature.html">Analysing and visualising a literature</a></li>
-    <li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
-    <li><a class="dropdown-item" href="../articles/comparing-topics.html">Comparing topics over time</a></li>
-    <li><a class="dropdown-item" href="../articles/designing-queries.html">Designing precise queries across disciplines</a></li>
-    <li><a class="dropdown-item" href="../articles/keywords-and-references.html">Author keywords and references</a></li>
+<li><a class="dropdown-item" href="../articles/designing-queries.html">Designing precise queries across disciplines</a></li>
     <li><a class="dropdown-item" href="../articles/plans-and-quota.html">Search plans and quota-aware retrieval</a></li>
+    <li><a class="dropdown-item" href="../articles/building-a-reference-set.html">Building and exporting a reference set</a></li>
+    <li><a class="dropdown-item" href="../articles/analysing-a-literature.html">Analysing and visualising a literature</a></li>
+    <li><a class="dropdown-item" href="../articles/keywords-and-references.html">Author keywords and references</a></li>
+    <li><a class="dropdown-item" href="../articles/comparing-topics.html">Comparing topics over time</a></li>
     <li><a class="dropdown-item" href="../articles/tracking-literature-change.html">Tracking how a literature changes between retrievals</a></li>
     <li><a class="dropdown-item" href="../articles/using-the-app.html">Using the code-free app</a></li>
   </ul>
@@ -305,14 +305,79 @@ hole merger</td>
 <span><span class="fu"><a href="../reference/scopus_records.html">is_scopus_records</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
 <p><code><a href="../reference/scopus_records.html">scopus_records()</a></code> produces this same shape from a raw API
-response, flattening the nested result into one row per record.</p>
+response, flattening the nested result into one row per record:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># A couple of records in the shape the Scopus API returns them.</span></span>
+<span><span class="va">raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>entry <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>`dc:identifier` <span class="op">=</span> <span class="st">"SCOPUS_ID:1"</span>, `prism:doi` <span class="op">=</span> <span class="st">"10.1000/aaa"</span>,</span>
+<span>       `dc:title` <span class="op">=</span> <span class="st">"A reproducible workflow"</span>, `dc:creator` <span class="op">=</span> <span class="st">"Smith J."</span>,</span>
+<span>       `prism:publicationName` <span class="op">=</span> <span class="st">"J. Bibliometrics"</span>,</span>
+<span>       `prism:coverDate` <span class="op">=</span> <span class="st">"2020-05-01"</span>, `citedby-count` <span class="op">=</span> <span class="st">"12"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>`dc:identifier` <span class="op">=</span> <span class="st">"SCOPUS_ID:2"</span>, `prism:doi` <span class="op">=</span> <span class="st">"10.1000/bbb"</span>,</span>
+<span>       `dc:title` <span class="op">=</span> <span class="st">"Quota-aware querying"</span>, `dc:creator` <span class="op">=</span> <span class="st">"Doe A."</span>,</span>
+<span>       `prism:publicationName` <span class="op">=</span> <span class="st">"Scientometrics Today"</span>,</span>
+<span>       `prism:coverDate` <span class="op">=</span> <span class="st">"2021-01-10"</span>, `citedby-count` <span class="op">=</span> <span class="st">"3"</span><span class="op">)</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/scopus_records.html">scopus_records</a></span><span class="op">(</span><span class="va">raw</span>, query <span class="op">=</span> <span class="st">"TITLE-ABS-KEY(workflow)"</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="9%">
+<col width="7%">
+<col width="8%">
+<col width="17%">
+<col width="6%">
+<col width="3%">
+<col width="7%">
+<col width="15%">
+<col width="7%">
+<col width="17%">
+</colgroup>
+<thead><tr class="header">
+<th align="right">entry_number</th>
+<th align="left">scopus_id</th>
+<th align="left">doi</th>
+<th align="left">title</th>
+<th align="left">authors</th>
+<th align="right">year</th>
+<th align="left">date</th>
+<th align="left">publication</th>
+<th align="right">citations</th>
+<th align="left">query</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">1</td>
+<td align="left">10.1000/aaa</td>
+<td align="left">A reproducible workflow</td>
+<td align="left">Smith J.</td>
+<td align="right">2020</td>
+<td align="left">2020-05-01</td>
+<td align="left">J. Bibliometrics</td>
+<td align="right">12</td>
+<td align="left">TITLE-ABS-KEY(workflow)</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">2</td>
+<td align="left">10.1000/bbb</td>
+<td align="left">Quota-aware querying</td>
+<td align="left">Doe A.</td>
+<td align="right">2021</td>
+<td align="left">2021-01-10</td>
+<td align="left">Scientometrics Today</td>
+<td align="right">3</td>
+<td align="left">TITLE-ABS-KEY(workflow)</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section level2">
 <h2 id="dois-and-change-tracking">DOIs and change tracking<a class="anchor" aria-label="anchor" href="#dois-and-change-tracking"></a>
 </h2>
 <p>Extract a clean, deduplicated DOI list for import into a reference
 manager, and compare two retrievals to see exactly what changed:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dois</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span>
 <span><span class="va">dois</span></span>
 <span><span class="co">#&gt; [1] "10.1038/s41586-019-0001-1"      "10.1038/s41586-020-0002-2"     </span></span>
@@ -358,253 +423,40 @@ manager, and compare two retrievals to see exactly what changed:</p>
 </tr>
 </tbody>
 </table>
-<p>You can write the DOIs to a path you specify:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<p>You can write the DOIs to a path you specify, and read the file back
+to see exactly what lands on disk:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"dois.csv"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">records</span>, file <span class="op">=</span> <span class="va">out</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "\"doi\""                            "\"10.1038/s41586-019-0001-1\""     </span></span>
-<span><span class="co">#&gt; [3] "\"10.1038/s41586-020-0002-2\""      "\"10.1038/s41558-018-0085-1\""     </span></span>
-<span><span class="co">#&gt; [5] "\"10.1002/adma.202100001\""         "\"10.1016/S1470-2045(20)30013-9\"" </span></span>
-<span><span class="co">#&gt; [7] "\"10.1103/PhysRevLett.116.061102\""</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html" class="external-link">writeLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="st">"doi"</span></span>
+<span><span class="st">"10.1038/s41586-019-0001-1"</span></span>
+<span><span class="st">"10.1038/s41586-020-0002-2"</span></span>
+<span><span class="st">"10.1038/s41558-018-0085-1"</span></span>
+<span><span class="st">"10.1002/adma.202100001"</span></span>
+<span><span class="st">"10.1016/S1470-2045(20)30013-9"</span></span>
+<span><span class="st">"10.1103/PhysRevLett.116.061102"</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="comparing-topic-trends">Comparing topic trends<a class="anchor" aria-label="anchor" href="#comparing-topic-trends"></a>
 </h2>
-<p><code><a href="../reference/scopus_compare_topics.html">scopus_compare_topics()</a></code> issues one count request per
-term per year, so it needs the API. Its output has a fixed shape, which
-we reproduce here to show the plot:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<p><code><a href="../reference/scopus_compare_topics.html">scopus_compare_topics()</a></code> measures how the internal
+emphasis of a literature shifts, expressed as each comparison topic’s
+yearly share of the reference literature. It issues one count request
+per term per year, so it needs the API:</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_compare_topics.html">scopus_compare_topics</a></span><span class="op">(</span></span>
 <span>  reference_query  <span class="op">=</span> <span class="st">"language learning"</span>,</span>
 <span>  comparison_terms <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"effect size"</span>, <span class="st">"Bayesian"</span><span class="op">)</span>,</span>
 <span>  years            <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2020</span>,</span>
 <span>  field            <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># A stand-in comparison object with the same columns scopus_compare_topics()</span></span>
-<span><span class="co"># returns, so the plotting step is reproducible offline.</span></span>
-<span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
-<span>  query <span class="op">=</span> <span class="st">"q"</span>,</span>
-<span>  query_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"reference"</span>, <span class="st">"comparison"</span>, <span class="st">"comparison"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">6</span><span class="op">)</span>,</span>
-<span>  abridged_query <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"language learning"</span>, <span class="st">"effect size"</span>, <span class="st">"Bayesian"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">6</span><span class="op">)</span>,</span>
-<span>  year <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">2015</span><span class="op">:</span><span class="fl">2020</span>, <span class="fl">3</span><span class="op">)</span>,</span>
-<span>  n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">6</span><span class="op">)</span>, <span class="fl">20</span>, <span class="fl">24</span>, <span class="fl">30</span>, <span class="fl">33</span>, <span class="fl">40</span>, <span class="fl">45</span>, <span class="fl">5</span>, <span class="fl">7</span>, <span class="fl">9</span>, <span class="fl">12</span>, <span class="fl">15</span>, <span class="fl">19</span><span class="op">)</span>,</span>
-<span>  reference_n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">18</span><span class="op">)</span>,</span>
-<span>  comparison_percentage <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">6</span><span class="op">)</span>, <span class="fl">20</span>, <span class="fl">24</span>, <span class="fl">30</span>, <span class="fl">33</span>, <span class="fl">40</span>, <span class="fl">45</span>, <span class="fl">5</span>, <span class="fl">7</span>, <span class="fl">9</span>, <span class="fl">12</span>, <span class="fl">15</span>, <span class="fl">19</span><span class="op">)</span>,</span>
-<span>  average_comparison_percentage <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">32</span>, <span class="fl">11.2</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">cmp</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"scopus_comparison"</span>, <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">cmp</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">cmp</span></span></code></pre></div>
-<table class="table">
-<colgroup>
-<col width="5%">
-<col width="10%">
-<col width="16%">
-<col width="4%">
-<col width="3%">
-<col width="11%">
-<col width="20%">
-<col width="27%">
-</colgroup>
-<thead><tr class="header">
-<th align="left">query</th>
-<th align="left">query_type</th>
-<th align="left">abridged_query</th>
-<th align="right">year</th>
-<th align="right">n</th>
-<th align="right">reference_n</th>
-<th align="right">comparison_percentage</th>
-<th align="right">average_comparison_percentage</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td align="left">q</td>
-<td align="left">reference</td>
-<td align="left">language learning</td>
-<td align="right">2015</td>
-<td align="right">100</td>
-<td align="right">100</td>
-<td align="right">100</td>
-<td align="right">100.0</td>
-</tr>
-<tr class="even">
-<td align="left">q</td>
-<td align="left">reference</td>
-<td align="left">language learning</td>
-<td align="right">2016</td>
-<td align="right">100</td>
-<td align="right">100</td>
-<td align="right">100</td>
-<td align="right">100.0</td>
-</tr>
-<tr class="odd">
-<td align="left">q</td>
-<td align="left">reference</td>
-<td align="left">language learning</td>
-<td align="right">2017</td>
-<td align="right">100</td>
-<td align="right">100</td>
-<td align="right">100</td>
-<td align="right">100.0</td>
-</tr>
-<tr class="even">
-<td align="left">q</td>
-<td align="left">reference</td>
-<td align="left">language learning</td>
-<td align="right">2018</td>
-<td align="right">100</td>
-<td align="right">100</td>
-<td align="right">100</td>
-<td align="right">100.0</td>
-</tr>
-<tr class="odd">
-<td align="left">q</td>
-<td align="left">reference</td>
-<td align="left">language learning</td>
-<td align="right">2019</td>
-<td align="right">100</td>
-<td align="right">100</td>
-<td align="right">100</td>
-<td align="right">100.0</td>
-</tr>
-<tr class="even">
-<td align="left">q</td>
-<td align="left">reference</td>
-<td align="left">language learning</td>
-<td align="right">2020</td>
-<td align="right">100</td>
-<td align="right">100</td>
-<td align="right">100</td>
-<td align="right">100.0</td>
-</tr>
-<tr class="odd">
-<td align="left">q</td>
-<td align="left">comparison</td>
-<td align="left">effect size</td>
-<td align="right">2015</td>
-<td align="right">20</td>
-<td align="right">100</td>
-<td align="right">20</td>
-<td align="right">32.0</td>
-</tr>
-<tr class="even">
-<td align="left">q</td>
-<td align="left">comparison</td>
-<td align="left">effect size</td>
-<td align="right">2016</td>
-<td align="right">24</td>
-<td align="right">100</td>
-<td align="right">24</td>
-<td align="right">32.0</td>
-</tr>
-<tr class="odd">
-<td align="left">q</td>
-<td align="left">comparison</td>
-<td align="left">effect size</td>
-<td align="right">2017</td>
-<td align="right">30</td>
-<td align="right">100</td>
-<td align="right">30</td>
-<td align="right">32.0</td>
-</tr>
-<tr class="even">
-<td align="left">q</td>
-<td align="left">comparison</td>
-<td align="left">effect size</td>
-<td align="right">2018</td>
-<td align="right">33</td>
-<td align="right">100</td>
-<td align="right">33</td>
-<td align="right">32.0</td>
-</tr>
-<tr class="odd">
-<td align="left">q</td>
-<td align="left">comparison</td>
-<td align="left">effect size</td>
-<td align="right">2019</td>
-<td align="right">40</td>
-<td align="right">100</td>
-<td align="right">40</td>
-<td align="right">32.0</td>
-</tr>
-<tr class="even">
-<td align="left">q</td>
-<td align="left">comparison</td>
-<td align="left">effect size</td>
-<td align="right">2020</td>
-<td align="right">45</td>
-<td align="right">100</td>
-<td align="right">45</td>
-<td align="right">32.0</td>
-</tr>
-<tr class="odd">
-<td align="left">q</td>
-<td align="left">comparison</td>
-<td align="left">Bayesian</td>
-<td align="right">2015</td>
-<td align="right">5</td>
-<td align="right">100</td>
-<td align="right">5</td>
-<td align="right">11.2</td>
-</tr>
-<tr class="even">
-<td align="left">q</td>
-<td align="left">comparison</td>
-<td align="left">Bayesian</td>
-<td align="right">2016</td>
-<td align="right">7</td>
-<td align="right">100</td>
-<td align="right">7</td>
-<td align="right">11.2</td>
-</tr>
-<tr class="odd">
-<td align="left">q</td>
-<td align="left">comparison</td>
-<td align="left">Bayesian</td>
-<td align="right">2017</td>
-<td align="right">9</td>
-<td align="right">100</td>
-<td align="right">9</td>
-<td align="right">11.2</td>
-</tr>
-<tr class="even">
-<td align="left">q</td>
-<td align="left">comparison</td>
-<td align="left">Bayesian</td>
-<td align="right">2018</td>
-<td align="right">12</td>
-<td align="right">100</td>
-<td align="right">12</td>
-<td align="right">11.2</td>
-</tr>
-<tr class="odd">
-<td align="left">q</td>
-<td align="left">comparison</td>
-<td align="left">Bayesian</td>
-<td align="right">2019</td>
-<td align="right">15</td>
-<td align="right">100</td>
-<td align="right">15</td>
-<td align="right">11.2</td>
-</tr>
-<tr class="even">
-<td align="left">q</td>
-<td align="left">comparison</td>
-<td align="left">Bayesian</td>
-<td align="right">2020</td>
-<td align="right">19</td>
-<td align="right">100</td>
-<td align="right">19</td>
-<td align="right">11.2</td>
-</tr>
-</tbody>
-</table>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"ggplot2"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="../reference/plot_scopus_comparison.html">plot_scopus_comparison</a></span><span class="op">(</span><span class="va">cmp</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-<p><img src="scopusflow_files/figure-html/unnamed-chunk-11-1.png" class="r-plt" alt="Line chart of two topics' share of the reference literature over time" width="672"></p>
+<span><span class="fu"><a href="../reference/plot_scopus_comparison.html">plot_scopus_comparison</a></span><span class="op">(</span><span class="va">cmp</span><span class="op">)</span></span></code></pre></div>
+<p>The result is a tidy table with one row per topic and year, which
+<code><a href="../reference/plot_scopus_comparison.html">plot_scopus_comparison()</a></code> draws with direct line labels, a
+colour-blind-safe palette and shaded stability bands.
+<code><a href="../articles/comparing-topics.html">vignette("comparing-topics")</a></code> builds the object offline,
+shows the plot in its variations and explains how to read the bands.</p>
 </div>
 <div class="section level2">
 <h2 id="author-keywords-and-references">Author keywords and references<a class="anchor" aria-label="anchor" href="#author-keywords-and-references"></a>
