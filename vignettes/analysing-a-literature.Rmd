@@ -28,35 +28,53 @@ library(scopusflow)
 
 Once a set of records is in hand, the package offers a small analysis layer that
 turns it into the figures a bibliometric study usually needs. The steps that
-contact the API are shown but not run; the rest use the bundled `example_records`
-and run offline.
+contact the API are shown but not run; the rest run offline, on synthetic
+records built in the shape the API returns.
 
 ## What is in a record set
 
 `scopus_top()` tallies the most frequent sources or authors. Author strings that
 hold several names are split, so each contributor is counted once per record.
+The bundled `example_records` keeps the package's examples quick, but its ten
+single-appearance records make for a flat tally, so here we synthesise a
+slightly larger corpus and normalise it with `scopus_records()`, exactly as a
+retrieval would.
 
 ```{r}
-scopus_top(example_records, by = "source")
-scopus_top(example_records, by = "author", n = 5)
+lead <- rep(c("Chen L.", "Smith J.", "Garcia M.", "Kumar S.", "Tanaka H.", "Okafor N."),
+            times = c(8, 6, 4, 4, 2, 2))
+raw <- list(entry = lapply(seq_along(lead), function(i) list(
+  `dc:identifier` = paste0("SCOPUS_ID:", 85100000000 + i),
+  `dc:title` = sprintf("Synthetic study %02d", i),
+  `dc:creator` = if (i %% 3 == 0) paste(lead[i], "Novak P.", sep = "; ") else lead[i],
+  `prism:publicationName` = rep(c("Nature", "Science", "Physical Review Letters",
+                                  "Advanced Materials", "The Lancet Oncology"),
+                                times = c(9, 7, 5, 3, 2))[i],
+  `prism:coverDate` = sprintf("%d-06-01", rep(2016:2023, times = c(1, 1, 2, 2, 3, 4, 6, 7))[i]),
+  `citedby-count` = as.character((27 - i) * 3)
+)))
+records <- scopus_records(raw, query = "TITLE-ABS-KEY(synthetic corpus)")
+
+scopus_top(records, by = "source")
+scopus_top(records, by = "author", n = 5)
 ```
 
 ```{r eval = has_ggplot2, fig.alt = "A horizontal bar chart of the most frequent sources", fig.width = 7, fig.height = 3.5}
-plot_scopus_top(scopus_top(example_records, by = "source"))
+plot_scopus_top(scopus_top(records, by = "source"))
 ```
 
 The same plot works on the author tally.
 
 ```{r eval = has_ggplot2, fig.alt = "A horizontal bar chart of the most frequent authors", fig.width = 7, fig.height = 3.5}
-plot_scopus_top(scopus_top(example_records, by = "author", n = 5))
+plot_scopus_top(scopus_top(records, by = "author", n = 5))
 ```
 
 A record set also has an honest default view: `autoplot()` draws its records per
 year. The same `autoplot()` generic dispatches on `scopus_trend` and `scopus_top`
 objects too, delegating to the plots above.
 
-```{r eval = has_ggplot2, fig.alt = "A bar chart of records per year", fig.width = 7, fig.height = 3.5}
-ggplot2::autoplot(example_records)
+```{r eval = has_ggplot2, fig.alt = "A bar chart of records per year, rising over time", fig.width = 7, fig.height = 3.5}
+ggplot2::autoplot(records)
 ```
 
 ## How a literature grows
@@ -138,7 +156,9 @@ ab <- scopus_abstract(c("10.1038/nature14539", "10.1103/PhysRevLett.116.061102")
 ```
 
 The result is a tibble of class `scopus_abstracts`, one row per identifier. To
-show its shape without a key, here is a stand-in with the same columns.
+show its shape without a key, here is a stand-in with the same columns. The
+`abstract` column holds prose far too wide to typeset whole, so the columns are
+listed by name and the identifying ones shown as a table.
 
 ```{r}
 ab <- tibble::tibble(
@@ -154,9 +174,9 @@ ab <- tibble::tibble(
   citations   = c(42000L, 5400L)
 )
 class(ab) <- c("scopus_abstracts", class(ab))
-ab
+names(ab)
 
-ab[, c("doi", "title", "year")]
+ab[, c("title", "publication", "year", "citations")]
 substr(ab$abstract[2], 1, 40)
 ```
 
@@ -170,10 +190,14 @@ such ceiling.
 ```{r eval = FALSE}
 recs <- scopus_fetch("TITLE-ABS-KEY(microplastics)", cursor = TRUE)
 nrow(recs)
+#> [1] 38374
 ```
 
-The records then arrive in the API's deep-paging order rather than sorted by
-relevance, which is the right trade for a complete harvest. This is the one-call
+That query matched 38,374 records when this article was written (the literature
+keeps growing), several times the offset ceiling, and the cursor retrieves all
+of them in one call. The records then arrive in the API's deep-paging order
+rather than sorted by relevance, which is the right trade for a complete
+harvest. This is the one-call
 alternative to the year-partitioned plan in the *Search plans and quota-aware
 retrieval* article: a plan keeps each cell under the ceiling and preserves
 relevance order, whereas `cursor = TRUE` harvests the whole set in a single pass.

@@ -90,7 +90,14 @@ plot_scopus_top <- function(x, ...) {
       ggplot2::aes(label = format(.data$n, big.mark = ",", trim = TRUE)),
       hjust = -0.15, size = 3, colour = "grey30"
     ) +
-    ggplot2::scale_x_continuous(expand = ggplot2::expansion(mult = c(0, 0.14))) +
+    # Counts are whole numbers, so fractional axis ticks would be noise.
+    ggplot2::scale_x_continuous(
+      breaks = function(v) {
+        p <- pretty(v)
+        p[p == round(p)]
+      },
+      expand = ggplot2::expansion(mult = c(0, 0.14))
+    ) +
     ggplot2::labs(
       x = "Records", y = NULL,
       title = sprintf("Top %s", switch(by, source = "sources", author = "authors", by))
