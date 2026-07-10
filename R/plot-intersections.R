@@ -11,7 +11,11 @@
 #' @param x A `scopus_intersections` object from [scopus_intersections()].
 #' @param highlight Optional character vector of row labels to draw in an
 #'   accent colour, for example the intersection that defines a study's niche.
-#' @param highlight_label Legend label for the highlighted rows.
+#' @param highlight_label Legend label for the highlighted rows. The default,
+#'   `NULL`, derives the label from what is highlighted: "Focal intersection"
+#'   when every highlighted row is an intersection, "Focal concept" when every
+#'   one is a concept, and "Focal set" for a mixture. Supply a string to use
+#'   that instead.
 #' @param ... Currently unused, present for S3 consistency.
 #' @return A [ggplot2::ggplot] object. Needs the suggested package \pkg{ggplot2}.
 #' @details
@@ -36,7 +40,7 @@
 #' plot_scopus_intersections(sets, highlight = sets$label[3])
 #' @export
 plot_scopus_intersections <- function(x, highlight = NULL,
-                                      highlight_label = "Highlighted", ...) {
+                                      highlight_label = NULL, ...) {
   if (!inherits(x, "scopus_intersections")) {
     rlang::abort(
       "`x` must be a `scopus_intersections` object from scopus_intersections().",
@@ -88,6 +92,20 @@ plot_scopus_intersections <- function(x, highlight = NULL,
       "No row has a positive count to place on the log axis.",
       class = "scopus_error_bad_input"
     )
+  }
+
+  # An unset highlight label is derived from the type of the highlighted rows
+  # (those still present after the zero-count drop above), so the legend says
+  # what is focal rather than merely that something is.
+  if (is.null(highlight_label)) {
+    hi_types <- unique(df$type[df$label %in% highlight])
+    highlight_label <- if (identical(hi_types, "intersection")) {
+      "Focal intersection"
+    } else if (identical(hi_types, "concept")) {
+      "Focal concept"
+    } else {
+      "Focal set"
+    }
   }
 
   cols <- c(concept = "#31688E", intersection = "#35B779",

@@ -92,7 +92,22 @@ is_scopus_records(records)
 ```
 
 `scopus_records()` produces this same shape from a raw API response, flattening
-the nested result into one row per record.
+the nested result into one row per record:
+
+```{r}
+# A couple of records in the shape the Scopus API returns them.
+raw <- list(entry = list(
+  list(`dc:identifier` = "SCOPUS_ID:1", `prism:doi` = "10.1000/aaa",
+       `dc:title` = "A reproducible workflow", `dc:creator` = "Smith J.",
+       `prism:publicationName` = "J. Bibliometrics",
+       `prism:coverDate` = "2020-05-01", `citedby-count` = "12"),
+  list(`dc:identifier` = "SCOPUS_ID:2", `prism:doi` = "10.1000/bbb",
+       `dc:title` = "Quota-aware querying", `dc:creator` = "Doe A.",
+       `prism:publicationName` = "Scientometrics Today",
+       `prism:coverDate` = "2021-01-10", `citedby-count` = "3")
+))
+scopus_records(raw, query = "TITLE-ABS-KEY(workflow)")
+```
 
 ## DOIs and change tracking
 
@@ -108,18 +123,20 @@ later <- c(dois[-1], "10.1000/example.999")
 scopus_diff_dois(old = dois, new = later)
 ```
 
-You can write the DOIs to a path you specify:
+You can write the DOIs to a path you specify, and read the file back to see
+exactly what lands on disk:
 
-```{r}
+```{r, comment = "", collapse = FALSE}
 out <- file.path(tempdir(), "dois.csv")
 scopus_extract_dois(records, file = out)
-readLines(out)
+writeLines(readLines(out))
 ```
 
 ## Comparing topic trends
 
-`scopus_compare_topics()` issues one count request per term per year, so it needs
-the API. Its output has a fixed shape, which we reproduce here to show the plot:
+`scopus_compare_topics()` measures how the internal emphasis of a literature
+shifts, expressed as each comparison topic's yearly share of the reference
+literature. It issues one count request per term per year, so it needs the API:
 
 ```{r eval = FALSE}
 cmp <- scopus_compare_topics(
@@ -128,30 +145,14 @@ cmp <- scopus_compare_topics(
   years            = 2015:2020,
   field            = "TITLE-ABS-KEY"
 )
+plot_scopus_comparison(cmp)
 ```
 
-```{r}
-# A stand-in comparison object with the same columns scopus_compare_topics()
-# returns, so the plotting step is reproducible offline.
-cmp <- tibble::tibble(
-  query = "q",
-  query_type = rep(c("reference", "comparison", "comparison"), each = 6),
-  abridged_query = rep(c("language learning", "effect size", "Bayesian"), each = 6),
-  year = rep(2015:2020, 3),
-  n = c(rep(100, 6), 20, 24, 30, 33, 40, 45, 5, 7, 9, 12, 15, 19),
-  reference_n = rep(100, 18),
-  comparison_percentage = c(rep(100, 6), 20, 24, 30, 33, 40, 45, 5, 7, 9, 12, 15, 19),
-  average_comparison_percentage = rep(c(100, 32, 11.2), each = 6)
-)
-class(cmp) <- c("scopus_comparison", class(cmp))
-cmp
-```
-
-```{r fig.alt = "Line chart of two topics' share of the reference literature over time", fig.width = 7, fig.height = 4.5}
-if (requireNamespace("ggplot2", quietly = TRUE)) {
-  plot_scopus_comparison(cmp)
-}
-```
+The result is a tidy table with one row per topic and year, which
+`plot_scopus_comparison()` draws with direct line labels, a colour-blind-safe
+palette and shaded stability bands. `vignette("comparing-topics")` builds the
+object offline, shows the plot in its variations and explains how to read the
+bands.
 
 ## Author keywords and references
 

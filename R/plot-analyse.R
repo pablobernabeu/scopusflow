@@ -84,6 +84,15 @@ plot_scopus_top <- function(x, ...) {
   by <- attr(x, "by") %||% "value"
   df <- x
   df$value <- factor(df$value, levels = rev(df$value))
+  # Headroom for the end-of-bar count labels, derived from the widest label as
+  # plot-intersections.R derives its gap: each label sits just past its bar, so
+  # the axis must extend by that label's rendered width or it clips at the
+  # panel edge. A fixed multiple tuned to one dataset reads well next to short
+  # labels but truncates wide many-digit ones; scaling the expansion with the
+  # character count keeps the widest label inside the panel, and clip = "off"
+  # backstops an unusually narrow device.
+  count_labels <- format(df$n, big.mark = ",", trim = TRUE)
+  headroom <- 0.06 + 0.024 * max(nchar(count_labels))
   ggplot2::ggplot(df, ggplot2::aes(x = .data$n, y = .data$value)) +
     ggplot2::geom_col(fill = "#35B779", width = 0.72) +
     ggplot2::geom_text(
@@ -96,8 +105,9 @@ plot_scopus_top <- function(x, ...) {
         p <- pretty(v)
         p[p == round(p)]
       },
-      expand = ggplot2::expansion(mult = c(0, 0.14))
+      expand = ggplot2::expansion(mult = c(0, headroom))
     ) +
+    ggplot2::coord_cartesian(clip = "off") +
     ggplot2::labs(
       x = "Records", y = NULL,
       title = sprintf("Top %s", switch(by, source = "sources", author = "authors", by))

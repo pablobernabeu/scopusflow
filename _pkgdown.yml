@@ -78,21 +78,25 @@ navbar:
     # of the guides: no redundant "Articles" sub-header (pkgdown adds one from a
     # group's `navbar:` key) and no "More articles..." link (pkgdown adds one
     # when an article, here the internal About page, is absent from the menu).
+    # Ordered pedagogically rather than alphabetically: query design first,
+    # then the core workflow in the order a user meets it (plan and fetch,
+    # export, analyse), then the specialised topics, with the app last. The
+    # mkdocs twin's nav follows the same order.
     articles:
       text: Articles
       menu:
-      - text: Analysing and visualising a literature
-        href: articles/analysing-a-literature.html
-      - text: Building and exporting a reference set
-        href: articles/building-a-reference-set.html
-      - text: Comparing topics over time
-        href: articles/comparing-topics.html
       - text: Designing precise queries across disciplines
         href: articles/designing-queries.html
-      - text: Author keywords and references
-        href: articles/keywords-and-references.html
       - text: Search plans and quota-aware retrieval
         href: articles/plans-and-quota.html
+      - text: Building and exporting a reference set
+        href: articles/building-a-reference-set.html
+      - text: Analysing and visualising a literature
+        href: articles/analysing-a-literature.html
+      - text: Author keywords and references
+        href: articles/keywords-and-references.html
+      - text: Comparing topics over time
+        href: articles/comparing-topics.html
       - text: Tracking how a literature changes between retrievals
         href: articles/tracking-literature-change.html
       - text: Using the code-free app
@@ -103,12 +107,12 @@ navbar:
 articles:
 - title: Guides
   contents:
-  - analysing-a-literature
-  - building-a-reference-set
-  - comparing-topics
   - designing-queries
-  - keywords-and-references
   - plans-and-quota
+  - building-a-reference-set
+  - analysing-a-literature
+  - keywords-and-references
+  - comparing-topics
   - tracking-literature-change
   - using-the-app
 - title: internal

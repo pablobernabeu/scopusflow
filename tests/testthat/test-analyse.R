@@ -116,6 +116,26 @@ test_that("plot_scopus_top uses whole-number count breaks", {
   expect_true(all(b == round(b)))
 })
 
+test_that("the count axis clears the widest end-of-bar label", {
+  skip_if_not_installed("ggplot2")
+  top_of <- function(n) {
+    x <- tibble::tibble(value = c("Nature", "Science"), n = c(n, 5))
+    class(x) <- c("scopus_top", class(x))
+    attr(x, "by") <- "source"
+    x
+  }
+  upper_mult <- function(n) {
+    p <- plot_scopus_top(top_of(n))
+    xr <- ggplot2::ggplot_build(p)$layout$panel_params[[1]]$x.range
+    expect_equal(xr[1], 0)
+    xr[2] / n
+  }
+  # A six-character label ("12,345") needs, and gets, more headroom than a
+  # one-digit one, and enough that it sits inside the panel.
+  expect_gte(upper_mult(12345), 1.18)
+  expect_gt(upper_mult(12345), upper_mult(9))
+})
+
 test_that("plot dispatch rejects the wrong class", {
   skip_if_not_installed("ggplot2")
   expect_error(plot_scopus_trend(data.frame(a = 1)), class = "scopus_error_bad_input")

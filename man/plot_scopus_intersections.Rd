@@ -5,12 +5,7 @@
 \alias{autoplot.scopus_intersections}
 \title{Plot concept and intersection sizes}
 \usage{
-plot_scopus_intersections(
-  x,
-  highlight = NULL,
-  highlight_label = "Highlighted",
-  ...
-)
+plot_scopus_intersections(x, highlight = NULL, highlight_label = NULL, ...)
 
 \method{autoplot}{scopus_intersections}(object, ...)
 }
@@ -20,7 +15,11 @@ plot_scopus_intersections(
 \item{highlight}{Optional character vector of row labels to draw in an
 accent colour, for example the intersection that defines a study's niche.}
 
-\item{highlight_label}{Legend label for the highlighted rows.}
+\item{highlight_label}{Legend label for the highlighted rows. The default,
+\code{NULL}, derives the label from what is highlighted: "Focal intersection"
+when every highlighted row is an intersection, "Focal concept" when every
+one is a concept, and "Focal set" for a mixture. Supply a string to use
+that instead.}
 
 \item{...}{Currently unused, present for S3 consistency.}
 

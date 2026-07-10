@@ -23,6 +23,14 @@ This release adds a code-free app and reference-manager export.
   field-tagged expressions are used as given rather than wrapped again.
 * [`plot_scopus_top()`] draws whole-number axis breaks for its counts, so a
   tally of small counts no longer shows fractional ticks.
+* [`plot_scopus_top()`] derives the count axis's headroom from the widest
+  end-of-bar label, so a wide count (say, five figures on a top-authors bar) no
+  longer clips at the panel edge.
+* [`plot_scopus_intersections()`] derives its highlight legend label from what
+  is highlighted when `highlight_label` is not supplied: "Focal intersection"
+  for intersections, "Focal concept" for concepts and "Focal set" for a
+  mixture, in place of the uninformative "Highlighted". An explicit
+  `highlight_label` still wins.
 * [`plot_scopus_comparison()`] gains `legend_inside`. When set, and a legend is
   drawn, it is placed inside the panel in whichever corner has the most free
   space, on a small semi-transparent background, rather than above the panel.

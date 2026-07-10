@@ -54,114 +54,40 @@ scopus_has_key()
 #> [1] TRUE
 ```
 
-## Quick start (offline)
+## The workflow in brief
 
-Every retrieval returns a `scopus_records` tibble with a stable schema,
-so the downstream helpers can be shown without any network access:
-
-``` r
-# A couple of records in the shape the Scopus API returns them.
-raw <- list(entry = list(
-  list(`dc:identifier` = "SCOPUS_ID:1", `prism:doi` = "10.1000/aaa",
-       `dc:title` = "A reproducible workflow", `dc:creator` = "Smith J.",
-       `prism:publicationName` = "J. Bibliometrics",
-       `prism:coverDate` = "2020-05-01", `citedby-count` = "12"),
-  list(`dc:identifier` = "SCOPUS_ID:2", `prism:doi` = "10.1000/bbb",
-       `dc:title` = "Quota-aware querying", `dc:creator` = "Doe A.",
-       `prism:publicationName` = "Scientometrics Today",
-       `prism:coverDate` = "2021-01-10", `citedby-count` = "3")
-))
-
-records <- scopus_records(raw, query = "TITLE-ABS-KEY(workflow)")
-records
-#> <scopus_records> 2 records
-#> query: "TITLE-ABS-KEY(workflow)"
-#> # A tibble: 2 × 9
-#>   entry_number scopus_id doi     title authors  year date  publication citations
-#>          <int> <chr>     <chr>   <chr> <chr>   <int> <chr> <chr>           <int>
-#> 1            1 1         10.100… A re… Smith …  2020 2020… J. Bibliom…        12
-#> 2            2 2         10.100… Quot… Doe A.   2021 2021… Scientomet…         3
-
-# Extract and deduplicate DOIs.
-scopus_extract_dois(records)
-#> [1] "10.1000/aaa" "10.1000/bbb"
-
-# Track what changed since a previous retrieval.
-scopus_diff_dois(old = "10.1000/aaa", new = c("10.1000/aaa", "10.1000/bbb"))
-#> <scopus_doi_diff> 1 added, 0 removed, 1 unchanged
-#> # A tibble: 2 × 2
-#>   doi         status   
-#>   <chr>       <fct>    
-#> 1 10.1000/bbb added    
-#> 2 10.1000/aaa unchanged
-
-# Tally the most frequent sources or authors.
-scopus_top(records, by = "source")
-#> # A tibble: 2 × 2
-#>   value                    n
-#> * <chr>                <int>
-#> 1 J. Bibliometrics         1
-#> 2 Scientometrics Today     1
-
-# Hand off to bibliometrix-style analysis.
-as_bibliometrix(records)
-#>         AU                      TI                   SO          DI   PY TC UT
-#> 1 SMITH J. A REPRODUCIBLE WORKFLOW     J. BIBLIOMETRICS 10.1000/aaa 2020 12  1
-#> 2   DOE A.    QUOTA-AWARE QUERYING SCIENTOMETRICS TODAY 10.1000/bbb 2021  3  2
-#>       DB
-#> 1 SCOPUS
-#> 2 SCOPUS
-```
-
-## Live workflow
-
-With a key configured, the same pieces compose into a real retrieval.
-These calls contact the API and consume quota, so they are not run here:
+With a key configured, a search runs as a plan: compose the query, size
+it, execute it with caching, then export or analyse the result. These
+calls contact the API and consume quota, so they are not run here:
 
 ``` r
-# 1. Compose a field-tagged query, then a reproducible plan partitioned by
-#    year to stay under the API's start < 5000 ceiling.
+# Compose a field-tagged query, then a reproducible plan partitioned by
+# year to stay under the API's start < 5000 ceiling.
 q <- scopus_query("perovskite", "solar cell", .field = "TITLE-ABS-KEY")
 plan <- scopus_plan(q, years = 2012:2022, partition = "year")
 
-# 2. Size it before spending quota.
+# Size the search before spending quota, then execute, caching each year
+# so an interrupted run can resume.
 scopus_count(q, years = 2012:2022)
-
-# 3. Execute, caching each year so an interrupted run can resume.
 records <- scopus_fetch_plan(plan, cache_dir = scopus_cache_dir(), resume = TRUE)
 
-# 4. Save a clean DOI list, or export the records for a reference manager
-#    (Zotero, EndNote, Mendeley) or a LaTeX bibliography.
+# Save a clean DOI list, or export the records for a reference manager
+# (Zotero, EndNote, Mendeley) or a LaTeX bibliography.
 scopus_extract_dois(records, file = file.path(tempdir(), "dois.csv"))
 as_bibtex(records, file = file.path(tempdir(), "records.bib"))
-as_ris(records, file = file.path(tempdir(), "records.ris"))
-
-# 5. Compare how a method spreads across application areas over time.
-cmp <- scopus_compare_topics(
-  reference_query  = "deep learning",
-  comparison_terms = c("computer vision", "drug discovery", "medical imaging"),
-  years            = 2013:2022,
-  field            = "TITLE-ABS-KEY"
-)
-plot_scopus_comparison(cmp)
-
-# 6. Size a niche against the fields around it: count a set of concepts and
-#    their intersections, at one quota-cheap count request per row.
-sets <- scopus_intersections(
-  concepts = c(
-    "semantic priming"  = "semantic priming",
-    "mental simulation" = "mental simulation"
-  ),
-  intersections = list(c("semantic priming", "mental simulation")),
-  field = "TITLE-ABS-KEY"
-)
-plot_scopus_intersections(sets, highlight = sets$label[sets$type == "intersection"])
-
-# 7. Read the abstract of a known record, or harvest a whole large query past
-#    the 5000-record ceiling with cursor pagination.
-scopus_abstract("10.1103/PhysRevLett.116.061102")
-all_records <- scopus_fetch("TITLE-ABS-KEY(microplastics)", cursor = TRUE)
 ```
+
+The [Get
+started](https://pablobernabeu.github.io/scopusflow/articles/scopusflow.html)
+vignette walks this workflow offline, on records bundled with the
+package, and the
+[articles](https://pablobernabeu.github.io/scopusflow/articles/index.html)
+each cover one part in depth: designing queries, search plans and quota,
+building a reference set, analysing and visualising a literature
+(trends, top sources and authors, concept intersections, abstracts and
+cursor-paged harvests), author keywords and references, comparing topics
+over time (the chart above) and tracking how a literature changes
+between retrievals.
 
 ## Code-free app
 
@@ -177,10 +103,11 @@ run_app()
 ```
 
 The retrieval runs in a background process with a live progress
-terminal. Records appear as a table and as plots, with one-click export
-to RDS, DOIs, BibTeX and RIS, and a Compare topics tab draws the same
-topic comparison shown above. It needs the suggested packages shiny,
-bslib and callr.
+terminal, and records appear as a table and as plots with one-click
+export. It needs the suggested packages shiny, bslib and callr. The
+[Using the code-free
+app](https://pablobernabeu.github.io/scopusflow/articles/using-the-app.html)
+article walks through every panel.
 
 ## Quotas, rate limits and errors
 
@@ -195,19 +122,9 @@ and rate-limit headers are parsed by `scopus_quota()`, transient
 failures such as HTTP 429 and the 5xx range are retried with back-off
 that honours `Retry-After`, and an offset-paged query is capped at 5000
 records with a warning that suggests cursor paging or partitioning by
-year. A failure arrives as a typed condition, so a workflow can respond
-to it in code:
-
-``` r
-tryCatch(
-  scopus_count("..."),
-  scopus_error_no_key   = function(e) message("Set SCOPUS_API_KEY first."),
-  scopus_error_rate_limit = function(e) message("Slow down: ", conditionMessage(e)),
-  scopus_error          = function(e) message("Scopus problem: ", conditionMessage(e))
-)
-```
-
-All `scopus_error_*` conditions inherit from `scopus_error`.
+year. A failure arrives as a typed condition (every `scopus_error_*`
+condition inherits from `scopus_error`), so a workflow can respond to it
+in code. The Get started vignette shows the `tryCatch()` pattern.
 
 ## How it compares
 

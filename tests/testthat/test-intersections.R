@@ -248,6 +248,26 @@ test_that("highlight accents the named rows", {
   expect_true("#BB5566" %in% cols)
 })
 
+test_that("the highlight legend label is derived from what is highlighted", {
+  skip_if_not_installed("ggplot2")
+  sets <- make_intersections()
+  labels_of <- function(p) p$scales$get_scales("colour")$labels
+  expect_true("Focal intersection" %in%
+                labels_of(plot_scopus_intersections(sets,
+                                                    highlight = sets$label[3])))
+  expect_true("Focal concept" %in%
+                labels_of(plot_scopus_intersections(sets,
+                                                    highlight = sets$label[1])))
+  expect_true("Focal set" %in%
+                labels_of(plot_scopus_intersections(sets,
+                                                    highlight = sets$label[c(1, 3)])))
+  # An explicit label still wins over the derived one.
+  expect_true("My niche" %in%
+                labels_of(plot_scopus_intersections(sets,
+                                                    highlight = sets$label[3],
+                                                    highlight_label = "My niche")))
+})
+
 test_that("an unknown highlight is rejected", {
   skip_if_not_installed("ggplot2")
   expect_error(

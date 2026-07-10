@@ -64,10 +64,10 @@ dois
 The list can be written to a single-column CSV at a path you choose. Nothing is
 written unless a path is given.
 
-```{r}
+```{r, comment = "", collapse = FALSE}
 out <- file.path(tempdir(), "reference-set.csv")
 scopus_extract_dois(example_records, file = out)
-readLines(out)
+writeLines(readLines(out))
 ```
 
 ## Into a reference manager
