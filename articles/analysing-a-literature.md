@@ -7,44 +7,63 @@ library(scopusflow)
 
 Once a set of records is in hand, the package offers a small analysis
 layer that turns it into the figures a bibliometric study usually needs.
-The steps that contact the API are shown but not run; the rest use the
-bundled `example_records` and run offline.
+The steps that contact the API are shown but not run; the rest run
+offline, on synthetic records built in the shape the API returns.
 
 ## What is in a record set
 
 [`scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_top.md)
 tallies the most frequent sources or authors. Author strings that hold
 several names are split, so each contributor is counted once per record.
+The bundled `example_records` keeps the package’s examples quick, but
+its ten single-appearance records make for a flat tally, so here we
+synthesise a slightly larger corpus and normalise it with
+[`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md),
+exactly as a retrieval would.
 
 ``` r
 
-scopus_top(example_records, by = "source")
+lead <- rep(c("Chen L.", "Smith J.", "Garcia M.", "Kumar S.", "Tanaka H.", "Okafor N."),
+            times = c(8, 6, 4, 4, 2, 2))
+raw <- list(entry = lapply(seq_along(lead), function(i) list(
+  `dc:identifier` = paste0("SCOPUS_ID:", 85100000000 + i),
+  `dc:title` = sprintf("Synthetic study %02d", i),
+  `dc:creator` = if (i %% 3 == 0) paste(lead[i], "Novak P.", sep = "; ") else lead[i],
+  `prism:publicationName` = rep(c("Nature", "Science", "Physical Review Letters",
+                                  "Advanced Materials", "The Lancet Oncology"),
+                                times = c(9, 7, 5, 3, 2))[i],
+  `prism:coverDate` = sprintf("%d-06-01", rep(2016:2023, times = c(1, 1, 2, 2, 3, 4, 6, 7))[i]),
+  `citedby-count` = as.character((27 - i) * 3)
+)))
+records <- scopus_records(raw, query = "TITLE-ABS-KEY(synthetic corpus)")
+
+scopus_top(records, by = "source")
 ```
 
 | value                   |   n |
 |:------------------------|----:|
-| Nature                  |   2 |
-| Advanced Materials      |   1 |
-| Nature Climate Change   |   1 |
-| Physical Review Letters |   1 |
-| The Lancet Oncology     |   1 |
+| Nature                  |   9 |
+| Science                 |   7 |
+| Physical Review Letters |   5 |
+| Advanced Materials      |   3 |
+| The Lancet Oncology     |   2 |
 
 ``` r
 
-scopus_top(example_records, by = "author", n = 5)
+scopus_top(records, by = "author", n = 5)
 ```
 
 | value     |   n |
 |:----------|----:|
-| Abbott B. |   1 |
-| Garcia M. |   1 |
-| Kumar S.  |   1 |
-| Okafor N. |   1 |
-| Tanaka H. |   1 |
+| Chen L.   |   8 |
+| Novak P.  |   8 |
+| Smith J.  |   6 |
+| Garcia M. |   4 |
+| Kumar S.  |   4 |
 
 ``` r
 
-plot_scopus_top(scopus_top(example_records, by = "source"))
+plot_scopus_top(scopus_top(records, by = "source"))
 ```
 
 ![A horizontal bar chart of the most frequent
@@ -54,7 +73,7 @@ The same plot works on the author tally.
 
 ``` r
 
-plot_scopus_top(scopus_top(example_records, by = "author", n = 5))
+plot_scopus_top(scopus_top(records, by = "author", n = 5))
 ```
 
 ![A horizontal bar chart of the most frequent
@@ -67,11 +86,11 @@ above.
 
 ``` r
 
-ggplot2::autoplot(example_records)
+ggplot2::autoplot(records)
 ```
 
-![A bar chart of records per
-year](analysing-a-literature_files/figure-html/unnamed-chunk-5-1.png)
+![A bar chart of records per year, rising over
+time](analysing-a-literature_files/figure-html/unnamed-chunk-5-1.png)
 
 ## How a literature grows
 
@@ -100,6 +119,60 @@ plot_scopus_trend(tr)
 ![A line and area chart of records per year rising over
 time](analysing-a-literature_files/figure-html/unnamed-chunk-7-1.png)
 
+## Where a niche sits
+
+A study that crosses two or more fields is best introduced by sizing
+those fields and their overlap: each parent literature may hold
+thousands of records while their intersection holds a handful, which is
+the niche the study occupies.
+[`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md)
+counts a named set of concepts and any requested intersections of them,
+at one count request per row, so the whole landscape is as cheap as a
+few
+[`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md)
+calls. Concept values may be bare terms, wrapped in `field` for you, or
+complete field-tagged expressions, used exactly as given.
+
+``` r
+
+sets <- scopus_intersections(
+  concepts = c(
+    "semantic priming"  = "semantic priming",
+    "mental simulation" = "mental simulation"
+  ),
+  intersections = list(c("semantic priming", "mental simulation")),
+  field = "TITLE-ABS-KEY"
+)
+plot_scopus_intersections(sets, highlight = sets$label[sets$type == "intersection"])
+```
+
+As above, the result has a fixed shape, which we reproduce here to show
+the plot. The lollipop chart uses a log-scale axis, so the small
+intersection stays legible beside its large parent fields, and the
+highlighted row draws the eye to the niche itself.
+
+``` r
+
+sets <- tibble::tibble(
+  label = c("semantic priming", "mental simulation",
+            "semantic priming × mental simulation"),
+  query = c("TITLE-ABS-KEY(semantic priming)",
+            "TITLE-ABS-KEY(mental simulation)",
+            "(TITLE-ABS-KEY(semantic priming)) AND (TITLE-ABS-KEY(mental simulation))"),
+  n = c(6600, 2100, 15),
+  type = c("concept", "concept", "intersection"),
+  size = c(1L, 1L, 2L),
+  members = c("semantic priming", "mental simulation",
+              "semantic priming; mental simulation")
+)
+class(sets) <- c("scopus_intersections", class(sets))
+plot_scopus_intersections(sets, highlight = sets$label[3])
+```
+
+![A log-scale lollipop chart showing two large concepts and their small
+intersection, with the intersection
+highlighted](analysing-a-literature_files/figure-html/unnamed-chunk-9-1.png)
+
 ## Reading the fuller record
 
 The Search API returns a few fields per record. To read the abstract and
@@ -116,7 +189,9 @@ ab <- scopus_abstract(c("10.1038/nature14539", "10.1103/PhysRevLett.116.061102")
 
 The result is a tibble of class `scopus_abstracts`, one row per
 identifier. To show its shape without a key, here is a stand-in with the
-same columns.
+same columns. The `abstract` column holds prose far too wide to typeset
+whole, so the columns are listed by name and the identifying ones shown
+as a table.
 
 ``` r
 
@@ -133,24 +208,17 @@ ab <- tibble::tibble(
   citations   = c(42000L, 5400L)
 )
 class(ab) <- c("scopus_abstracts", class(ab))
-ab
+names(ab)
+#> [1] "id"          "scopus_id"   "doi"         "title"       "abstract"   
+#> [6] "publication" "year"        "citations"
+
+ab[, c("title", "publication", "year", "citations")]
 ```
 
-| id | scopus_id | doi | title | abstract | publication | year | citations |
-|:---|:---|:---|:---|:---|:---|---:|---:|
-| 10.1038/nature14539 | 85060000001 | 10.1038/nature14539 | Deep learning | Deep learning allows computational models that are … | Nature | 2015 | 42000 |
-| 10.1103/PhysRevLett.116.061102 | 84960000002 | 10.1103/PhysRevLett.116.061102 | Observation of gravitational waves from a binary black hole merger | On 14 September 2015 the two detectors of LIGO observed … | Physical Review Letters | 2016 | 5400 |
-
-``` r
-
-
-ab[, c("doi", "title", "year")]
-```
-
-| doi | title | year |
-|:---|:---|---:|
-| 10.1038/nature14539 | Deep learning | 2015 |
-| 10.1103/PhysRevLett.116.061102 | Observation of gravitational waves from a binary black hole merger | 2016 |
+| title | publication | year | citations |
+|:---|:---|---:|---:|
+| Deep learning | Nature | 2015 | 42000 |
+| Observation of gravitational waves from a binary black hole merger | Physical Review Letters | 2016 | 5400 |
 
 ``` r
 
@@ -169,13 +237,16 @@ instead, which has no such ceiling.
 
 recs <- scopus_fetch("TITLE-ABS-KEY(microplastics)", cursor = TRUE)
 nrow(recs)
+#> [1] 38374
 ```
 
-The records then arrive in the API’s deep-paging order rather than
-sorted by relevance, which is the right trade for a complete harvest.
-This is the one-call alternative to the year-partitioned plan in the
-*Search plans and quota-aware retrieval* article: a plan keeps each cell
-under the ceiling and preserves relevance order, whereas `cursor = TRUE`
-harvests the whole set in a single pass. Reach for the plan when you
-want cached, resumable cells, and the cursor when you want the complete
-set at once.
+That query matched 38,374 records when this article was written (the
+literature keeps growing), several times the offset ceiling, and the
+cursor retrieves all of them in one call. The records then arrive in the
+API’s deep-paging order rather than sorted by relevance, which is the
+right trade for a complete harvest. This is the one-call alternative to
+the year-partitioned plan in the *Search plans and quota-aware
+retrieval* article: a plan keeps each cell under the ceiling and
+preserves relevance order, whereas `cursor = TRUE` harvests the whole
+set in a single pass. Reach for the plan when you want cached, resumable
+cells, and the cursor when you want the complete set at once.

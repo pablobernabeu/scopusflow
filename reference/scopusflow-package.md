@@ -5,12 +5,12 @@ A coherent, quota-aware workflow layer over the Elsevier 'Scopus' Search
 search plans, retrieves records with rate-limit handling, retry with
 back-off and optional resumable caching, normalises results to a stable
 tidy schema, extracts and tracks changes in Digital Object Identifiers
-(DOIs), compares publication trends across topics and exports to formats
-compatible with downstream bibliometric tools. Network and 'API' errors
-are surfaced as typed conditions so that callers can respond to them
-programmatically. 'Scopus' is a trademark of Elsevier. This package is
-an independent client and is not affiliated with or endorsed by
-Elsevier.
+(DOIs), sizes sets of concepts and their intersections, compares
+publication trends across topics and exports to formats compatible with
+downstream bibliometric tools. Network and 'API' errors are surfaced as
+typed conditions so that callers can respond to them programmatically.
+'Scopus' is a trademark of Elsevier. This package is an independent
+client and is not affiliated with or endorsed by Elsevier.
 
 ## See also
 

@@ -58,6 +58,8 @@
   : Most frequent values in a record set
 - [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
   : Compare publication trends across topics
+- [`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md)
+  : Count a set of concepts and their intersections
 - [`plot_scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_trend.md)
   [`autoplot(`*`<scopus_trend>`*`)`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_trend.md)
   : Plot a publication trend
@@ -67,6 +69,9 @@
 - [`plot_scopus_comparison()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_comparison.md)
   [`autoplot(`*`<scopus_comparison>`*`)`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_comparison.md)
   : Plot a topic comparison
+- [`plot_scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_intersections.md)
+  [`autoplot(`*`<scopus_intersections>`*`)`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_intersections.md)
+  : Plot concept and intersection sizes
 
 ## Export and I/O
 
