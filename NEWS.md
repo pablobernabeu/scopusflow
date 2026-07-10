@@ -14,6 +14,13 @@ This release adds a code-free app and reference-manager export.
 * [`as_bibtex()`] and [`as_ris()`] export a record set to the BibTeX and RIS
   interchange formats, so a search can be carried into Zotero, EndNote, Mendeley
   or a LaTeX bibliography.
+* [`scopus_intersections()`] counts a named set of concepts and any requested
+  intersections of them, sizing where a study or a niche sits within the
+  surrounding literature at one count request per row, and
+  [`plot_scopus_intersections()`] draws the result as a lollipop chart on a
+  log-scale axis, with an optional highlight (for example the niche itself)
+  and an `autoplot()` method. Concept values that are already complete
+  field-tagged expressions are used as given rather than wrapped again.
 * [`plot_scopus_comparison()`] gains `legend_inside`. When set, and a legend is
   drawn, it is placed inside the panel in whichever corner has the most free
   space, on a small semi-transparent background, rather than above the panel.
