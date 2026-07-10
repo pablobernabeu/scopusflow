@@ -21,6 +21,8 @@ This release adds a code-free app and reference-manager export.
   log-scale axis, with an optional highlight (for example the niche itself)
   and an `autoplot()` method. Concept values that are already complete
   field-tagged expressions are used as given rather than wrapped again.
+* [`plot_scopus_top()`] draws whole-number axis breaks for its counts, so a
+  tally of small counts no longer shows fractional ticks.
 * [`plot_scopus_comparison()`] gains `legend_inside`. When set, and a legend is
   drawn, it is placed inside the panel in whichever corner has the most free
   space, on a small semi-transparent background, rather than above the panel.

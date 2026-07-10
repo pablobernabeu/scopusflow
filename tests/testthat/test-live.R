@@ -51,7 +51,18 @@ test_that("a live response carries quota headers", {
 test_that("a live abstract retrieval returns metadata", {
   skip_live()
   withr::local_options(scopusflow.api_key = NULL)
-  ab <- scopus_abstract("10.1103/PhysRevLett.116.061102")
+  # Abstract Retrieval draws on its own, smaller quota, and scopus_abstract()
+  # degrades a per-identifier failure to an NA row with a warning. On a
+  # rate-limited run that NA row would read here as schema drift, so a 429 is
+  # recorded and skipped rather than failed; any other warning still surfaces.
+  msgs <- character()
+  ab <- withCallingHandlers(
+    scopus_abstract("10.1103/PhysRevLett.116.061102"),
+    warning = function(w) msgs <<- c(msgs, conditionMessage(w))
+  )
+  if (any(grepl("HTTP 429|rate limit", msgs, ignore.case = TRUE))) {
+    skip("The Abstract Retrieval API rate-limited this run.")
+  }
   expect_s3_class(ab, "scopus_abstracts")
   expect_equal(nrow(ab), 1L)
   expect_false(is.na(ab$title))

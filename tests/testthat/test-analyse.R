@@ -106,6 +106,16 @@ test_that("the new plots return ggplot objects", {
   expect_true(all(b == round(b), na.rm = TRUE))
 })
 
+test_that("plot_scopus_top uses whole-number count breaks", {
+  skip_if_not_installed("ggplot2")
+  # Every author in the fixture appears once, the case that used to produce
+  # fractional ticks (0.3, 0.6, 0.9) on a count axis.
+  p <- plot_scopus_top(scopus_top(example_records, by = "author", n = 5))
+  b <- ggplot2::ggplot_build(p)$layout$panel_params[[1]]$x$breaks
+  b <- b[!is.na(b)]
+  expect_true(all(b == round(b)))
+})
+
 test_that("plot dispatch rejects the wrong class", {
   skip_if_not_installed("ggplot2")
   expect_error(plot_scopus_trend(data.frame(a = 1)), class = "scopus_error_bad_input")

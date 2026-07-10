@@ -8,8 +8,11 @@ and a local, code-free Shiny app (run_app()). It also adds author-keyword
 retrieval (view = "COMPLETE" in searches, include = "keywords" in
 scopus_abstract()), structured per-citation reference lists
 (scopus_abstract(include = "references")) and an exported scopus_corpus() that
-assembles a minimal keyword/reference corpus from a record set. The changes are
-listed in NEWS.md. There are no user-facing breaking changes.
+assembles a minimal keyword/reference corpus from a record set. Finally, it
+adds scopus_intersections() and plot_scopus_intersections(), which size a
+named set of concepts and their intersections in single count requests and
+draw the result on a log-scale axis. The changes are listed in NEWS.md. There
+are no user-facing breaking changes.
 
 The app's interface packages (shiny, bslib, callr, fansi) are in Suggests and
 used only inside run_app(), which is guarded with rlang::check_installed(); the
