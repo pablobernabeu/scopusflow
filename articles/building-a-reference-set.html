@@ -276,25 +276,25 @@ the set in the two interchange formats that reference managers read, so
 a search moves straight into Zotero, EndNote or a LaTeX bibliography.
 Each record becomes one entry, with its authors split out.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fu"><a href="../reference/as_bibtex.html">as_ris</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">320</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; TY  - JOUR</span></span>
-<span><span class="co">#&gt; TI  - Genome editing with CRISPR-Cas9: principles and applications</span></span>
-<span><span class="co">#&gt; AU  - Zhang F.</span></span>
-<span><span class="co">#&gt; PY  - 2019</span></span>
-<span><span class="co">#&gt; JO  - Nature</span></span>
-<span><span class="co">#&gt; DO  - 10.1038/s41586-019-0001-1</span></span>
-<span><span class="co">#&gt; N1  - Scopus ID: 85000000001</span></span>
-<span><span class="co">#&gt; ER  - </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; TY  - JOUR</span></span>
-<span><span class="co">#&gt; TI  - Deep learning for medical image analysis: a review</span></span>
-<span><span class="co">#&gt; AU  - Kumar S.</span></span>
-<span><span class="co">#&gt; PY  - 2020</span></span>
-<span><span class="co">#&gt; JO  - Nature</span></span>
-<span><span class="co">#&gt; DO  - 10.1038/s41586-020-00</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fu"><a href="../reference/as_bibtex.html">as_ris</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">320</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code>TY  - JOUR
+TI  - Genome editing with CRISPR-Cas9: principles and applications
+AU  - Zhang F.
+PY  - 2019
+JO  - Nature
+DO  - 10.1038/s41586-019-0001-1
+N1  - Scopus ID: 85000000001
+ER  - 
+
+TY  - JOUR
+TI  - Deep learning for medical image analysis: a review
+AU  - Kumar S.
+PY  - 2020
+JO  - Nature
+DO  - 10.1038/s41586-020-00</code></pre>
 <p>Pass a <code>file</code> to write the whole set; nothing is written
 without one.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bib</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"reference-set.bib"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/as_bibtex.html">as_bibtex</a></span><span class="op">(</span><span class="va">example_records</span>, file <span class="op">=</span> <span class="va">bib</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -304,7 +304,7 @@ without one.</p>
 <p><code><a href="../reference/as_bibliometrix.html">as_bibliometrix()</a></code> re-maps the records to the tagged
 column layout that the <a href="https://www.bibliometrix.org" class="external-link">bibliometrix</a> package and the
 wider ISI convention expect.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">m</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/as_bibliometrix.html">as_bibliometrix</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span></span>
 <span><span class="va">m</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AU"</span>, <span class="st">"TI"</span>, <span class="st">"PY"</span>, <span class="st">"SO"</span>, <span class="st">"TC"</span>, <span class="st">"DB"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
 <table class="table">
@@ -380,7 +380,7 @@ HOLE MERGER</td>
 </table>
 <p>From there the usual bibliometrix entry points apply. This step needs
 that package, so it is shown but not run.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"bibliometrix"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">bibliometrix</span><span class="fu">::</span><span class="fu">biblioAnalysis</span><span class="op">(</span><span class="fu"><a href="../reference/as_bibliometrix.html">as_bibliometrix</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">results</span>, k <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
@@ -396,7 +396,7 @@ or BibTeX export read with <code>bibliometrix::convert2df()</code>.</p>
 <p>To pick the work up in a later session, save the records and read
 them back. The <code>.rds</code> form preserves the types and class
 exactly, while <code>.csv</code> is portable plain text.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"records.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/write_scopus_records.html">write_scopus_records</a></span><span class="op">(</span><span class="va">example_records</span>, <span class="va">path</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="../reference/write_scopus_records.html">read_scopus_records</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span>, <span class="va">example_records</span><span class="op">)</span></span>

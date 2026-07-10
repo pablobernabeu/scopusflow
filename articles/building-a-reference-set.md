@@ -103,22 +103,23 @@ bibliography. Each record becomes one entry, with its authors split out.
 ``` r
 
 cat(substr(as_ris(example_records), 1, 320))
-#> TY  - JOUR
-#> TI  - Genome editing with CRISPR-Cas9: principles and applications
-#> AU  - Zhang F.
-#> PY  - 2019
-#> JO  - Nature
-#> DO  - 10.1038/s41586-019-0001-1
-#> N1  - Scopus ID: 85000000001
-#> ER  - 
-#> 
-#> TY  - JOUR
-#> TI  - Deep learning for medical image analysis: a review
-#> AU  - Kumar S.
-#> PY  - 2020
-#> JO  - Nature
-#> DO  - 10.1038/s41586-020-00
 ```
+
+    TY  - JOUR
+    TI  - Genome editing with CRISPR-Cas9: principles and applications
+    AU  - Zhang F.
+    PY  - 2019
+    JO  - Nature
+    DO  - 10.1038/s41586-019-0001-1
+    N1  - Scopus ID: 85000000001
+    ER  - 
+
+    TY  - JOUR
+    TI  - Deep learning for medical image analysis: a review
+    AU  - Kumar S.
+    PY  - 2020
+    JO  - Nature
+    DO  - 10.1038/s41586-020-00
 
 Pass a `file` to write the whole set; nothing is written without one.
 
