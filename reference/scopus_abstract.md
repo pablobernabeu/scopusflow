@@ -110,10 +110,7 @@ work, when resolved), `doi`, `title`, `authors`, `source` (the journal
 or other venue), `year` and `citedbycount` (the cited work's own
 citation count; populated only under `view = "REF"`, `NA` under
 `"FULL"`). A document with no resolvable references yields a zero-row
-data frame, not `NA`, so the column can always be unnested. This is a
-leaner field set than pybliometrics' own `references` in the Python
-twin, which exposes several further fields pybliometrics already parses;
-see the Python package's equivalent documentation for that fuller shape.
+data frame, not `NA`, so the column can always be unnested.
 
 ## Details
 
