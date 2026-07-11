@@ -61,10 +61,7 @@
 #'   venue), `year` and `citedbycount` (the cited work's own citation count;
 #'   populated only under `view = "REF"`, `NA` under `"FULL"`). A document with
 #'   no resolvable references yields a zero-row data frame, not `NA`, so the
-#'   column can always be unnested. This is a leaner field set than
-#'   pybliometrics' own `references` in the Python twin, which exposes several
-#'   further fields pybliometrics already parses; see the Python package's
-#'   equivalent documentation for that fuller shape.
+#'   column can always be unnested.
 #' @details
 #' Retrieving references needs Abstract Retrieval's `FULL` or `REF` view, and
 #' keywords need `FULL`. In development, against a live key with full Abstract Retrieval

@@ -79,10 +79,7 @@ resolved), \code{doi}, \code{title}, \code{authors}, \code{source} (the journal 
 venue), \code{year} and \code{citedbycount} (the cited work's own citation count;
 populated only under \code{view = "REF"}, \code{NA} under \code{"FULL"}). A document with
 no resolvable references yields a zero-row data frame, not \code{NA}, so the
-column can always be unnested. This is a leaner field set than
-pybliometrics' own \code{references} in the Python twin, which exposes several
-further fields pybliometrics already parses; see the Python package's
-equivalent documentation for that fuller shape.
+column can always be unnested.
 }
 \description{
 Fetches the abstract text and core metadata for one or more records from the
