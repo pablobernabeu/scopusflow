@@ -144,6 +144,17 @@ The result is a `scopus_records` tibble, the same shape returned by
 example_records
 ```
 
+## Watching progress
+
+Per-cell progress is silent by default and switched on with `verbose = TRUE`,
+worth doing for a harvest spanning many years.
+
+```{r eval = FALSE}
+records <- scopus_fetch_plan(plan, cache_dir = scopus_cache_dir(), verbose = TRUE)
+```
+
+A line is reported as each cell is fetched or loaded from cache.
+
 ## Combining separate retrievals
 
 Results gathered in separate runs combine safely with `scopus_combine()`, which

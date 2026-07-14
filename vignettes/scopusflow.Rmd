@@ -109,6 +109,19 @@ raw <- list(entry = list(
 scopus_records(raw, query = "TITLE-ABS-KEY(workflow)")
 ```
 
+## Most frequent sources and authors
+
+A record set already answers the first descriptive questions. `scopus_top()`
+tallies the most frequent sources or authors, counting each contributor once
+per record:
+
+```{r}
+scopus_top(records, by = "source")
+```
+
+`vignette("analysing-a-literature")` covers growth trends, top-source and
+top-author plots and abstract retrieval in depth.
+
 ## DOIs and change tracking
 
 Extract a clean, deduplicated DOI list for import into a reference manager, and
