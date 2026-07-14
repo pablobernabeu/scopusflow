@@ -1,5 +1,41 @@
 # Changelog
 
+## scopusflow 0.2.1
+
+A documentation release. The vignettes now demonstrate several features
+that 0.2.0 shipped but did not show.
+
+- [`vignette("designing-queries")`](https://pablobernabeu.github.io/scopusflow/articles/designing-queries.md)
+  shows the `AND NOT` operator in
+  \[[`scopus_query()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_query.md)\],
+  excluding a dominant homonym from a search.
+- [`vignette("analysing-a-literature")`](https://pablobernabeu.github.io/scopusflow/articles/analysing-a-literature.md)
+  passes
+  \[[`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md)\]
+  a concept that is already a complete field-tagged expression and so is
+  used as given, letting a concept be a synonym set rather than a single
+  term.
+- [`vignette("scopusflow")`](https://pablobernabeu.github.io/scopusflow/articles/scopusflow.md)
+  introduces
+  \[[`scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_top.md)\]
+  on a record set, and points to the analysis article for the plots and
+  trends built on it.
+- [`vignette("plans-and-quota")`](https://pablobernabeu.github.io/scopusflow/articles/plans-and-quota.md)
+  covers `verbose = TRUE` in
+  \[[`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)\],
+  which reports a line as each cell is fetched or loaded from cache.
+- [`vignette("building-a-reference-set")`](https://pablobernabeu.github.io/scopusflow/articles/building-a-reference-set.md)
+  shows
+  \[[`scopus_extract_dois()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_extract_dois.md)\]
+  on a plain vector of DOIs, both with the default deduplication (which
+  ignores case and resolver prefixes) and with `dedupe = FALSE`.
+- [`vignette("keywords-and-references")`](https://pablobernabeu.github.io/scopusflow/articles/keywords-and-references.md)
+  tallies author keywords across a
+  \[[`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)\]
+  result, the per-keyword document count the article is named for.
+- \[[`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)\]’s
+  help page no longer describes the Python twin’s reference fields.
+
 ## scopusflow 0.2.0
 
 This release reaches further into the API, adds an analysis and export

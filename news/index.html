@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,6 +51,23 @@
       <small>Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.1" id="scopusflow-021">scopusflow 0.2.1<a class="anchor" aria-label="anchor" href="#scopusflow-021"></a></h2>
+<p>A documentation release. The vignettes now demonstrate several features that 0.2.0 shipped but did not show.</p>
+<ul><li>
+<code><a href="../articles/designing-queries.html">vignette("designing-queries")</a></code> shows the <code>AND NOT</code> operator in [<code><a href="../reference/scopus_query.html">scopus_query()</a></code>], excluding a dominant homonym from a search.</li>
+<li>
+<code><a href="../articles/analysing-a-literature.html">vignette("analysing-a-literature")</a></code> passes [<code><a href="../reference/scopus_intersections.html">scopus_intersections()</a></code>] a concept that is already a complete field-tagged expression and so is used as given, letting a concept be a synonym set rather than a single term.</li>
+<li>
+<code><a href="../articles/scopusflow.html">vignette("scopusflow")</a></code> introduces [<code><a href="../reference/scopus_top.html">scopus_top()</a></code>] on a record set, and points to the analysis article for the plots and trends built on it.</li>
+<li>
+<code><a href="../articles/plans-and-quota.html">vignette("plans-and-quota")</a></code> covers <code>verbose = TRUE</code> in [<code><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan()</a></code>], which reports a line as each cell is fetched or loaded from cache.</li>
+<li>
+<code><a href="../articles/building-a-reference-set.html">vignette("building-a-reference-set")</a></code> shows [<code><a href="../reference/scopus_extract_dois.html">scopus_extract_dois()</a></code>] on a plain vector of DOIs, both with the default deduplication (which ignores case and resolver prefixes) and with <code>dedupe = FALSE</code>.</li>
+<li>
+<code><a href="../articles/keywords-and-references.html">vignette("keywords-and-references")</a></code> tallies author keywords across a [<code><a href="../reference/scopus_corpus.html">scopus_corpus()</a></code>] result, the per-keyword document count the article is named for.</li>
+<li>[<code><a href="../reference/scopus_abstract.html">scopus_abstract()</a></code>]’s help page no longer describes the Python twin’s reference fields.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0" id="scopusflow-020">scopusflow 0.2.0<a class="anchor" aria-label="anchor" href="#scopusflow-020"></a></h2>
 <p>This release reaches further into the API, adds an analysis and export layer on top of a retrieval, and introduces a local, code-free app.</p>
