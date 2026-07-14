@@ -202,7 +202,11 @@ available through <code>.op</code>.</p>
 <span></span>
 <span><span class="co"># A family of related tools (molecular biology).</span></span>
 <span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"CRISPR"</span>, <span class="st">"Cas9"</span>, <span class="st">"Cas12"</span>, .op <span class="op">=</span> <span class="st">"OR"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "CRISPR OR Cas9 OR Cas12"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "CRISPR OR Cas9 OR Cas12"</span></span>
+<span></span>
+<span><span class="co"># Excluding a dominant homonym (programming, not herpetology).</span></span>
+<span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"python"</span>, <span class="st">"snake"</span>, .op <span class="op">=</span> <span class="st">"AND NOT"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "TITLE-ABS-KEY(python) AND NOT TITLE-ABS-KEY(snake)"</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="from-a-query-to-a-plan">From a query to a plan<a class="anchor" aria-label="anchor" href="#from-a-query-to-a-plan"></a>

@@ -138,13 +138,20 @@ complete field-tagged expressions, used exactly as given.
 sets <- scopus_intersections(
   concepts = c(
     "semantic priming"  = "semantic priming",
-    "mental simulation" = "mental simulation"
+    "mental simulation" = "mental simulation",
+    # A synonym set, given as a complete expression and used exactly as given.
+    "embodied simulation" =
+      'TITLE-ABS-KEY("mental simulation") OR TITLE-ABS-KEY("embodied simulation")'
   ),
   intersections = list(c("semantic priming", "mental simulation")),
   field = "TITLE-ABS-KEY"
 )
 plot_scopus_intersections(sets, highlight = sets$label[sets$type == "intersection"])
 ```
+
+Here `field` leaves the third value untouched, since it already reads as
+a complete field-tagged expression, so a concept can be a synonym set
+rather than a single term.
 
 As above, the result has a fixed shape, which we reproduce here to show
 the plot. The lollipop chart uses a log-scale axis, so the small
@@ -154,22 +161,23 @@ highlighted row draws the eye to the niche itself.
 ``` r
 
 sets <- tibble::tibble(
-  label = c("semantic priming", "mental simulation",
+  label = c("semantic priming", "mental simulation", "embodied simulation",
             "semantic priming × mental simulation"),
   query = c("TITLE-ABS-KEY(semantic priming)",
             "TITLE-ABS-KEY(mental simulation)",
+            'TITLE-ABS-KEY("mental simulation") OR TITLE-ABS-KEY("embodied simulation")',
             "(TITLE-ABS-KEY(semantic priming)) AND (TITLE-ABS-KEY(mental simulation))"),
-  n = c(6600, 2100, 15),
-  type = c("concept", "concept", "intersection"),
-  size = c(1L, 1L, 2L),
-  members = c("semantic priming", "mental simulation",
+  n = c(6600, 2100, 3400, 15),
+  type = c("concept", "concept", "concept", "intersection"),
+  size = c(1L, 1L, 1L, 2L),
+  members = c("semantic priming", "mental simulation", "embodied simulation",
               "semantic priming; mental simulation")
 )
 class(sets) <- c("scopus_intersections", class(sets))
-plot_scopus_intersections(sets, highlight = sets$label[3])
+plot_scopus_intersections(sets, highlight = sets$label[sets$type == "intersection"])
 ```
 
-![A log-scale lollipop chart showing two large concepts and their small
+![A log-scale lollipop chart showing three concepts and a small
 intersection, with the intersection
 highlighted](analysing-a-literature_files/figure-html/unnamed-chunk-9-1.png)
 

@@ -241,6 +241,16 @@ instead.</p>
 <span><span class="co">#&gt; [3] "representation learning" "backpropagation"</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">corpus</span><span class="op">$</span><span class="va">references</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 4</span></span></code></pre></div>
+<p>The keywords list-column is ready for the co-occurrence analysis this
+article is named for, unnested and tallied into a per-keyword document
+count across the corpus:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">corpus</span><span class="op">$</span><span class="va">keywords</span><span class="op">)</span><span class="op">)</span>, decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;         backpropagation           deep learning         neural networks </span></span>
+<span><span class="co">#&gt;                       1                       1                       1 </span></span>
+<span><span class="co">#&gt; representation learning </span></span>
+<span><span class="co">#&gt;                       1</span></span></code></pre></div>
 <p>This costs one Abstract Retrieval request per record in
 <code>recs</code>, on top of whatever retrieved <code>recs</code> in the
 first place.</p>

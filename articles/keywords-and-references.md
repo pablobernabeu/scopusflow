@@ -146,5 +146,19 @@ nrow(corpus$references[[1]])
 #> [1] 4
 ```
 
+The keywords list-column is ready for the co-occurrence analysis this
+article is named for, unnested and tallied into a per-keyword document
+count across the corpus:
+
+``` r
+
+sort(table(unlist(corpus$keywords)), decreasing = TRUE)
+#> 
+#>         backpropagation           deep learning         neural networks 
+#>                       1                       1                       1 
+#> representation learning 
+#>                       1
+```
+
 This costs one Abstract Retrieval request per record in `recs`, on top
 of whatever retrieved `recs` in the first place.

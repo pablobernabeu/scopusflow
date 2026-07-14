@@ -230,32 +230,39 @@ expressions, used exactly as given.</p>
 <code class="sourceCode R"><span><span class="va">sets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_intersections.html">scopus_intersections</a></span><span class="op">(</span></span>
 <span>  concepts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>    <span class="st">"semantic priming"</span>  <span class="op">=</span> <span class="st">"semantic priming"</span>,</span>
-<span>    <span class="st">"mental simulation"</span> <span class="op">=</span> <span class="st">"mental simulation"</span></span>
+<span>    <span class="st">"mental simulation"</span> <span class="op">=</span> <span class="st">"mental simulation"</span>,</span>
+<span>    <span class="co"># A synonym set, given as a complete expression and used exactly as given.</span></span>
+<span>    <span class="st">"embodied simulation"</span> <span class="op">=</span></span>
+<span>      <span class="st">'TITLE-ABS-KEY("mental simulation") OR TITLE-ABS-KEY("embodied simulation")'</span></span>
 <span>  <span class="op">)</span>,</span>
 <span>  intersections <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"semantic priming"</span>, <span class="st">"mental simulation"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_scopus_intersections.html">plot_scopus_intersections</a></span><span class="op">(</span><span class="va">sets</span>, highlight <span class="op">=</span> <span class="va">sets</span><span class="op">$</span><span class="va">label</span><span class="op">[</span><span class="va">sets</span><span class="op">$</span><span class="va">type</span> <span class="op">==</span> <span class="st">"intersection"</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
+<p>Here <code>field</code> leaves the third value untouched, since it
+already reads as a complete field-tagged expression, so a concept can be
+a synonym set rather than a single term.</p>
 <p>As above, the result has a fixed shape, which we reproduce here to
 show the plot. The lollipop chart uses a log-scale axis, so the small
 intersection stays legible beside its large parent fields, and the
 highlighted row draws the eye to the niche itself.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sets</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
-<span>  label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"semantic priming"</span>, <span class="st">"mental simulation"</span>,</span>
+<span>  label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"semantic priming"</span>, <span class="st">"mental simulation"</span>, <span class="st">"embodied simulation"</span>,</span>
 <span>            <span class="st">"semantic priming × mental simulation"</span><span class="op">)</span>,</span>
 <span>  query <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"TITLE-ABS-KEY(semantic priming)"</span>,</span>
 <span>            <span class="st">"TITLE-ABS-KEY(mental simulation)"</span>,</span>
+<span>            <span class="st">'TITLE-ABS-KEY("mental simulation") OR TITLE-ABS-KEY("embodied simulation")'</span>,</span>
 <span>            <span class="st">"(TITLE-ABS-KEY(semantic priming)) AND (TITLE-ABS-KEY(mental simulation))"</span><span class="op">)</span>,</span>
-<span>  n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">6600</span>, <span class="fl">2100</span>, <span class="fl">15</span><span class="op">)</span>,</span>
-<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"concept"</span>, <span class="st">"concept"</span>, <span class="st">"intersection"</span><span class="op">)</span>,</span>
-<span>  size <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>, <span class="fl">1L</span>, <span class="fl">2L</span><span class="op">)</span>,</span>
-<span>  members <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"semantic priming"</span>, <span class="st">"mental simulation"</span>,</span>
+<span>  n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">6600</span>, <span class="fl">2100</span>, <span class="fl">3400</span>, <span class="fl">15</span><span class="op">)</span>,</span>
+<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"concept"</span>, <span class="st">"concept"</span>, <span class="st">"concept"</span>, <span class="st">"intersection"</span><span class="op">)</span>,</span>
+<span>  size <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>, <span class="fl">1L</span>, <span class="fl">1L</span>, <span class="fl">2L</span><span class="op">)</span>,</span>
+<span>  members <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"semantic priming"</span>, <span class="st">"mental simulation"</span>, <span class="st">"embodied simulation"</span>,</span>
 <span>              <span class="st">"semantic priming; mental simulation"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">sets</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"scopus_intersections"</span>, <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">sets</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/plot_scopus_intersections.html">plot_scopus_intersections</a></span><span class="op">(</span><span class="va">sets</span>, highlight <span class="op">=</span> <span class="va">sets</span><span class="op">$</span><span class="va">label</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
-<p><img src="analysing-a-literature_files/figure-html/unnamed-chunk-9-1.png" class="r-plt" alt="A log-scale lollipop chart showing two large concepts and their small intersection, with the intersection highlighted" width="720"></p>
+<span><span class="fu"><a href="../reference/plot_scopus_intersections.html">plot_scopus_intersections</a></span><span class="op">(</span><span class="va">sets</span>, highlight <span class="op">=</span> <span class="va">sets</span><span class="op">$</span><span class="va">label</span><span class="op">[</span><span class="va">sets</span><span class="op">$</span><span class="va">type</span> <span class="op">==</span> <span class="st">"intersection"</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
+<p><img src="analysing-a-literature_files/figure-html/unnamed-chunk-9-1.png" class="r-plt" alt="A log-scale lollipop chart showing three concepts and a small intersection, with the intersection highlighted" width="720"></p>
 </div>
 <div class="section level2">
 <h2 id="reading-the-fuller-record">Reading the fuller record<a class="anchor" aria-label="anchor" href="#reading-the-fuller-record"></a>

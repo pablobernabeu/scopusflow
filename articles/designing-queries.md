@@ -84,6 +84,10 @@ scopus_query("behavioral economics", "behavioural economics", .op = "OR")
 # A family of related tools (molecular biology).
 scopus_query("CRISPR", "Cas9", "Cas12", .op = "OR")
 #> [1] "CRISPR OR Cas9 OR Cas12"
+
+# Excluding a dominant homonym (programming, not herpetology).
+scopus_query("python", "snake", .op = "AND NOT", .field = "TITLE-ABS-KEY")
+#> [1] "TITLE-ABS-KEY(python) AND NOT TITLE-ABS-KEY(snake)"
 ```
 
 ## From a query to a plan

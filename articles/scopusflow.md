@@ -128,6 +128,30 @@ scopus_records(raw, query = "TITLE-ABS-KEY(workflow)")
 | 1 | 1 | 10.1000/aaa | A reproducible workflow | Smith J. | 2020 | 2020-05-01 | J. Bibliometrics | 12 | TITLE-ABS-KEY(workflow) |
 | 2 | 2 | 10.1000/bbb | Quota-aware querying | Doe A. | 2021 | 2021-01-10 | Scientometrics Today | 3 | TITLE-ABS-KEY(workflow) |
 
+## Most frequent sources and authors
+
+A record set already answers the first descriptive questions.
+[`scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_top.md)
+tallies the most frequent sources or authors, counting each contributor
+once per record:
+
+``` r
+
+scopus_top(records, by = "source")
+```
+
+| value                   |   n |
+|:------------------------|----:|
+| Nature                  |   2 |
+| Advanced Materials      |   1 |
+| Nature Climate Change   |   1 |
+| Physical Review Letters |   1 |
+| The Lancet Oncology     |   1 |
+
+[`vignette("analysing-a-literature")`](https://pablobernabeu.github.io/scopusflow/articles/analysing-a-literature.md)
+covers growth trends, top-source and top-author plots and abstract
+retrieval in depth.
+
 ## DOIs and change tracking
 
 Extract a clean, deduplicated DOI list for import into a reference

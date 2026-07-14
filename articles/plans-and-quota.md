@@ -200,6 +200,18 @@ example_records
 | 5 | 85000000005 | 10.1016/S1470-2045(20)30013-9 | Checkpoint inhibitors in cancer immunotherapy | Garcia M. | 2020 | 2020-07-01 | The Lancet Oncology | 388 | illustrative multi-disciplinary sample |
 | 6 | 85000000006 | 10.1103/PhysRevLett.116.061102 | Observation of gravitational waves from a binary black hole merger | Abbott B. | 2016 | 2016-02-11 | Physical Review Letters | 4200 | illustrative multi-disciplinary sample |
 
+## Watching progress
+
+Per-cell progress is silent by default and switched on with
+`verbose = TRUE`, worth doing for a harvest spanning many years.
+
+``` r
+
+records <- scopus_fetch_plan(plan, cache_dir = scopus_cache_dir(), verbose = TRUE)
+```
+
+A line is reported as each cell is fetched or loaded from cache.
+
 ## Combining separate retrievals
 
 Results gathered in separate runs combine safely with

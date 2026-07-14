@@ -75,6 +75,21 @@ dois
 #> [5] "10.1016/S1470-2045(20)30013-9"  "10.1103/PhysRevLett.116.061102"
 ```
 
+The same cleaning applies to a plain vector of DOIs from any source, so
+the first two entries below collapse to one because comparison ignores
+case and resolver prefixes, while `dedupe = FALSE` keeps every
+occurrence, for instance to count how often a DOI recurs across
+retrievals.
+
+``` r
+
+scopus_extract_dois(c("https://doi.org/10.1/A", "doi: 10.1/a", "10.2/B"))
+#> [1] "10.1/A" "10.2/B"
+scopus_extract_dois(c("https://doi.org/10.1/A", "doi: 10.1/a", "10.2/B"),
+                    dedupe = FALSE)
+#> [1] "10.1/A" "10.1/a" "10.2/B"
+```
+
 The list can be written to a single-column CSV at a path you choose.
 Nothing is written unless a path is given.
 

@@ -373,11 +373,50 @@ response, flattening the nested result into one row per record:</p>
 </table>
 </div>
 <div class="section level2">
+<h2 id="most-frequent-sources-and-authors">Most frequent sources and authors<a class="anchor" aria-label="anchor" href="#most-frequent-sources-and-authors"></a>
+</h2>
+<p>A record set already answers the first descriptive questions.
+<code><a href="../reference/scopus_top.html">scopus_top()</a></code> tallies the most frequent sources or authors,
+counting each contributor once per record:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_top.html">scopus_top</a></span><span class="op">(</span><span class="va">records</span>, by <span class="op">=</span> <span class="st">"source"</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<thead><tr class="header">
+<th align="left">value</th>
+<th align="right">n</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Nature</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="left">Advanced Materials</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">Nature Climate Change</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">Physical Review Letters</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">The Lancet Oncology</td>
+<td align="right">1</td>
+</tr>
+</tbody>
+</table>
+<p><code><a href="../articles/analysing-a-literature.html">vignette("analysing-a-literature")</a></code> covers growth trends,
+top-source and top-author plots and abstract retrieval in depth.</p>
+</div>
+<div class="section level2">
 <h2 id="dois-and-change-tracking">DOIs and change tracking<a class="anchor" aria-label="anchor" href="#dois-and-change-tracking"></a>
 </h2>
 <p>Extract a clean, deduplicated DOI list for import into a reference
 manager, and compare two retrievals to see exactly what changed:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dois</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span>
 <span><span class="va">dois</span></span>
 <span><span class="co">#&gt; [1] "10.1038/s41586-019-0001-1"      "10.1038/s41586-020-0002-2"     </span></span>
@@ -425,7 +464,7 @@ manager, and compare two retrievals to see exactly what changed:</p>
 </table>
 <p>You can write the DOIs to a path you specify, and read the file back
 to see exactly what lands on disk:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"dois.csv"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">records</span>, file <span class="op">=</span> <span class="va">out</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html" class="external-link">writeLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -444,7 +483,7 @@ to see exactly what lands on disk:</p>
 emphasis of a literature shifts, expressed as each comparison topic’s
 yearly share of the reference literature. It issues one count request
 per term per year, so it needs the API:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_compare_topics.html">scopus_compare_topics</a></span><span class="op">(</span></span>
 <span>  reference_query  <span class="op">=</span> <span class="st">"language learning"</span>,</span>
 <span>  comparison_terms <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"effect size"</span>, <span class="st">"Bayesian"</span><span class="op">)</span>,</span>
@@ -475,7 +514,7 @@ shape for downstream tools.</p>
 </h2>
 <p>Hand results to <code>bibliometrix</code>-style workflows, or save
 and reload them:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="../reference/as_bibliometrix.html">as_bibliometrix</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <table style="width:100%;" class="table">
 <colgroup>
@@ -564,7 +603,7 @@ HOLE MERGER</td>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"records.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/write_scopus_records.html">write_scopus_records</a></span><span class="op">(</span><span class="va">records</span>, <span class="va">path</span><span class="op">)</span></span>
@@ -577,7 +616,7 @@ HOLE MERGER</td>
 <p>Network and API problems surface as typed conditions, all inheriting
 from <code>scopus_error</code>, so a workflow can respond to them in
 code:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/scopus_fetch.html">scopus_fetch</a></span><span class="op">(</span><span class="st">"..."</span><span class="op">)</span>,</span>
 <span>  scopus_error_no_key     <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"No API key configured."</span><span class="op">)</span>,</span>
