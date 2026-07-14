@@ -1,6 +1,6 @@
 ## Submission
 
-This is an update of scopusflow, from 0.1.0 to 0.2.0. It adds cursor-based
+This is an update of scopusflow, from 0.1.0 to 0.2.1. It adds cursor-based
 pagination (to retrieve beyond the API's 5000-record offset ceiling), an
 abstract-retrieval function, an analysis and plotting layer (annual trends and
 top-source/author tallies), reference-manager export (as_bibtex(), as_ris()),

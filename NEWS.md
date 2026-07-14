@@ -1,3 +1,27 @@
+# scopusflow 0.2.1
+
+A documentation release. The vignettes now demonstrate several features that
+0.2.0 shipped but did not show.
+
+* `vignette("designing-queries")` shows the `AND NOT` operator in
+  [`scopus_query()`], excluding a dominant homonym from a search.
+* `vignette("analysing-a-literature")` passes [`scopus_intersections()`] a
+  concept that is already a complete field-tagged expression and so is used as
+  given, letting a concept be a synonym set rather than a single term.
+* `vignette("scopusflow")` introduces [`scopus_top()`] on a record set, and
+  points to the analysis article for the plots and trends built on it.
+* `vignette("plans-and-quota")` covers `verbose = TRUE` in
+  [`scopus_fetch_plan()`], which reports a line as each cell is fetched or
+  loaded from cache.
+* `vignette("building-a-reference-set")` shows [`scopus_extract_dois()`] on a
+  plain vector of DOIs, both with the default deduplication (which ignores case
+  and resolver prefixes) and with `dedupe = FALSE`.
+* `vignette("keywords-and-references")` tallies author keywords across a
+  [`scopus_corpus()`] result, the per-keyword document count the article is
+  named for.
+* [`scopus_abstract()`]'s help page no longer describes the Python twin's
+  reference fields.
+
 # scopusflow 0.2.0
 
 This release reaches further into the API, adds an analysis and export layer on
