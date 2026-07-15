@@ -21,8 +21,8 @@ package builds, loads and checks without them.
 ## Test environments
 
 * Local: Windows 11, R 4.6.1 (R CMD check --as-cran, 2026-07-10)
-* GitHub Actions: windows-latest, macOS-latest, ubuntu-latest (release),
-  ubuntu-latest (devel and oldrel-1), plus a depends-only run
+* GitHub Actions: windows-latest (release and devel), macOS-latest (release),
+  ubuntu-latest (release, devel and oldrel-1), plus a depends-only run
 
 ## R CMD check results
 
