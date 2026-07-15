@@ -20,7 +20,7 @@ package builds, loads and checks without them.
 
 ## Test environments
 
-* Local: Windows 11, R 4.6.1 (R CMD check --as-cran, 2026-07-10)
+* Local: Windows 11, R 4.6.1 (R CMD check --as-cran, 2026-07-15)
 * GitHub Actions: windows-latest (release and devel), macOS-latest (release),
   ubuntu-latest (release, devel and oldrel-1), plus a depends-only run
 
