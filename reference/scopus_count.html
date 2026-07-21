@@ -131,6 +131,37 @@ lets a workflow handle these gracefully.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># scopusflow::scopus_has_key()</span></span></span>
 <span class="r-in"><span><span class="fu">scopus_count</span><span class="op">(</span><span class="st">"CRISPR"</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2020</span>, field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span><span class="co"># The shape of the return value, built offline so it runs without a key.</span></span></span>
+<span class="r-in"><span><span class="co"># The quota attribute is parsed from real response headers by scopus_quota(),</span></span></span>
+<span class="r-in"><span><span class="co"># so it cannot drift from what a live call attaches.</span></span></span>
+<span class="r-in"><span><span class="va">resp</span> <span class="op">&lt;-</span> <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/response.html" class="external-link">response</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  status_code <span class="op">=</span> <span class="fl">200</span>,</span></span>
+<span class="r-in"><span>  headers <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    `X-RateLimit-Limit` <span class="op">=</span> <span class="st">"20000"</span>,</span></span>
+<span class="r-in"><span>    `X-RateLimit-Remaining` <span class="op">=</span> <span class="st">"19987"</span>,</span></span>
+<span class="r-in"><span>    `X-RateLimit-Reset` <span class="op">=</span> <span class="st">"1700000000"</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">12483</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">n</span>, <span class="st">"quota"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="scopus_quota.html">scopus_quota</a></span><span class="op">(</span><span class="va">resp</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">n</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 12483</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"quota")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"quota")$limit</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 20000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"quota")$remaining</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 19987</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"quota")$reset</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "2023-11-14 22:13:20 UTC"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"quota")$status</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"quota")$retry_after</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

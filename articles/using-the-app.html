@@ -90,6 +90,11 @@
 
     
     
+<!-- The screenshots in figures/ were captured from run_app() with Demo mode
+     left on, so they need no key and no network. Recapture them whenever the
+     app's layout changes: unlike the figures in the other articles, which are
+     drawn when the vignette is knitted, a static image of an interface drifts
+     silently. -->
 <p>Not every search starts in an editor. <code><a href="../reference/run_app.html">run_app()</a></code> opens a
 local Shiny app that drives the whole scopusflow workflow through a
 browser tab, from describing a search to exporting the records, without
@@ -99,7 +104,10 @@ to the package rather than a replacement, because it mirrors every
 choice you make back as a runnable R script. Anything you can do in the
 app you can also do from code, and the script panel shows you how.</p>
 <p>This article describes the app rather than running it, since it needs
-a live server. The code chunks are shown but not evaluated.</p>
+a live server, so the code chunks are shown but not evaluated. The
+screenshots were taken from the running app with Demo mode left on,
+which needs no key and no network, so everything they show can be
+reproduced on your own machine in a minute.</p>
 <div class="section level2">
 <h2 id="launching-the-app">Launching the app<a class="anchor" aria-label="anchor" href="#launching-the-app"></a>
 </h2>
@@ -141,6 +149,15 @@ size runs a cheap count first, the same one <code><a href="../reference/scopus_c
 performs, so you can see how much a query would retrieve before
 committing to it. In demo mode it reports how many synthetic records it
 would make instead.</p>
+<div class="float">
+<img src="figures/app-sidebar.png" alt="The scopusflow sidebar as the app opens, with a Scopus API key field, a Demo mode checkbox switched on, the search terms “graphene supercapacitor”, a Search in selector reading “Title, abstract, keywords”, a Partition by year checkbox, a year-range slider set to 2021 to 2026, a STANDARD or COMPLETE detail choice, a maximum records per year field, and the Check size, Fetch records and Cancel buttons."><div class="figcaption">The scopusflow sidebar as the app opens, with a
+Scopus API key field, a Demo mode checkbox switched on, the search terms
+“graphene supercapacitor”, a Search in selector reading “Title,
+abstract, keywords”, a Partition by year checkbox, a year-range slider
+set to 2021 to 2026, a STANDARD or COMPLETE detail choice, a maximum
+records per year field, and the Check size, Fetch records and Cancel
+buttons.</div>
+</div>
 </div>
 <div class="section level2">
 <h2 id="fetching-with-a-live-terminal">Fetching, with a live terminal<a class="anchor" aria-label="anchor" href="#fetching-with-a-live-terminal"></a>
@@ -154,6 +171,14 @@ stops the run cleanly. Under the surface the app builds a
 <code><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan()</a></code> with a cache directory and resume
 turned on, so an interrupted or quota-limited run picks up where it left
 off.</p>
+<div class="float">
+<img src="figures/app-terminal.png" alt="The Retrieval panel part-way through a demo-mode harvest. A note reads “Demo plan: 6 year-cells; would synthesise ~48 records”, a label reads “Fetching cell 4 of 6” above a progress bar at 50%, and the expanded Live terminal below shows four lines, one per completed cell, each reading “Cell n/6: synthesising graphene supercapacitor” with the year."><div class="figcaption">The Retrieval panel part-way through a demo-mode
+harvest. A note reads “Demo plan: 6 year-cells; would synthesise ~48
+records”, a label reads “Fetching cell 4 of 6” above a progress bar at
+50%, and the expanded Live terminal below shows four lines, one per
+completed cell, each reading “Cell n/6: synthesising graphene
+supercapacitor” with the year.</div>
+</div>
 </div>
 <div class="section level2">
 <h2 id="the-reproducible-code-panel">The reproducible code panel<a class="anchor" aria-label="anchor" href="#the-reproducible-code-panel"></a>
@@ -167,6 +192,16 @@ never appears in the script. The panel notes that it is read from the
 <code>SCOPUS_API_KEY</code> environment variable, so a script you share
 carries the method but not your credentials. Download script saves
 exactly what you see.</p>
+<div class="float">
+<img src="figures/app-code.png" alt="The Reproducible code panel, holding the script the app has written from the choices in the sidebar: a library call, a scopus_plan() with the query, years, field and yearly partition, a scopus_count() to size the search, a scopus_fetch_plan() with a cache directory and resume set, and scopus_top() and autoplot() calls to inspect the result. A comment records that the key is read from the SCOPUS_API_KEY environment variable and never written into the script."><div class="figcaption">The Reproducible code panel, holding the script
+the app has written from the choices in the sidebar: a library call, a
+scopus_plan() with the query, years, field and yearly partition, a
+scopus_count() to size the search, a scopus_fetch_plan() with a cache
+directory and resume set, and scopus_top() and autoplot() calls to
+inspect the result. A comment records that the key is read from the
+SCOPUS_API_KEY environment variable and never written into the
+script.</div>
+</div>
 </div>
 <div class="section level2">
 <h2 id="reading-the-results">Reading the results<a class="anchor" aria-label="anchor" href="#reading-the-results"></a>
@@ -178,6 +213,12 @@ and Top authors tally the most frequent of each with
 <code><a href="../reference/scopus_top.html">scopus_top()</a></code> and <code><a href="../reference/plot_scopus_top.html">plot_scopus_top()</a></code>. Every
 figure is drawn by the same library functions you would call from a
 script, so the app shows you nothing you could not reproduce.</p>
+<div class="float">
+<img src="figures/app-results.png" alt="The Results panel with tabs for Records, By year, Top sources, Top authors, Compare topics and Export. The By year tab is open, showing a bar chart of records per year from 2021 to 2026 drawn from the demo harvest."><div class="figcaption">The Results panel with tabs for Records, By
+year, Top sources, Top authors, Compare topics and Export. The By year
+tab is open, showing a bar chart of records per year from 2021 to 2026
+drawn from the demo harvest.</div>
+</div>
 </div>
 <div class="section level2">
 <h2 id="comparing-topics">Comparing topics<a class="anchor" aria-label="anchor" href="#comparing-topics"></a>

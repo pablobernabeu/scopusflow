@@ -174,4 +174,48 @@ rich <- scopus_abstract(
 )
 rich$references[[1]]
 }
+# The shape of the return value, built offline so it runs without a key.
+abstracts <- tibble::tibble(
+  id = c("10.1038/nature14539", "10.1126/science.abc1234"),
+  scopus_id = c("84930630277", "85082345678"),
+  doi = c("10.1038/nature14539", "10.1126/science.abc1234"),
+  title = c("Deep learning", "Porous carbon electrodes at scale"),
+  abstract = c("Deep learning allows computational models composed of",
+               "A scalable route to porous carbon electrodes is described,"),
+  publication = c("Nature", "Science"),
+  year = c(2015L, 2020L),
+  citations = c(48213L, 88L)
+)
+class(abstracts) <- c("scopus_abstracts", class(abstracts))
+abstracts
+#> <scopus_abstracts> (2 records)
+#> # A tibble: 2 × 8
+#>   id                  scopus_id doi   title abstract publication  year citations
+#>   <chr>               <chr>     <chr> <chr> <chr>    <chr>       <int>     <int>
+#> 1 10.1038/nature14539 84930630… 10.1… Deep… Deep le… Nature       2015     48213
+#> 2 10.1126/science.ab… 85082345… 10.1… Poro… A scala… Science      2020        88
+
+# A reference list arrives as one data frame per document, in the
+# `references` list-column added by include = "references".
+abstracts$references <- list(
+  tibble::tibble(
+    position = c("1", "2"),
+    id = c("84878919540", "84876258641"),
+    doi = c("10.1000/imagenet", "10.1109/TPAMI.2012.231"),
+    title = c("ImageNet classification with deep convolutional networks",
+              "Learning hierarchical features for scene labeling"),
+    authors = c("Krizhevsky, A.; Sutskever, I.; Hinton, G.",
+                "Farabet, C.; Couprie, C.; Najman, L.; LeCun, Y."),
+    sourcetitle = c("Adv. Neural Inf. Process. Syst.",
+                    "IEEE Trans. Pattern Anal. Mach. Intell."),
+    publicationyear = c("2012", "2013")
+  ),
+  tibble::tibble()
+)
+abstracts$references[[1]]
+#> # A tibble: 2 × 7
+#>   position id          doi             title authors sourcetitle publicationyear
+#>   <chr>    <chr>       <chr>           <chr> <chr>   <chr>       <chr>          
+#> 1 1        84878919540 10.1000/imagen… Imag… Krizhe… Adv. Neura… 2012           
+#> 2 2        84876258641 10.1109/TPAMI.… Lear… Farabe… IEEE Trans… 2013           
 ```

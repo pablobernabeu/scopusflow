@@ -76,4 +76,35 @@ lets a workflow handle these gracefully.
 if (FALSE) { # scopusflow::scopus_has_key()
 scopus_count("CRISPR", years = 2015:2020, field = "TITLE-ABS-KEY")
 }
+# The shape of the return value, built offline so it runs without a key.
+# The quota attribute is parsed from real response headers by scopus_quota(),
+# so it cannot drift from what a live call attaches.
+resp <- httr2::response(
+  status_code = 200,
+  headers = list(
+    `X-RateLimit-Limit` = "20000",
+    `X-RateLimit-Remaining` = "19987",
+    `X-RateLimit-Reset` = "1700000000"
+  )
+)
+n <- 12483
+attr(n, "quota") <- scopus_quota(resp)
+n
+#> [1] 12483
+#> attr(,"quota")
+#> attr(,"quota")$limit
+#> [1] 20000
+#> 
+#> attr(,"quota")$remaining
+#> [1] 19987
+#> 
+#> attr(,"quota")$reset
+#> [1] "2023-11-14 22:13:20 UTC"
+#> 
+#> attr(,"quota")$status
+#> [1] NA
+#> 
+#> attr(,"quota")$retry_after
+#> [1] NA
+#> 
 ```

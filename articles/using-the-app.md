@@ -12,7 +12,10 @@ can do in the app you can also do from code, and the script panel shows
 you how.
 
 This article describes the app rather than running it, since it needs a
-live server. The code chunks are shown but not evaluated.
+live server, so the code chunks are shown but not evaluated. The
+screenshots were taken from the running app with Demo mode left on,
+which needs no key and no network, so everything they show can be
+reproduced on your own machine in a minute.
 
 ## Launching the app
 
@@ -57,6 +60,21 @@ performs, so you can see how much a query would retrieve before
 committing to it. In demo mode it reports how many synthetic records it
 would make instead.
 
+![The scopusflow sidebar as the app opens, with a Scopus API key field,
+a Demo mode checkbox switched on, the search terms “graphene
+supercapacitor”, a Search in selector reading “Title, abstract,
+keywords”, a Partition by year checkbox, a year-range slider set to 2021
+to 2026, a STANDARD or COMPLETE detail choice, a maximum records per
+year field, and the Check size, Fetch records and Cancel
+buttons.](figures/app-sidebar.png)
+
+The scopusflow sidebar as the app opens, with a Scopus API key field, a
+Demo mode checkbox switched on, the search terms “graphene
+supercapacitor”, a Search in selector reading “Title, abstract,
+keywords”, a Partition by year checkbox, a year-range slider set to 2021
+to 2026, a STANDARD or COMPLETE detail choice, a maximum records per
+year field, and the Check size, Fetch records and Cancel buttons.
+
 ## Fetching, with a live terminal
 
 Fetch records starts the harvest in a background process, so the app
@@ -70,6 +88,19 @@ from your choices and hands it to
 with a cache directory and resume turned on, so an interrupted or
 quota-limited run picks up where it left off.
 
+![The Retrieval panel part-way through a demo-mode harvest. A note reads
+“Demo plan: 6 year-cells; would synthesise ~48 records”, a label reads
+“Fetching cell 4 of 6” above a progress bar at 50%, and the expanded
+Live terminal below shows four lines, one per completed cell, each
+reading “Cell n/6: synthesising graphene supercapacitor” with the
+year.](figures/app-terminal.png)
+
+The Retrieval panel part-way through a demo-mode harvest. A note reads
+“Demo plan: 6 year-cells; would synthesise ~48 records”, a label reads
+“Fetching cell 4 of 6” above a progress bar at 50%, and the expanded
+Live terminal below shows four lines, one per completed cell, each
+reading “Cell n/6: synthesising graphene supercapacitor” with the year.
+
 ## The reproducible code panel
 
 The Reproducible code panel is what turns the app into a tutorial. It
@@ -82,6 +113,22 @@ never appears in the script. The panel notes that it is read from the
 method but not your credentials. Download script saves exactly what you
 see.
 
+![The Reproducible code panel, holding the script the app has written
+from the choices in the sidebar: a library call, a scopus_plan() with
+the query, years, field and yearly partition, a scopus_count() to size
+the search, a scopus_fetch_plan() with a cache directory and resume set,
+and scopus_top() and autoplot() calls to inspect the result. A comment
+records that the key is read from the SCOPUS_API_KEY environment
+variable and never written into the script.](figures/app-code.png)
+
+The Reproducible code panel, holding the script the app has written from
+the choices in the sidebar: a library call, a scopus_plan() with the
+query, years, field and yearly partition, a scopus_count() to size the
+search, a scopus_fetch_plan() with a cache directory and resume set, and
+scopus_top() and autoplot() calls to inspect the result. A comment
+records that the key is read from the SCOPUS_API_KEY environment
+variable and never written into the script.
+
 ## Reading the results
 
 When the run finishes, the Results tabs come to life. Records shows a
@@ -93,6 +140,16 @@ and
 [`plot_scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_top.md).
 Every figure is drawn by the same library functions you would call from
 a script, so the app shows you nothing you could not reproduce.
+
+![The Results panel with tabs for Records, By year, Top sources, Top
+authors, Compare topics and Export. The By year tab is open, showing a
+bar chart of records per year from 2021 to 2026 drawn from the demo
+harvest.](figures/app-results.png)
+
+The Results panel with tabs for Records, By year, Top sources, Top
+authors, Compare topics and Export. The By year tab is open, showing a
+bar chart of records per year from 2021 to 2026 drawn from the demo
+harvest.
 
 ## Comparing topics
 

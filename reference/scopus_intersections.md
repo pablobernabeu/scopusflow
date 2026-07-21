@@ -134,4 +134,27 @@ sets <- scopus_intersections(
 )
 sets
 }
+# The shape of the return value, built offline so it runs without a key.
+sets <- tibble::tibble(
+  label = c("semantic priming", "mental simulation",
+            "semantic priming \u00d7 mental simulation"),
+  query = c("TITLE-ABS-KEY(semantic priming)",
+            "TITLE-ABS-KEY(mental simulation)",
+            paste("(TITLE-ABS-KEY(semantic priming)) AND",
+                  "(TITLE-ABS-KEY(mental simulation))")),
+  n = c(6600, 2100, 15),
+  type = c("concept", "concept", "intersection"),
+  size = c(1L, 1L, 2L),
+  members = c("semantic priming", "mental simulation",
+              "semantic priming; mental simulation")
+)
+class(sets) <- c("scopus_intersections", class(sets))
+sets
+#> <scopus_intersections> (2 concepts, 1 intersection)
+#> # A tibble: 3 × 6
+#>   label                                query               n type   size members
+#>   <chr>                                <chr>           <dbl> <chr> <int> <chr>  
+#> 1 semantic priming                     TITLE-ABS-KEY(…  6600 conc…     1 semant…
+#> 2 mental simulation                    TITLE-ABS-KEY(…  2100 conc…     1 mental…
+#> 3 semantic priming × mental simulation (TITLE-ABS-KEY…    15 inte…     2 semant…
 ```
