@@ -351,6 +351,16 @@ blockquote p:last-child { margin-bottom: 0; }
 // paragraph).
 .contents p > img:only-child { margin-bottom: .7rem; }
 
+// The home hero comes from README.Rmd rather than from a knitr chunk pkgdown
+// post-processes, so it never receives the `r-plt` class that pkgdown's own
+// dark-mode figure rule keys on, and it would otherwise stay a white slab
+// against the navy page. Apply the same transform here so it inverts with
+// every other figure on the site. Scoped by src, since the transparent hex
+// logo and the remote shields.io badges must be left alone.
+[data-bs-theme="dark"] .template-home img[src*="figures/README-"] {
+  filter: invert(100%) hue-rotate(180deg);
+}
+
 // ---------------------------------------------------------------------------
 // Buttons / links inside content
 // ---------------------------------------------------------------------------

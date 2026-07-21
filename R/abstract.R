@@ -107,6 +107,40 @@
 #'   view = "FULL", include = c("references", "keywords")
 #' )
 #' rich$references[[1]]
+#' @examples
+#' # The shape of the return value, built offline so it runs without a key.
+#' abstracts <- tibble::tibble(
+#'   id = c("10.1038/nature14539", "10.1126/science.abc1234"),
+#'   scopus_id = c("84930630277", "85082345678"),
+#'   doi = c("10.1038/nature14539", "10.1126/science.abc1234"),
+#'   title = c("Deep learning", "Porous carbon electrodes at scale"),
+#'   abstract = c("Deep learning allows computational models composed of",
+#'                "A scalable route to porous carbon electrodes is described,"),
+#'   publication = c("Nature", "Science"),
+#'   year = c(2015L, 2020L),
+#'   citations = c(48213L, 88L)
+#' )
+#' class(abstracts) <- c("scopus_abstracts", class(abstracts))
+#' abstracts
+#'
+#' # A reference list arrives as one data frame per document, in the
+#' # `references` list-column added by include = "references".
+#' abstracts$references <- list(
+#'   tibble::tibble(
+#'     position = c("1", "2"),
+#'     id = c("84878919540", "84876258641"),
+#'     doi = c("10.1000/imagenet", "10.1109/TPAMI.2012.231"),
+#'     title = c("ImageNet classification with deep convolutional networks",
+#'               "Learning hierarchical features for scene labeling"),
+#'     authors = c("Krizhevsky, A.; Sutskever, I.; Hinton, G.",
+#'                 "Farabet, C.; Couprie, C.; Najman, L.; LeCun, Y."),
+#'     sourcetitle = c("Adv. Neural Inf. Process. Syst.",
+#'                     "IEEE Trans. Pattern Anal. Mach. Intell."),
+#'     publicationyear = c("2012", "2013")
+#'   ),
+#'   tibble::tibble()
+#' )
+#' abstracts$references[[1]]
 #' @export
 scopus_abstract <- function(ids,
                             by = c("doi", "scopus_id"),

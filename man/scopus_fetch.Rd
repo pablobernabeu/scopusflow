@@ -75,6 +75,11 @@ Requires a valid API key and internet access. The \emph{API access} section of
 recs <- scopus_fetch("graphene", field = "TITLE-ABS-KEY", max_results = 50)
 recs
 \dontshow{\}) # examplesIf}
+# The shape of the return value, shown offline from the bundled example set
+# so it runs without a key. A live harvest returns this same schema.
+recs <- example_records
+recs
+is_scopus_records(recs)
 }
 \seealso{
 \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} for cached, resumable, partitioned retrieval.

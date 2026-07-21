@@ -21,6 +21,16 @@
 #' @examplesIf scopusflow::scopus_has_key()
 #' tr <- scopus_trend("graphene", years = 2010:2020, field = "TITLE-ABS-KEY")
 #' tr
+#' @examples
+#' # The shape of the return value, built offline so it runs without a key.
+#' years <- 2010:2020
+#' tr <- tibble::tibble(
+#'   query = "TITLE-ABS-KEY(graphene)",
+#'   year = years,
+#'   n = c(1900, 3400, 5200, 7100, 9000, 10400, 11800, 12600, 13500, 14100, 14800)
+#' )
+#' class(tr) <- c("scopus_trend", class(tr))
+#' tr
 #' @export
 scopus_trend <- function(query,
                          years,

@@ -29,6 +29,21 @@
 #' lets a workflow handle these gracefully.
 #' @examplesIf scopusflow::scopus_has_key()
 #' scopus_count("CRISPR", years = 2015:2020, field = "TITLE-ABS-KEY")
+#' @examples
+#' # The shape of the return value, built offline so it runs without a key.
+#' # The quota attribute is parsed from real response headers by scopus_quota(),
+#' # so it cannot drift from what a live call attaches.
+#' resp <- httr2::response(
+#'   status_code = 200,
+#'   headers = list(
+#'     `X-RateLimit-Limit` = "20000",
+#'     `X-RateLimit-Remaining` = "19987",
+#'     `X-RateLimit-Reset` = "1700000000"
+#'   )
+#' )
+#' n <- 12483
+#' attr(n, "quota") <- scopus_quota(resp)
+#' n
 #' @export
 scopus_count <- function(query,
                          years = NULL,

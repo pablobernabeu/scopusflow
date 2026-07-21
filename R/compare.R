@@ -38,6 +38,28 @@
 #'   field = "TITLE-ABS-KEY"
 #' )
 #' cmp
+#' @examples
+#' # The shape of the return value, built offline so it runs without a key.
+#' years <- 2018:2022
+#' ref_n <- c(4200, 5600, 7100, 8600, 10200)
+#' counts <- list(`computer vision` = c(1500, 2000, 2500, 3000, 3600),
+#'                `drug discovery`  = c(180, 260, 370, 500, 660))
+#' cmp <- tibble::tibble(
+#'   query = "TITLE-ABS-KEY(deep learning)",
+#'   query_type = c(rep("reference", length(years)),
+#'                  rep("comparison", length(counts) * length(years))),
+#'   abridged_query = c(rep("deep learning", length(years)),
+#'                      rep(names(counts), each = length(years))),
+#'   year = rep(years, length(counts) + 1),
+#'   n = c(ref_n, unlist(counts, use.names = FALSE)),
+#'   reference_n = rep(ref_n, length(counts) + 1),
+#'   comparison_percentage = 100 * c(ref_n, unlist(counts, use.names = FALSE)) /
+#'     rep(ref_n, length(counts) + 1),
+#'   average_comparison_percentage = c(rep(100, length(years)),
+#'                                     rep(c(35.3, 5.4), each = length(years)))
+#' )
+#' class(cmp) <- c("scopus_comparison", class(cmp))
+#' cmp
 #' @export
 scopus_compare_topics <- function(reference_query,
                                   comparison_terms,

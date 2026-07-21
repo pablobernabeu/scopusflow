@@ -33,6 +33,14 @@
 #' # `max_results` caps each yearly cell, so the example stays small and
 #' # quota-light; drop it to harvest every record in the plan.
 #' recs <- scopus_fetch_plan(plan, max_results = 25, cache_dir = dir, resume = TRUE)
+#' @examples
+#' # The shape of the return value, assembled offline so it runs without a key:
+#' # a record set with the plan that produced it attached.
+#' plan <- scopus_plan("renewable energy", years = 2015:2022, partition = "year")
+#' recs <- example_records
+#' attr(recs, "plan") <- plan
+#' recs
+#' attr(recs, "plan")
 #' @export
 scopus_fetch_plan <- function(plan,
                               max_results = Inf,

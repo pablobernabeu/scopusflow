@@ -58,6 +58,23 @@
 #'   field = "TITLE-ABS-KEY"
 #' )
 #' sets
+#' @examples
+#' # The shape of the return value, built offline so it runs without a key.
+#' sets <- tibble::tibble(
+#'   label = c("semantic priming", "mental simulation",
+#'             "semantic priming \u00d7 mental simulation"),
+#'   query = c("TITLE-ABS-KEY(semantic priming)",
+#'             "TITLE-ABS-KEY(mental simulation)",
+#'             paste("(TITLE-ABS-KEY(semantic priming)) AND",
+#'                   "(TITLE-ABS-KEY(mental simulation))")),
+#'   n = c(6600, 2100, 15),
+#'   type = c("concept", "concept", "intersection"),
+#'   size = c(1L, 1L, 2L),
+#'   members = c("semantic priming", "mental simulation",
+#'               "semantic priming; mental simulation")
+#' )
+#' class(sets) <- c("scopus_intersections", class(sets))
+#' sets
 #' @export
 scopus_intersections <- function(concepts,
                                  intersections = NULL,

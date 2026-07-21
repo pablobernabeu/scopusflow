@@ -31,6 +31,12 @@
 #' @examplesIf scopusflow::scopus_has_key()
 #' recs <- scopus_fetch("graphene", field = "TITLE-ABS-KEY", max_results = 50)
 #' recs
+#' @examples
+#' # The shape of the return value, shown offline from the bundled example set
+#' # so it runs without a key. A live harvest returns this same schema.
+#' recs <- example_records
+#' recs
+#' is_scopus_records(recs)
 #' @export
 scopus_fetch <- function(query,
                          max_results = Inf,

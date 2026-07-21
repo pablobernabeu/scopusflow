@@ -51,6 +51,34 @@
 #' corpus <- scopus_corpus(recs)
 #' corpus$keywords[[1]]
 #' corpus$references[[1]]
+#' @examples
+#' # The shape of the return value, built offline so it runs without a key:
+#' # one row per document, with keywords and references as list-columns.
+#' corpus <- tibble::tibble(
+#'   id = c("10.1038/nature14539", "10.1126/science.abc1234"),
+#'   title = c("Deep learning", "Porous carbon electrodes at scale"),
+#'   year = c(2015L, 2020L),
+#'   keywords = list(
+#'     c("machine learning", "neural networks", "representation learning"),
+#'     c("graphene", "supercapacitor", "energy storage")
+#'   ),
+#'   references = list(
+#'     tibble::tibble(
+#'       position = c("1", "2"),
+#'       title = c("ImageNet classification with deep convolutional networks",
+#'                 "Learning hierarchical features for scene labeling"),
+#'       authors = c("Krizhevsky, A.; Sutskever, I.; Hinton, G.",
+#'                   "Farabet, C.; Couprie, C.; Najman, L.; LeCun, Y."),
+#'       sourcetitle = c("Adv. Neural Inf. Process. Syst.",
+#'                       "IEEE Trans. Pattern Anal. Mach. Intell."),
+#'       publicationyear = c("2012", "2013")
+#'     ),
+#'     tibble::tibble()
+#'   )
+#' )
+#' corpus
+#' corpus$keywords[[1]]
+#' corpus$references[[1]]
 #' @export
 scopus_corpus <- function(records,
                           by = c("doi", "scopus_id"),

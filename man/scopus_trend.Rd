@@ -58,6 +58,15 @@ internet access; see the \emph{API access} section of \code{\link[=scopus_count]
 tr <- scopus_trend("graphene", years = 2010:2020, field = "TITLE-ABS-KEY")
 tr
 \dontshow{\}) # examplesIf}
+# The shape of the return value, built offline so it runs without a key.
+years <- 2010:2020
+tr <- tibble::tibble(
+  query = "TITLE-ABS-KEY(graphene)",
+  year = years,
+  n = c(1900, 3400, 5200, 7100, 9000, 10400, 11800, 12600, 13500, 14100, 14800)
+)
+class(tr) <- c("scopus_trend", class(tr))
+tr
 }
 \seealso{
 \code{\link[=plot_scopus_trend]{plot_scopus_trend()}}, \code{\link[=scopus_compare_topics]{scopus_compare_topics()}}
