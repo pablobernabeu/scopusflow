@@ -20,6 +20,25 @@ local({
   }
 })
 has_ggplot2 <- requireNamespace("ggplot2", quietly = TRUE)
+# Draw the figures on a transparent background so they sit on whatever colour
+# the page behind them happens to be. An opaque white matte reads as a white
+# slab on the site's dark theme, and worse once pkgdown's dark-mode filter
+# inverts it into a black one. Both halves below are needed: the device option
+# gives the file an alpha channel, and the theme override clears the white
+# rectangle that ggplot2's complete themes paint over it regardless. The
+# override is applied here rather than inside the package's plotting functions,
+# because a figure saved for a paper usually does want its own background.
+knitr::opts_chunk$set(dev.args = list(bg = "transparent"))
+if (has_ggplot2) {
+  sf_on_page <- ggplot2::theme(
+    plot.background  = ggplot2::element_rect(fill = "transparent", colour = NA),
+    panel.background = ggplot2::element_rect(fill = "transparent", colour = NA)
+  )
+  knitr::opts_chunk$set(render = function(x, ...) {
+    if (inherits(x, "ggplot")) x <- x + sf_on_page
+    knitr::knit_print(x, ...)
+  })
+}
 ```
 
 ```{r setup}
