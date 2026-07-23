@@ -1,3 +1,33 @@
+# scopusflow 0.3.0
+
+## The bundled example records
+
+* `example_records` is now a worked example harvest of 138 real journal articles
+  on graphene supercapacitors published between 2015 and 2024, carrying their
+  real titles, DOIs, source titles, first authors and citation counts. It
+  replaces the six invented records shipped previously.
+* The records are not a 'Scopus' harvest and are not described as one. The
+  Elsevier API terms do not permit redistributing retrieved records, so they come
+  from OpenAlex, whose metadata is released under CC0, reshaped into the schema
+  [`scopus_fetch()`] returns. The reasoning is recorded in the design notes.
+* The harvest is complete rather than sampled, so the rows per year are the real
+  publications per year for that query. Eleven records carry no DOI and two no
+  source title, kept as they arrive because a real harvest has such gaps.
+* `scopus_id` is empty throughout, these records not having come from 'Scopus',
+  so de-duplication falls back to the DOI as it does for any record whose
+  identifier is missing.
+
+## Documentation
+
+* Every vignette and example runs on that corpus, paired with the key-gated live
+  call a reader would actually write, and the figures quoted in the prose were
+  recomputed against the new data.
+* The demo mode of `run_app()` draws on the same corpus, so a first look at the
+  app shows real articles rather than invented rows.
+* The parser fixture in `inst/extdata` moves onto the reserved 10.5555 example
+  prefix. It previously paired genuine, resolving DOIs with invented titles and
+  authors, so a reader who checked one found a real paper mislabelled.
+
 # scopusflow 0.2.1
 
 A documentation release. The vignettes now demonstrate several features that

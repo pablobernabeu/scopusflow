@@ -15,13 +15,7 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE)
      left on, so they need no key and no network. Recapture them whenever the
      app's layout changes: unlike the figures in the other articles, which are
      drawn when the vignette is knitted, a static image of an interface drifts
-     silently.
-
-     OUTSTANDING: app-terminal.png and app-results.png still show the demo mode
-     as it was before it drew its records from the bundled example_records
-     corpus, so they carry the old size note and a row of identical by-year
-     bars. The alt text below describes the current behaviour; recapture both
-     images before the next site build. -->
+     silently. -->
 
 
 Not every search starts in an editor. `run_app()` opens a local Shiny app that
@@ -93,7 +87,7 @@ surface the app builds a `scopus_plan()` from your choices and hands it to
 `scopus_fetch_plan()` with a cache directory and resume turned on, so an
 interrupted or quota-limited run picks up where it left off.
 
-![The Retrieval panel part-way through a demo-mode harvest. A note reads "Demo plan: 6 year-cells; would draw 57 records from the bundled corpus", a label reads "Fetching cell 4 of 6" above a progress bar at 50%, and the expanded Live terminal below shows four lines, one per completed cell, each reading "Cell n/6: demo records for graphene supercapacitor" with the year.](figures/app-terminal.png)
+![The Retrieval panel part-way through a demo-mode harvest. A note reads "Demo plan: 6 year-cells; would draw 57 records from the bundled corpus", a label reads "Fetching cell 4 of 6" above a progress bar at 50%, and the expanded Live terminal below shows four lines, one for each cell the run has reached, each reading "Cell n/6: demo records for graphene supercapacitor" with the year.](figures/app-terminal.png)
 
 ## The reproducible code panel
 
@@ -117,7 +111,7 @@ of each with `scopus_top()` and `plot_scopus_top()`. Every figure is drawn by th
 same library functions you would call from a script, so the app shows you nothing
 you could not reproduce.
 
-![The Results panel with tabs for Records, By year, Top sources, Top authors, Compare topics and Export. The By year tab is open, showing a bar chart of records per year from 2021 to 2024 drawn from the demo harvest, the bars varying with the number of papers the bundled corpus holds for each year.](figures/app-results.png)
+![The Results panel with tabs for Records, By year, Top sources, Top authors, Compare topics and Export. The Records tab is open, showing the first rows of a table of titles, years, journals and citation counts from the demo harvest. The first row reads "Recent trends in graphene supercapacitors: from large area to microsupercapacitors", published in Sustainable Energy & Fuels in 2021 with 211 citations, and the rows below it are likewise real articles from the bundled corpus.](figures/app-results.png)
 
 ## Comparing topics
 

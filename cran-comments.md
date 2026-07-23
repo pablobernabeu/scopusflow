@@ -1,6 +1,6 @@
 ## Submission
 
-This is an update of scopusflow, from 0.1.0 to 0.2.1. It adds cursor-based
+This is an update of scopusflow, from 0.1.0 to 0.3.0. It adds cursor-based
 pagination (to retrieve beyond the API's 5000-record offset ceiling), an
 abstract-retrieval function, an analysis and plotting layer (annual trends and
 top-source/author tallies), reference-manager export (as_bibtex(), as_ris()),
@@ -11,8 +11,17 @@ scopus_abstract()), structured per-citation reference lists
 assembles a minimal keyword/reference corpus from a record set. Finally, it
 adds scopus_intersections() and plot_scopus_intersections(), which size a
 named set of concepts and their intersections in single count requests and
-draw the result on a log-scale axis. The changes are listed in NEWS.md. There
-are no user-facing breaking changes.
+draw the result on a log-scale axis. The changes are listed in NEWS.md.
+
+The bundled `example_records` dataset has been replaced. It now holds 138 real
+journal articles on graphene supercapacitors, so the examples run against data
+of the shape and messiness a real retrieval returns. The records are not a
+'Scopus' harvest, since the Elsevier API terms do not permit redistributing
+retrieved records; they come from OpenAlex, whose metadata is released under
+CC0, reshaped into the schema `scopus_fetch()` returns, and both the help page
+and the data-raw script state that provenance. Code using the dataset by name
+continues to work, its class and columns being unchanged, though any code
+depending on the previous six rows will see different values.
 
 The app's interface packages (shiny, bslib, callr, fansi) are in Suggests and
 used only inside run_app(), which is guarded with rlang::check_installed(); the
@@ -20,13 +29,20 @@ package builds, loads and checks without them.
 
 ## Test environments
 
-* Local: Windows 11, R 4.6.1 (R CMD check --as-cran, 2026-07-15)
+* Local: Windows 11, R 4.6.1 (R CMD check --as-cran, 2026-07-23)
 * GitHub Actions: windows-latest (release and devel), macOS-latest (release),
   ubuntu-latest (release, devel and oldrel-1), plus a depends-only run
 
 ## R CMD check results
 
-0 errors | 0 warnings | 0 notes locally. When a live 'Scopus' API key is
+0 errors | 0 warnings | 1 note.
+
+The note reports that 'README.md' and 'NEWS.md' cannot be checked without
+pandoc, which is absent from the check subprocess PATH on the local machine.
+It is an artefact of that machine and does not arise where pandoc is present,
+including the GitHub Actions runs listed above.
+
+When a live 'Scopus' API key is
 configured, the local check additionally reports an example-timing note,
 because the `@examplesIf scopus_has_key()` examples then run against the live
 API; on machines without a key, including CRAN, those examples are skipped and
