@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,6 +51,24 @@
       <small>Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.3.0" id="scopusflow-030">scopusflow 0.3.0<a class="anchor" aria-label="anchor" href="#scopusflow-030"></a></h2>
+<div class="section level3">
+<h3 id="the-bundled-example-records-0-3-0">The bundled example records<a class="anchor" aria-label="anchor" href="#the-bundled-example-records-0-3-0"></a></h3>
+<ul><li>
+<code>example_records</code> is now a worked example harvest of 138 real journal articles on graphene supercapacitors published between 2015 and 2024, carrying their real titles, DOIs, source titles, first authors and citation counts. It replaces the six invented records shipped previously.</li>
+<li>The records are not a ‘Scopus’ harvest and are not described as one. The Elsevier API terms do not permit redistributing retrieved records, so they come from OpenAlex, whose metadata is released under CC0, reshaped into the schema [<code><a href="../reference/scopus_fetch.html">scopus_fetch()</a></code>] returns. The reasoning is recorded in the design notes.</li>
+<li>The harvest is complete rather than sampled, so the rows per year are the real publications per year for that query. Eleven records carry no DOI and two no source title, kept as they arrive because a real harvest has such gaps.</li>
+<li>
+<code>scopus_id</code> is empty throughout, these records not having come from ‘Scopus’, so de-duplication falls back to the DOI as it does for any record whose identifier is missing.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="documentation-0-3-0">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-3-0"></a></h3>
+<ul><li>Every vignette and example runs on that corpus, paired with the key-gated live call a reader would actually write, and the figures quoted in the prose were recomputed against the new data.</li>
+<li>The demo mode of <code><a href="../reference/run_app.html">run_app()</a></code> draws on the same corpus, so a first look at the app shows real articles rather than invented rows.</li>
+<li>The parser fixture in <code>inst/extdata</code> moves onto the reserved 10.5555 example prefix. It previously paired genuine, resolving DOIs with invented titles and authors, so a reader who checked one found a real paper mislabelled.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.1" id="scopusflow-021">scopusflow 0.2.1<a class="anchor" aria-label="anchor" href="#scopusflow-021"></a></h2>
 <p>A documentation release. The vignettes now demonstrate several features that 0.2.0 shipped but did not show.</p>

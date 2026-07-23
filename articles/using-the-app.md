@@ -97,16 +97,16 @@ quota-limited run picks up where it left off.
 ![The Retrieval panel part-way through a demo-mode harvest. A note reads
 “Demo plan: 6 year-cells; would draw 57 records from the bundled
 corpus”, a label reads “Fetching cell 4 of 6” above a progress bar at
-50%, and the expanded Live terminal below shows four lines, one per
-completed cell, each reading “Cell n/6: demo records for graphene
-supercapacitor” with the year.](figures/app-terminal.png)
+50%, and the expanded Live terminal below shows four lines, one for each
+cell the run has reached, each reading “Cell n/6: demo records for
+graphene supercapacitor” with the year.](figures/app-terminal.png)
 
 The Retrieval panel part-way through a demo-mode harvest. A note reads
 “Demo plan: 6 year-cells; would draw 57 records from the bundled
 corpus”, a label reads “Fetching cell 4 of 6” above a progress bar at
-50%, and the expanded Live terminal below shows four lines, one per
-completed cell, each reading “Cell n/6: demo records for graphene
-supercapacitor” with the year.
+50%, and the expanded Live terminal below shows four lines, one for each
+cell the run has reached, each reading “Cell n/6: demo records for
+graphene supercapacitor” with the year.
 
 ## The reproducible code panel
 
@@ -149,16 +149,21 @@ Every figure is drawn by the same library functions you would call from
 a script, so the app shows you nothing you could not reproduce.
 
 ![The Results panel with tabs for Records, By year, Top sources, Top
-authors, Compare topics and Export. The By year tab is open, showing a
-bar chart of records per year from 2021 to 2024 drawn from the demo
-harvest, the bars varying with the number of papers the bundled corpus
-holds for each year.](figures/app-results.png)
+authors, Compare topics and Export. The Records tab is open, showing the
+first rows of a table of titles, years, journals and citation counts
+from the demo harvest. The first row reads “Recent trends in graphene
+supercapacitors: from large area to microsupercapacitors”, published in
+Sustainable Energy & Fuels in 2021 with 211 citations, and the rows
+below it are likewise real articles from the bundled
+corpus.](figures/app-results.png)
 
 The Results panel with tabs for Records, By year, Top sources, Top
-authors, Compare topics and Export. The By year tab is open, showing a
-bar chart of records per year from 2021 to 2024 drawn from the demo
-harvest, the bars varying with the number of papers the bundled corpus
-holds for each year.
+authors, Compare topics and Export. The Records tab is open, showing the
+first rows of a table of titles, years, journals and citation counts
+from the demo harvest. The first row reads “Recent trends in graphene
+supercapacitors: from large area to microsupercapacitors”, published in
+Sustainable Energy & Fuels in 2021 with 211 citations, and the rows
+below it are likewise real articles from the bundled corpus.
 
 ## Comparing topics
 

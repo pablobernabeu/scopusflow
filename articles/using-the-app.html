@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -94,13 +94,7 @@
      left on, so they need no key and no network. Recapture them whenever the
      app's layout changes: unlike the figures in the other articles, which are
      drawn when the vignette is knitted, a static image of an interface drifts
-     silently.
-
-     OUTSTANDING: app-terminal.png and app-results.png still show the demo mode
-     as it was before it drew its records from the bundled example_records
-     corpus, so they carry the old size note and a row of identical by-year
-     bars. The alt text below describes the current behaviour; recapture both
-     images before the next site build. -->
+     silently. -->
 <p>Not every search starts in an editor. <code><a href="../reference/run_app.html">run_app()</a></code> opens a
 local Shiny app that drives the whole scopusflow workflow through a
 browser tab, from describing a search to exporting the records, without
@@ -183,12 +177,12 @@ stops the run cleanly. Under the surface the app builds a
 turned on, so an interrupted or quota-limited run picks up where it left
 off.</p>
 <div class="float">
-<img src="figures/app-terminal.png" alt="The Retrieval panel part-way through a demo-mode harvest. A note reads “Demo plan: 6 year-cells; would draw 57 records from the bundled corpus”, a label reads “Fetching cell 4 of 6” above a progress bar at 50%, and the expanded Live terminal below shows four lines, one per completed cell, each reading “Cell n/6: demo records for graphene supercapacitor” with the year."><div class="figcaption">The Retrieval panel part-way through a demo-mode
+<img src="figures/app-terminal.png" alt="The Retrieval panel part-way through a demo-mode harvest. A note reads “Demo plan: 6 year-cells; would draw 57 records from the bundled corpus”, a label reads “Fetching cell 4 of 6” above a progress bar at 50%, and the expanded Live terminal below shows four lines, one for each cell the run has reached, each reading “Cell n/6: demo records for graphene supercapacitor” with the year."><div class="figcaption">The Retrieval panel part-way through a demo-mode
 harvest. A note reads “Demo plan: 6 year-cells; would draw 57 records
 from the bundled corpus”, a label reads “Fetching cell 4 of 6” above a
 progress bar at 50%, and the expanded Live terminal below shows four
-lines, one per completed cell, each reading “Cell n/6: demo records for
-graphene supercapacitor” with the year.</div>
+lines, one for each cell the run has reached, each reading “Cell n/6:
+demo records for graphene supercapacitor” with the year.</div>
 </div>
 </div>
 <div class="section level2">
@@ -225,11 +219,14 @@ and Top authors tally the most frequent of each with
 figure is drawn by the same library functions you would call from a
 script, so the app shows you nothing you could not reproduce.</p>
 <div class="float">
-<img src="figures/app-results.png" alt="The Results panel with tabs for Records, By year, Top sources, Top authors, Compare topics and Export. The By year tab is open, showing a bar chart of records per year from 2021 to 2024 drawn from the demo harvest, the bars varying with the number of papers the bundled corpus holds for each year."><div class="figcaption">The Results panel with tabs for Records, By
-year, Top sources, Top authors, Compare topics and Export. The By year
-tab is open, showing a bar chart of records per year from 2021 to 2024
-drawn from the demo harvest, the bars varying with the number of papers
-the bundled corpus holds for each year.</div>
+<img src="figures/app-results.png" alt="The Results panel with tabs for Records, By year, Top sources, Top authors, Compare topics and Export. The Records tab is open, showing the first rows of a table of titles, years, journals and citation counts from the demo harvest. The first row reads “Recent trends in graphene supercapacitors: from large area to microsupercapacitors”, published in Sustainable Energy &amp; Fuels in 2021 with 211 citations, and the rows below it are likewise real articles from the bundled corpus."><div class="figcaption">The Results panel with tabs for Records, By
+year, Top sources, Top authors, Compare topics and Export. The Records
+tab is open, showing the first rows of a table of titles, years,
+journals and citation counts from the demo harvest. The first row reads
+“Recent trends in graphene supercapacitors: from large area to
+microsupercapacitors”, published in Sustainable Energy &amp; Fuels in
+2021 with 211 citations, and the rows below it are likewise real
+articles from the bundled corpus.</div>
 </div>
 </div>
 <div class="section level2">
