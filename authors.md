@@ -8,7 +8,7 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/pablobernabeu/scopusflow/blob/main/inst/CITATION)
+[`inst/CITATION`](https://github.com/pablobernabeu/scopusflow/blob/v0.3.0/inst/CITATION)
 
 Bernabeu, P. (2026). scopusflow: A reproducible workflow layer for
 'Scopus' bibliographic searches. R package version 0.3.0.
