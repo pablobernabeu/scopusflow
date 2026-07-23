@@ -155,32 +155,36 @@ account contact.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># A minimal entry as the API would return it.</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># An entry in the shape the Search API returns it. The fields are those of</span></span></span>
+<span class="r-in"><span><span class="co"># a real article, taken from the bundled `example_records`, which stands in</span></span></span>
+<span class="r-in"><span><span class="co"># for a harvest because 'Scopus' records may not be redistributed. It</span></span></span>
+<span class="r-in"><span><span class="co"># carries no 'Scopus' identifier, so `dc:identifier` is absent and</span></span></span>
+<span class="r-in"><span><span class="co"># `scopus_id` comes back NA, as it does for any unidentified record.</span></span></span>
 <span class="r-in"><span><span class="va">raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>entry <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>    `dc:identifier` <span class="op">=</span> <span class="st">"SCOPUS_ID:1"</span>,</span></span>
-<span class="r-in"><span>    `prism:doi` <span class="op">=</span> <span class="st">"10.1000/abc"</span>,</span></span>
-<span class="r-in"><span>    `dc:title` <span class="op">=</span> <span class="st">"An example"</span>,</span></span>
-<span class="r-in"><span>    `dc:creator` <span class="op">=</span> <span class="st">"Doe J."</span>,</span></span>
-<span class="r-in"><span>    `prism:publicationName` <span class="op">=</span> <span class="st">"Journal of Examples"</span>,</span></span>
-<span class="r-in"><span>    `prism:coverDate` <span class="op">=</span> <span class="st">"2020-05-01"</span>,</span></span>
-<span class="r-in"><span>    `citedby-count` <span class="op">=</span> <span class="st">"7"</span></span></span>
+<span class="r-in"><span>    `prism:doi` <span class="op">=</span> <span class="st">"10.1021/am509065d"</span>,</span></span>
+<span class="r-in"><span>    `dc:title` <span class="op">=</span> <span class="st">"Flexible and Stackable Laser-Induced Graphene Supercapacitors"</span>,</span></span>
+<span class="r-in"><span>    `dc:creator` <span class="op">=</span> <span class="st">"Zhiwei Peng"</span>,</span></span>
+<span class="r-in"><span>    `prism:publicationName` <span class="op">=</span> <span class="st">"ACS Applied Materials &amp; Interfaces"</span>,</span></span>
+<span class="r-in"><span>    `prism:coverDate` <span class="op">=</span> <span class="st">"2015-01-13"</span>,</span></span>
+<span class="r-in"><span>    `citedby-count` <span class="op">=</span> <span class="st">"469"</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">scopus_records</span><span class="op">(</span><span class="va">raw</span>, query <span class="op">=</span> <span class="st">"TITLE(example)"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">scopus_records</span><span class="op">(</span><span class="va">raw</span>, query <span class="op">=</span> <span class="st">"TITLE-ABS-KEY(graphene supercapacitor)"</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> &lt;scopus_records&gt; 1 record</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> query: <span style="color: #0000BB;">"TITLE(example)"</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> query: <span style="color: #0000BB;">"TITLE-ABS-KEY(graphene supercapacitor)"</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 1 × 9</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   entry_number scopus_id doi     title authors  year date  publication citations</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span>            1 1         10.100… An e… Doe J.   <span style="text-decoration: underline;">2</span>020 2020… Journal of…         7</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span>            1 <span style="color: #BB0000;">NA</span>        10.102… Flex… Zhiwei…  <span style="text-decoration: underline;">2</span>015 2015… ACS Applie…       469</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># A COMPLETE-view entry carrying author keywords.</span></span></span>
+<span class="r-in"><span><span class="co"># Under COMPLETE view an entry may also carry author keywords, which the</span></span></span>
+<span class="r-in"><span><span class="co"># Search API returns in its own " | "-delimited form. The bundled corpus</span></span></span>
+<span class="r-in"><span><span class="co"># holds no keywords, so the ones below are illustrative.</span></span></span>
 <span class="r-in"><span><span class="va">raw_complete</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>entry <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>    `dc:identifier` <span class="op">=</span> <span class="st">"SCOPUS_ID:2"</span>,</span></span>
-<span class="r-in"><span>    `prism:doi` <span class="op">=</span> <span class="st">"10.1000/def"</span>,</span></span>
-<span class="r-in"><span>    `dc:title` <span class="op">=</span> <span class="st">"A second example"</span>,</span></span>
+<span class="r-in"><span>    `prism:doi` <span class="op">=</span> <span class="st">"10.1021/am509065d"</span>,</span></span>
+<span class="r-in"><span>    `dc:title` <span class="op">=</span> <span class="st">"Flexible and Stackable Laser-Induced Graphene Supercapacitors"</span>,</span></span>
 <span class="r-in"><span>    authkeywords <span class="op">=</span> <span class="st">"graphene | supercapacitor | energy storage"</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span><span class="op">)</span></span></span>
@@ -189,8 +193,12 @@ account contact.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 1 × 11</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   entry_number scopus_id doi     title authors  year date  publication citations</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span>            1 2         10.100… A se… <span style="color: #BB0000;">NA</span>         <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>                 <span style="color: #BB0000;">NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span>            1 <span style="color: #BB0000;">NA</span>        10.102… Flex… <span style="color: #BB0000;">NA</span>         <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>                 <span style="color: #BB0000;">NA</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 2 more variables: query &lt;chr&gt;, authkeywords &lt;chr&gt;</span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># An object already in this schema is returned unchanged.</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">scopus_records</span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span>, <span class="va">example_records</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -102,19 +102,21 @@ failing that a DOI (compared case-insensitively), are kept once.</p></dd>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Merging a set with itself and de-duplicating recovers the distinct records.</span></span></span>
-<span class="r-in"><span><span class="fu">scopus_combine</span><span class="op">(</span><span class="va">example_records</span>, <span class="va">example_records</span>, dedupe <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> &lt;scopus_records&gt; 6 records</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> query: <span style="color: #0000BB;">"illustrative multi-disciplinary sample"</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 6 × 9</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   entry_number scopus_id   doi   title authors  year date  publication citations</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span>            1 85000000001 10.1… Geno… Zhang …  <span style="text-decoration: underline;">2</span>019 2019… Nature            540</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span>            2 85000000002 10.1… Deep… Kumar …  <span style="text-decoration: underline;">2</span>020 2020… Nature            210</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span>            3 85000000003 10.1… Clim… Okafor…  <span style="text-decoration: underline;">2</span>018 2018… Nature Cli…       122</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span>            4 85000000004 10.1… Grap… Tanaka…  <span style="text-decoration: underline;">2</span>021 2021… Advanced M…        45</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">5</span>            5 85000000005 10.1… Chec… Garcia…  <span style="text-decoration: underline;">2</span>020 2020… The Lancet…       388</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">6</span>            6 85000000006 10.1… Obse… Abbott…  <span style="text-decoration: underline;">2</span>016 2016… Physical R…      <span style="text-decoration: underline;">4</span>200</span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># A baseline retrieval and a later one, merged into a cumulative set. The</span></span></span>
+<span class="r-in"><span><span class="co"># bundled corpus of real articles stands in for both, since 'Scopus'</span></span></span>
+<span class="r-in"><span><span class="co"># records may not be redistributed.</span></span></span>
+<span class="r-in"><span><span class="va">baseline</span> <span class="op">&lt;-</span> <span class="va">example_records</span><span class="op">[</span><span class="va">example_records</span><span class="op">$</span><span class="va">year</span> <span class="op">&lt;=</span> <span class="fl">2023</span>, <span class="op">]</span></span></span>
+<span class="r-in"><span><span class="va">later</span> <span class="op">&lt;-</span> <span class="va">example_records</span></span></span>
+<span class="r-in"><span><span class="va">combined</span> <span class="op">&lt;-</span> <span class="fu">scopus_combine</span><span class="op">(</span><span class="va">baseline</span>, <span class="va">later</span>, dedupe <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">combined</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 149</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Those records carry no 'Scopus' identifier, so de-duplication falls back</span></span></span>
+<span class="r-in"><span><span class="co"># to the DOI. The eleven that arrived without one cannot be matched, and so</span></span></span>
+<span class="r-in"><span><span class="co"># survive in both copies, which is why 138 distinct articles come back as</span></span></span>
+<span class="r-in"><span><span class="co"># 149 rows.</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">$</span><span class="va">doi</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 11</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -39,5 +39,6 @@ object. Needs the suggested package ggplot2.
 ## Examples
 
 ``` r
+# On the bundled corpus of real articles, which needs no key.
 plot_scopus_top(scopus_top(example_records, by = "source"))
 ```

@@ -45,24 +45,17 @@ invisibly when `file` is supplied).
 ## Examples
 
 ``` r
+# On the bundled corpus of real articles, which stands in for a retrieval
+# of your own because 'Scopus' records may not be redistributed. Only the
+# opening of each export is shown; pass `file` to write the whole set.
 cat(substr(as_bibtex(example_records), 1, 200))
-#> @article{zhang2019,
-#>   author = {Zhang F.},
-#>   title = {Genome editing with CRISPR-Cas9: principles and applications},
-#>   journal = {Nature},
-#>   year = {2019},
-#>   doi = {10.1038/s41586-019-0001-1},
-#>   note 
+#> @article{jianhua2015,
+#>   author = {Jianhua Yu},
+#>   title = {Enhanced Capacitive Properties of All-solid-state Symmetric Graphene Supercapacitors by Incorporating Nitrogen-doping and SnO2 Nanoparticles},
 cat(substr(as_ris(example_records), 1, 200))
 #> TY  - JOUR
-#> TI  - Genome editing with CRISPR-Cas9: principles and applications
-#> AU  - Zhang F.
-#> PY  - 2019
-#> JO  - Nature
-#> DO  - 10.1038/s41586-019-0001-1
-#> N1  - Scopus ID: 85000000001
-#> ER  - 
-#> 
-#> TY  - JOUR
-#> TI 
+#> TI  - Enhanced Capacitive Properties of All-solid-state Symmetric Graphene Supercapacitors by Incorporating Nitrogen-doping and SnO2 Nanoparticles
+#> AU  - Jianhua Yu
+#> PY  - 2015
+#> JO  - Journal 
 ```

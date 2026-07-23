@@ -7,8 +7,12 @@ library(scopusflow)
 
 A retrieval becomes useful once it leaves the package, as a reading list
 in a reference manager or as input to a science-mapping tool. This
-article covers that export end of the workflow, using the bundled
-`example_records` so every step runs without an API key.
+article covers that export end of the workflow. Every step runs without
+an API key, on the bundled `example_records`, a corpus of 138 real
+journal articles that stands in for a harvest of your own because Scopus
+records may not be redistributed;
+[`vignette("scopusflow")`](https://pablobernabeu.github.io/scopusflow/articles/scopusflow.md)
+describes where it comes from.
 
 ## Take stock first
 
@@ -21,12 +25,16 @@ the most-cited record.
 
 summary(example_records)
 #> <scopus_records> summary
-#> 6 records, from 2016 to 2021.
-#> 5 sources, 6 with a DOI.
-#> Cited 5505 times in total, median 299 per record.
-#> Most frequent source: Nature.
-#> Most cited: Observation of gravitational waves from a binary black hole merger.
+#> 138 records, from 2015 to 2024.
+#> 90 sources, 127 with a DOI.
+#> Cited 7015 times in total, median 24 per record.
+#> Most frequent source: ACS Applied Materials & Interfaces.
+#> Most cited: Graphene for batteries, supercapacitors and beyond.
 ```
+
+Eleven of those 138 records arrived without a DOI, which is why the
+summary counts 127 with one. That is ordinary in a real harvest, and the
+sections below show how each export handles it.
 
 A record set is an ordinary tibble underneath, so it drops straight into
 tidyverse or base workflows. `as_tibble()` and
@@ -35,28 +43,28 @@ explicit when a downstream tool expects a plain frame.
 
 ``` r
 
-tibble::as_tibble(example_records)
+head(tibble::as_tibble(example_records))
 ```
 
 | entry_number | scopus_id | doi | title | authors | year | date | publication | citations | query |
 |---:|:---|:---|:---|:---|---:|:---|:---|---:|:---|
-| 1 | 85000000001 | 10.1038/s41586-019-0001-1 | Genome editing with CRISPR-Cas9: principles and applications | Zhang F. | 2019 | 2019-04-12 | Nature | 540 | illustrative multi-disciplinary sample |
-| 2 | 85000000002 | 10.1038/s41586-020-0002-2 | Deep learning for medical image analysis: a review | Kumar S. | 2020 | 2020-02-20 | Nature | 210 | illustrative multi-disciplinary sample |
-| 3 | 85000000003 | 10.1038/s41558-018-0085-1 | Climate change adaptation in coastal megacities | Okafor N. | 2018 | 2018-03-19 | Nature Climate Change | 122 | illustrative multi-disciplinary sample |
-| 4 | 85000000004 | 10.1002/adma.202100001 | Graphene electrodes for next-generation energy storage | Tanaka H. | 2021 | 2021-01-15 | Advanced Materials | 45 | illustrative multi-disciplinary sample |
-| 5 | 85000000005 | 10.1016/S1470-2045(20)30013-9 | Checkpoint inhibitors in cancer immunotherapy | Garcia M. | 2020 | 2020-07-01 | The Lancet Oncology | 388 | illustrative multi-disciplinary sample |
-| 6 | 85000000006 | 10.1103/PhysRevLett.116.061102 | Observation of gravitational waves from a binary black hole merger | Abbott B. | 2016 | 2016-02-11 | Physical Review Letters | 4200 | illustrative multi-disciplinary sample |
+| 1 | NA | 10.15541/jim20140527 | Enhanced Capacitive Properties of All-solid-state Symmetric Graphene Supercapacitors by Incorporating Nitrogen-doping and SnO2 Nanoparticles | Jianhua Yu | 2015 | 2015-01-01 | Journal of Inorganic Materials | 1 | graphene supercapacitor |
+| 2 | NA | NA | Fabrication and Characterization of a Vertically-Oriented Graphene Supercapacitor | Patrick R Rice | 2015 | 2015-01-01 | DigitalCommons - CalPoly (California State Polytechnic University) | 0 | graphene supercapacitor |
+| 3 | NA | 10.1021/am509065d | Flexible and Stackable Laser-Induced Graphene Supercapacitors | Zhiwei Peng | 2015 | 2015-01-13 | ACS Applied Materials & Interfaces | 469 | graphene supercapacitor |
+| 4 | NA | 10.1016/j.electacta.2015.02.019 | Heavily nitrogen doped, graphene supercapacitor from silk cocoon | Vikrant Sahu | 2015 | 2015-02-04 | Electrochimica Acta | 195 | graphene supercapacitor |
+| 5 | NA | 10.1002/smll.201403383 | Graphene-Based Integrated Photovoltaic Energy Harvesting/Storage Device | Chih-Tao Chien | 2015 | 2015-02-19 | Small | 108 | graphene supercapacitor |
+| 6 | NA | 10.1016/j.jpowsour.2015.03.015 | Nanoporous graphene materials by low-temperature vacuum-assisted thermal process for electrochemical energy storage | Hao Yang | 2015 | 2015-03-05 | Journal of Power Sources | 47 | graphene supercapacitor |
 
 ``` r
 
 as.data.frame(example_records)[1:3, c("title", "year")]
 ```
 
-| title                                                        | year |
-|:-------------------------------------------------------------|-----:|
-| Genome editing with CRISPR-Cas9: principles and applications | 2019 |
-| Deep learning for medical image analysis: a review           | 2020 |
-| Climate change adaptation in coastal megacities              | 2018 |
+| title | year |
+|:---|---:|
+| Enhanced Capacitive Properties of All-solid-state Symmetric Graphene Supercapacitors by Incorporating Nitrogen-doping and SnO2 Nanoparticles | 2015 |
+| Fabrication and Characterization of a Vertically-Oriented Graphene Supercapacitor | 2015 |
+| Flexible and Stackable Laser-Induced Graphene Supercapacitors | 2015 |
 
 ## A clean, deduplicated DOI list
 
@@ -69,10 +77,12 @@ or in a different case.
 ``` r
 
 dois <- scopus_extract_dois(example_records)
-dois
-#> [1] "10.1038/s41586-019-0001-1"      "10.1038/s41586-020-0002-2"     
-#> [3] "10.1038/s41558-018-0085-1"      "10.1002/adma.202100001"        
-#> [5] "10.1016/S1470-2045(20)30013-9"  "10.1103/PhysRevLett.116.061102"
+length(dois)
+#> [1] 127
+head(dois, 6)
+#> [1] "10.15541/jim20140527"            "10.1021/am509065d"              
+#> [3] "10.1016/j.electacta.2015.02.019" "10.1002/smll.201403383"         
+#> [5] "10.1016/j.jpowsour.2015.03.015"  "10.1103/physrevb.91.125415"
 ```
 
 The same cleaning applies to a plain vector of DOIs from any source, so
@@ -91,22 +101,22 @@ scopus_extract_dois(c("https://doi.org/10.1/A", "doi: 10.1/a", "10.2/B"),
 ```
 
 The list can be written to a single-column CSV at a path you choose.
-Nothing is written unless a path is given.
+Nothing is written unless a path is given. Here are the first few lines
+of the file, which holds a header and one DOI per line:
 
 ``` r
 
 out <- file.path(tempdir(), "reference-set.csv")
 scopus_extract_dois(example_records, file = out)
-writeLines(readLines(out))
+writeLines(head(readLines(out), 6))
 ```
 
     "doi"
-    "10.1038/s41586-019-0001-1"
-    "10.1038/s41586-020-0002-2"
-    "10.1038/s41558-018-0085-1"
-    "10.1002/adma.202100001"
-    "10.1016/S1470-2045(20)30013-9"
-    "10.1103/PhysRevLett.116.061102"
+    "10.15541/jim20140527"
+    "10.1021/am509065d"
+    "10.1016/j.electacta.2015.02.019"
+    "10.1002/smll.201403383"
+    "10.1016/j.jpowsour.2015.03.015"
 
 ## Into a reference manager
 
@@ -121,24 +131,27 @@ bibliography. Each record becomes one entry, with its authors split out.
 
 ``` r
 
-cat(substr(as_ris(example_records), 1, 320))
+cat(substr(as_ris(example_records), 1, 470))
 ```
 
     TY  - JOUR
-    TI  - Genome editing with CRISPR-Cas9: principles and applications
-    AU  - Zhang F.
-    PY  - 2019
-    JO  - Nature
-    DO  - 10.1038/s41586-019-0001-1
-    N1  - Scopus ID: 85000000001
+    TI  - Enhanced Capacitive Properties of All-solid-state Symmetric Graphene Supercapacitors by Incorporating Nitrogen-doping and SnO2 Nanoparticles
+    AU  - Jianhua Yu
+    PY  - 2015
+    JO  - Journal of Inorganic Materials
+    DO  - 10.15541/jim20140527
     ER  - 
 
     TY  - JOUR
-    TI  - Deep learning for medical image analysis: a review
-    AU  - Kumar S.
-    PY  - 2020
-    JO  - Nature
-    DO  - 10.1038/s41586-020-00
+    TI  - Fabrication and Characterization of a Vertically-Oriented Graphene Supercapacitor
+    AU  - Patrick R Rice
+    PY  - 2015
+    JO  - DigitalCommons - CalPoly (California State Polytechnic University)
+    ER  - 
+
+The first two entries of 138 are shown. The second has no DOI, so its
+`DO` line is simply absent rather than empty, and the entry still
+imports on its title, author and year.
 
 Pass a `file` to write the whole set; nothing is written without one.
 
@@ -158,17 +171,17 @@ convention expect.
 ``` r
 
 m <- as_bibliometrix(example_records)
-m[, c("AU", "TI", "PY", "SO", "TC", "DB")]
+head(m[, c("AU", "TI", "PY", "SO", "TC", "DB")])
 ```
 
 | AU | TI | PY | SO | TC | DB |
 |:---|:---|---:|:---|---:|:---|
-| ZHANG F. | GENOME EDITING WITH CRISPR-CAS9: PRINCIPLES AND APPLICATIONS | 2019 | NATURE | 540 | SCOPUS |
-| KUMAR S. | DEEP LEARNING FOR MEDICAL IMAGE ANALYSIS: A REVIEW | 2020 | NATURE | 210 | SCOPUS |
-| OKAFOR N. | CLIMATE CHANGE ADAPTATION IN COASTAL MEGACITIES | 2018 | NATURE CLIMATE CHANGE | 122 | SCOPUS |
-| TANAKA H. | GRAPHENE ELECTRODES FOR NEXT-GENERATION ENERGY STORAGE | 2021 | ADVANCED MATERIALS | 45 | SCOPUS |
-| GARCIA M. | CHECKPOINT INHIBITORS IN CANCER IMMUNOTHERAPY | 2020 | THE LANCET ONCOLOGY | 388 | SCOPUS |
-| ABBOTT B. | OBSERVATION OF GRAVITATIONAL WAVES FROM A BINARY BLACK HOLE MERGER | 2016 | PHYSICAL REVIEW LETTERS | 4200 | SCOPUS |
+| JIANHUA YU | ENHANCED CAPACITIVE PROPERTIES OF ALL-SOLID-STATE SYMMETRIC GRAPHENE SUPERCAPACITORS BY INCORPORATING NITROGEN-DOPING AND SNO2 NANOPARTICLES | 2015 | JOURNAL OF INORGANIC MATERIALS | 1 | SCOPUS |
+| PATRICK R RICE | FABRICATION AND CHARACTERIZATION OF A VERTICALLY-ORIENTED GRAPHENE SUPERCAPACITOR | 2015 | DIGITALCOMMONS - CALPOLY (CALIFORNIA STATE POLYTECHNIC UNIVERSITY) | 0 | SCOPUS |
+| ZHIWEI PENG | FLEXIBLE AND STACKABLE LASER-INDUCED GRAPHENE SUPERCAPACITORS | 2015 | ACS APPLIED MATERIALS & INTERFACES | 469 | SCOPUS |
+| VIKRANT SAHU | HEAVILY NITROGEN DOPED, GRAPHENE SUPERCAPACITOR FROM SILK COCOON | 2015 | ELECTROCHIMICA ACTA | 195 | SCOPUS |
+| CHIH-TAO CHIEN | GRAPHENE-BASED INTEGRATED PHOTOVOLTAIC ENERGY HARVESTING/STORAGE DEVICE | 2015 | SMALL | 108 | SCOPUS |
+| HAO YANG | NANOPOROUS GRAPHENE MATERIALS BY LOW-TEMPERATURE VACUUM-ASSISTED THERMAL PROCESS FOR ELECTROCHEMICAL ENERGY STORAGE | 2015 | JOURNAL OF POWER SOURCES | 47 | SCOPUS |
 
 From there the usual bibliometrix entry points apply. This step needs
 that package, so it is shown but not run.
@@ -176,7 +189,7 @@ that package, so it is shown but not run.
 ``` r
 
 if (requireNamespace("bibliometrix", quietly = TRUE)) {
-  results <- bibliometrix::biblioAnalysis(as_bibliometrix(records))
+  results <- bibliometrix::biblioAnalysis(m)
   summary(results, k = 10)
 }
 ```

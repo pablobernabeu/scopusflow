@@ -38,10 +38,13 @@ cmp <- scopus_compare_topics(
 
 ## The shape of the result
 
-The result is a tidy table with one row per topic and year. We build one
-here with the same columns so the rest of the article runs without a
-key. The reference set grows over the period, which the uncertainty band
-will reflect.
+The result is a tidy table with one row per topic and year. A comparison
+counts whole literatures rather than the records in hand, so unlike a
+trend it cannot be derived from the corpus the package bundles for its
+other examples. The table below is rebuilt in the same shape, with
+illustrative counts, so the rest of the article runs without a key. The
+reference set grows over the period, which the uncertainty band will
+reflect.
 
 ``` r
 

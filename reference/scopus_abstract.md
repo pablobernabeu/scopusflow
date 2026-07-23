@@ -162,29 +162,34 @@ to assemble a minimal keyword/reference corpus across many documents.
 
 ``` r
 if (FALSE) { # scopusflow::scopus_has_key()
-scopus_abstract("10.1103/PhysRevLett.116.061102")
+# One record of the bundled corpus, looked up for real.
+scopus_abstract(scopus_extract_dois(example_records)[1])
 
 # Author keywords and a structured reference list, in the same request.
 # Costs one Abstract Retrieval request per identifier, against a smaller,
 # separate weekly quota from Search; see the API access section above for
 # the entitlement this needs.
 rich <- scopus_abstract(
-  "10.1038/nature14539",
+  "10.1038/natrevmats.2016.33",
   view = "FULL", include = c("references", "keywords")
 )
 rich$references[[1]]
 }
-# The shape of the return value, built offline so it runs without a key.
+# The offline companion, which needs no key. The identifiers, titles,
+# sources and citation counts are two records of the bundled corpus of real
+# articles; the abstract text is what a live call adds, so it is left unset
+# here rather than invented, as is the 'Scopus' identifier the corpus does
+# not carry.
+cited <- example_records[order(-example_records$citations), ][1:2, ]
 abstracts <- tibble::tibble(
-  id = c("10.1038/nature14539", "10.1126/science.abc1234"),
-  scopus_id = c("84930630277", "85082345678"),
-  doi = c("10.1038/nature14539", "10.1126/science.abc1234"),
-  title = c("Deep learning", "Porous carbon electrodes at scale"),
-  abstract = c("Deep learning allows computational models composed of",
-               "A scalable route to porous carbon electrodes is described,"),
-  publication = c("Nature", "Science"),
-  year = c(2015L, 2020L),
-  citations = c(48213L, 88L)
+  id = cited$doi,
+  scopus_id = NA_character_,
+  doi = cited$doi,
+  title = cited$title,
+  abstract = NA_character_,
+  publication = cited$publication,
+  year = cited$year,
+  citations = cited$citations
 )
 class(abstracts) <- c("scopus_abstracts", class(abstracts))
 abstracts
@@ -192,30 +197,32 @@ abstracts
 #> # A tibble: 2 × 8
 #>   id                  scopus_id doi   title abstract publication  year citations
 #>   <chr>               <chr>     <chr> <chr> <chr>    <chr>       <int>     <int>
-#> 1 10.1038/nature14539 84930630… 10.1… Deep… Deep le… Nature       2015     48213
-#> 2 10.1126/science.ab… 85082345… 10.1… Poro… A scala… Science      2020        88
+#> 1 10.1038/natrevmats… NA        10.1… Grap… NA       Nature Rev…  2016      1247
+#> 2 10.1021/am509065d   NA        10.1… Flex… NA       ACS Applie…  2015       469
 
 # A reference list arrives as one data frame per document, in the
-# `references` list-column added by include = "references".
+# `references` list-column added by include = "references". The corpus
+# carries no bibliographies, so its own records fill the columns here,
+# standing in for the works the first document cites.
+refs <- example_records[1:3, ]
 abstracts$references <- list(
   tibble::tibble(
-    position = c("1", "2"),
-    id = c("84878919540", "84876258641"),
-    doi = c("10.1000/imagenet", "10.1109/TPAMI.2012.231"),
-    title = c("ImageNet classification with deep convolutional networks",
-              "Learning hierarchical features for scene labeling"),
-    authors = c("Krizhevsky, A.; Sutskever, I.; Hinton, G.",
-                "Farabet, C.; Couprie, C.; Najman, L.; LeCun, Y."),
-    sourcetitle = c("Adv. Neural Inf. Process. Syst.",
-                    "IEEE Trans. Pattern Anal. Mach. Intell."),
-    publicationyear = c("2012", "2013")
+    position = as.character(seq_len(nrow(refs))),
+    id = NA_character_,
+    doi = refs$doi,
+    title = refs$title,
+    authors = refs$authors,
+    source = refs$publication,
+    year = refs$year,
+    citedbycount = refs$citations
   ),
   tibble::tibble()
 )
 abstracts$references[[1]]
-#> # A tibble: 2 × 7
-#>   position id          doi             title authors sourcetitle publicationyear
-#>   <chr>    <chr>       <chr>           <chr> <chr>   <chr>       <chr>          
-#> 1 1        84878919540 10.1000/imagen… Imag… Krizhe… Adv. Neura… 2012           
-#> 2 2        84876258641 10.1109/TPAMI.… Lear… Farabe… IEEE Trans… 2013           
+#> # A tibble: 3 × 8
+#>   position id    doi                  title    authors source  year citedbycount
+#>   <chr>    <chr> <chr>                <chr>    <chr>   <chr>  <int>        <int>
+#> 1 1        NA    10.15541/jim20140527 Enhance… Jianhu… Journ…  2015            1
+#> 2 2        NA    NA                   Fabrica… Patric… Digit…  2015            0
+#> 3 3        NA    10.1021/am509065d    Flexibl… Zhiwei… ACS A…  2015          469
 ```

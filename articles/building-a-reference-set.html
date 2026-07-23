@@ -94,8 +94,11 @@
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pablobernabeu/scopusflow" class="external-link">scopusflow</a></span><span class="op">)</span></span></code></pre></div>
 <p>A retrieval becomes useful once it leaves the package, as a reading
 list in a reference manager or as input to a science-mapping tool. This
-article covers that export end of the workflow, using the bundled
-<code>example_records</code> so every step runs without an API key.</p>
+article covers that export end of the workflow. Every step runs without
+an API key, on the bundled <code>example_records</code>, a corpus of 138
+real journal articles that stands in for a harvest of your own because
+Scopus records may not be redistributed;
+<code><a href="../articles/scopusflow.html">vignette("scopusflow")</a></code> describes where it comes from.</p>
 <div class="section level2">
 <h2 id="take-stock-first">Take stock first<a class="anchor" aria-label="anchor" href="#take-stock-first"></a>
 </h2>
@@ -105,29 +108,32 @@ of distinct sources, the citation spread and the most-cited record.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #0000BB;">&lt;scopus_records&gt;</span> summary</span></span>
-<span><span class="co">#&gt; 6 records, from 2016 to 2021.</span></span>
-<span><span class="co">#&gt; 5 sources, 6 with a DOI.</span></span>
-<span><span class="co">#&gt; Cited 5505 times in total, median 299 per record.</span></span>
-<span><span class="co">#&gt; Most frequent source: Nature.</span></span>
-<span><span class="co">#&gt; Most cited: <span style="font-style: italic;">Observation of gravitational waves from a binary black hole merger</span>.</span></span></code></pre></div>
+<span><span class="co">#&gt; 138 records, from 2015 to 2024.</span></span>
+<span><span class="co">#&gt; 90 sources, 127 with a DOI.</span></span>
+<span><span class="co">#&gt; Cited 7015 times in total, median 24 per record.</span></span>
+<span><span class="co">#&gt; Most frequent source: ACS Applied Materials &amp; Interfaces.</span></span>
+<span><span class="co">#&gt; Most cited: <span style="font-style: italic;">Graphene for batteries, supercapacitors and beyond</span>.</span></span></code></pre></div>
+<p>Eleven of those 138 records arrived without a DOI, which is why the
+summary counts 127 with one. That is ordinary in a real harvest, and the
+sections below show how each export handles it.</p>
 <p>A record set is an ordinary tibble underneath, so it drops straight
 into tidyverse or base workflows. <code>as_tibble()</code> and
 <code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> make that explicit when a downstream tool
 expects a plain frame.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html" class="external-link">as_tibble</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html" class="external-link">as_tibble</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
-<col width="5%">
-<col width="5%">
-<col width="13%">
-<col width="30%">
+<col width="3%">
+<col width="3%">
+<col width="9%">
+<col width="42%">
 <col width="4%">
-<col width="2%">
-<col width="4%">
-<col width="10%">
-<col width="4%">
-<col width="17%">
+<col width="1%">
+<col width="3%">
+<col width="20%">
+<col width="3%">
+<col width="7%">
 </colgroup>
 <thead><tr class="header">
 <th align="right">entry_number</th>
@@ -144,101 +150,113 @@ expects a plain frame.</p>
 <tbody>
 <tr class="odd">
 <td align="right">1</td>
-<td align="left">85000000001</td>
-<td align="left">10.1038/s41586-019-0001-1</td>
-<td align="left">Genome editing with CRISPR-Cas9: principles and
-applications</td>
-<td align="left">Zhang F.</td>
-<td align="right">2019</td>
-<td align="left">2019-04-12</td>
-<td align="left">Nature</td>
-<td align="right">540</td>
-<td align="left">illustrative multi-disciplinary sample</td>
+<td align="left">NA</td>
+<td align="left">10.15541/jim20140527</td>
+<td align="left">Enhanced Capacitive Properties of All-solid-state
+Symmetric Graphene Supercapacitors by Incorporating Nitrogen-doping and
+SnO2 Nanoparticles</td>
+<td align="left">Jianhua Yu</td>
+<td align="right">2015</td>
+<td align="left">2015-01-01</td>
+<td align="left">Journal of Inorganic Materials</td>
+<td align="right">1</td>
+<td align="left">graphene supercapacitor</td>
 </tr>
 <tr class="even">
 <td align="right">2</td>
-<td align="left">85000000002</td>
-<td align="left">10.1038/s41586-020-0002-2</td>
-<td align="left">Deep learning for medical image analysis: a review</td>
-<td align="left">Kumar S.</td>
-<td align="right">2020</td>
-<td align="left">2020-02-20</td>
-<td align="left">Nature</td>
-<td align="right">210</td>
-<td align="left">illustrative multi-disciplinary sample</td>
+<td align="left">NA</td>
+<td align="left">NA</td>
+<td align="left">Fabrication and Characterization of a
+Vertically-Oriented Graphene Supercapacitor</td>
+<td align="left">Patrick R Rice</td>
+<td align="right">2015</td>
+<td align="left">2015-01-01</td>
+<td align="left">DigitalCommons - CalPoly (California State Polytechnic
+University)</td>
+<td align="right">0</td>
+<td align="left">graphene supercapacitor</td>
 </tr>
 <tr class="odd">
 <td align="right">3</td>
-<td align="left">85000000003</td>
-<td align="left">10.1038/s41558-018-0085-1</td>
-<td align="left">Climate change adaptation in coastal megacities</td>
-<td align="left">Okafor N.</td>
-<td align="right">2018</td>
-<td align="left">2018-03-19</td>
-<td align="left">Nature Climate Change</td>
-<td align="right">122</td>
-<td align="left">illustrative multi-disciplinary sample</td>
+<td align="left">NA</td>
+<td align="left">10.1021/am509065d</td>
+<td align="left">Flexible and Stackable Laser-Induced Graphene
+Supercapacitors</td>
+<td align="left">Zhiwei Peng</td>
+<td align="right">2015</td>
+<td align="left">2015-01-13</td>
+<td align="left">ACS Applied Materials &amp; Interfaces</td>
+<td align="right">469</td>
+<td align="left">graphene supercapacitor</td>
 </tr>
 <tr class="even">
 <td align="right">4</td>
-<td align="left">85000000004</td>
-<td align="left">10.1002/adma.202100001</td>
-<td align="left">Graphene electrodes for next-generation energy
-storage</td>
-<td align="left">Tanaka H.</td>
-<td align="right">2021</td>
-<td align="left">2021-01-15</td>
-<td align="left">Advanced Materials</td>
-<td align="right">45</td>
-<td align="left">illustrative multi-disciplinary sample</td>
+<td align="left">NA</td>
+<td align="left">10.1016/j.electacta.2015.02.019</td>
+<td align="left">Heavily nitrogen doped, graphene supercapacitor from
+silk cocoon</td>
+<td align="left">Vikrant Sahu</td>
+<td align="right">2015</td>
+<td align="left">2015-02-04</td>
+<td align="left">Electrochimica Acta</td>
+<td align="right">195</td>
+<td align="left">graphene supercapacitor</td>
 </tr>
 <tr class="odd">
 <td align="right">5</td>
-<td align="left">85000000005</td>
-<td align="left">10.1016/S1470-2045(20)30013-9</td>
-<td align="left">Checkpoint inhibitors in cancer immunotherapy</td>
-<td align="left">Garcia M.</td>
-<td align="right">2020</td>
-<td align="left">2020-07-01</td>
-<td align="left">The Lancet Oncology</td>
-<td align="right">388</td>
-<td align="left">illustrative multi-disciplinary sample</td>
+<td align="left">NA</td>
+<td align="left">10.1002/smll.201403383</td>
+<td align="left">Graphene-Based Integrated Photovoltaic Energy
+Harvesting/Storage Device</td>
+<td align="left">Chih-Tao Chien</td>
+<td align="right">2015</td>
+<td align="left">2015-02-19</td>
+<td align="left">Small</td>
+<td align="right">108</td>
+<td align="left">graphene supercapacitor</td>
 </tr>
 <tr class="even">
 <td align="right">6</td>
-<td align="left">85000000006</td>
-<td align="left">10.1103/PhysRevLett.116.061102</td>
-<td align="left">Observation of gravitational waves from a binary black
-hole merger</td>
-<td align="left">Abbott B.</td>
-<td align="right">2016</td>
-<td align="left">2016-02-11</td>
-<td align="left">Physical Review Letters</td>
-<td align="right">4200</td>
-<td align="left">illustrative multi-disciplinary sample</td>
+<td align="left">NA</td>
+<td align="left">10.1016/j.jpowsour.2015.03.015</td>
+<td align="left">Nanoporous graphene materials by low-temperature
+vacuum-assisted thermal process for electrochemical energy storage</td>
+<td align="left">Hao Yang</td>
+<td align="right">2015</td>
+<td align="left">2015-03-05</td>
+<td align="left">Journal of Power Sources</td>
+<td align="right">47</td>
+<td align="left">graphene supercapacitor</td>
 </tr>
 </tbody>
 </table>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"title"</span>, <span class="st">"year"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
 <table class="table">
+<colgroup>
+<col width="96%">
+<col width="3%">
+</colgroup>
 <thead><tr class="header">
 <th align="left">title</th>
 <th align="right">year</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left">Genome editing with CRISPR-Cas9: principles and
-applications</td>
-<td align="right">2019</td>
+<td align="left">Enhanced Capacitive Properties of All-solid-state
+Symmetric Graphene Supercapacitors by Incorporating Nitrogen-doping and
+SnO2 Nanoparticles</td>
+<td align="right">2015</td>
 </tr>
 <tr class="even">
-<td align="left">Deep learning for medical image analysis: a review</td>
-<td align="right">2020</td>
+<td align="left">Fabrication and Characterization of a
+Vertically-Oriented Graphene Supercapacitor</td>
+<td align="right">2015</td>
 </tr>
 <tr class="odd">
-<td align="left">Climate change adaptation in coastal megacities</td>
-<td align="right">2018</td>
+<td align="left">Flexible and Stackable Laser-Induced Graphene
+Supercapacitors</td>
+<td align="right">2015</td>
 </tr>
 </tbody>
 </table>
@@ -252,10 +270,12 @@ removes duplicates, so the same article imports once even when its DOI
 was stored with a resolver prefix or in a different case.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dois</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span></span>
-<span><span class="va">dois</span></span>
-<span><span class="co">#&gt; [1] "10.1038/s41586-019-0001-1"      "10.1038/s41586-020-0002-2"     </span></span>
-<span><span class="co">#&gt; [3] "10.1038/s41558-018-0085-1"      "10.1002/adma.202100001"        </span></span>
-<span><span class="co">#&gt; [5] "10.1016/S1470-2045(20)30013-9"  "10.1103/PhysRevLett.116.061102"</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">dois</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 127</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dois</span>, <span class="fl">6</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "10.15541/jim20140527"            "10.1021/am509065d"              </span></span>
+<span><span class="co">#&gt; [3] "10.1016/j.electacta.2015.02.019" "10.1002/smll.201403383"         </span></span>
+<span><span class="co">#&gt; [5] "10.1016/j.jpowsour.2015.03.015"  "10.1103/physrevb.91.125415"</span></span></code></pre></div>
 <p>The same cleaning applies to a plain vector of DOIs from any source,
 so the first two entries below collapse to one because comparison
 ignores case and resolver prefixes, while <code>dedupe = FALSE</code>
@@ -268,18 +288,18 @@ across retrievals.</p>
 <span>                    dedupe <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "10.1/A" "10.1/a" "10.2/B"</span></span></code></pre></div>
 <p>The list can be written to a single-column CSV at a path you choose.
-Nothing is written unless a path is given.</p>
+Nothing is written unless a path is given. Here are the first few lines
+of the file, which holds a header and one DOI per line:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"reference-set.csv"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">example_records</span>, file <span class="op">=</span> <span class="va">out</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html" class="external-link">writeLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html" class="external-link">writeLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span>, <span class="fl">6</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="st">"doi"</span></span>
-<span><span class="st">"10.1038/s41586-019-0001-1"</span></span>
-<span><span class="st">"10.1038/s41586-020-0002-2"</span></span>
-<span><span class="st">"10.1038/s41558-018-0085-1"</span></span>
-<span><span class="st">"10.1002/adma.202100001"</span></span>
-<span><span class="st">"10.1016/S1470-2045(20)30013-9"</span></span>
-<span><span class="st">"10.1103/PhysRevLett.116.061102"</span></span></code></pre>
+<span><span class="st">"10.15541/jim20140527"</span></span>
+<span><span class="st">"10.1021/am509065d"</span></span>
+<span><span class="st">"10.1016/j.electacta.2015.02.019"</span></span>
+<span><span class="st">"10.1002/smll.201403383"</span></span>
+<span><span class="st">"10.1016/j.jpowsour.2015.03.015"</span></span></code></pre>
 </div>
 <div class="section level2">
 <h2 id="into-a-reference-manager">Into a reference manager<a class="anchor" aria-label="anchor" href="#into-a-reference-manager"></a>
@@ -290,22 +310,24 @@ the set in the two interchange formats that reference managers read, so
 a search moves straight into Zotero, EndNote or a LaTeX bibliography.
 Each record becomes one entry, with its authors split out.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fu"><a href="../reference/as_bibtex.html">as_ris</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">320</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fu"><a href="../reference/as_bibtex.html">as_ris</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">470</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code>TY  - JOUR
-TI  - Genome editing with CRISPR-Cas9: principles and applications
-AU  - Zhang F.
-PY  - 2019
-JO  - Nature
-DO  - 10.1038/s41586-019-0001-1
-N1  - Scopus ID: 85000000001
+TI  - Enhanced Capacitive Properties of All-solid-state Symmetric Graphene Supercapacitors by Incorporating Nitrogen-doping and SnO2 Nanoparticles
+AU  - Jianhua Yu
+PY  - 2015
+JO  - Journal of Inorganic Materials
+DO  - 10.15541/jim20140527
 ER  - 
 
 TY  - JOUR
-TI  - Deep learning for medical image analysis: a review
-AU  - Kumar S.
-PY  - 2020
-JO  - Nature
-DO  - 10.1038/s41586-020-00</code></pre>
+TI  - Fabrication and Characterization of a Vertically-Oriented Graphene Supercapacitor
+AU  - Patrick R Rice
+PY  - 2015
+JO  - DigitalCommons - CalPoly (California State Polytechnic University)
+ER  - </code></pre>
+<p>The first two entries of 138 are shown. The second has no DOI, so its
+<code>DO</code> line is simply absent rather than empty, and the entry
+still imports on its title, author and year.</p>
 <p>Pass a <code>file</code> to write the whole set; nothing is written
 without one.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
@@ -320,15 +342,15 @@ column layout that the <a href="https://www.bibliometrix.org" class="external-li
 wider ISI convention expect.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">m</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/as_bibliometrix.html">as_bibliometrix</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span></span>
-<span><span class="va">m</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AU"</span>, <span class="st">"TI"</span>, <span class="st">"PY"</span>, <span class="st">"SO"</span>, <span class="st">"TC"</span>, <span class="st">"DB"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">m</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AU"</span>, <span class="st">"TI"</span>, <span class="st">"PY"</span>, <span class="st">"SO"</span>, <span class="st">"TC"</span>, <span class="st">"DB"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
-<col width="8%">
-<col width="56%">
-<col width="4%">
-<col width="20%">
-<col width="4%">
-<col width="5%">
+<col width="6%">
+<col width="58%">
+<col width="2%">
+<col width="28%">
+<col width="1%">
+<col width="2%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">AU</th>
@@ -340,54 +362,59 @@ wider ISI convention expect.</p>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left">ZHANG F.</td>
-<td align="left">GENOME EDITING WITH CRISPR-CAS9: PRINCIPLES AND
-APPLICATIONS</td>
-<td align="right">2019</td>
-<td align="left">NATURE</td>
-<td align="right">540</td>
+<td align="left">JIANHUA YU</td>
+<td align="left">ENHANCED CAPACITIVE PROPERTIES OF ALL-SOLID-STATE
+SYMMETRIC GRAPHENE SUPERCAPACITORS BY INCORPORATING NITROGEN-DOPING AND
+SNO2 NANOPARTICLES</td>
+<td align="right">2015</td>
+<td align="left">JOURNAL OF INORGANIC MATERIALS</td>
+<td align="right">1</td>
 <td align="left">SCOPUS</td>
 </tr>
 <tr class="even">
-<td align="left">KUMAR S.</td>
-<td align="left">DEEP LEARNING FOR MEDICAL IMAGE ANALYSIS: A REVIEW</td>
-<td align="right">2020</td>
-<td align="left">NATURE</td>
-<td align="right">210</td>
+<td align="left">PATRICK R RICE</td>
+<td align="left">FABRICATION AND CHARACTERIZATION OF A
+VERTICALLY-ORIENTED GRAPHENE SUPERCAPACITOR</td>
+<td align="right">2015</td>
+<td align="left">DIGITALCOMMONS - CALPOLY (CALIFORNIA STATE POLYTECHNIC
+UNIVERSITY)</td>
+<td align="right">0</td>
 <td align="left">SCOPUS</td>
 </tr>
 <tr class="odd">
-<td align="left">OKAFOR N.</td>
-<td align="left">CLIMATE CHANGE ADAPTATION IN COASTAL MEGACITIES</td>
-<td align="right">2018</td>
-<td align="left">NATURE CLIMATE CHANGE</td>
-<td align="right">122</td>
+<td align="left">ZHIWEI PENG</td>
+<td align="left">FLEXIBLE AND STACKABLE LASER-INDUCED GRAPHENE
+SUPERCAPACITORS</td>
+<td align="right">2015</td>
+<td align="left">ACS APPLIED MATERIALS &amp; INTERFACES</td>
+<td align="right">469</td>
 <td align="left">SCOPUS</td>
 </tr>
 <tr class="even">
-<td align="left">TANAKA H.</td>
-<td align="left">GRAPHENE ELECTRODES FOR NEXT-GENERATION ENERGY
-STORAGE</td>
-<td align="right">2021</td>
-<td align="left">ADVANCED MATERIALS</td>
-<td align="right">45</td>
+<td align="left">VIKRANT SAHU</td>
+<td align="left">HEAVILY NITROGEN DOPED, GRAPHENE SUPERCAPACITOR FROM
+SILK COCOON</td>
+<td align="right">2015</td>
+<td align="left">ELECTROCHIMICA ACTA</td>
+<td align="right">195</td>
 <td align="left">SCOPUS</td>
 </tr>
 <tr class="odd">
-<td align="left">GARCIA M.</td>
-<td align="left">CHECKPOINT INHIBITORS IN CANCER IMMUNOTHERAPY</td>
-<td align="right">2020</td>
-<td align="left">THE LANCET ONCOLOGY</td>
-<td align="right">388</td>
+<td align="left">CHIH-TAO CHIEN</td>
+<td align="left">GRAPHENE-BASED INTEGRATED PHOTOVOLTAIC ENERGY
+HARVESTING/STORAGE DEVICE</td>
+<td align="right">2015</td>
+<td align="left">SMALL</td>
+<td align="right">108</td>
 <td align="left">SCOPUS</td>
 </tr>
 <tr class="even">
-<td align="left">ABBOTT B.</td>
-<td align="left">OBSERVATION OF GRAVITATIONAL WAVES FROM A BINARY BLACK
-HOLE MERGER</td>
-<td align="right">2016</td>
-<td align="left">PHYSICAL REVIEW LETTERS</td>
-<td align="right">4200</td>
+<td align="left">HAO YANG</td>
+<td align="left">NANOPOROUS GRAPHENE MATERIALS BY LOW-TEMPERATURE
+VACUUM-ASSISTED THERMAL PROCESS FOR ELECTROCHEMICAL ENERGY STORAGE</td>
+<td align="right">2015</td>
+<td align="left">JOURNAL OF POWER SOURCES</td>
+<td align="right">47</td>
 <td align="left">SCOPUS</td>
 </tr>
 </tbody>
@@ -396,7 +423,7 @@ HOLE MERGER</td>
 that package, so it is shown but not run.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"bibliometrix"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">bibliometrix</span><span class="fu">::</span><span class="fu">biblioAnalysis</span><span class="op">(</span><span class="fu"><a href="../reference/as_bibliometrix.html">as_bibliometrix</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">bibliometrix</span><span class="fu">::</span><span class="fu">biblioAnalysis</span><span class="op">(</span><span class="va">m</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">results</span>, k <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>As noted on the <code><a href="../reference/as_bibliometrix.html">as_bibliometrix()</a></code> help page, this

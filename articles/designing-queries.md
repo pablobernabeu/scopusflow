@@ -124,6 +124,12 @@ scopus_count(q, years = 2015:2022)
 records <- scopus_fetch_plan(plan)
 ```
 
+Without a key,
+[`vignette("scopusflow")`](https://pablobernabeu.github.io/scopusflow/articles/scopusflow.md)
+carries the same two steps through to a record set, standing the bundled
+corpus of real articles in for the harvest, since ‘Scopus’ records may
+not be redistributed.
+
 ## Searching by affiliation
 
 Field tags reach beyond topics. `AFFILORG` searches the affiliation,

@@ -80,31 +80,34 @@ and internet access; see the *API access* section of
 
 ``` r
 if (FALSE) { # scopusflow::scopus_has_key()
-tr <- scopus_trend("graphene", years = 2010:2020, field = "TITLE-ABS-KEY")
+tr <- scopus_trend("graphene supercapacitor", years = 2015:2024,
+                   field = "TITLE-ABS-KEY")
 tr
 }
-# The shape of the return value, built offline so it runs without a key.
-years <- 2010:2020
+# The offline companion, which needs no key. 'Scopus' records may not be
+# redistributed, so the package bundles a corpus of real articles instead;
+# it is a complete harvest of its own query, so tallying its rows by year
+# reproduces the yearly counts that query returns.
+by_year <- table(example_records$year)
 tr <- tibble::tibble(
-  query = "TITLE-ABS-KEY(graphene)",
-  year = years,
-  n = c(1900, 3400, 5200, 7100, 9000, 10400, 11800, 12600, 13500, 14100, 14800)
+  query = "TITLE-ABS-KEY(graphene supercapacitor)",
+  year = as.integer(names(by_year)),
+  n = as.numeric(by_year)
 )
 class(tr) <- c("scopus_trend", class(tr))
 tr
-#> <scopus_trend> (11 years, 103,800 records)
-#> # A tibble: 11 × 3
-#>    query                    year     n
-#>    <chr>                   <int> <dbl>
-#>  1 TITLE-ABS-KEY(graphene)  2010  1900
-#>  2 TITLE-ABS-KEY(graphene)  2011  3400
-#>  3 TITLE-ABS-KEY(graphene)  2012  5200
-#>  4 TITLE-ABS-KEY(graphene)  2013  7100
-#>  5 TITLE-ABS-KEY(graphene)  2014  9000
-#>  6 TITLE-ABS-KEY(graphene)  2015 10400
-#>  7 TITLE-ABS-KEY(graphene)  2016 11800
-#>  8 TITLE-ABS-KEY(graphene)  2017 12600
-#>  9 TITLE-ABS-KEY(graphene)  2018 13500
-#> 10 TITLE-ABS-KEY(graphene)  2019 14100
-#> 11 TITLE-ABS-KEY(graphene)  2020 14800
+#> <scopus_trend> (10 years, 138 records)
+#> # A tibble: 10 × 3
+#>    query                                   year     n
+#>    <chr>                                  <int> <dbl>
+#>  1 TITLE-ABS-KEY(graphene supercapacitor)  2015    15
+#>  2 TITLE-ABS-KEY(graphene supercapacitor)  2016     9
+#>  3 TITLE-ABS-KEY(graphene supercapacitor)  2017    10
+#>  4 TITLE-ABS-KEY(graphene supercapacitor)  2018    15
+#>  5 TITLE-ABS-KEY(graphene supercapacitor)  2019    19
+#>  6 TITLE-ABS-KEY(graphene supercapacitor)  2020    13
+#>  7 TITLE-ABS-KEY(graphene supercapacitor)  2021    13
+#>  8 TITLE-ABS-KEY(graphene supercapacitor)  2022    15
+#>  9 TITLE-ABS-KEY(graphene supercapacitor)  2023    15
+#> 10 TITLE-ABS-KEY(graphene supercapacitor)  2024    14
 ```

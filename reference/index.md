@@ -97,4 +97,4 @@
 ## Data
 
 - [`example_records`](https://pablobernabeu.github.io/scopusflow/reference/example_records.md)
-  : Example set of normalised 'Scopus' records
+  : A worked example harvest, in the shape 'Scopus' records take

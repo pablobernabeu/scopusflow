@@ -53,15 +53,26 @@ to compare two retrievals.
 ## Examples
 
 ``` r
-recs <- scopus_records(list(entry = list(
-  list(`prism:doi` = "10.1/AAA"),
-  list(`prism:doi` = "https://doi.org/10.1/aaa"),
-  list(`prism:doi` = NULL)
-)))
-scopus_extract_dois(recs)
-#> [1] "10.1/AAA"
+# The bundled corpus of real articles stands in for a harvest of your own,
+# since 'Scopus' records may not be redistributed.
+dois <- scopus_extract_dois(example_records)
+length(dois)
+#> [1] 127
+head(dois, 3)
+#> [1] "10.15541/jim20140527"            "10.1021/am509065d"              
+#> [3] "10.1016/j.electacta.2015.02.019"
+
+# Eleven of its 138 records arrived without a DOI, as records do, and so
+# drop out of the list.
+sum(is.na(example_records$doi))
+#> [1] 11
+
+# The same cleaning applies to a bare vector, so a resolver prefix or a
+# difference in case does not make one article look like two.
+scopus_extract_dois(c("https://doi.org/10.1/A", "doi: 10.1/a", "10.2/B"))
+#> [1] "10.1/A" "10.2/B"
 
 # Write to a temporary file (never the working directory).
 path <- tempfile(fileext = ".csv")
-scopus_extract_dois(recs, file = path)
+scopus_extract_dois(example_records, file = path)
 ```

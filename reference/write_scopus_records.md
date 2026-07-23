@@ -41,17 +41,27 @@ tibble.
 ## Examples
 
 ``` r
-recs <- scopus_records(list(entry = list(
-  list(`dc:identifier` = "SCOPUS_ID:1", `prism:doi` = "10.1/a",
-       `dc:title` = "A study", `prism:coverDate` = "2020-01-01")
-)))
-path <- tempfile(fileext = ".csv")
-write_scopus_records(recs, path)
-read_scopus_records(path)
-#> <scopus_records> 1 record
-#> # A tibble: 1 × 10
-#>   entry_number scopus_id doi    title  authors  year date  publication citations
-#>          <int> <chr>     <chr>  <chr>  <chr>   <int> <chr> <chr>           <int>
-#> 1            1 1         10.1/a A stu… NA       2020 2020… NA                 NA
-#> # ℹ 1 more variable: query <chr>
+# A round trip on the bundled corpus of real articles, which stands in for
+# a retrieval of your own because 'Scopus' records may not be redistributed.
+# The .rds form restores the object exactly.
+rds <- tempfile(fileext = ".rds")
+write_scopus_records(example_records, rds)
+identical(read_scopus_records(rds), example_records)
+#> [1] TRUE
+
+# The .csv form is portable plain text and reads back to the same schema.
+csv <- tempfile(fileext = ".csv")
+write_scopus_records(example_records, csv)
+head(read_scopus_records(csv))
+#> <scopus_records> 6 records
+#> query: "graphene supercapacitor"
+#> # A tibble: 6 × 9
+#>   entry_number scopus_id doi     title authors  year date  publication citations
+#>          <int> <chr>     <chr>   <chr> <chr>   <int> <chr> <chr>           <int>
+#> 1            1 NA        10.155… Enha… Jianhu…  2015 2015… Journal of…         1
+#> 2            2 NA        NA      Fabr… Patric…  2015 2015… DigitalCom…         0
+#> 3            3 NA        10.102… Flex… Zhiwei…  2015 2015… ACS Applie…       469
+#> 4            4 NA        10.101… Heav… Vikran…  2015 2015… Electrochi…       195
+#> 5            5 NA        10.100… Grap… Chih-T…  2015 2015… Small             108
+#> 6            6 NA        10.101… Nano… Hao Ya…  2015 2015… Journal of…        47
 ```

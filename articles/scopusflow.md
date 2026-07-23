@@ -5,10 +5,21 @@
 library(scopusflow)
 ```
 
-This vignette is fully reproducible without a Scopus API key. It draws
-on a small static fixture bundled with the package, so the whole
-workflow can be shown offline. The few steps that genuinely need the API
-are shown but not run.
+This vignette is fully reproducible without a Scopus API key. Elsevier’s
+API terms do not permit redistributing retrieved records, so no package
+can ship a genuine Scopus harvest, and scopusflow bundles an openly
+licensed stand-in instead. `example_records` holds 138 real journal
+articles on graphene supercapacitors published between 2015 and 2024,
+with their real titles, DOIs, journals, first authors and citation
+counts. They come from OpenAlex, whose metadata is released under CC0,
+reshaped into the schema a retrieval returns. The harvest is complete
+rather than sampled, so its rows per year are the real number of
+publications per year for that query, and its gaps are genuine too:
+eleven records carry no DOI and two no source title, exactly as they
+arrive. Running the equivalent query against Scopus yields the same kind
+of object, with the same columns and the same handling, though not an
+identical set of records. The steps that genuinely need the API are
+shown but not run, each paired with the offline equivalent.
 
 ## Describing a search as a plan
 
@@ -17,22 +28,33 @@ inspectable, saveable and version-controllable, and they can be
 partitioned, for example by year, so that a large retrieval stays under
 the API’s `start < 5000` ceiling and can be cached and resumed.
 
+The plan below describes the search the bundled records came from, so
+the rest of the article follows one worked example from description to
+export.
+
 ``` r
 
 plan <- scopus_plan(
-  "machine translation",
-  years     = 2018:2020,
+  "graphene supercapacitor",
+  years     = 2015:2024,
   field     = "TITLE-ABS-KEY",
   partition = "year"
 )
 plan
 ```
 
-| cell | query                              | date | year | view     | page_size |
-|-----:|:-----------------------------------|:-----|-----:|:---------|----------:|
-|    1 | TITLE-ABS-KEY(machine translation) | 2018 | 2018 | STANDARD |       200 |
-|    2 | TITLE-ABS-KEY(machine translation) | 2019 | 2019 | STANDARD |       200 |
-|    3 | TITLE-ABS-KEY(machine translation) | 2020 | 2020 | STANDARD |       200 |
+| cell | query                                  | date | year | view     | page_size |
+|-----:|:---------------------------------------|:-----|-----:|:---------|----------:|
+|    1 | TITLE-ABS-KEY(graphene supercapacitor) | 2015 | 2015 | STANDARD |       200 |
+|    2 | TITLE-ABS-KEY(graphene supercapacitor) | 2016 | 2016 | STANDARD |       200 |
+|    3 | TITLE-ABS-KEY(graphene supercapacitor) | 2017 | 2017 | STANDARD |       200 |
+|    4 | TITLE-ABS-KEY(graphene supercapacitor) | 2018 | 2018 | STANDARD |       200 |
+|    5 | TITLE-ABS-KEY(graphene supercapacitor) | 2019 | 2019 | STANDARD |       200 |
+|    6 | TITLE-ABS-KEY(graphene supercapacitor) | 2020 | 2020 | STANDARD |       200 |
+|    7 | TITLE-ABS-KEY(graphene supercapacitor) | 2021 | 2021 | STANDARD |       200 |
+|    8 | TITLE-ABS-KEY(graphene supercapacitor) | 2022 | 2022 | STANDARD |       200 |
+|    9 | TITLE-ABS-KEY(graphene supercapacitor) | 2023 | 2023 | STANDARD |       200 |
+|   10 | TITLE-ABS-KEY(graphene supercapacitor) | 2024 | 2024 | STANDARD |       200 |
 
 Each row is one query cell. Field tags wrap the query and years become a
 date filter:
@@ -69,31 +91,43 @@ evaluated here:
 
 ``` r
 
-scopus_count("machine translation", years = 2018:2020, field = "TITLE-ABS-KEY")
+scopus_count("graphene supercapacitor", years = 2015:2024, field = "TITLE-ABS-KEY")
 
 records <- scopus_fetch_plan(plan, cache_dir = scopus_cache_dir(), resume = TRUE)
 ```
 
+Without a key, the bundled corpus stands in for the result of that
+harvest, and the sections below run on it.
+
 ## The record schema
 
-Whether records come from the API or from the bundled example data, they
-share one stable schema. The package ships a small, already normalised
-set, which we use here to continue offline:
+Whether records come from the API or from the bundled corpus, they share
+one stable schema, so everything below would read the same on a harvest
+of your own. [`summary()`](https://rdrr.io/r/base/summary.html) takes
+stock of a set, and the first rows show the columns:
 
 ``` r
 
 records <- example_records
-records
+summary(records)
+#> <scopus_records> summary
+#> 138 records, from 2015 to 2024.
+#> 90 sources, 127 with a DOI.
+#> Cited 7015 times in total, median 24 per record.
+#> Most frequent source: ACS Applied Materials & Interfaces.
+#> Most cited: Graphene for batteries, supercapacitors and beyond.
+
+head(records)
 ```
 
 | entry_number | scopus_id | doi | title | authors | year | date | publication | citations | query |
 |---:|:---|:---|:---|:---|---:|:---|:---|---:|:---|
-| 1 | 85000000001 | 10.1038/s41586-019-0001-1 | Genome editing with CRISPR-Cas9: principles and applications | Zhang F. | 2019 | 2019-04-12 | Nature | 540 | illustrative multi-disciplinary sample |
-| 2 | 85000000002 | 10.1038/s41586-020-0002-2 | Deep learning for medical image analysis: a review | Kumar S. | 2020 | 2020-02-20 | Nature | 210 | illustrative multi-disciplinary sample |
-| 3 | 85000000003 | 10.1038/s41558-018-0085-1 | Climate change adaptation in coastal megacities | Okafor N. | 2018 | 2018-03-19 | Nature Climate Change | 122 | illustrative multi-disciplinary sample |
-| 4 | 85000000004 | 10.1002/adma.202100001 | Graphene electrodes for next-generation energy storage | Tanaka H. | 2021 | 2021-01-15 | Advanced Materials | 45 | illustrative multi-disciplinary sample |
-| 5 | 85000000005 | 10.1016/S1470-2045(20)30013-9 | Checkpoint inhibitors in cancer immunotherapy | Garcia M. | 2020 | 2020-07-01 | The Lancet Oncology | 388 | illustrative multi-disciplinary sample |
-| 6 | 85000000006 | 10.1103/PhysRevLett.116.061102 | Observation of gravitational waves from a binary black hole merger | Abbott B. | 2016 | 2016-02-11 | Physical Review Letters | 4200 | illustrative multi-disciplinary sample |
+| 1 | NA | 10.15541/jim20140527 | Enhanced Capacitive Properties of All-solid-state Symmetric Graphene Supercapacitors by Incorporating Nitrogen-doping and SnO2 Nanoparticles | Jianhua Yu | 2015 | 2015-01-01 | Journal of Inorganic Materials | 1 | graphene supercapacitor |
+| 2 | NA | NA | Fabrication and Characterization of a Vertically-Oriented Graphene Supercapacitor | Patrick R Rice | 2015 | 2015-01-01 | DigitalCommons - CalPoly (California State Polytechnic University) | 0 | graphene supercapacitor |
+| 3 | NA | 10.1021/am509065d | Flexible and Stackable Laser-Induced Graphene Supercapacitors | Zhiwei Peng | 2015 | 2015-01-13 | ACS Applied Materials & Interfaces | 469 | graphene supercapacitor |
+| 4 | NA | 10.1016/j.electacta.2015.02.019 | Heavily nitrogen doped, graphene supercapacitor from silk cocoon | Vikrant Sahu | 2015 | 2015-02-04 | Electrochimica Acta | 195 | graphene supercapacitor |
+| 5 | NA | 10.1002/smll.201403383 | Graphene-Based Integrated Photovoltaic Energy Harvesting/Storage Device | Chih-Tao Chien | 2015 | 2015-02-19 | Small | 108 | graphene supercapacitor |
+| 6 | NA | 10.1016/j.jpowsour.2015.03.015 | Nanoporous graphene materials by low-temperature vacuum-assisted thermal process for electrochemical energy storage | Hao Yang | 2015 | 2015-03-05 | Journal of Power Sources | 47 | graphene supercapacitor |
 
 ``` r
 
@@ -105,48 +139,53 @@ is_scopus_records(records)
 
 [`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
 produces this same shape from a raw API response, flattening the nested
-result into one row per record:
+result into one row per record. The entry below carries the fields of a
+real article, one of those in the bundled corpus, in the form the API
+returns them:
 
 ``` r
 
-# A couple of records in the shape the Scopus API returns them.
 raw <- list(entry = list(
-  list(`dc:identifier` = "SCOPUS_ID:1", `prism:doi` = "10.1000/aaa",
-       `dc:title` = "A reproducible workflow", `dc:creator` = "Smith J.",
-       `prism:publicationName` = "J. Bibliometrics",
-       `prism:coverDate` = "2020-05-01", `citedby-count` = "12"),
-  list(`dc:identifier` = "SCOPUS_ID:2", `prism:doi` = "10.1000/bbb",
-       `dc:title` = "Quota-aware querying", `dc:creator` = "Doe A.",
-       `prism:publicationName` = "Scientometrics Today",
-       `prism:coverDate` = "2021-01-10", `citedby-count` = "3")
+  list(`prism:doi` = "10.1021/am509065d",
+       `dc:title` = "Flexible and Stackable Laser-Induced Graphene Supercapacitors",
+       `dc:creator` = "Zhiwei Peng",
+       `prism:publicationName` = "ACS Applied Materials & Interfaces",
+       `prism:coverDate` = "2015-01-13", `citedby-count` = "469")
 ))
-scopus_records(raw, query = "TITLE-ABS-KEY(workflow)")
+scopus_records(raw, query = "TITLE-ABS-KEY(graphene supercapacitor)")
 ```
 
 | entry_number | scopus_id | doi | title | authors | year | date | publication | citations | query |
 |---:|:---|:---|:---|:---|---:|:---|:---|---:|:---|
-| 1 | 1 | 10.1000/aaa | A reproducible workflow | Smith J. | 2020 | 2020-05-01 | J. Bibliometrics | 12 | TITLE-ABS-KEY(workflow) |
-| 2 | 2 | 10.1000/bbb | Quota-aware querying | Doe A. | 2021 | 2021-01-10 | Scientometrics Today | 3 | TITLE-ABS-KEY(workflow) |
+| 1 | NA | 10.1021/am509065d | Flexible and Stackable Laser-Induced Graphene Supercapacitors | Zhiwei Peng | 2015 | 2015-01-13 | ACS Applied Materials & Interfaces | 469 | TITLE-ABS-KEY(graphene supercapacitor) |
 
 ## Most frequent sources and authors
 
 A record set already answers the first descriptive questions.
 [`scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_top.md)
 tallies the most frequent sources or authors, counting each contributor
-once per record:
+once per record. Across these 138 articles the tally is long-tailed, as
+a real literature is. They are spread over 90 distinct journals, and
+only one, *ACS Applied Materials & Interfaces*, appears more than five
+times.
 
 ``` r
 
 scopus_top(records, by = "source")
 ```
 
-| value                   |   n |
-|:------------------------|----:|
-| Nature                  |   2 |
-| Advanced Materials      |   1 |
-| Nature Climate Change   |   1 |
-| Physical Review Letters |   1 |
-| The Lancet Oncology     |   1 |
+| value                              |   n |
+|:-----------------------------------|----:|
+| ACS Applied Materials & Interfaces |   8 |
+| Journal of Power Sources           |   5 |
+| Synthetic Metals                   |   5 |
+| Electrochimica Acta                |   4 |
+| Journal of Materials Chemistry A   |   4 |
+| Scientific Reports                 |   4 |
+| Journal of Alloys and Compounds    |   3 |
+| Journal of Energy Storage          |   3 |
+| Materials Chemistry and Physics    |   3 |
+| Nanotechnology                     |   3 |
 
 [`vignette("analysing-a-literature")`](https://pablobernabeu.github.io/scopusflow/articles/analysing-a-literature.md)
 covers growth trends, top-source and top-author plots and abstract
@@ -155,30 +194,44 @@ retrieval in depth.
 ## DOIs and change tracking
 
 Extract a clean, deduplicated DOI list for import into a reference
-manager, and compare two retrievals to see exactly what changed:
+manager, and compare two retrievals to see exactly what changed. Eleven
+of the 138 records arrived without a DOI, so 127 come back:
 
 ``` r
 
 dois <- scopus_extract_dois(records)
-dois
-#> [1] "10.1038/s41586-019-0001-1"      "10.1038/s41586-020-0002-2"     
-#> [3] "10.1038/s41558-018-0085-1"      "10.1002/adma.202100001"        
-#> [5] "10.1016/S1470-2045(20)30013-9"  "10.1103/PhysRevLett.116.061102"
-
-# Suppose a later retrieval added one DOI and dropped another.
-later <- c(dois[-1], "10.1000/example.999")
-scopus_diff_dois(old = dois, new = later)
+length(dois)
+#> [1] 127
+head(dois, 4)
+#> [1] "10.15541/jim20140527"            "10.1021/am509065d"              
+#> [3] "10.1016/j.electacta.2015.02.019" "10.1002/smll.201403383"
 ```
 
-| doi                            | status    |
-|:-------------------------------|:----------|
-| 10.1000/example.999            | added     |
-| 10.1038/s41586-019-0001-1      | removed   |
-| 10.1002/adma.202100001         | unchanged |
-| 10.1016/S1470-2045(20)30013-9  | unchanged |
-| 10.1038/s41558-018-0085-1      | unchanged |
-| 10.1038/s41586-020-0002-2      | unchanged |
-| 10.1103/PhysRevLett.116.061102 | unchanged |
+A search re-run later gains records and occasionally loses one to
+re-indexing. Here the baseline stops at 2023 and the second pull adds
+the 2024 articles while dropping the first record:
+
+``` r
+
+baseline <- records[records$year <= 2023, ]
+later <- records[-1, ]
+print(scopus_diff_dois(old = baseline, new = later))
+#> <scopus_doi_diff> 14 added, 1 removed, 112 unchanged
+#> # A tibble: 127 × 2
+#>    doi                            status
+#>    <chr>                          <fct> 
+#>  1 10.1002/adfm.202315137         added 
+#>  2 10.1002/asia.202400548         added 
+#>  3 10.1002/slct.202302535         added 
+#>  4 10.1016/j.cej.2024.148822      added 
+#>  5 10.1016/j.diamond.2024.110842  added 
+#>  6 10.1016/j.isci.2024.111696     added 
+#>  7 10.1016/j.jallcom.2024.175000  added 
+#>  8 10.1016/j.jallcom.2024.177248  added 
+#>  9 10.1016/j.jpowsour.2024.234127 added 
+#> 10 10.1016/j.jpowsour.2024.236149 added 
+#> # ℹ 117 more rows
+```
 
 You can write the DOIs to a path you specify, and read the file back to
 see exactly what lands on disk:
@@ -187,16 +240,14 @@ see exactly what lands on disk:
 
 out <- file.path(tempdir(), "dois.csv")
 scopus_extract_dois(records, file = out)
-writeLines(readLines(out))
+writeLines(head(readLines(out), 5))
 ```
 
     "doi"
-    "10.1038/s41586-019-0001-1"
-    "10.1038/s41586-020-0002-2"
-    "10.1038/s41558-018-0085-1"
-    "10.1002/adma.202100001"
-    "10.1016/S1470-2045(20)30013-9"
-    "10.1103/PhysRevLett.116.061102"
+    "10.15541/jim20140527"
+    "10.1021/am509065d"
+    "10.1016/j.electacta.2015.02.019"
+    "10.1002/smll.201403383"
 
 ## Comparing topic trends
 
@@ -242,17 +293,18 @@ Hand results to `bibliometrix`-style workflows, or save and reload them:
 
 ``` r
 
-head(as_bibliometrix(records))
+m <- as_bibliometrix(records)
+head(m[, c("AU", "TI", "PY", "SO", "TC")])
 ```
 
-| AU | TI | SO | DI | PY | TC | UT | DB |
-|:---|:---|:---|:---|---:|---:|:---|:---|
-| ZHANG F. | GENOME EDITING WITH CRISPR-CAS9: PRINCIPLES AND APPLICATIONS | NATURE | 10.1038/s41586-019-0001-1 | 2019 | 540 | 85000000001 | SCOPUS |
-| KUMAR S. | DEEP LEARNING FOR MEDICAL IMAGE ANALYSIS: A REVIEW | NATURE | 10.1038/s41586-020-0002-2 | 2020 | 210 | 85000000002 | SCOPUS |
-| OKAFOR N. | CLIMATE CHANGE ADAPTATION IN COASTAL MEGACITIES | NATURE CLIMATE CHANGE | 10.1038/s41558-018-0085-1 | 2018 | 122 | 85000000003 | SCOPUS |
-| TANAKA H. | GRAPHENE ELECTRODES FOR NEXT-GENERATION ENERGY STORAGE | ADVANCED MATERIALS | 10.1002/adma.202100001 | 2021 | 45 | 85000000004 | SCOPUS |
-| GARCIA M. | CHECKPOINT INHIBITORS IN CANCER IMMUNOTHERAPY | THE LANCET ONCOLOGY | 10.1016/S1470-2045(20)30013-9 | 2020 | 388 | 85000000005 | SCOPUS |
-| ABBOTT B. | OBSERVATION OF GRAVITATIONAL WAVES FROM A BINARY BLACK HOLE MERGER | PHYSICAL REVIEW LETTERS | 10.1103/PhysRevLett.116.061102 | 2016 | 4200 | 85000000006 | SCOPUS |
+| AU | TI | PY | SO | TC |
+|:---|:---|---:|:---|---:|
+| JIANHUA YU | ENHANCED CAPACITIVE PROPERTIES OF ALL-SOLID-STATE SYMMETRIC GRAPHENE SUPERCAPACITORS BY INCORPORATING NITROGEN-DOPING AND SNO2 NANOPARTICLES | 2015 | JOURNAL OF INORGANIC MATERIALS | 1 |
+| PATRICK R RICE | FABRICATION AND CHARACTERIZATION OF A VERTICALLY-ORIENTED GRAPHENE SUPERCAPACITOR | 2015 | DIGITALCOMMONS - CALPOLY (CALIFORNIA STATE POLYTECHNIC UNIVERSITY) | 0 |
+| ZHIWEI PENG | FLEXIBLE AND STACKABLE LASER-INDUCED GRAPHENE SUPERCAPACITORS | 2015 | ACS APPLIED MATERIALS & INTERFACES | 469 |
+| VIKRANT SAHU | HEAVILY NITROGEN DOPED, GRAPHENE SUPERCAPACITOR FROM SILK COCOON | 2015 | ELECTROCHIMICA ACTA | 195 |
+| CHIH-TAO CHIEN | GRAPHENE-BASED INTEGRATED PHOTOVOLTAIC ENERGY HARVESTING/STORAGE DEVICE | 2015 | SMALL | 108 |
+| HAO YANG | NANOPOROUS GRAPHENE MATERIALS BY LOW-TEMPERATURE VACUUM-ASSISTED THERMAL PROCESS FOR ELECTROCHEMICAL ENERGY STORAGE | 2015 | JOURNAL OF POWER SOURCES | 47 |
 
 ``` r
 

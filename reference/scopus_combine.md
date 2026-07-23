@@ -51,17 +51,19 @@ which combines plan cells the same way.
 ## Examples
 
 ``` r
-# Merging a set with itself and de-duplicating recovers the distinct records.
-scopus_combine(example_records, example_records, dedupe = TRUE)
-#> <scopus_records> 6 records
-#> query: "illustrative multi-disciplinary sample"
-#> # A tibble: 6 × 9
-#>   entry_number scopus_id   doi   title authors  year date  publication citations
-#>          <int> <chr>       <chr> <chr> <chr>   <int> <chr> <chr>           <int>
-#> 1            1 85000000001 10.1… Geno… Zhang …  2019 2019… Nature            540
-#> 2            2 85000000002 10.1… Deep… Kumar …  2020 2020… Nature            210
-#> 3            3 85000000003 10.1… Clim… Okafor…  2018 2018… Nature Cli…       122
-#> 4            4 85000000004 10.1… Grap… Tanaka…  2021 2021… Advanced M…        45
-#> 5            5 85000000005 10.1… Chec… Garcia…  2020 2020… The Lancet…       388
-#> 6            6 85000000006 10.1… Obse… Abbott…  2016 2016… Physical R…      4200
+# A baseline retrieval and a later one, merged into a cumulative set. The
+# bundled corpus of real articles stands in for both, since 'Scopus'
+# records may not be redistributed.
+baseline <- example_records[example_records$year <= 2023, ]
+later <- example_records
+combined <- scopus_combine(baseline, later, dedupe = TRUE)
+nrow(combined)
+#> [1] 149
+
+# Those records carry no 'Scopus' identifier, so de-duplication falls back
+# to the DOI. The eleven that arrived without one cannot be matched, and so
+# survive in both copies, which is why 138 distinct articles come back as
+# 149 rows.
+sum(is.na(example_records$doi))
+#> [1] 11
 ```

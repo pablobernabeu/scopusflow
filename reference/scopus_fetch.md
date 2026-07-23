@@ -110,24 +110,33 @@ for cached, resumable, partitioned retrieval.
 
 ``` r
 if (FALSE) { # scopusflow::scopus_has_key()
-recs <- scopus_fetch("graphene", field = "TITLE-ABS-KEY", max_results = 50)
+recs <- scopus_fetch("graphene supercapacitor", field = "TITLE-ABS-KEY",
+                     max_results = 50)
 recs
 }
-# The shape of the return value, shown offline from the bundled example set
-# so it runs without a key. A live harvest returns this same schema.
+# The offline companion, which needs no key. 'Scopus' records may not be
+# redistributed, so the package bundles a corpus of real articles in this
+# same schema; a live harvest returns exactly this shape.
 recs <- example_records
 recs
-#> <scopus_records> 6 records
-#> query: "illustrative multi-disciplinary sample"
-#> # A tibble: 6 × 9
-#>   entry_number scopus_id   doi   title authors  year date  publication citations
-#>          <int> <chr>       <chr> <chr> <chr>   <int> <chr> <chr>           <int>
-#> 1            1 85000000001 10.1… Geno… Zhang …  2019 2019… Nature            540
-#> 2            2 85000000002 10.1… Deep… Kumar …  2020 2020… Nature            210
-#> 3            3 85000000003 10.1… Clim… Okafor…  2018 2018… Nature Cli…       122
-#> 4            4 85000000004 10.1… Grap… Tanaka…  2021 2021… Advanced M…        45
-#> 5            5 85000000005 10.1… Chec… Garcia…  2020 2020… The Lancet…       388
-#> 6            6 85000000006 10.1… Obse… Abbott…  2016 2016… Physical R…      4200
+#> <scopus_records> 138 records
+#> query: "graphene supercapacitor"
+#> # A tibble: 138 × 9
+#>    entry_number scopus_id doi    title authors  year date  publication citations
+#>           <int> <chr>     <chr>  <chr> <chr>   <int> <chr> <chr>           <int>
+#>  1            1 NA        10.15… Enha… Jianhu…  2015 2015… Journal of…         1
+#>  2            2 NA        NA     Fabr… Patric…  2015 2015… DigitalCom…         0
+#>  3            3 NA        10.10… Flex… Zhiwei…  2015 2015… ACS Applie…       469
+#>  4            4 NA        10.10… Heav… Vikran…  2015 2015… Electrochi…       195
+#>  5            5 NA        10.10… Grap… Chih-T…  2015 2015… Small             108
+#>  6            6 NA        10.10… Nano… Hao Ya…  2015 2015… Journal of…        47
+#>  7            7 NA        10.11… Capa… Maxwel…  2015 2015… Physical R…        32
+#>  8            8 NA        10.13… Grap… Nurbek…  2015 2015… Optics Let…        48
+#>  9            9 NA        10.10… Ultr… Zhong-…  2015 2015… Advanced M…       275
+#> 10           10 NA        10.10… Etch… Matthe…  2015 2015… Nanotechno…        24
+#> # ℹ 128 more rows
+nrow(recs)
+#> [1] 138
 is_scopus_records(recs)
 #> [1] TRUE
 ```

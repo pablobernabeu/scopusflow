@@ -39,7 +39,15 @@ object. Needs the suggested package ggplot2.
 ## Examples
 
 ``` r
-tr <- tibble::tibble(query = "q", year = 2015:2020, n = c(120, 180, 240, 310, 400, 520))
+# Drawn from the bundled corpus of real articles, which needs no key. That
+# corpus is a complete harvest, so its rows per year are the publications
+# per year its query returns.
+by_year <- table(example_records$year)
+tr <- tibble::tibble(
+  query = "TITLE-ABS-KEY(graphene supercapacitor)",
+  year = as.integer(names(by_year)),
+  n = as.numeric(by_year)
+)
 class(tr) <- c("scopus_trend", class(tr))
 plot_scopus_trend(tr)
 ```

@@ -90,16 +90,27 @@ status then DOI, and printing shows the counts in each category.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">old</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"10.1/a"</span>, <span class="st">"10.1/b"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">new</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"10.1/b"</span>, <span class="st">"10.1/c"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">scopus_diff_dois</span><span class="op">(</span><span class="va">old</span>, <span class="va">new</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #0000BB;">&lt;scopus_doi_diff&gt;</span> 1 added, 1 removed, 1 unchanged</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 3 × 2</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   doi    status   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> 10.1/c added    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> 10.1/a removed  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> 10.1/b unchanged</span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># A baseline retrieval and the same search re-run a year later, both taken</span></span></span>
+<span class="r-in"><span><span class="co"># from the bundled corpus of real articles: the second pull has gained the</span></span></span>
+<span class="r-in"><span><span class="co"># 2024 records and lost the first one to re-indexing.</span></span></span>
+<span class="r-in"><span><span class="va">baseline</span> <span class="op">&lt;-</span> <span class="va">example_records</span><span class="op">[</span><span class="va">example_records</span><span class="op">$</span><span class="va">year</span> <span class="op">&lt;=</span> <span class="fl">2023</span>, <span class="op">]</span></span></span>
+<span class="r-in"><span><span class="va">later</span> <span class="op">&lt;-</span> <span class="va">example_records</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span>, <span class="op">]</span></span></span>
+<span class="r-in"><span><span class="fu">scopus_diff_dois</span><span class="op">(</span>old <span class="op">=</span> <span class="va">baseline</span>, new <span class="op">=</span> <span class="va">later</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #0000BB;">&lt;scopus_doi_diff&gt;</span> 14 added, 1 removed, 112 unchanged</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 127 × 2</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    doi                            status</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                          <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> 10.1002/adfm.202315137         added </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> 10.1002/asia.202400548         added </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> 10.1002/slct.202302535         added </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> 10.1016/j.cej.2024.148822      added </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> 10.1016/j.diamond.2024.110842  added </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> 10.1016/j.isci.2024.111696     added </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> 10.1016/j.jallcom.2024.175000  added </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> 10.1016/j.jallcom.2024.177248  added </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> 10.1016/j.jpowsour.2024.234127 added </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> 10.1016/j.jpowsour.2024.236149 added </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 117 more rows</span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

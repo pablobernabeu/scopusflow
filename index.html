@@ -89,7 +89,8 @@
 
 <p>scopusflow is a reproducible, quota-aware workflow layer over the Elsevier <a href="https://dev.elsevier.com/sc_apis.html" class="external-link">Scopus</a> Search API. It turns one-off bibliographic queries into inspectable plans, retrieves records safely with pagination, rate-limit handling, retry with back-off and optional resumable caching, normalises them to a stable tidy schema, tracks changes in DOI sets over time, sizes sets of concepts and their intersections and compares publication trends across topics.</p>
 <p>This is the feature-parity twin of <a href="https://pablobernabeu.github.io/scopusflow-py/">the Python package</a> of the same name, which offers the same workflow on top of <a href="https://pybliometrics.readthedocs.io" class="external-link">pybliometrics</a>.</p>
-<p><img src="reference/figures/README-readme-hero-1.png" alt="A line chart showing how deep-learning research spread into computer vision, natural language processing, medical imaging and drug discovery between 2013 and 2021" width="100%"></p>
+<p><img src="reference/figures/README-readme-hero-1.png" alt="An illustrative line chart of four sub-topics' share of a deep-learning reference literature between 2013 and 2021: computer vision, natural language processing, medical imaging and drug discovery" width="100%"></p>
+<p>The figure is drawn by <code><a href="reference/plot_scopus_comparison.html">plot_scopus_comparison()</a></code> from illustrative counts rather than a live retrieval, so that this page builds without an API key. The <a href="https://pablobernabeu.github.io/scopusflow/articles/comparing-topics.html">Comparing topics over time</a> article builds the same table and explains every column.</p>
 <blockquote>
 <p>Scopus is a trademark of Elsevier. scopusflow is an independent client and is not affiliated with or endorsed by Elsevier. You will need your own Elsevier API key and should use it under Elsevier’s API terms.</p>
 </blockquote>
@@ -136,7 +137,7 @@
 <div class="section level2">
 <h2 id="code-free-app">Code-free app<a class="anchor" aria-label="anchor" href="#code-free-app"></a>
 </h2>
-<p><code><a href="reference/run_app.html">run_app()</a></code> opens a local Shiny app that drives the whole workflow without writing code, and mirrors every choice back as a runnable R script, so it works as an on-ramp to the package rather than a replacement. It runs on your own machine, so your API key never leaves it, and a demo mode lets you try the flow with synthetic data and no key.</p>
+<p><code><a href="reference/run_app.html">run_app()</a></code> opens a local Shiny app that drives the whole workflow without writing code, and mirrors every choice back as a runnable R script, so it works as an on-ramp to the package rather than a replacement. It runs on your own machine, so your API key never leaves it, and a demo mode lets you try the flow with no key, on the corpus of real articles bundled with the package.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/run_app.html">run_app</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>The retrieval runs in a background process with a live progress terminal, and records appear as a table and as plots with one-click export. It needs the suggested packages shiny, bslib and callr. The <a href="https://pablobernabeu.github.io/scopusflow/articles/using-the-app.html">Using the code-free app</a> article walks through every panel.</p>

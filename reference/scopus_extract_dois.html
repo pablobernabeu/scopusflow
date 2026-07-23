@@ -109,17 +109,28 @@ ignore case, while the output keeps the original casing.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">recs</span> <span class="op">&lt;-</span> <span class="fu"><a href="scopus_records.html">scopus_records</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>entry <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>`prism:doi` <span class="op">=</span> <span class="st">"10.1/AAA"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>`prism:doi` <span class="op">=</span> <span class="st">"https://doi.org/10.1/aaa"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>`prism:doi` <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">scopus_extract_dois</span><span class="op">(</span><span class="va">recs</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "10.1/AAA"</span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># The bundled corpus of real articles stands in for a harvest of your own,</span></span></span>
+<span class="r-in"><span><span class="co"># since 'Scopus' records may not be redistributed.</span></span></span>
+<span class="r-in"><span><span class="va">dois</span> <span class="op">&lt;-</span> <span class="fu">scopus_extract_dois</span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">dois</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 127</span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dois</span>, <span class="fl">3</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "10.15541/jim20140527"            "10.1021/am509065d"              </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3] "10.1016/j.electacta.2015.02.019"</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Eleven of its 138 records arrived without a DOI, as records do, and so</span></span></span>
+<span class="r-in"><span><span class="co"># drop out of the list.</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">$</span><span class="va">doi</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 11</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># The same cleaning applies to a bare vector, so a resolver prefix or a</span></span></span>
+<span class="r-in"><span><span class="co"># difference in case does not make one article look like two.</span></span></span>
+<span class="r-in"><span><span class="fu">scopus_extract_dois</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"https://doi.org/10.1/A"</span>, <span class="st">"doi: 10.1/a"</span>, <span class="st">"10.2/B"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "10.1/A" "10.2/B"</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Write to a temporary file (never the working directory).</span></span></span>
 <span class="r-in"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".csv"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">scopus_extract_dois</span><span class="op">(</span><span class="va">recs</span>, file <span class="op">=</span> <span class="va">path</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">scopus_extract_dois</span><span class="op">(</span><span class="va">example_records</span>, file <span class="op">=</span> <span class="va">path</span><span class="op">)</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

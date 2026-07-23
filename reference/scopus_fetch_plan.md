@@ -86,40 +86,51 @@ gives the details.
 
 ``` r
 if (FALSE) { # scopusflow::scopus_has_key()
-plan <- scopus_plan("renewable energy", years = 2015:2022, partition = "year")
-dir <- file.path(tempdir(), "energy-cache")
+plan <- scopus_plan("graphene supercapacitor", years = 2015:2024,
+                    field = "TITLE-ABS-KEY", partition = "year")
+dir <- file.path(tempdir(), "graphene-cache")
 # `max_results` caps each yearly cell, so the example stays small and
 # quota-light; drop it to harvest every record in the plan.
 recs <- scopus_fetch_plan(plan, max_results = 25, cache_dir = dir, resume = TRUE)
 }
-# The shape of the return value, assembled offline so it runs without a key:
-# a record set with the plan that produced it attached.
-plan <- scopus_plan("renewable energy", years = 2015:2022, partition = "year")
+# The offline companion, which needs no key: a record set with the plan
+# that describes it attached. 'Scopus' records may not be redistributed, so
+# the bundled corpus of real articles stands in for the harvest, and the
+# plan describes the same search, one cell per year.
+plan <- scopus_plan("graphene supercapacitor", years = 2015:2024,
+                    field = "TITLE-ABS-KEY", partition = "year")
 recs <- example_records
 attr(recs, "plan") <- plan
 recs
-#> <scopus_records> 6 records
-#> query: "illustrative multi-disciplinary sample"
-#> # A tibble: 6 × 9
-#>   entry_number scopus_id   doi   title authors  year date  publication citations
-#>          <int> <chr>       <chr> <chr> <chr>   <int> <chr> <chr>           <int>
-#> 1            1 85000000001 10.1… Geno… Zhang …  2019 2019… Nature            540
-#> 2            2 85000000002 10.1… Deep… Kumar …  2020 2020… Nature            210
-#> 3            3 85000000003 10.1… Clim… Okafor…  2018 2018… Nature Cli…       122
-#> 4            4 85000000004 10.1… Grap… Tanaka…  2021 2021… Advanced M…        45
-#> 5            5 85000000005 10.1… Chec… Garcia…  2020 2020… The Lancet…       388
-#> 6            6 85000000006 10.1… Obse… Abbott…  2016 2016… Physical R…      4200
+#> <scopus_records> 138 records
+#> query: "graphene supercapacitor"
+#> # A tibble: 138 × 9
+#>    entry_number scopus_id doi    title authors  year date  publication citations
+#>           <int> <chr>     <chr>  <chr> <chr>   <int> <chr> <chr>           <int>
+#>  1            1 NA        10.15… Enha… Jianhu…  2015 2015… Journal of…         1
+#>  2            2 NA        NA     Fabr… Patric…  2015 2015… DigitalCom…         0
+#>  3            3 NA        10.10… Flex… Zhiwei…  2015 2015… ACS Applie…       469
+#>  4            4 NA        10.10… Heav… Vikran…  2015 2015… Electrochi…       195
+#>  5            5 NA        10.10… Grap… Chih-T…  2015 2015… Small             108
+#>  6            6 NA        10.10… Nano… Hao Ya…  2015 2015… Journal of…        47
+#>  7            7 NA        10.11… Capa… Maxwel…  2015 2015… Physical R…        32
+#>  8            8 NA        10.13… Grap… Nurbek…  2015 2015… Optics Let…        48
+#>  9            9 NA        10.10… Ultr… Zhong-…  2015 2015… Advanced M…       275
+#> 10           10 NA        10.10… Etch… Matthe…  2015 2015… Nanotechno…        24
+#> # ℹ 128 more rows
 attr(recs, "plan")
-#> <scopus_plan> (8 cells, view "STANDARD", partition "year")
-#> # A tibble: 8 × 6
-#>    cell query            date   year view     page_size
-#> * <int> <chr>            <chr> <int> <chr>        <int>
-#> 1     1 renewable energy 2015   2015 STANDARD       200
-#> 2     2 renewable energy 2016   2016 STANDARD       200
-#> 3     3 renewable energy 2017   2017 STANDARD       200
-#> 4     4 renewable energy 2018   2018 STANDARD       200
-#> 5     5 renewable energy 2019   2019 STANDARD       200
-#> 6     6 renewable energy 2020   2020 STANDARD       200
-#> 7     7 renewable energy 2021   2021 STANDARD       200
-#> 8     8 renewable energy 2022   2022 STANDARD       200
+#> <scopus_plan> (10 cells, view "STANDARD", partition "year")
+#> # A tibble: 10 × 6
+#>     cell query                                  date   year view     page_size
+#>  * <int> <chr>                                  <chr> <int> <chr>        <int>
+#>  1     1 TITLE-ABS-KEY(graphene supercapacitor) 2015   2015 STANDARD       200
+#>  2     2 TITLE-ABS-KEY(graphene supercapacitor) 2016   2016 STANDARD       200
+#>  3     3 TITLE-ABS-KEY(graphene supercapacitor) 2017   2017 STANDARD       200
+#>  4     4 TITLE-ABS-KEY(graphene supercapacitor) 2018   2018 STANDARD       200
+#>  5     5 TITLE-ABS-KEY(graphene supercapacitor) 2019   2019 STANDARD       200
+#>  6     6 TITLE-ABS-KEY(graphene supercapacitor) 2020   2020 STANDARD       200
+#>  7     7 TITLE-ABS-KEY(graphene supercapacitor) 2021   2021 STANDARD       200
+#>  8     8 TITLE-ABS-KEY(graphene supercapacitor) 2022   2022 STANDARD       200
+#>  9     9 TITLE-ABS-KEY(graphene supercapacitor) 2023   2023 STANDARD       200
+#> 10    10 TITLE-ABS-KEY(graphene supercapacitor) 2024   2024 STANDARD       200
 ```

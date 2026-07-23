@@ -8,49 +8,36 @@ library(scopusflow)
 A literature is a moving target. Run the same search a few months apart
 and the result will have grown, and perhaps lost a record that was
 re-indexed. This article shows how to see exactly what changed and how
-to merge retrievals safely. It runs offline: the baseline is the bundled
-`example_records`, and the later retrieval is built from a synthetic
-entry list of the same shape the API returns.
+to merge retrievals safely. It runs offline on the bundled
+`example_records`, a corpus of 138 real journal articles the package
+ships because ‘Scopus’ records may not be redistributed. That corpus is
+a complete harvest of one query from 2015 to 2024, so a pull that
+stopped at 2023 and a later one that reaches 2024 are both genuine
+slices of the same search.
 
 ## The baseline
 
+The first retrieval ran at the end of 2023 and returned everything
+published up to then.
+
 ``` r
 
-baseline <- example_records
+baseline <- example_records[example_records$year <= 2023, ]
 nrow(baseline)
-#> [1] 6
+#> [1] 124
 ```
 
 ## A later retrieval
 
-Months on, the search is repeated. Here we mimic that second pull: it
-keeps most of the original records, drops one that was re-indexed and
-adds two new papers.
+A year on, the search is repeated. It now picks up the 2024 papers, and
+one record that was present the first time has since been re-indexed and
+no longer matches.
 
 ``` r
 
-later_raw <- list(entry = list(
-  # carried over from the baseline
-  list(`dc:identifier` = "SCOPUS_ID:85000000001", `prism:doi` = "10.1038/s41586-019-0001-1",
-       `dc:title` = "Genome editing with CRISPR-Cas9: principles and applications",
-       `prism:coverDate` = "2019-04-12"),
-  list(`dc:identifier` = "SCOPUS_ID:85000000002", `prism:doi` = "10.1038/s41586-020-0002-2",
-       `dc:title` = "Deep learning for medical image analysis: a review",
-       `prism:coverDate` = "2020-02-20"),
-  list(`dc:identifier` = "SCOPUS_ID:85000000006", `prism:doi` = "10.1103/PhysRevLett.116.061102",
-       `dc:title` = "Observation of gravitational waves from a binary black hole merger",
-       `prism:coverDate` = "2016-02-11"),
-  # newly indexed since the baseline
-  list(`dc:identifier` = "SCOPUS_ID:85000000007", `prism:doi` = "10.1126/science.abc1234",
-       `dc:title` = "A room-temperature superconductor candidate",
-       `prism:coverDate` = "2023-03-08"),
-  list(`dc:identifier` = "SCOPUS_ID:85000000008", `prism:doi` = "10.1038/s41586-023-0008-8",
-       `dc:title` = "Large language models for scientific discovery",
-       `prism:coverDate` = "2023-06-01")
-))
-later <- scopus_records(later_raw, query = "illustrative later retrieval")
+later <- example_records[-1, ]
 nrow(later)
-#> [1] 5
+#> [1] 137
 ```
 
 ## What changed
@@ -62,33 +49,47 @@ retrievals, and prints the counts in each category.
 ``` r
 
 changes <- scopus_diff_dois(old = baseline, new = later)
-changes
+print(changes)
+#> <scopus_doi_diff> 14 added, 1 removed, 112 unchanged
+#> # A tibble: 127 × 2
+#>    doi                            status
+#>    <chr>                          <fct> 
+#>  1 10.1002/adfm.202315137         added 
+#>  2 10.1002/asia.202400548         added 
+#>  3 10.1002/slct.202302535         added 
+#>  4 10.1016/j.cej.2024.148822      added 
+#>  5 10.1016/j.diamond.2024.110842  added 
+#>  6 10.1016/j.isci.2024.111696     added 
+#>  7 10.1016/j.jallcom.2024.175000  added 
+#>  8 10.1016/j.jallcom.2024.177248  added 
+#>  9 10.1016/j.jpowsour.2024.234127 added 
+#> 10 10.1016/j.jpowsour.2024.236149 added 
+#> # ℹ 117 more rows
 ```
-
-| doi                            | status    |
-|:-------------------------------|:----------|
-| 10.1038/s41586-023-0008-8      | added     |
-| 10.1126/science.abc1234        | added     |
-| 10.1002/adma.202100001         | removed   |
-| 10.1016/S1470-2045(20)30013-9  | removed   |
-| 10.1038/s41558-018-0085-1      | removed   |
-| 10.1038/s41586-019-0001-1      | unchanged |
-| 10.1038/s41586-020-0002-2      | unchanged |
-| 10.1103/PhysRevLett.116.061102 | unchanged |
 
 The newly indexed papers come back as `added`, the records present both
 times as `unchanged`, and anything dropped from the later pull as
-`removed`. To act on one category, filter the table.
+`removed`. The counts work out at fourteen added, one removed and 112
+unchanged: fourteen because that is how many of the 2024 papers carry a
+DOI, and 112 rather than 113 because the re-indexed record is no longer
+among them. Records without a DOI cannot be tracked this way at all,
+which is one reason to prefer the ‘Scopus’ identifier when there is one.
+
+To act on one category, filter the table, which is an ordinary tibble.
 
 ``` r
 
-changes[changes$status == "added", ]
+head(changes[changes$status == "added", ])
 ```
 
-| doi                       | status |
-|:--------------------------|:-------|
-| 10.1038/s41586-023-0008-8 | added  |
-| 10.1126/science.abc1234   | added  |
+| doi                           | status |
+|:------------------------------|:-------|
+| 10.1002/adfm.202315137        | added  |
+| 10.1002/asia.202400548        | added  |
+| 10.1002/slct.202302535        | added  |
+| 10.1016/j.cej.2024.148822     | added  |
+| 10.1016/j.diamond.2024.110842 | added  |
+| 10.1016/j.isci.2024.111696    | added  |
 
 ## Merging without duplicates
 
@@ -102,8 +103,15 @@ doubled.
 
 combined <- scopus_combine(baseline, later, dedupe = TRUE)
 nrow(combined)
-#> [1] 8
+#> [1] 149
 ```
+
+That is 149 rows for 138 distinct articles, and the gap is instructive.
+These records carry no ‘Scopus’ identifier, not having come from
+‘Scopus’, so de-duplication falls back to the DOI. The eleven that
+arrived without one have no key to match on, and so survive in both
+copies. A live harvest carries an identifier on every record, so the
+same call on two real pulls returns each article once.
 
 The base [`c()`](https://rdrr.io/r/base/c.html) method concatenates
 record sets directly, renumbering but without de-duplicating, so it is
@@ -115,7 +123,7 @@ adds the duplicate handling to.
 
 stacked <- c(baseline, later)
 nrow(stacked)
-#> [1] 11
+#> [1] 261
 ```
 
 ## Keeping a record of each pull
@@ -132,10 +140,10 @@ identical(read_scopus_records(path), baseline)
 ```
 
 In a live setting the later retrieval would come from the API rather
-than a synthetic list, with everything else unchanged.
+than from a slice of the bundled corpus, with everything else unchanged.
 
 ``` r
 
-later <- scopus_fetch("CRISPR", field = "TITLE-ABS-KEY")
+later <- scopus_fetch("graphene supercapacitor", field = "TITLE-ABS-KEY")
 scopus_diff_dois(old = read_scopus_records(path), new = later)
 ```

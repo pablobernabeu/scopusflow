@@ -95,15 +95,38 @@ CSV or BibTeX file from the web interface and read it with
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">recs</span> <span class="op">&lt;-</span> <span class="fu"><a href="scopus_records.html">scopus_records</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>entry <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>`dc:identifier` <span class="op">=</span> <span class="st">"SCOPUS_ID:1"</span>, `prism:doi` <span class="op">=</span> <span class="st">"10.1/a"</span>,</span></span>
-<span class="r-in"><span>       `dc:title` <span class="op">=</span> <span class="st">"A study"</span>, `dc:creator` <span class="op">=</span> <span class="st">"Doe J."</span>,</span></span>
-<span class="r-in"><span>       `prism:publicationName` <span class="op">=</span> <span class="st">"Journal"</span>, `prism:coverDate` <span class="op">=</span> <span class="st">"2020-01-01"</span>,</span></span>
-<span class="r-in"><span>       `citedby-count` <span class="op">=</span> <span class="st">"3"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">as_bibliometrix</span><span class="op">(</span><span class="va">recs</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       AU      TI      SO     DI   PY TC UT     DB</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 DOE J. A STUDY JOURNAL 10.1/a 2020  3  1 SCOPUS</span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># On the bundled corpus of real articles, which stands in for a retrieval</span></span></span>
+<span class="r-in"><span><span class="co"># of your own because 'Scopus' records may not be redistributed.</span></span></span>
+<span class="r-in"><span><span class="va">m</span> <span class="op">&lt;-</span> <span class="fu">as_bibliometrix</span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">m</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AU"</span>, <span class="st">"TI"</span>, <span class="st">"PY"</span>, <span class="st">"SO"</span>, <span class="st">"TC"</span>, <span class="st">"DB"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>               AU</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1     JIANHUA YU</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 PATRICK R RICE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3    ZHIWEI PENG</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4   VIKRANT SAHU</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 CHIH-TAO CHIEN</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6       HAO YANG</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                                                                                             TI</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 ENHANCED CAPACITIVE PROPERTIES OF ALL-SOLID-STATE SYMMETRIC GRAPHENE SUPERCAPACITORS BY INCORPORATING NITROGEN-DOPING AND SNO2 NANOPARTICLES</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2                                                            FABRICATION AND CHARACTERIZATION OF A VERTICALLY-ORIENTED GRAPHENE SUPERCAPACITOR</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3                                                                                FLEXIBLE AND STACKABLE LASER-INDUCED GRAPHENE SUPERCAPACITORS</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4                                                                             HEAVILY NITROGEN DOPED, GRAPHENE SUPERCAPACITOR FROM SILK COCOON</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5                                                                      GRAPHENE-BASED INTEGRATED PHOTOVOLTAIC ENERGY HARVESTING/STORAGE DEVICE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6                          NANOPOROUS GRAPHENE MATERIALS BY LOW-TEMPERATURE VACUUM-ASSISTED THERMAL PROCESS FOR ELECTROCHEMICAL ENERGY STORAGE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     PY                                                                 SO  TC</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 2015                                     JOURNAL OF INORGANIC MATERIALS   1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 2015 DIGITALCOMMONS - CALPOLY (CALIFORNIA STATE POLYTECHNIC UNIVERSITY)   0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 2015                                 ACS APPLIED MATERIALS &amp; INTERFACES 469</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 2015                                                ELECTROCHIMICA ACTA 195</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 2015                                                              SMALL 108</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6 2015                                           JOURNAL OF POWER SOURCES  47</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       DB</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 SCOPUS</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 SCOPUS</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 SCOPUS</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 SCOPUS</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 SCOPUS</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6 SCOPUS</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

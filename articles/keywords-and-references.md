@@ -7,11 +7,14 @@ both, what each costs, and what your ‘Scopus’ entitlement needs to
 cover.
 
 The API calls below are shown exactly as you would run them with a
-configured key. Because a key is not available when the site and the
-package are built, each call is paired with its output reproduced from
-one representative example, the 2015 *Nature* review “Deep learning”,
-assembled offline. The vignette therefore renders the same with or
-without a key, and
+configured key. No key is available when the site and the package are
+built, and Elsevier’s terms do not permit redistributing retrieved
+records in any case, so each call is paired with its output assembled
+offline from one representative example, the 2015 *Nature* review “Deep
+learning”. The corpus of real articles that the other articles run on
+carries neither author keywords nor reference lists, the two fields this
+one is about, so it cannot stand in here. The vignette therefore renders
+the same with or without a key, and
 [`scopus_has_key()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_has_key.md)
 is the switch you would use to run the calls for real.
 

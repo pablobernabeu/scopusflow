@@ -13,9 +13,17 @@ package](https://pablobernabeu.github.io/scopusflow-py/) of the same
 name, which offers the same workflow on top of
 [pybliometrics](https://pybliometrics.readthedocs.io).
 
-![A line chart showing how deep-learning research spread into computer
-vision, natural language processing, medical imaging and drug discovery
-between 2013 and 2021](reference/figures/README-readme-hero-1.png)
+![An illustrative line chart of four sub-topics' share of a
+deep-learning reference literature between 2013 and 2021: computer
+vision, natural language processing, medical imaging and drug
+discovery](reference/figures/README-readme-hero-1.png)
+
+The figure is drawn by
+[`plot_scopus_comparison()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_comparison.md)
+from illustrative counts rather than a live retrieval, so that this page
+builds without an API key. The [Comparing topics over
+time](https://pablobernabeu.github.io/scopusflow/articles/comparing-topics.html)
+article builds the same table and explains every column.
 
 > Scopus is a trademark of Elsevier. scopusflow is an independent client
 > and is not affiliated with or endorsed by Elsevier. You will need your
@@ -91,7 +99,8 @@ opens a local Shiny app that drives the whole workflow without writing
 code, and mirrors every choice back as a runnable R script, so it works
 as an on-ramp to the package rather than a replacement. It runs on your
 own machine, so your API key never leaves it, and a demo mode lets you
-try the flow with synthetic data and no key.
+try the flow with no key, on the corpus of real articles bundled with
+the package.
 
 ``` r
 

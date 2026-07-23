@@ -105,32 +105,36 @@ with your 'Scopus'/Elsevier account contact.
 ## Examples
 
 ``` r
-# A minimal entry as the API would return it.
+# An entry in the shape the Search API returns it. The fields are those of
+# a real article, taken from the bundled `example_records`, which stands in
+# for a harvest because 'Scopus' records may not be redistributed. It
+# carries no 'Scopus' identifier, so `dc:identifier` is absent and
+# `scopus_id` comes back NA, as it does for any unidentified record.
 raw <- list(entry = list(
   list(
-    `dc:identifier` = "SCOPUS_ID:1",
-    `prism:doi` = "10.1000/abc",
-    `dc:title` = "An example",
-    `dc:creator` = "Doe J.",
-    `prism:publicationName` = "Journal of Examples",
-    `prism:coverDate` = "2020-05-01",
-    `citedby-count` = "7"
+    `prism:doi` = "10.1021/am509065d",
+    `dc:title` = "Flexible and Stackable Laser-Induced Graphene Supercapacitors",
+    `dc:creator` = "Zhiwei Peng",
+    `prism:publicationName` = "ACS Applied Materials & Interfaces",
+    `prism:coverDate` = "2015-01-13",
+    `citedby-count` = "469"
   )
 ))
-scopus_records(raw, query = "TITLE(example)")
+scopus_records(raw, query = "TITLE-ABS-KEY(graphene supercapacitor)")
 #> <scopus_records> 1 record
-#> query: "TITLE(example)"
+#> query: "TITLE-ABS-KEY(graphene supercapacitor)"
 #> # A tibble: 1 × 9
 #>   entry_number scopus_id doi     title authors  year date  publication citations
 #>          <int> <chr>     <chr>   <chr> <chr>   <int> <chr> <chr>           <int>
-#> 1            1 1         10.100… An e… Doe J.   2020 2020… Journal of…         7
+#> 1            1 NA        10.102… Flex… Zhiwei…  2015 2015… ACS Applie…       469
 
-# A COMPLETE-view entry carrying author keywords.
+# Under COMPLETE view an entry may also carry author keywords, which the
+# Search API returns in its own " | "-delimited form. The bundled corpus
+# holds no keywords, so the ones below are illustrative.
 raw_complete <- list(entry = list(
   list(
-    `dc:identifier` = "SCOPUS_ID:2",
-    `prism:doi` = "10.1000/def",
-    `dc:title` = "A second example",
+    `prism:doi` = "10.1021/am509065d",
+    `dc:title` = "Flexible and Stackable Laser-Induced Graphene Supercapacitors",
     authkeywords = "graphene | supercapacitor | energy storage"
   )
 ))
@@ -139,6 +143,10 @@ scopus_records(raw_complete, view = "COMPLETE")
 #> # A tibble: 1 × 11
 #>   entry_number scopus_id doi     title authors  year date  publication citations
 #>          <int> <chr>     <chr>   <chr> <chr>   <int> <chr> <chr>           <int>
-#> 1            1 2         10.100… A se… NA         NA NA    NA                 NA
+#> 1            1 NA        10.102… Flex… NA         NA NA    NA                 NA
 #> # ℹ 2 more variables: query <chr>, authkeywords <chr>
+
+# An object already in this schema is returned unchanged.
+identical(scopus_records(example_records), example_records)
+#> [1] TRUE
 ```

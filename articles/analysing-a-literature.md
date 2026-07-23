@@ -7,59 +7,90 @@ library(scopusflow)
 
 Once a set of records is in hand, the package offers a small analysis
 layer that turns it into the figures a bibliometric study usually needs.
-The steps that contact the API are shown but not run; the rest run
-offline, on synthetic records built in the shape the API returns.
+The steps that contact the API are shown but not run. The rest run on
+`example_records`, the corpus of 138 real journal articles on graphene
+supercapacitors that the package bundles because Scopus records may not
+be redistributed, and which carries the schema a retrieval returns.
+[`vignette("scopusflow")`](https://pablobernabeu.github.io/scopusflow/articles/scopusflow.md)
+describes where it comes from.
 
 ## What is in a record set
 
-[`scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_top.md)
-tallies the most frequent sources or authors. Author strings that hold
-several names are split, so each contributor is counted once per record.
-The bundled `example_records` keeps the package’s examples quick, but
-its ten single-appearance records make for a flat tally, so here we
-synthesise a slightly larger corpus and normalise it with
-[`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md),
-exactly as a retrieval would.
+[`summary()`](https://rdrr.io/r/base/summary.html) is the quickest way
+to see what a retrieval holds, and it is worth running before any closer
+analysis.
 
 ``` r
 
-lead <- rep(c("Chen L.", "Smith J.", "Garcia M.", "Kumar S.", "Tanaka H.", "Okafor N."),
-            times = c(8, 6, 4, 4, 2, 2))
-raw <- list(entry = lapply(seq_along(lead), function(i) list(
-  `dc:identifier` = paste0("SCOPUS_ID:", 85100000000 + i),
-  `dc:title` = sprintf("Synthetic study %02d", i),
-  `dc:creator` = if (i %% 3 == 0) paste(lead[i], "Novak P.", sep = "; ") else lead[i],
-  `prism:publicationName` = rep(c("Nature", "Science", "Physical Review Letters",
-                                  "Advanced Materials", "The Lancet Oncology"),
-                                times = c(9, 7, 5, 3, 2))[i],
-  `prism:coverDate` = sprintf("%d-06-01", rep(2016:2023, times = c(1, 1, 2, 2, 3, 4, 6, 7))[i]),
-  `citedby-count` = as.character((27 - i) * 3)
-)))
-records <- scopus_records(raw, query = "TITLE-ABS-KEY(synthetic corpus)")
+records <- example_records
+summary(records)
+#> <scopus_records> summary
+#> 138 records, from 2015 to 2024.
+#> 90 sources, 127 with a DOI.
+#> Cited 7015 times in total, median 24 per record.
+#> Most frequent source: ACS Applied Materials & Interfaces.
+#> Most cited: Graphene for batteries, supercapacitors and beyond.
+```
+
+[`scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_top.md)
+tallies the most frequent sources or authors.
+
+``` r
 
 scopus_top(records, by = "source")
 ```
 
-| value                   |   n |
-|:------------------------|----:|
-| Nature                  |   9 |
-| Science                 |   7 |
-| Physical Review Letters |   5 |
-| Advanced Materials      |   3 |
-| The Lancet Oncology     |   2 |
+| value                              |   n |
+|:-----------------------------------|----:|
+| ACS Applied Materials & Interfaces |   8 |
+| Journal of Power Sources           |   5 |
+| Synthetic Metals                   |   5 |
+| Electrochimica Acta                |   4 |
+| Journal of Materials Chemistry A   |   4 |
+| Scientific Reports                 |   4 |
+| Journal of Alloys and Compounds    |   3 |
+| Journal of Energy Storage          |   3 |
+| Materials Chemistry and Physics    |   3 |
+| Nanotechnology                     |   3 |
 
 ``` r
 
 scopus_top(records, by = "author", n = 5)
 ```
 
+| value             |   n |
+|:------------------|----:|
+| Hao Yang          |   3 |
+| L. Ojeda          |   3 |
+| R. Mendoza        |   3 |
+| A.I. Mtz-Enríquez |   2 |
+| Bin Wang          |   2 |
+
+The source tally is long-tailed, as a real literature is. These 138
+articles are spread across 90 journals, and only *ACS Applied Materials
+& Interfaces*, with eight, appears more than five times. The author
+tally is flatter still, with 119 distinct authors, the most prolific of
+whom contributed three papers.
+
+An author string that holds several names is split, so each contributor
+is counted once per record. The bundled corpus names only the first
+author of each paper, so it cannot show that happening. Two records with
+placeholder names can, and the same splitting applies to the
+semicolon-joined author lists a live harvest returns.
+
+``` r
+
+multi <- scopus_records(list(entry = list(
+  list(`dc:creator` = "Author A.; Author B."),
+  list(`dc:creator` = "Author B.")
+)))
+scopus_top(multi, by = "author")
+```
+
 | value     |   n |
 |:----------|----:|
-| Chen L.   |   8 |
-| Novak P.  |   8 |
-| Smith J.  |   6 |
-| Garcia M. |   4 |
-| Kumar S.  |   4 |
+| Author B. |   2 |
+| Author A. |   1 |
 
 ``` r
 
@@ -67,7 +98,7 @@ plot_scopus_top(scopus_top(records, by = "source"))
 ```
 
 ![A horizontal bar chart of the most frequent
-sources](analysing-a-literature_files/figure-html/unnamed-chunk-3-1.png)
+sources](analysing-a-literature_files/figure-html/unnamed-chunk-5-1.png)
 
 The same plot works on the author tally.
 
@@ -77,10 +108,12 @@ plot_scopus_top(scopus_top(records, by = "author", n = 5))
 ```
 
 ![A horizontal bar chart of the most frequent
-authors](analysing-a-literature_files/figure-html/unnamed-chunk-4-1.png)
+authors](analysing-a-literature_files/figure-html/unnamed-chunk-6-1.png)
 
 A record set also has an honest default view: `autoplot()` draws its
-records per year. The same `autoplot()` generic dispatches on
+records per year. Because this corpus is a complete harvest of one query
+rather than a sample, those bars are the real number of publications per
+year for that query. The same `autoplot()` generic dispatches on
 `scopus_trend` and `scopus_top` objects too, delegating to the plots
 above.
 
@@ -89,8 +122,9 @@ above.
 ggplot2::autoplot(records)
 ```
 
-![A bar chart of records per year, rising over
-time](analysing-a-literature_files/figure-html/unnamed-chunk-5-1.png)
+![A bar chart of publications per year from 2015 to 2024, fluctuating
+around fifteen a
+year](analysing-a-literature_files/figure-html/unnamed-chunk-7-1.png)
 
 ## How a literature grows
 
@@ -101,23 +135,62 @@ needs the API.
 
 ``` r
 
-tr <- scopus_trend("graphene", years = 2004:2022, field = "TITLE-ABS-KEY")
+tr <- scopus_trend("graphene supercapacitor", years = 2015:2024,
+                   field = "TITLE-ABS-KEY")
 plot_scopus_trend(tr)
 ```
 
-The result has a fixed shape, which we reproduce here to show the plot.
+The offline equivalent costs no requests at all. A complete harvest
+already contains its own yearly counts, so tallying the records by year
+gives what a count per year would have returned, in the shape
+[`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md)
+returns it.
 
 ``` r
 
-years <- 2004:2022
-tr <- tibble::tibble(query = "TITLE-ABS-KEY(graphene)", year = years,
-                     n = round(exp(seq(log(50), log(28000), length.out = length(years)))))
+by_year <- table(records$year)
+tr <- tibble::tibble(
+  query = "TITLE-ABS-KEY(graphene supercapacitor)",
+  year  = as.integer(names(by_year)),
+  n     = as.numeric(by_year)
+)
 class(tr) <- c("scopus_trend", class(tr))
+tr
+```
+
+| query                                  | year |   n |
+|:---------------------------------------|-----:|----:|
+| TITLE-ABS-KEY(graphene supercapacitor) | 2015 |  15 |
+| TITLE-ABS-KEY(graphene supercapacitor) | 2016 |   9 |
+| TITLE-ABS-KEY(graphene supercapacitor) | 2017 |  10 |
+| TITLE-ABS-KEY(graphene supercapacitor) | 2018 |  15 |
+| TITLE-ABS-KEY(graphene supercapacitor) | 2019 |  19 |
+| TITLE-ABS-KEY(graphene supercapacitor) | 2020 |  13 |
+| TITLE-ABS-KEY(graphene supercapacitor) | 2021 |  13 |
+| TITLE-ABS-KEY(graphene supercapacitor) | 2022 |  15 |
+| TITLE-ABS-KEY(graphene supercapacitor) | 2023 |  15 |
+| TITLE-ABS-KEY(graphene supercapacitor) | 2024 |  14 |
+
+``` r
+
 plot_scopus_trend(tr)
 ```
 
-![A line and area chart of records per year rising over
-time](analysing-a-literature_files/figure-html/unnamed-chunk-7-1.png)
+![A line and area chart of publications per year from 2015 to 2024,
+peaking in
+2019](analysing-a-literature_files/figure-html/unnamed-chunk-10-1.png)
+
+The figure draws the same counts as the bar chart above, which is the
+point. A trend is something a record set already knows, and something
+[`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md)
+can find out for a query whose records you never download. The caption
+is the function’s own attribution, since a `scopus_trend` object
+ordinarily comes from the Search API, whereas this one was tallied from
+the bundled stand-in. The curve itself is flat because the query is a
+narrow phrase, some fifteen papers a year over a decade. A broader
+query, “graphene” on its own, would show the steep growth the field is
+better known for, on a scale that runs into the offset ceiling discussed
+below.
 
 ## Where a niche sits
 
@@ -153,8 +226,10 @@ Here `field` leaves the third value untouched, since it already reads as
 a complete field-tagged expression, so a concept can be a synonym set
 rather than a single term.
 
-As above, the result has a fixed shape, which we reproduce here to show
-the plot. The lollipop chart uses a log-scale axis, so the small
+This one cannot be derived from a record set, because it counts whole
+literatures rather than the records in hand, so here the result is
+rebuilt in its own shape with illustrative counts, purely to show the
+plot. The lollipop chart uses a log-scale axis, so the small
 intersection stays legible beside its large parent fields, and the
 highlighted row draws the eye to the niche itself.
 
@@ -179,7 +254,7 @@ plot_scopus_intersections(sets, highlight = sets$label[sets$type == "intersectio
 
 ![A log-scale lollipop chart showing three concepts and a small
 intersection, with the intersection
-highlighted](analysing-a-literature_files/figure-html/unnamed-chunk-9-1.png)
+highlighted](analysing-a-literature_files/figure-html/unnamed-chunk-12-1.png)
 
 ## Reading the fuller record
 
@@ -192,28 +267,29 @@ is resilient, so an identifier that cannot be found yields a row of
 
 ``` r
 
-ab <- scopus_abstract(c("10.1038/nature14539", "10.1103/PhysRevLett.116.061102"))
+ab <- scopus_abstract(head(scopus_extract_dois(records), 2))
 ```
 
 The result is a tibble of class `scopus_abstracts`, one row per
-identifier. To show its shape without a key, here is a stand-in with the
-same columns. The `abstract` column holds prose far too wide to typeset
-whole, so the columns are listed by name and the identifying ones shown
-as a table.
+identifier. To show its shape without a key, here is a stand-in built
+from the two most-cited records of the corpus, which supplies every
+column but the abstract itself. The abstract is the one thing a live
+call adds and the corpus does not carry, so it is marked as a
+placeholder rather than invented, and the columns are listed by name
+because the prose is far too wide to typeset.
 
 ``` r
 
+top2 <- records[order(-records$citations), ][1:2, ]
 ab <- tibble::tibble(
-  id          = c("10.1038/nature14539", "10.1103/PhysRevLett.116.061102"),
-  scopus_id   = c("85060000001", "84960000002"),
-  doi         = c("10.1038/nature14539", "10.1103/PhysRevLett.116.061102"),
-  title       = c("Deep learning",
-                  "Observation of gravitational waves from a binary black hole merger"),
-  abstract    = c("Deep learning allows computational models that are ...",
-                  "On 14 September 2015 the two detectors of LIGO observed ..."),
-  publication = c("Nature", "Physical Review Letters"),
-  year        = c(2015L, 2016L),
-  citations   = c(42000L, 5400L)
+  id          = top2$doi,
+  scopus_id   = NA_character_,
+  doi         = top2$doi,
+  title       = top2$title,
+  abstract    = "<abstract text, as the API returns it>",
+  publication = top2$publication,
+  year        = top2$year,
+  citations   = top2$citations
 )
 class(ab) <- c("scopus_abstracts", class(ab))
 names(ab)
@@ -225,14 +301,8 @@ ab[, c("title", "publication", "year", "citations")]
 
 | title | publication | year | citations |
 |:---|:---|---:|---:|
-| Deep learning | Nature | 2015 | 42000 |
-| Observation of gravitational waves from a binary black hole merger | Physical Review Letters | 2016 | 5400 |
-
-``` r
-
-substr(ab$abstract[2], 1, 40)
-#> [1] "On 14 September 2015 the two detectors o"
-```
+| Graphene for batteries, supercapacitors and beyond | Nature Reviews Materials | 2016 | 1247 |
+| Flexible and Stackable Laser-Induced Graphene Supercapacitors | ACS Applied Materials & Interfaces | 2015 | 469 |
 
 ## Beyond five thousand records
 

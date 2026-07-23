@@ -122,10 +122,13 @@ is not drawn.</p>
 <div class="section level2">
 <h2 id="the-shape-of-the-result">The shape of the result<a class="anchor" aria-label="anchor" href="#the-shape-of-the-result"></a>
 </h2>
-<p>The result is a tidy table with one row per topic and year. We build
-one here with the same columns so the rest of the article runs without a
-key. The reference set grows over the period, which the uncertainty band
-will reflect.</p>
+<p>The result is a tidy table with one row per topic and year. A
+comparison counts whole literatures rather than the records in hand, so
+unlike a trend it cannot be derived from the corpus the package bundles
+for its other examples. The table below is rebuilt in the same shape,
+with illustrative counts, so the rest of the article runs without a key.
+The reference set grows over the period, which the uncertainty band will
+reflect.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">years</span> <span class="op">&lt;-</span> <span class="fl">2013</span><span class="op">:</span><span class="fl">2021</span></span>
 <span><span class="va">ref_n</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">400</span>, <span class="fl">1600</span>, length.out <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">years</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>

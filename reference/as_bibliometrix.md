@@ -40,13 +40,36 @@ with `bibliometrix::convert2df()`.
 ## Examples
 
 ``` r
-recs <- scopus_records(list(entry = list(
-  list(`dc:identifier` = "SCOPUS_ID:1", `prism:doi` = "10.1/a",
-       `dc:title` = "A study", `dc:creator` = "Doe J.",
-       `prism:publicationName` = "Journal", `prism:coverDate` = "2020-01-01",
-       `citedby-count` = "3")
-)))
-as_bibliometrix(recs)
-#>       AU      TI      SO     DI   PY TC UT     DB
-#> 1 DOE J. A STUDY JOURNAL 10.1/a 2020  3  1 SCOPUS
+# On the bundled corpus of real articles, which stands in for a retrieval
+# of your own because 'Scopus' records may not be redistributed.
+m <- as_bibliometrix(example_records)
+head(m[, c("AU", "TI", "PY", "SO", "TC", "DB")])
+#>               AU
+#> 1     JIANHUA YU
+#> 2 PATRICK R RICE
+#> 3    ZHIWEI PENG
+#> 4   VIKRANT SAHU
+#> 5 CHIH-TAO CHIEN
+#> 6       HAO YANG
+#>                                                                                                                                             TI
+#> 1 ENHANCED CAPACITIVE PROPERTIES OF ALL-SOLID-STATE SYMMETRIC GRAPHENE SUPERCAPACITORS BY INCORPORATING NITROGEN-DOPING AND SNO2 NANOPARTICLES
+#> 2                                                            FABRICATION AND CHARACTERIZATION OF A VERTICALLY-ORIENTED GRAPHENE SUPERCAPACITOR
+#> 3                                                                                FLEXIBLE AND STACKABLE LASER-INDUCED GRAPHENE SUPERCAPACITORS
+#> 4                                                                             HEAVILY NITROGEN DOPED, GRAPHENE SUPERCAPACITOR FROM SILK COCOON
+#> 5                                                                      GRAPHENE-BASED INTEGRATED PHOTOVOLTAIC ENERGY HARVESTING/STORAGE DEVICE
+#> 6                          NANOPOROUS GRAPHENE MATERIALS BY LOW-TEMPERATURE VACUUM-ASSISTED THERMAL PROCESS FOR ELECTROCHEMICAL ENERGY STORAGE
+#>     PY                                                                 SO  TC
+#> 1 2015                                     JOURNAL OF INORGANIC MATERIALS   1
+#> 2 2015 DIGITALCOMMONS - CALPOLY (CALIFORNIA STATE POLYTECHNIC UNIVERSITY)   0
+#> 3 2015                                 ACS APPLIED MATERIALS & INTERFACES 469
+#> 4 2015                                                ELECTROCHIMICA ACTA 195
+#> 5 2015                                                              SMALL 108
+#> 6 2015                                           JOURNAL OF POWER SOURCES  47
+#>       DB
+#> 1 SCOPUS
+#> 2 SCOPUS
+#> 3 SCOPUS
+#> 4 SCOPUS
+#> 5 SCOPUS
+#> 6 SCOPUS
 ```

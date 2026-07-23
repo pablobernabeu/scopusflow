@@ -40,11 +40,13 @@ short readable report.
 ## Examples
 
 ``` r
+# The bundled corpus of real articles stands in for a retrieval of your
+# own, since 'Scopus' records may not be redistributed.
 summary(example_records)
 #> <scopus_records> summary
-#> 6 records, from 2016 to 2021.
-#> 5 sources, 6 with a DOI.
-#> Cited 5505 times in total, median 299 per record.
-#> Most frequent source: Nature.
-#> Most cited: Observation of gravitational waves from a binary black hole merger.
+#> 138 records, from 2015 to 2024.
+#> 90 sources, 127 with a DOI.
+#> Cited 7015 times in total, median 24 per record.
+#> Most frequent source: ACS Applied Materials & Interfaces.
+#> Most cited: Graphene for batteries, supercapacitors and beyond.
 ```

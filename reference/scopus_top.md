@@ -46,22 +46,32 @@ at the cut-off rank may be dropped. The `by` choice is stored in the
 ## Examples
 
 ``` r
+# The bundled corpus of real articles stands in for a harvest of your own,
+# since 'Scopus' records may not be redistributed.
 scopus_top(example_records, by = "source")
-#> # A tibble: 5 × 2
-#>   value                       n
-#> * <chr>                   <int>
-#> 1 Nature                      2
-#> 2 Advanced Materials          1
-#> 3 Nature Climate Change       1
-#> 4 Physical Review Letters     1
-#> 5 The Lancet Oncology         1
+#> # A tibble: 10 × 2
+#>    value                                  n
+#>  * <chr>                              <int>
+#>  1 ACS Applied Materials & Interfaces     8
+#>  2 Journal of Power Sources               5
+#>  3 Synthetic Metals                       5
+#>  4 Electrochimica Acta                    4
+#>  5 Journal of Materials Chemistry A       4
+#>  6 Scientific Reports                     4
+#>  7 Journal of Alloys and Compounds        3
+#>  8 Journal of Energy Storage              3
+#>  9 Materials Chemistry and Physics        3
+#> 10 Nanotechnology                         3
+
+# That corpus names one author per article, so the author tally counts
+# first authors; a live harvest lists every author and splits them.
 scopus_top(example_records, by = "author", n = 5)
 #> # A tibble: 5 × 2
-#>   value         n
-#> * <chr>     <int>
-#> 1 Abbott B.     1
-#> 2 Garcia M.     1
-#> 3 Kumar S.      1
-#> 4 Okafor N.     1
-#> 5 Tanaka H.     1
+#>   value                 n
+#> * <chr>             <int>
+#> 1 Hao Yang              3
+#> 2 L. Ojeda              3
+#> 3 R. Mendoza            3
+#> 4 A.I. Mtz-Enríquez     2
+#> 5 Bin Wang              2
 ```

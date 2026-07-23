@@ -36,15 +36,21 @@ fixes the port when you need a stable address.
 ## Demo mode
 
 Demo mode is switched on when the app opens, so you can walk the whole
-flow with synthetic data and no key at all. With it on, the harvest is
-simulated, the live terminal still streams its per-cell progress, the
-tables and plots still render, and the Compare topics tab still draws a
-figure. It is the quickest way to learn where each control sits before
-you spend any quota. The synthetic records carry the same schema a real
-harvest returns, so every panel behaves as it will against the live API.
-When you are ready for real results, paste your Scopus key into the
-field at the top of the sidebar and switch Demo mode off. The key stays
-in the running session and is never written into the generated script.
+flow with no key at all. With it on, the harvest is simulated, the live
+terminal still streams its per-cell progress, the tables and plots still
+render, and the Compare topics tab still draws a figure. It is the
+quickest way to learn where each control sits before you spend any
+quota. The records come from `example_records`, the corpus of 138 real
+journal articles the package bundles because Scopus records may not be
+redistributed, so every panel is exercised on real titles, DOIs,
+journals and citation counts, and the by-year chart shows a real
+publication curve rather than a flat row of bars. That corpus spans 2015
+to 2024, so a year range reaching outside it is drawn from the nearest
+year it holds. Only the topic comparison is synthesised, since it counts
+whole literatures rather than the records in hand. When you are ready
+for real results, paste your Scopus key into the field at the top of the
+sidebar and switch Demo mode off. The key stays in the running session
+and is never written into the generated script.
 
 ## Describing and sizing a search
 
@@ -57,8 +63,8 @@ reasoning behind a partitioned
 in code. Check size runs a cheap count first, the same one
 [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md)
 performs, so you can see how much a query would retrieve before
-committing to it. In demo mode it reports how many synthetic records it
-would make instead.
+committing to it. In demo mode it reports how many records it would draw
+from the bundled corpus instead.
 
 ![The scopusflow sidebar as the app opens, with a Scopus API key field,
 a Demo mode checkbox switched on, the search terms “graphene
@@ -89,17 +95,18 @@ with a cache directory and resume turned on, so an interrupted or
 quota-limited run picks up where it left off.
 
 ![The Retrieval panel part-way through a demo-mode harvest. A note reads
-“Demo plan: 6 year-cells; would synthesise ~48 records”, a label reads
-“Fetching cell 4 of 6” above a progress bar at 50%, and the expanded
-Live terminal below shows four lines, one per completed cell, each
-reading “Cell n/6: synthesising graphene supercapacitor” with the
-year.](figures/app-terminal.png)
+“Demo plan: 6 year-cells; would draw 57 records from the bundled
+corpus”, a label reads “Fetching cell 4 of 6” above a progress bar at
+50%, and the expanded Live terminal below shows four lines, one per
+completed cell, each reading “Cell n/6: demo records for graphene
+supercapacitor” with the year.](figures/app-terminal.png)
 
 The Retrieval panel part-way through a demo-mode harvest. A note reads
-“Demo plan: 6 year-cells; would synthesise ~48 records”, a label reads
-“Fetching cell 4 of 6” above a progress bar at 50%, and the expanded
-Live terminal below shows four lines, one per completed cell, each
-reading “Cell n/6: synthesising graphene supercapacitor” with the year.
+“Demo plan: 6 year-cells; would draw 57 records from the bundled
+corpus”, a label reads “Fetching cell 4 of 6” above a progress bar at
+50%, and the expanded Live terminal below shows four lines, one per
+completed cell, each reading “Cell n/6: demo records for graphene
+supercapacitor” with the year.
 
 ## The reproducible code panel
 
@@ -143,13 +150,15 @@ a script, so the app shows you nothing you could not reproduce.
 
 ![The Results panel with tabs for Records, By year, Top sources, Top
 authors, Compare topics and Export. The By year tab is open, showing a
-bar chart of records per year from 2021 to 2026 drawn from the demo
-harvest.](figures/app-results.png)
+bar chart of records per year from 2021 to 2024 drawn from the demo
+harvest, the bars varying with the number of papers the bundled corpus
+holds for each year.](figures/app-results.png)
 
 The Results panel with tabs for Records, By year, Top sources, Top
 authors, Compare topics and Export. The By year tab is open, showing a
-bar chart of records per year from 2021 to 2026 drawn from the demo
-harvest.
+bar chart of records per year from 2021 to 2024 drawn from the demo
+harvest, the bars varying with the number of papers the bundled corpus
+holds for each year.
 
 ## Comparing topics
 

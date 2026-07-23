@@ -104,26 +104,19 @@ invisibly when <code>file</code> is supplied).</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fu">as_bibtex</span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">200</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> @article{zhang2019,</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   author = {Zhang F.},</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   title = {Genome editing with CRISPR-Cas9: principles and applications},</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   journal = {Nature},</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   year = {2019},</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   doi = {10.1038/s41586-019-0001-1},</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   note </span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># On the bundled corpus of real articles, which stands in for a retrieval</span></span></span>
+<span class="r-in"><span><span class="co"># of your own because 'Scopus' records may not be redistributed. Only the</span></span></span>
+<span class="r-in"><span><span class="co"># opening of each export is shown; pass `file` to write the whole set.</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fu">as_bibtex</span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">200</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> @article{jianhua2015,</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   author = {Jianhua Yu},</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   title = {Enhanced Capacitive Properties of All-solid-state Symmetric Graphene Supercapacitors by Incorporating Nitrogen-doping and SnO2 Nanoparticles},</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fu">as_ris</span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">200</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> TY  - JOUR</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> TI  - Genome editing with CRISPR-Cas9: principles and applications</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> AU  - Zhang F.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> PY  - 2019</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> JO  - Nature</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> DO  - 10.1038/s41586-019-0001-1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> N1  - Scopus ID: 85000000001</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ER  - </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> TY  - JOUR</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> TI </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> TI  - Enhanced Capacitive Properties of All-solid-state Symmetric Graphene Supercapacitors by Incorporating Nitrogen-doping and SnO2 Nanoparticles</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> AU  - Jianhua Yu</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> PY  - 2015</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> JO  - Journal </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -94,7 +94,13 @@
      left on, so they need no key and no network. Recapture them whenever the
      app's layout changes: unlike the figures in the other articles, which are
      drawn when the vignette is knitted, a static image of an interface drifts
-     silently. -->
+     silently.
+
+     OUTSTANDING: app-terminal.png and app-results.png still show the demo mode
+     as it was before it drew its records from the bundled example_records
+     corpus, so they carry the old size note and a row of identical by-year
+     bars. The alt text below describes the current behaviour; recapture both
+     images before the next site build. -->
 <p>Not every search starts in an editor. <code><a href="../reference/run_app.html">run_app()</a></code> opens a
 local Shiny app that drives the whole scopusflow workflow through a
 browser tab, from describing a search to exporting the records, without
@@ -126,16 +132,21 @@ stable address.</p>
 <h2 id="demo-mode">Demo mode<a class="anchor" aria-label="anchor" href="#demo-mode"></a>
 </h2>
 <p>Demo mode is switched on when the app opens, so you can walk the
-whole flow with synthetic data and no key at all. With it on, the
-harvest is simulated, the live terminal still streams its per-cell
-progress, the tables and plots still render, and the Compare topics tab
-still draws a figure. It is the quickest way to learn where each control
-sits before you spend any quota. The synthetic records carry the same
-schema a real harvest returns, so every panel behaves as it will against
-the live API. When you are ready for real results, paste your Scopus key
-into the field at the top of the sidebar and switch Demo mode off. The
-key stays in the running session and is never written into the generated
-script.</p>
+whole flow with no key at all. With it on, the harvest is simulated, the
+live terminal still streams its per-cell progress, the tables and plots
+still render, and the Compare topics tab still draws a figure. It is the
+quickest way to learn where each control sits before you spend any
+quota. The records come from <code>example_records</code>, the corpus of
+138 real journal articles the package bundles because Scopus records may
+not be redistributed, so every panel is exercised on real titles, DOIs,
+journals and citation counts, and the by-year chart shows a real
+publication curve rather than a flat row of bars. That corpus spans 2015
+to 2024, so a year range reaching outside it is drawn from the nearest
+year it holds. Only the topic comparison is synthesised, since it counts
+whole literatures rather than the records in hand. When you are ready
+for real results, paste your Scopus key into the field at the top of the
+sidebar and switch Demo mode off. The key stays in the running session
+and is never written into the generated script.</p>
 </div>
 <div class="section level2">
 <h2 id="describing-and-sizing-a-search">Describing and sizing a search<a class="anchor" aria-label="anchor" href="#describing-and-sizing-a-search"></a>
@@ -147,8 +158,8 @@ because it keeps each cell under the API’s offset ceiling, the same
 reasoning behind a partitioned <code><a href="../reference/scopus_plan.html">scopus_plan()</a></code> in code. Check
 size runs a cheap count first, the same one <code><a href="../reference/scopus_count.html">scopus_count()</a></code>
 performs, so you can see how much a query would retrieve before
-committing to it. In demo mode it reports how many synthetic records it
-would make instead.</p>
+committing to it. In demo mode it reports how many records it would draw
+from the bundled corpus instead.</p>
 <div class="float">
 <img src="figures/app-sidebar.png" alt="The scopusflow sidebar as the app opens, with a Scopus API key field, a Demo mode checkbox switched on, the search terms “graphene supercapacitor”, a Search in selector reading “Title, abstract, keywords”, a Partition by year checkbox, a year-range slider set to 2021 to 2026, a STANDARD or COMPLETE detail choice, a maximum records per year field, and the Check size, Fetch records and Cancel buttons."><div class="figcaption">The scopusflow sidebar as the app opens, with a
 Scopus API key field, a Demo mode checkbox switched on, the search terms
@@ -172,12 +183,12 @@ stops the run cleanly. Under the surface the app builds a
 turned on, so an interrupted or quota-limited run picks up where it left
 off.</p>
 <div class="float">
-<img src="figures/app-terminal.png" alt="The Retrieval panel part-way through a demo-mode harvest. A note reads “Demo plan: 6 year-cells; would synthesise ~48 records”, a label reads “Fetching cell 4 of 6” above a progress bar at 50%, and the expanded Live terminal below shows four lines, one per completed cell, each reading “Cell n/6: synthesising graphene supercapacitor” with the year."><div class="figcaption">The Retrieval panel part-way through a demo-mode
-harvest. A note reads “Demo plan: 6 year-cells; would synthesise ~48
-records”, a label reads “Fetching cell 4 of 6” above a progress bar at
-50%, and the expanded Live terminal below shows four lines, one per
-completed cell, each reading “Cell n/6: synthesising graphene
-supercapacitor” with the year.</div>
+<img src="figures/app-terminal.png" alt="The Retrieval panel part-way through a demo-mode harvest. A note reads “Demo plan: 6 year-cells; would draw 57 records from the bundled corpus”, a label reads “Fetching cell 4 of 6” above a progress bar at 50%, and the expanded Live terminal below shows four lines, one per completed cell, each reading “Cell n/6: demo records for graphene supercapacitor” with the year."><div class="figcaption">The Retrieval panel part-way through a demo-mode
+harvest. A note reads “Demo plan: 6 year-cells; would draw 57 records
+from the bundled corpus”, a label reads “Fetching cell 4 of 6” above a
+progress bar at 50%, and the expanded Live terminal below shows four
+lines, one per completed cell, each reading “Cell n/6: demo records for
+graphene supercapacitor” with the year.</div>
 </div>
 </div>
 <div class="section level2">
@@ -214,10 +225,11 @@ and Top authors tally the most frequent of each with
 figure is drawn by the same library functions you would call from a
 script, so the app shows you nothing you could not reproduce.</p>
 <div class="float">
-<img src="figures/app-results.png" alt="The Results panel with tabs for Records, By year, Top sources, Top authors, Compare topics and Export. The By year tab is open, showing a bar chart of records per year from 2021 to 2026 drawn from the demo harvest."><div class="figcaption">The Results panel with tabs for Records, By
+<img src="figures/app-results.png" alt="The Results panel with tabs for Records, By year, Top sources, Top authors, Compare topics and Export. The By year tab is open, showing a bar chart of records per year from 2021 to 2024 drawn from the demo harvest, the bars varying with the number of papers the bundled corpus holds for each year."><div class="figcaption">The Results panel with tabs for Records, By
 year, Top sources, Top authors, Compare topics and Export. The By year
-tab is open, showing a bar chart of records per year from 2021 to 2026
-drawn from the demo harvest.</div>
+tab is open, showing a bar chart of records per year from 2021 to 2024
+drawn from the demo harvest, the bars varying with the number of papers
+the bundled corpus holds for each year.</div>
 </div>
 </div>
 <div class="section level2">
