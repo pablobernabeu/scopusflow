@@ -22,9 +22,12 @@ a later retrieval. This supports change tracking: re-running a search later
 and seeing exactly what is new.
 }
 \examples{
-old <- c("10.1/a", "10.1/b")
-new <- c("10.1/b", "10.1/c")
-scopus_diff_dois(old, new)
+# A baseline retrieval and the same search re-run a year later, both taken
+# from the bundled corpus of real articles: the second pull has gained the
+# 2024 records and lost the first one to re-indexing.
+baseline <- example_records[example_records$year <= 2023, ]
+later <- example_records[-1, ]
+scopus_diff_dois(old = baseline, new = later)
 }
 \seealso{
 \code{\link[=scopus_extract_dois]{scopus_extract_dois()}}

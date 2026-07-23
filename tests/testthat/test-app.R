@@ -102,16 +102,30 @@ test_that("app_code_mirror skips the comparison block without terms or years", {
                                      compare_terms = "a"), fixed = TRUE))
 })
 
-test_that("app_demo_records builds a valid records object spanning the years", {
+test_that("app_demo_records draws real records spanning the years", {
   recs <- app_demo_records(2019:2021)
   expect_s3_class(recs, "scopus_records")
-  expect_equal(nrow(recs), 3L * 8L)             # eight records per year
+  expect_equal(nrow(recs), sum(example_records$year %in% 2019:2021))
   expect_setequal(unique(recs$year), 2019:2021)
+  # A per-year cap applies as `max_results` does to a real cell.
+  expect_equal(nrow(app_demo_records(2019:2021, max_per_year = 4)), 12L)
   expect_true(all(c("title", "authors", "publication", "citations") %in% names(recs)))
-  expect_false(anyNA(recs$publication))
-  # The plots and exports built on the schema accept it.
-  expect_s3_class(scopus_top(recs, by = "source"), "data.frame")
+  # Every row is a record of the bundled corpus, not a fabricated one.
+  expect_true(all(recs$title %in% example_records$title))
+  # The panels the demo advertises have something to show: the by-year chart
+  # varies rather than drawing identical bars, and the source tally has an
+  # unambiguous top row.
+  expect_gt(length(unique(table(recs$year))), 1L)
+  top <- scopus_top(recs, by = "source")
+  expect_s3_class(top, "data.frame")
+  expect_gt(top$n[1], top$n[nrow(top)])
   expect_true(nchar(as_bibtex(recs)) > 0)
+})
+
+test_that("app_demo_records clamps years to the bundled corpus span", {
+  span <- range(example_records$year)
+  recs <- app_demo_records(c(span[1] - 5L, span[2] + 5L))
+  expect_setequal(unique(recs$year), span)
 })
 
 test_that("app_demo_comparison mirrors a real comparison object", {

@@ -96,47 +96,53 @@
 #' @seealso [scopus_fetch()], [scopus_extract_dois()], [scopus_corpus()] to
 #'   assemble a minimal keyword/reference corpus across many documents.
 #' @examplesIf scopusflow::scopus_has_key()
-#' scopus_abstract("10.1103/PhysRevLett.116.061102")
+#' # One record of the bundled corpus, looked up for real.
+#' scopus_abstract(scopus_extract_dois(example_records)[1])
 #'
 #' # Author keywords and a structured reference list, in the same request.
 #' # Costs one Abstract Retrieval request per identifier, against a smaller,
 #' # separate weekly quota from Search; see the API access section above for
 #' # the entitlement this needs.
 #' rich <- scopus_abstract(
-#'   "10.1038/nature14539",
+#'   "10.1038/natrevmats.2016.33",
 #'   view = "FULL", include = c("references", "keywords")
 #' )
 #' rich$references[[1]]
 #' @examples
-#' # The shape of the return value, built offline so it runs without a key.
+#' # The offline companion, which needs no key. The identifiers, titles,
+#' # sources and citation counts are two records of the bundled corpus of real
+#' # articles; the abstract text is what a live call adds, so it is left unset
+#' # here rather than invented, as is the 'Scopus' identifier the corpus does
+#' # not carry.
+#' cited <- example_records[order(-example_records$citations), ][1:2, ]
 #' abstracts <- tibble::tibble(
-#'   id = c("10.1038/nature14539", "10.1126/science.abc1234"),
-#'   scopus_id = c("84930630277", "85082345678"),
-#'   doi = c("10.1038/nature14539", "10.1126/science.abc1234"),
-#'   title = c("Deep learning", "Porous carbon electrodes at scale"),
-#'   abstract = c("Deep learning allows computational models composed of",
-#'                "A scalable route to porous carbon electrodes is described,"),
-#'   publication = c("Nature", "Science"),
-#'   year = c(2015L, 2020L),
-#'   citations = c(48213L, 88L)
+#'   id = cited$doi,
+#'   scopus_id = NA_character_,
+#'   doi = cited$doi,
+#'   title = cited$title,
+#'   abstract = NA_character_,
+#'   publication = cited$publication,
+#'   year = cited$year,
+#'   citations = cited$citations
 #' )
 #' class(abstracts) <- c("scopus_abstracts", class(abstracts))
 #' abstracts
 #'
 #' # A reference list arrives as one data frame per document, in the
-#' # `references` list-column added by include = "references".
+#' # `references` list-column added by include = "references". The corpus
+#' # carries no bibliographies, so its own records fill the columns here,
+#' # standing in for the works the first document cites.
+#' refs <- example_records[1:3, ]
 #' abstracts$references <- list(
 #'   tibble::tibble(
-#'     position = c("1", "2"),
-#'     id = c("84878919540", "84876258641"),
-#'     doi = c("10.1000/imagenet", "10.1109/TPAMI.2012.231"),
-#'     title = c("ImageNet classification with deep convolutional networks",
-#'               "Learning hierarchical features for scene labeling"),
-#'     authors = c("Krizhevsky, A.; Sutskever, I.; Hinton, G.",
-#'                 "Farabet, C.; Couprie, C.; Najman, L.; LeCun, Y."),
-#'     sourcetitle = c("Adv. Neural Inf. Process. Syst.",
-#'                     "IEEE Trans. Pattern Anal. Mach. Intell."),
-#'     publicationyear = c("2012", "2013")
+#'     position = as.character(seq_len(nrow(refs))),
+#'     id = NA_character_,
+#'     doi = refs$doi,
+#'     title = refs$title,
+#'     authors = refs$authors,
+#'     source = refs$publication,
+#'     year = refs$year,
+#'     citedbycount = refs$citations
 #'   ),
 #'   tibble::tibble()
 #' )

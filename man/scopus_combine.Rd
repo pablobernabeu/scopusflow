@@ -28,8 +28,19 @@ the safe way to merge separate fetches: plain \code{rbind()} would leave duplica
 entry numbers, and \code{c()} would return a list.
 }
 \examples{
-# Merging a set with itself and de-duplicating recovers the distinct records.
-scopus_combine(example_records, example_records, dedupe = TRUE)
+# A baseline retrieval and a later one, merged into a cumulative set. The
+# bundled corpus of real articles stands in for both, since 'Scopus'
+# records may not be redistributed.
+baseline <- example_records[example_records$year <= 2023, ]
+later <- example_records
+combined <- scopus_combine(baseline, later, dedupe = TRUE)
+nrow(combined)
+
+# Those records carry no 'Scopus' identifier, so de-duplication falls back
+# to the DOI. The eleven that arrived without one cannot be matched, and so
+# survive in both copies, which is why 138 distinct articles come back as
+# 149 rows.
+sum(is.na(example_records$doi))
 }
 \seealso{
 \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}, which combines plan cells the same way.

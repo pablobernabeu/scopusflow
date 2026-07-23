@@ -130,34 +130,28 @@ app_args <- function(args) {
   paste0("\n  ", paste(args, collapse = ",\n  "), "\n")
 }
 
-# Synthesise a set of records of the stable schema, so the whole app flow (table,
-# plots, export) works offline with no key. Mirrors the Python app's _demo_rows /
-# _demo_worker: eight records per requested year, drawn from a fixed pool of
-# sources and authors so the by-year and top-source/author plots have structure.
-app_demo_records <- function(years) {
-  years <- if (is.null(years) || length(years) == 0L) 2020L else sort(unique(as.integer(years)))
-  sources <- c("Nature", "Science", "Carbon", "Nano Letters", "Advanced Materials")
-  authors <- c("Lee J.", "Park S.", "Kim H.", "Garcia M.", "Zhang F.", "Abbott B.")
-  rows <- list()
-  for (y in years) {
-    for (j in seq_len(8L)) {
-      ai <- ((j - 1L) %% length(authors)) + 1L
-      ai2 <- (ai %% length(authors)) + 1L
-      rows[[length(rows) + 1L]] <- data.frame(
-        scopus_id = sprintf("%d%03d", y, j),
-        doi = sprintf("10.1000/demo.%d.%03d", y, j),
-        title = sprintf("Demonstration record %d from %d", j, y),
-        authors = paste(authors[ai], authors[ai2], sep = "; "),
-        year = as.integer(y),
-        date = sprintf("%d-01-01", y),
-        publication = sources[((y + j) %% length(sources)) + 1L],
-        citations = as.integer((j * 7L + y) %% 120L),
-        query = "demo",
-        stringsAsFactors = FALSE
-      )
-    }
+# Assemble the demo record set, so the whole app flow (table, plots, export)
+# works offline with no key. It draws on the bundled `example_records` rather
+# than fabricating rows, as the Python app's _demo_rows does, so every panel is
+# exercised on real titles, DOIs, journals and citation counts, and the by-year
+# chart shows that query's real publication curve rather than a row of identical
+# bars. Requested years outside the corpus span are clamped into it, and
+# `max_per_year` caps each year exactly as `max_results` caps a real cell.
+app_demo_records <- function(years, max_per_year = Inf) {
+  span <- range(example_records$year)
+  years <- if (is.null(years) || length(years) == 0L) span[2L] else as.integer(years)
+  years <- sort(unique(pmin(pmax(years, span[1L]), span[2L])))
+  n_max <- if (is.numeric(max_per_year) && length(max_per_year) == 1L &&
+               is.finite(max_per_year) && max_per_year >= 1) {
+    as.integer(max_per_year)
+  } else {
+    NA_integer_
   }
-  df <- do.call(rbind, rows)
+  parts <- lapply(years, function(y) {
+    cell <- example_records[example_records$year == y, , drop = FALSE]
+    if (is.na(n_max)) cell else utils::head(cell, n_max)
+  })
+  df <- do.call(rbind, lapply(parts, as.data.frame))
   df$entry_number <- seq_len(nrow(df))
   cols <- c("entry_number", "scopus_id", "doi", "title", "authors", "year",
             "date", "publication", "citations", "query")

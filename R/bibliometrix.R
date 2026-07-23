@@ -18,13 +18,10 @@
 #' CSV or BibTeX file from the web interface and read it with
 #' `bibliometrix::convert2df()`.
 #' @examples
-#' recs <- scopus_records(list(entry = list(
-#'   list(`dc:identifier` = "SCOPUS_ID:1", `prism:doi` = "10.1/a",
-#'        `dc:title` = "A study", `dc:creator` = "Doe J.",
-#'        `prism:publicationName` = "Journal", `prism:coverDate` = "2020-01-01",
-#'        `citedby-count` = "3")
-#' )))
-#' as_bibliometrix(recs)
+#' # On the bundled corpus of real articles, which stands in for a retrieval
+#' # of your own because 'Scopus' records may not be redistributed.
+#' m <- as_bibliometrix(example_records)
+#' head(m[, c("AU", "TI", "PY", "SO", "TC", "DB")])
 #' @export
 as_bibliometrix <- function(x) {
   if (!is_scopus_records(x)) {

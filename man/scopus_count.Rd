@@ -54,10 +54,13 @@ lets a workflow handle these gracefully.
 
 \examples{
 \dontshow{if (scopusflow::scopus_has_key()) withAutoprint(\{ # examplesIf}
-scopus_count("CRISPR", years = 2015:2020, field = "TITLE-ABS-KEY")
+scopus_count("graphene supercapacitor", years = 2015:2024,
+             field = "TITLE-ABS-KEY")
 \dontshow{\}) # examplesIf}
-# The shape of the return value, built offline so it runs without a key.
-# The quota attribute is parsed from real response headers by scopus_quota(),
+# The offline companion, which needs no key: one number with the parsed
+# quota attached. The bundled corpus of real articles is a complete harvest
+# of its own query, so its row count is the total that query returned. The
+# quota attribute is parsed from real response headers by scopus_quota(),
 # so it cannot drift from what a live call attaches.
 resp <- httr2::response(
   status_code = 200,
@@ -67,7 +70,7 @@ resp <- httr2::response(
     `X-RateLimit-Reset` = "1700000000"
   )
 )
-n <- 12483
+n <- nrow(example_records)
 attr(n, "quota") <- scopus_quota(resp)
 n
 }

@@ -34,16 +34,23 @@ records. Because DOIs are case-insensitive, comparison and deduplication
 ignore case, while the output keeps the original casing.
 }
 \examples{
-recs <- scopus_records(list(entry = list(
-  list(`prism:doi` = "10.1/AAA"),
-  list(`prism:doi` = "https://doi.org/10.1/aaa"),
-  list(`prism:doi` = NULL)
-)))
-scopus_extract_dois(recs)
+# The bundled corpus of real articles stands in for a harvest of your own,
+# since 'Scopus' records may not be redistributed.
+dois <- scopus_extract_dois(example_records)
+length(dois)
+head(dois, 3)
+
+# Eleven of its 138 records arrived without a DOI, as records do, and so
+# drop out of the list.
+sum(is.na(example_records$doi))
+
+# The same cleaning applies to a bare vector, so a resolver prefix or a
+# difference in case does not make one article look like two.
+scopus_extract_dois(c("https://doi.org/10.1/A", "doi: 10.1/a", "10.2/B"))
 
 # Write to a temporary file (never the working directory).
 path <- tempfile(fileext = ".csv")
-scopus_extract_dois(recs, file = path)
+scopus_extract_dois(example_records, file = path)
 }
 \seealso{
 \code{\link[=scopus_diff_dois]{scopus_diff_dois()}} to compare two retrievals.

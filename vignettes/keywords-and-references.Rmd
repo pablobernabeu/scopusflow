@@ -27,11 +27,14 @@ its own reference list. This walks through retrieving both, what each costs,
 and what your 'Scopus' entitlement needs to cover.
 
 The API calls below are shown exactly as you would run them with a configured
-key. Because a key is not available when the site and the package are built,
-each call is paired with its output reproduced from one representative example,
-the 2015 *Nature* review "Deep learning", assembled offline. The vignette
-therefore renders the same with or without a key, and `scopus_has_key()` is the
-switch you would use to run the calls for real.
+key. No key is available when the site and the package are built, and Elsevier's
+terms do not permit redistributing retrieved records in any case, so each call is
+paired with its output assembled offline from one representative example, the
+2015 *Nature* review "Deep learning". The corpus of real articles that the other
+articles run on carries neither author keywords nor reference lists, the two
+fields this one is about, so it cannot stand in here. The vignette therefore
+renders the same with or without a key, and `scopus_has_key()` is the switch you
+would use to run the calls for real.
 
 ```{r setup}
 library(scopusflow)
@@ -53,12 +56,14 @@ recs$authkeywords
 ```{r, include = FALSE}
 # Representative COMPLETE-view result, assembled offline. authkeywords is the
 # single string scopus_fetch() returns under view = "COMPLETE", one element
-# per record, in Scopus' own " | "-delimited form.
+# per record, in Scopus' own " | "-delimited form. The bibliographic fields are
+# the document's own; the 'Scopus' identifier and citation count are left NA
+# rather than guessed at, since nothing on the page prints them.
 recs <- tibble::tibble(
-  entry_number = 1L, scopus_id = "85000000001", doi = "10.1038/nature14539",
+  entry_number = 1L, scopus_id = NA_character_, doi = "10.1038/nature14539",
   title = "Deep learning", authors = "LeCun Y.; Bengio Y.; Hinton G.",
   year = 2015L, date = "2015-05-28", publication = "Nature",
-  citations = 60000L,
+  citations = NA_integer_,
   authkeywords = "deep learning | neural networks | representation learning | backpropagation"
 )
 ```
@@ -96,7 +101,9 @@ ab$references[[1]][, c("title", "authors", "source", "year")]
 # the same n_requests / quota attributes the function attaches.
 refs <- tibble::tibble(
   position = as.character(1:4),
-  id = c("85000000010", "85000000011", "85000000012", "85000000013"),
+  # The 'Scopus' identifier of each cited work is left NA, as it is whenever
+  # the API does not resolve one, rather than invented for the illustration.
+  id = NA_character_,
   doi = c("10.1109/5.726791", "10.1038/nature14236", NA, NA),
   title = c(
     "Gradient-based learning applied to document recognition",
@@ -115,7 +122,9 @@ refs <- tibble::tibble(
     "Advances in Neural Information Processing Systems", "Nature"
   ),
   year = c(1998L, 2015L, 2012L, 1986L),
-  citedbycount = c(46000L, 21000L, 110000L, 30000L)
+  # NA is what view = "FULL" actually returns for this column; only view =
+  # "REF" populates a cited work's own citation count.
+  citedbycount = NA_integer_
 )
 ab <- tibble::tibble(
   id = "10.1038/nature14539",

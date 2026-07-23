@@ -138,10 +138,12 @@ scopus_cache_clear()  # remove them, so the next run re-fetches from scratch
 ```
 
 The result is a `scopus_records` tibble, the same shape returned by
-`scopus_fetch()` for a single query and by the bundled `example_records`.
+`scopus_fetch()` for a single query. Without a key, the bundled
+`example_records` stands in for it: 138 real journal articles in that same
+schema, shipped because Scopus records may not be redistributed.
 
 ```{r}
-example_records
+head(example_records)
 ```
 
 ## Watching progress
@@ -159,11 +161,22 @@ A line is reported as each cell is fetched or loaded from cache.
 
 Results gathered in separate runs combine safely with `scopus_combine()`, which
 renumbers the records and can drop duplicates by Scopus identifier or DOI. This
-is preferable to `rbind()`, which would leave duplicate entry numbers.
+is preferable to `rbind()`, which would leave duplicate entry numbers. Here a
+baseline retrieval that stopped at 2023 is merged with a later one covering the
+whole period.
 
 ```{r}
-scopus_combine(example_records, example_records, dedupe = TRUE)
+baseline <- example_records[example_records$year <= 2023, ]
+combined <- scopus_combine(baseline, example_records, dedupe = TRUE)
+nrow(combined)
 ```
+
+The 138 distinct articles come back as 149 rows, which is worth understanding
+rather than working around. De-duplication needs something to match on. These
+records carry no Scopus identifier, not having come from Scopus, so it falls
+back to the DOI, and the eleven that arrived without one cannot be matched to
+their own copies. A live Scopus harvest carries an identifier on every record,
+so the same call would return 138.
 
 ## When the ceiling bites
 

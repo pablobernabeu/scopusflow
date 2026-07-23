@@ -25,9 +25,20 @@ local({
 library(scopusflow)
 ```
 
-This vignette is fully reproducible without a Scopus API key. It draws on a small
-static fixture bundled with the package, so the whole workflow can be shown
-offline. The few steps that genuinely need the API are shown but not run.
+This vignette is fully reproducible without a Scopus API key. Elsevier's API
+terms do not permit redistributing retrieved records, so no package can ship a
+genuine Scopus harvest, and scopusflow bundles an openly licensed stand-in
+instead. `example_records` holds 138 real journal articles on graphene
+supercapacitors published between 2015 and 2024, with their real titles, DOIs,
+journals, first authors and citation counts. They come from OpenAlex, whose
+metadata is released under CC0, reshaped into the schema a retrieval returns.
+The harvest is complete rather than sampled, so its rows per year are the real
+number of publications per year for that query, and its gaps are genuine too:
+eleven records carry no DOI and two no source title, exactly as they arrive.
+Running the equivalent query against Scopus yields the same kind of object, with
+the same columns and the same handling, though not an identical set of records.
+The steps that genuinely need the API are shown but not run, each paired with
+the offline equivalent.
 
 ## Describing a search as a plan
 
@@ -36,10 +47,13 @@ saveable and version-controllable, and they can be partitioned, for example by
 year, so that a large retrieval stays under the API's `start < 5000` ceiling and
 can be cached and resumed.
 
+The plan below describes the search the bundled records came from, so the rest
+of the article follows one worked example from description to export.
+
 ```{r}
 plan <- scopus_plan(
-  "machine translation",
-  years     = 2018:2020,
+  "graphene supercapacitor",
+  years     = 2015:2024,
   field     = "TITLE-ABS-KEY",
   partition = "year"
 )
@@ -72,48 +86,53 @@ optionally caching each cell so that an interrupted run resumes without
 re-spending quota. These contact the API, so they are not evaluated here:
 
 ```{r eval = FALSE}
-scopus_count("machine translation", years = 2018:2020, field = "TITLE-ABS-KEY")
+scopus_count("graphene supercapacitor", years = 2015:2024, field = "TITLE-ABS-KEY")
 
 records <- scopus_fetch_plan(plan, cache_dir = scopus_cache_dir(), resume = TRUE)
 ```
 
+Without a key, the bundled corpus stands in for the result of that harvest, and
+the sections below run on it.
+
 ## The record schema
 
-Whether records come from the API or from the bundled example data, they share
-one stable schema. The package ships a small, already normalised set, which we
-use here to continue offline:
+Whether records come from the API or from the bundled corpus, they share one
+stable schema, so everything below would read the same on a harvest of your
+own. `summary()` takes stock of a set, and the first rows show the columns:
 
 ```{r}
 records <- example_records
-records
+summary(records)
+
+head(records)
 
 # A record set is a classed tibble; is_scopus_records() confirms the contract.
 is_scopus_records(records)
 ```
 
 `scopus_records()` produces this same shape from a raw API response, flattening
-the nested result into one row per record:
+the nested result into one row per record. The entry below carries the fields of
+a real article, one of those in the bundled corpus, in the form the API returns
+them:
 
 ```{r}
-# A couple of records in the shape the Scopus API returns them.
 raw <- list(entry = list(
-  list(`dc:identifier` = "SCOPUS_ID:1", `prism:doi` = "10.1000/aaa",
-       `dc:title` = "A reproducible workflow", `dc:creator` = "Smith J.",
-       `prism:publicationName` = "J. Bibliometrics",
-       `prism:coverDate` = "2020-05-01", `citedby-count` = "12"),
-  list(`dc:identifier` = "SCOPUS_ID:2", `prism:doi` = "10.1000/bbb",
-       `dc:title` = "Quota-aware querying", `dc:creator` = "Doe A.",
-       `prism:publicationName` = "Scientometrics Today",
-       `prism:coverDate` = "2021-01-10", `citedby-count` = "3")
+  list(`prism:doi` = "10.1021/am509065d",
+       `dc:title` = "Flexible and Stackable Laser-Induced Graphene Supercapacitors",
+       `dc:creator` = "Zhiwei Peng",
+       `prism:publicationName` = "ACS Applied Materials & Interfaces",
+       `prism:coverDate` = "2015-01-13", `citedby-count` = "469")
 ))
-scopus_records(raw, query = "TITLE-ABS-KEY(workflow)")
+scopus_records(raw, query = "TITLE-ABS-KEY(graphene supercapacitor)")
 ```
 
 ## Most frequent sources and authors
 
 A record set already answers the first descriptive questions. `scopus_top()`
 tallies the most frequent sources or authors, counting each contributor once
-per record:
+per record. Across these 138 articles the tally is long-tailed, as a real
+literature is. They are spread over 90 distinct journals, and only one, *ACS
+Applied Materials & Interfaces*, appears more than five times.
 
 ```{r}
 scopus_top(records, by = "source")
@@ -125,15 +144,23 @@ top-author plots and abstract retrieval in depth.
 ## DOIs and change tracking
 
 Extract a clean, deduplicated DOI list for import into a reference manager, and
-compare two retrievals to see exactly what changed:
+compare two retrievals to see exactly what changed. Eleven of the 138 records
+arrived without a DOI, so 127 come back:
 
 ```{r}
 dois <- scopus_extract_dois(records)
-dois
+length(dois)
+head(dois, 4)
+```
 
-# Suppose a later retrieval added one DOI and dropped another.
-later <- c(dois[-1], "10.1000/example.999")
-scopus_diff_dois(old = dois, new = later)
+A search re-run later gains records and occasionally loses one to re-indexing.
+Here the baseline stops at 2023 and the second pull adds the 2024 articles while
+dropping the first record:
+
+```{r}
+baseline <- records[records$year <= 2023, ]
+later <- records[-1, ]
+print(scopus_diff_dois(old = baseline, new = later))
 ```
 
 You can write the DOIs to a path you specify, and read the file back to see
@@ -142,7 +169,7 @@ exactly what lands on disk:
 ```{r, comment = "", collapse = FALSE}
 out <- file.path(tempdir(), "dois.csv")
 scopus_extract_dois(records, file = out)
-writeLines(readLines(out))
+writeLines(head(readLines(out), 5))
 ```
 
 ## Comparing topic trends
@@ -181,7 +208,8 @@ search; `vignette("keywords-and-references")` walks through both, and
 Hand results to `bibliometrix`-style workflows, or save and reload them:
 
 ```{r}
-head(as_bibliometrix(records))
+m <- as_bibliometrix(records)
+head(m[, c("AU", "TI", "PY", "SO", "TC")])
 
 path <- file.path(tempdir(), "records.rds")
 write_scopus_records(records, path)

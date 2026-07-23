@@ -55,15 +55,19 @@ internet access; see the \emph{API access} section of \code{\link[=scopus_count]
 
 \examples{
 \dontshow{if (scopusflow::scopus_has_key()) withAutoprint(\{ # examplesIf}
-tr <- scopus_trend("graphene", years = 2010:2020, field = "TITLE-ABS-KEY")
+tr <- scopus_trend("graphene supercapacitor", years = 2015:2024,
+                   field = "TITLE-ABS-KEY")
 tr
 \dontshow{\}) # examplesIf}
-# The shape of the return value, built offline so it runs without a key.
-years <- 2010:2020
+# The offline companion, which needs no key. 'Scopus' records may not be
+# redistributed, so the package bundles a corpus of real articles instead;
+# it is a complete harvest of its own query, so tallying its rows by year
+# reproduces the yearly counts that query returns.
+by_year <- table(example_records$year)
 tr <- tibble::tibble(
-  query = "TITLE-ABS-KEY(graphene)",
-  year = years,
-  n = c(1900, 3400, 5200, 7100, 9000, 10400, 11800, 12600, 13500, 14100, 14800)
+  query = "TITLE-ABS-KEY(graphene supercapacitor)",
+  year = as.integer(names(by_year)),
+  n = as.numeric(by_year)
 )
 class(tr) <- c("scopus_trend", class(tr))
 tr

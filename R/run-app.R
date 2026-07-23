@@ -22,15 +22,16 @@ app_fetch_worker <- function(query, years, field, view, partition,
 
 # The demo worker simulates a harvest in a fresh background session: it streams
 # per-cell progress (so the live terminal and progress bar behave exactly as in a
-# real run) and returns the synthetic records it was handed. The records are
-# built in the parent (by app_demo_records()) and passed in, so the worker needs
-# no package on the child. Mirrors the Python app's _demo_worker.
+# real run) and returns the records it was handed. Those come from the bundled
+# corpus and are drawn in the parent (by app_demo_records()) and passed in, so
+# the worker needs no package on the child. Mirrors the Python app's
+# _demo_worker.
 app_demo_fetch_worker <- function(query, years, records) {
   options(cli.num_colors = 256L, cli.default_num_colors = 256L, crayon.enabled = TRUE)
   yrs <- if (is.null(years)) 0L else years
   total <- length(yrs)
   for (i in seq_along(yrs)) {
-    cat(sprintf("Cell %d/%d: synthesising %s (%s)\n", i, total, query, yrs[i]))
+    cat(sprintf("Cell %d/%d: demo records for %s (%s)\n", i, total, query, yrs[i]))
     flush(stdout())
     Sys.sleep(0.5)
   }
@@ -242,9 +243,15 @@ app_server <- function(input, output, session) {
   shiny::observeEvent(input$count, {
     if (isTRUE(input$demo)) {
       ncells <- if (isTRUE(input$use_years)) length(years_value()) else 1L
+      # Derived from the same function the demo harvest uses, since each year of
+      # the bundled corpus holds a different number of records.
+      nrecs <- nrow(app_demo_records(
+        if (isTRUE(input$use_years)) years_value() else NULL,
+        max_per_year = max_value()
+      ))
       rv$size_note <- sprintf(
-        "Demo plan: %d %s; would synthesise ~%d records.",
-        ncells, if (ncells == 1L) "cell" else "year-cells", ncells * 8L)
+        "Demo plan: %d %s; would draw %d records from the bundled corpus.",
+        ncells, if (ncells == 1L) "cell" else "year-cells", nrecs)
       return()
     }
     if (is.null(api_key())) {
@@ -310,7 +317,8 @@ app_server <- function(input, output, session) {
       callr::r_bg(
         func = app_demo_fetch_worker,
         args = list(query = input$query, years = years_value(),
-                    records = app_demo_records(years_value())),
+                    records = app_demo_records(years_value(),
+                                               max_per_year = max_value())),
         stdout = logfile, stderr = "2>&1", supervise = TRUE
       )
     } else {
@@ -630,8 +638,9 @@ nzchar_or_null <- function(x) {
 #' Starts a local, code-free Shiny app for building a search, retrieving records,
 #' comparing topic trends and exporting the results, with a live terminal that
 #' streams the retrieval's progress and a panel that mirrors every choice as
-#' runnable R code. A *Demo mode* (on by default) synthesises records and a topic
-#' comparison so the whole workflow can be explored with no key and no network;
+#' runnable R code. A *Demo mode* (on by default) draws records from the bundled
+#' [example_records] corpus and synthesises a topic comparison, so the whole
+#' workflow can be explored with no key and no network;
 #' switch it off and supply a key to query 'Scopus' for real. The app runs on your
 #' own machine: your API key never leaves it, and requests originate from your own
 #' network, which is what the 'Scopus' API expects. It needs the suggested

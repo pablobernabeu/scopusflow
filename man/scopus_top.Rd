@@ -27,7 +27,12 @@ Tallies the most common sources or authors across a \link{scopus_records} object
 It works on records already in memory, so it makes no network request.
 }
 \examples{
+# The bundled corpus of real articles stands in for a harvest of your own,
+# since 'Scopus' records may not be redistributed.
 scopus_top(example_records, by = "source")
+
+# That corpus names one author per article, so the author tally counts
+# first authors; a live harvest lists every author and splits them.
 scopus_top(example_records, by = "author", n = 5)
 }
 \seealso{

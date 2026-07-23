@@ -26,5 +26,7 @@ have been cited. It is a convenient way to take stock of a retrieval before
 any closer analysis.
 }
 \examples{
+# The bundled corpus of real articles stands in for a retrieval of your
+# own, since 'Scopus' records may not be redistributed.
 summary(example_records)
 }

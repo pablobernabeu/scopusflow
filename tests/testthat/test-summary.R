@@ -1,13 +1,14 @@
 test_that("summary reports the expected figures", {
   s <- summary(example_records)
   expect_s3_class(s, "scopus_records_summary")
-  expect_equal(s$n_records, 6L)
-  expect_equal(s$years, c(2016L, 2021L))
-  expect_equal(s$n_sources, 5L)
-  expect_equal(s$n_with_doi, 6L)
-  expect_equal(s$total_citations, 5505L)
-  expect_equal(s$median_citations, 299)
-  expect_equal(s$top_source, "Nature")
+  expect_equal(s$n_records, 138L)
+  expect_equal(s$years, c(2015L, 2024L))
+  expect_equal(s$n_sources, 90L)
+  # Eleven of the 138 records arrive without a DOI, as in any real harvest.
+  expect_equal(s$n_with_doi, 127L)
+  expect_equal(s$total_citations, 7015L)
+  expect_equal(s$median_citations, 24)
+  expect_equal(s$top_source, "ACS Applied Materials & Interfaces")
   expect_equal(s$top_cited, example_records$title[which.max(example_records$citations)])
 })
 

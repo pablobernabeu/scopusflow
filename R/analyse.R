@@ -19,15 +19,19 @@
 #' internet access; see the *API access* section of [scopus_count()].
 #' @seealso [plot_scopus_trend()], [scopus_compare_topics()]
 #' @examplesIf scopusflow::scopus_has_key()
-#' tr <- scopus_trend("graphene", years = 2010:2020, field = "TITLE-ABS-KEY")
+#' tr <- scopus_trend("graphene supercapacitor", years = 2015:2024,
+#'                    field = "TITLE-ABS-KEY")
 #' tr
 #' @examples
-#' # The shape of the return value, built offline so it runs without a key.
-#' years <- 2010:2020
+#' # The offline companion, which needs no key. 'Scopus' records may not be
+#' # redistributed, so the package bundles a corpus of real articles instead;
+#' # it is a complete harvest of its own query, so tallying its rows by year
+#' # reproduces the yearly counts that query returns.
+#' by_year <- table(example_records$year)
 #' tr <- tibble::tibble(
-#'   query = "TITLE-ABS-KEY(graphene)",
-#'   year = years,
-#'   n = c(1900, 3400, 5200, 7100, 9000, 10400, 11800, 12600, 13500, 14100, 14800)
+#'   query = "TITLE-ABS-KEY(graphene supercapacitor)",
+#'   year = as.integer(names(by_year)),
+#'   n = as.numeric(by_year)
 #' )
 #' class(tr) <- c("scopus_trend", class(tr))
 #' tr
@@ -96,7 +100,12 @@ print.scopus_trend <- function(x, ...) {
 #'   rank may be dropped. The `by` choice is stored in the `by` attribute.
 #' @seealso [plot_scopus_top()], [summary.scopus_records()]
 #' @examples
+#' # The bundled corpus of real articles stands in for a harvest of your own,
+#' # since 'Scopus' records may not be redistributed.
 #' scopus_top(example_records, by = "source")
+#'
+#' # That corpus names one author per article, so the author tally counts
+#' # first authors; a live harvest lists every author and splits them.
 #' scopus_top(example_records, by = "author", n = 5)
 #' @export
 scopus_top <- function(x, by = c("source", "author"), n = 10L) {

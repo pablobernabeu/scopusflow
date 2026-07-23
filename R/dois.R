@@ -21,16 +21,23 @@
 #' ignore case, while the output keeps the original casing.
 #' @seealso [scopus_diff_dois()] to compare two retrievals.
 #' @examples
-#' recs <- scopus_records(list(entry = list(
-#'   list(`prism:doi` = "10.1/AAA"),
-#'   list(`prism:doi` = "https://doi.org/10.1/aaa"),
-#'   list(`prism:doi` = NULL)
-#' )))
-#' scopus_extract_dois(recs)
+#' # The bundled corpus of real articles stands in for a harvest of your own,
+#' # since 'Scopus' records may not be redistributed.
+#' dois <- scopus_extract_dois(example_records)
+#' length(dois)
+#' head(dois, 3)
+#'
+#' # Eleven of its 138 records arrived without a DOI, as records do, and so
+#' # drop out of the list.
+#' sum(is.na(example_records$doi))
+#'
+#' # The same cleaning applies to a bare vector, so a resolver prefix or a
+#' # difference in case does not make one article look like two.
+#' scopus_extract_dois(c("https://doi.org/10.1/A", "doi: 10.1/a", "10.2/B"))
 #'
 #' # Write to a temporary file (never the working directory).
 #' path <- tempfile(fileext = ".csv")
-#' scopus_extract_dois(recs, file = path)
+#' scopus_extract_dois(example_records, file = path)
 #' @export
 scopus_extract_dois <- function(x, dedupe = TRUE, file = NULL) {
   dois <- scopus_as_doi_vector(x)
@@ -65,9 +72,12 @@ scopus_extract_dois <- function(x, dedupe = TRUE, file = NULL) {
 #'   status then DOI, and printing shows the counts in each category.
 #' @seealso [scopus_extract_dois()]
 #' @examples
-#' old <- c("10.1/a", "10.1/b")
-#' new <- c("10.1/b", "10.1/c")
-#' scopus_diff_dois(old, new)
+#' # A baseline retrieval and the same search re-run a year later, both taken
+#' # from the bundled corpus of real articles: the second pull has gained the
+#' # 2024 records and lost the first one to re-indexing.
+#' baseline <- example_records[example_records$year <= 2023, ]
+#' later <- example_records[-1, ]
+#' scopus_diff_dois(old = baseline, new = later)
 #' @export
 scopus_diff_dois <- function(old, new) {
   old_dois <- scopus_clean_dois(scopus_as_doi_vector(old))

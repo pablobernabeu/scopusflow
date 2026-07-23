@@ -3,37 +3,64 @@
 \docType{data}
 \name{example_records}
 \alias{example_records}
-\title{Example set of normalised 'Scopus' records}
+\title{A worked example harvest, in the shape 'Scopus' records take}
 \format{
-A \link{scopus_records} tibble with six rows and the standard schema:
+A \link{scopus_records} tibble with 138 rows and the standard schema:
 \describe{
 \item{entry_number}{Position within the retrieval.}
-\item{scopus_id}{The 'Scopus' record identifier.}
-\item{doi}{Digital Object Identifier.}
-\item{title}{Document title.}
-\item{authors}{First or corresponding author.}
+\item{scopus_id}{Empty throughout. These records did not come from
+'Scopus', so they carry no 'Scopus' identifier; de-duplication falls back
+to the DOI, as it does for any record whose identifier is missing.}
+\item{doi}{Digital Object Identifier, missing for eleven records.}
+\item{title}{Document title. Publisher markup for subscripts and italics is
+stripped; nothing else is altered.}
+\item{authors}{First author, as named by the source.}
 \item{year}{Publication year.}
-\item{date}{Cover date in ISO form.}
-\item{publication}{Source title.}
-\item{citations}{Citation count.}
-\item{query}{The query that produced the record.}
+\item{date}{Publication date in ISO form.}
+\item{publication}{Source title, missing for two records.}
+\item{citations}{Citation count at the time of retrieval.}
+\item{query}{The search phrase that produced the record.}
 }
 }
 \source{
-Synthetic example data, illustrative only.
+Retrieved from OpenAlex (\url{https://openalex.org}) on 2026-07-22: the
+complete result set for the phrase "graphene supercapacitor" in title or
+abstract, restricted to journal articles from 2015 to 2024. OpenAlex data is
+released under CC0. Retrieval and reshaping are reproducible from
+\code{data-raw/example_records.R}.
 }
 \usage{
 example_records
 }
 \description{
-A small set of six illustrative records spanning several disciplines (genome
-editing, machine learning, climate science, materials, oncology and physics),
-in the shape that \code{\link[=scopus_fetch]{scopus_fetch()}} returns. It is provided so that the package
-can be explored and its examples run without a 'Scopus' API key. The records
-were normalised from the static page fixture bundled in \code{inst/extdata}.
+One hundred and thirty-eight real journal articles on graphene
+supercapacitors published between 2015 and 2024, carrying their real titles,
+DOIs, source titles, first authors and citation counts. The dataset lets the
+package be explored, and every example and vignette be run, without an API
+key.
+}
+\details{
+The records are deliberately not a 'Scopus' harvest. The Elsevier API terms
+do not permit redistributing retrieved records, so no package can ship one.
+These come instead from OpenAlex, whose metadata is released under CC0 and may
+therefore be redistributed, and are reshaped into the schema \code{\link[=scopus_fetch]{scopus_fetch()}}
+returns. Running the equivalent query against 'Scopus' yields the same kind of
+object, with the same columns and the same handling, though not an identical
+set of records.
+
+Two properties are worth knowing when reading the examples. The harvest is
+complete rather than sampled, so the number of rows per year is the real
+number of publications per year for that query, and the trend figures show a
+real publication curve. The gaps are also genuine: eleven records carry no
+DOI and two no source title, exactly as they arrive. They are kept because a
+real harvest has such gaps, and the reference-set examples are the more
+useful for showing how they are handled.
 }
 \examples{
 example_records
-summary(example_records)
+
+# The columns and the behaviour are those of a real retrieval, so the
+# analysis helpers work on it directly.
+scopus_top(example_records, by = "source", n = 5)
 }
 \keyword{datasets}

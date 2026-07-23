@@ -72,13 +72,16 @@ Requires a valid API key and internet access. The \emph{API access} section of
 
 \examples{
 \dontshow{if (scopusflow::scopus_has_key()) withAutoprint(\{ # examplesIf}
-recs <- scopus_fetch("graphene", field = "TITLE-ABS-KEY", max_results = 50)
+recs <- scopus_fetch("graphene supercapacitor", field = "TITLE-ABS-KEY",
+                     max_results = 50)
 recs
 \dontshow{\}) # examplesIf}
-# The shape of the return value, shown offline from the bundled example set
-# so it runs without a key. A live harvest returns this same schema.
+# The offline companion, which needs no key. 'Scopus' records may not be
+# redistributed, so the package bundles a corpus of real articles in this
+# same schema; a live harvest returns exactly this shape.
 recs <- example_records
 recs
+nrow(recs)
 is_scopus_records(recs)
 }
 \seealso{

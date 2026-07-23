@@ -3,26 +3,29 @@ test_that("scopus_combine binds and renumbers entries", {
   b <- example_records
   out <- scopus_combine(a, b)
   expect_s3_class(out, "scopus_records")
-  expect_equal(nrow(out), 12L)
-  expect_equal(out$entry_number, 1:12)
+  expect_equal(nrow(out), 276L)
+  expect_equal(out$entry_number, 1:276)
 })
 
 test_that("scopus_combine de-duplicates by id then DOI", {
   out <- scopus_combine(example_records, example_records, dedupe = TRUE)
-  expect_equal(nrow(out), 6L)
-  expect_equal(out$entry_number, 1:6)
+  # The bundled records carry no 'Scopus' id, so de-duplication falls back to
+  # the DOI: the 127 records that have one collapse to a single copy each, and
+  # the 11 that have neither key are all kept, as documented below.
+  expect_equal(nrow(out), 149L)
+  expect_equal(out$entry_number, 1:149)
 })
 
 test_that("scopus_combine accepts a single list and rejects non-records", {
   out <- scopus_combine(list(example_records, example_records))
-  expect_equal(nrow(out), 12L)
+  expect_equal(nrow(out), 276L)
   expect_error(scopus_combine(data.frame(a = 1)), class = "scopus_error_bad_input")
 })
 
 test_that("c() method combines record sets", {
   out <- c(example_records, example_records)
   expect_s3_class(out, "scopus_records")
-  expect_equal(nrow(out), 12L)
+  expect_equal(nrow(out), 276L)
 })
 
 test_that("dedupe keeps records that have neither an id nor a DOI", {

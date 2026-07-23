@@ -3,7 +3,7 @@ test_that("scopus_abstract returns the abstract and core metadata", {
   httr2::local_mocked_responses(function(req) {
     mock_abstract(list(
       `dc:identifier` = "SCOPUS_ID:85000000001",
-      `prism:doi` = "10.1038/s41586-019-0001-1",
+      `prism:doi` = "10.5555/sf.example.0001",
       `dc:title` = "Genome editing with CRISPR-Cas9",
       `dc:description` = "We review the principles and applications of CRISPR-Cas9.",
       `prism:publicationName` = "Nature",
@@ -11,10 +11,10 @@ test_that("scopus_abstract returns the abstract and core metadata", {
       `citedby-count` = "540"
     ))
   })
-  ab <- scopus_abstract("10.1038/s41586-019-0001-1")
+  ab <- scopus_abstract("10.5555/sf.example.0001")
   expect_s3_class(ab, "scopus_abstracts")
   expect_equal(nrow(ab), 1L)
-  expect_equal(ab$doi, "10.1038/s41586-019-0001-1")
+  expect_equal(ab$doi, "10.5555/sf.example.0001")
   expect_equal(ab$scopus_id, "85000000001")
   expect_match(ab$abstract, "CRISPR")
   expect_equal(ab$year, 2019L)

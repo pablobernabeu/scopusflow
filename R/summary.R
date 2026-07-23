@@ -14,6 +14,8 @@
 #'   `top_cited` (the title of the most-cited record) and `top_source` (the most
 #'   frequent source title). Printing it produces a short readable report.
 #' @examples
+#' # The bundled corpus of real articles stands in for a retrieval of your
+#' # own, since 'Scopus' records may not be redistributed.
 #' summary(example_records)
 #' @export
 summary.scopus_records <- function(object, ...) {

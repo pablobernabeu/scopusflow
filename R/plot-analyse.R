@@ -29,7 +29,15 @@ scopus_year_breaks <- function(years) {
 #' @return A [ggplot2::ggplot] object. Needs the suggested package \pkg{ggplot2}.
 #' @seealso [scopus_trend()]
 #' @examplesIf rlang::is_installed("ggplot2")
-#' tr <- tibble::tibble(query = "q", year = 2015:2020, n = c(120, 180, 240, 310, 400, 520))
+#' # Drawn from the bundled corpus of real articles, which needs no key. That
+#' # corpus is a complete harvest, so its rows per year are the publications
+#' # per year its query returns.
+#' by_year <- table(example_records$year)
+#' tr <- tibble::tibble(
+#'   query = "TITLE-ABS-KEY(graphene supercapacitor)",
+#'   year = as.integer(names(by_year)),
+#'   n = as.numeric(by_year)
+#' )
 #' class(tr) <- c("scopus_trend", class(tr))
 #' plot_scopus_trend(tr)
 #' @export
@@ -69,6 +77,7 @@ plot_scopus_trend <- function(x, ...) {
 #' @return A [ggplot2::ggplot] object. Needs the suggested package \pkg{ggplot2}.
 #' @seealso [scopus_top()]
 #' @examplesIf rlang::is_installed("ggplot2")
+#' # On the bundled corpus of real articles, which needs no key.
 #' plot_scopus_top(scopus_top(example_records, by = "source"))
 #' @export
 plot_scopus_top <- function(x, ...) {

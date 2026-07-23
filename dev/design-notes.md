@@ -182,6 +182,40 @@ Every export carries roxygen2 documentation with fast, fixture-based examples.
 The package also ships a README, one vignette driven by fixtures, an
 `inst/CITATION` file, a `NEWS.md` and a `cran-comments.md`.
 
+### Where the bundled example records come from
+
+The examples need a corpus that looks like what a user really retrieves,
+because a bibliometric package documented against obviously invented rows
+teaches nothing about the shape of real data. The package cannot simply ship a
+'Scopus' harvest: the Elsevier API terms do not permit redistributing retrieved
+records, so that option is closed to any package, not merely to this one.
+
+`example_records` therefore holds 138 real journal articles on graphene
+supercapacitors retrieved from OpenAlex, whose metadata is released under CC0
+and may be redistributed, reshaped into the schema `scopus_fetch()` returns. The
+titles, DOIs, source titles, first authors and citation counts are real and
+verifiable. `scopus_id` is empty throughout, since the records did not come from
+'Scopus' and no honest value exists for that column; de-duplication falls back
+to the DOI, which is the same path any record with a missing identifier takes.
+The harvest is complete rather than sampled, so the rows per year are the real
+publications per year and a trend figure drawn from it is a real curve. Eleven
+records carry no DOI and two no source title, and those gaps are kept because a
+real harvest has them and the reference-set examples are more useful for showing
+how they are handled.
+
+Two alternatives were rejected. Inventing records that merely look plausible was
+the previous approach and is worse than it appears: the earlier fixture paired
+genuine, resolving DOIs with invented titles and authors, so a reader who
+checked one found it mislabelled a real published paper. Restricting the
+examples to key-gated live calls was also rejected, since it would leave every
+reference page showing an unevaluated block and no output at all.
+
+The non-ASCII characters that survive in the data are deliberate. Accented and
+Cyrillic author names and the en dashes in titles are part of real names and
+real titles, so they are marked UTF-8 rather than transliterated, which would
+misspell published work. Only U+2010, a hyphen indistinguishable from the ASCII
+one, is normalised, so a single visible character is not stored two ways.
+
 ## Continuous maintenance
 
 The package depends on several actively developed packages, `httr2` most of all,

@@ -47,31 +47,35 @@
 #' @examplesIf scopusflow::scopus_has_key()
 #' # Costs one Abstract Retrieval request per record, against a smaller,
 #' # separate weekly quota from Search; see the API access section above.
-#' recs <- scopus_fetch("DOI(10.1038/nature14539)", max_results = 1)
+#' recs <- scopus_fetch("DOI(10.1038/natrevmats.2016.33)", max_results = 1)
 #' corpus <- scopus_corpus(recs)
 #' corpus$keywords[[1]]
 #' corpus$references[[1]]
 #' @examples
-#' # The shape of the return value, built offline so it runs without a key:
-#' # one row per document, with keywords and references as list-columns.
+#' # The offline companion, which needs no key: one row per document, with
+#' # keywords and references as list-columns. The identifiers, titles and
+#' # years are records of the bundled corpus of real articles, which stands in
+#' # for a harvest because 'Scopus' records may not be redistributed. It holds
+#' # neither keywords nor bibliographies, so those are illustrative.
+#' docs <- example_records[order(-example_records$citations), ][1:2, ]
 #' corpus <- tibble::tibble(
-#'   id = c("10.1038/nature14539", "10.1126/science.abc1234"),
-#'   title = c("Deep learning", "Porous carbon electrodes at scale"),
-#'   year = c(2015L, 2020L),
+#'   id = docs$doi,
+#'   title = docs$title,
+#'   year = docs$year,
 #'   keywords = list(
-#'     c("machine learning", "neural networks", "representation learning"),
-#'     c("graphene", "supercapacitor", "energy storage")
+#'     c("graphene", "supercapacitor", "energy storage"),
+#'     c("laser-induced graphene", "flexible electronics")
 #'   ),
 #'   references = list(
 #'     tibble::tibble(
 #'       position = c("1", "2"),
-#'       title = c("ImageNet classification with deep convolutional networks",
-#'                 "Learning hierarchical features for scene labeling"),
-#'       authors = c("Krizhevsky, A.; Sutskever, I.; Hinton, G.",
-#'                   "Farabet, C.; Couprie, C.; Najman, L.; LeCun, Y."),
-#'       sourcetitle = c("Adv. Neural Inf. Process. Syst.",
-#'                       "IEEE Trans. Pattern Anal. Mach. Intell."),
-#'       publicationyear = c("2012", "2013")
+#'       id = NA_character_,
+#'       doi = example_records$doi[3:4],
+#'       title = example_records$title[3:4],
+#'       authors = example_records$authors[3:4],
+#'       source = example_records$publication[3:4],
+#'       year = example_records$year[3:4],
+#'       citedbycount = example_records$citations[3:4]
 #'     ),
 #'     tibble::tibble()
 #'   )

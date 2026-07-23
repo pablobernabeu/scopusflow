@@ -27,8 +27,10 @@ library(scopusflow)
 
 A retrieval becomes useful once it leaves the package, as a reading list in a
 reference manager or as input to a science-mapping tool. This article covers that
-export end of the workflow, using the bundled `example_records` so every step
-runs without an API key.
+export end of the workflow. Every step runs without an API key, on the bundled
+`example_records`, a corpus of 138 real journal articles that stands in for a
+harvest of your own because Scopus records may not be redistributed;
+`vignette("scopusflow")` describes where it comes from.
 
 ## Take stock first
 
@@ -40,12 +42,16 @@ spread and the most-cited record.
 summary(example_records)
 ```
 
+Eleven of those 138 records arrived without a DOI, which is why the summary
+counts 127 with one. That is ordinary in a real harvest, and the sections below
+show how each export handles it.
+
 A record set is an ordinary tibble underneath, so it drops straight into
 tidyverse or base workflows. `as_tibble()` and `as.data.frame()` make that
 explicit when a downstream tool expects a plain frame.
 
 ```{r}
-tibble::as_tibble(example_records)
+head(tibble::as_tibble(example_records))
 as.data.frame(example_records)[1:3, c("title", "year")]
 ```
 
@@ -58,7 +64,8 @@ prefix or in a different case.
 
 ```{r}
 dois <- scopus_extract_dois(example_records)
-dois
+length(dois)
+head(dois, 6)
 ```
 
 The same cleaning applies to a plain vector of DOIs from any source, so the
@@ -73,12 +80,13 @@ scopus_extract_dois(c("https://doi.org/10.1/A", "doi: 10.1/a", "10.2/B"),
 ```
 
 The list can be written to a single-column CSV at a path you choose. Nothing is
-written unless a path is given.
+written unless a path is given. Here are the first few lines of the file, which
+holds a header and one DOI per line:
 
 ```{r, comment = "", collapse = FALSE}
 out <- file.path(tempdir(), "reference-set.csv")
 scopus_extract_dois(example_records, file = out)
-writeLines(readLines(out))
+writeLines(head(readLines(out), 6))
 ```
 
 ## Into a reference manager
@@ -89,8 +97,12 @@ reference managers read, so a search moves straight into Zotero, EndNote or a
 LaTeX bibliography. Each record becomes one entry, with its authors split out.
 
 ```{r, comment = "", collapse = FALSE}
-cat(substr(as_ris(example_records), 1, 320))
+cat(substr(as_ris(example_records), 1, 470))
 ```
+
+The first two entries of 138 are shown. The second has no DOI, so its `DO` line
+is simply absent rather than empty, and the entry still imports on its title,
+author and year.
 
 Pass a `file` to write the whole set; nothing is written without one.
 
@@ -107,7 +119,7 @@ expect.
 
 ```{r}
 m <- as_bibliometrix(example_records)
-m[, c("AU", "TI", "PY", "SO", "TC", "DB")]
+head(m[, c("AU", "TI", "PY", "SO", "TC", "DB")])
 ```
 
 From there the usual bibliometrix entry points apply. This step needs that
@@ -115,7 +127,7 @@ package, so it is shown but not run.
 
 ```{r eval = FALSE}
 if (requireNamespace("bibliometrix", quietly = TRUE)) {
-  results <- bibliometrix::biblioAnalysis(as_bibliometrix(records))
+  results <- bibliometrix::biblioAnalysis(m)
   summary(results, k = 10)
 }
 ```

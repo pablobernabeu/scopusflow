@@ -29,6 +29,9 @@ articles, the dominant 'Scopus' content type. BibTeX citation keys are made
 unique within the export, and special characters are escaped.
 }
 \examples{
+# On the bundled corpus of real articles, which stands in for a retrieval
+# of your own because 'Scopus' records may not be redistributed. Only the
+# opening of each export is shown; pass `file` to write the whole set.
 cat(substr(as_bibtex(example_records), 1, 200))
 cat(substr(as_ris(example_records), 1, 200))
 }

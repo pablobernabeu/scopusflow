@@ -33,7 +33,7 @@ This is the feature-parity twin of [the Python package](https://pablobernabeu.gi
 of the same name, which offers the same workflow on top of
 [pybliometrics](https://pybliometrics.readthedocs.io).
 
-```{r readme-hero, echo = FALSE, message = FALSE, fig.alt = "A line chart showing how deep-learning research spread into computer vision, natural language processing, medical imaging and drug discovery between 2013 and 2021", fig.width = 8.5, fig.height = 4.4, dpi = 130, out.width = "100%"}
+```{r readme-hero, echo = FALSE, message = FALSE, fig.alt = "An illustrative line chart of four sub-topics' share of a deep-learning reference literature between 2013 and 2021: computer vision, natural language processing, medical imaging and drug discovery", fig.width = 8.5, fig.height = 4.4, dpi = 130, out.width = "100%"}
 library(scopusflow)
 years <- 2013:2021
 ref_n <- round(seq(400, 1600, length.out = length(years)))
@@ -57,6 +57,11 @@ hero <- tibble::tibble(
 class(hero) <- c("scopus_comparison", class(hero))
 plot_scopus_comparison(hero)
 ```
+
+The figure is drawn by `plot_scopus_comparison()` from illustrative counts rather
+than a live retrieval, so that this page builds without an API key. The
+[Comparing topics over time](https://pablobernabeu.github.io/scopusflow/articles/comparing-topics.html)
+article builds the same table and explains every column.
 
 > Scopus is a trademark of Elsevier. scopusflow is an independent client and is
 > not affiliated with or endorsed by Elsevier. You will need your own Elsevier
@@ -124,7 +129,7 @@ chart above) and tracking how a literature changes between retrievals.
 writing code, and mirrors every choice back as a runnable R script, so it works
 as an on-ramp to the package rather than a replacement. It runs on your own
 machine, so your API key never leaves it, and a demo mode lets you try the flow
-with synthetic data and no key.
+with no key, on the corpus of real articles bundled with the package.
 
 ```{r eval = FALSE}
 run_app()

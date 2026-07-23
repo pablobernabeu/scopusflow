@@ -4,7 +4,9 @@ test_that("records normalise from the static fixture", {
   expect_s3_class(recs, "scopus_records")
   expect_equal(nrow(recs), 6L)
   expect_equal(recs$scopus_id, paste0("8500000000", 1:6))
-  expect_equal(recs$doi[1], "10.1038/s41586-019-0001-1")
+  # The fixture is synthetic: its identifiers sit on the reserved 10.5555 DOI
+  # prefix, which never resolves, so it labels no real published work.
+  expect_equal(recs$doi[1], "10.5555/sf.example.0001")
   expect_equal(recs$year, c(2019L, 2020L, 2018L, 2021L, 2020L, 2016L))
   expect_equal(recs$citations, c(540L, 210L, 122L, 45L, 388L, 4200L))
   expect_equal(recs$entry_number, 1:6)

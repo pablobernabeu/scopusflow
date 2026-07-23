@@ -13,13 +13,17 @@
 #' @return `write_scopus_records()` returns `x` invisibly. `read_scopus_records()`
 #'   returns a [scopus_records] tibble.
 #' @examples
-#' recs <- scopus_records(list(entry = list(
-#'   list(`dc:identifier` = "SCOPUS_ID:1", `prism:doi` = "10.1/a",
-#'        `dc:title` = "A study", `prism:coverDate` = "2020-01-01")
-#' )))
-#' path <- tempfile(fileext = ".csv")
-#' write_scopus_records(recs, path)
-#' read_scopus_records(path)
+#' # A round trip on the bundled corpus of real articles, which stands in for
+#' # a retrieval of your own because 'Scopus' records may not be redistributed.
+#' # The .rds form restores the object exactly.
+#' rds <- tempfile(fileext = ".rds")
+#' write_scopus_records(example_records, rds)
+#' identical(read_scopus_records(rds), example_records)
+#'
+#' # The .csv form is portable plain text and reads back to the same schema.
+#' csv <- tempfile(fileext = ".csv")
+#' write_scopus_records(example_records, csv)
+#' head(read_scopus_records(csv))
 #' @export
 write_scopus_records <- function(x, path) {
   if (!is_scopus_records(x)) {

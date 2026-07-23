@@ -6,7 +6,7 @@
     "entry": [
       {
         "dc:identifier": "SCOPUS_ID:85000000001",
-        "prism:doi": "10.1038/s41586-019-0001-1",
+        "prism:doi": "10.5555/sf.example.0001",
         "dc:title": "Genome editing with CRISPR-Cas9: principles and applications",
         "dc:creator": "Zhang F.",
         "prism:publicationName": "Nature",
@@ -15,7 +15,7 @@
       },
       {
         "dc:identifier": "SCOPUS_ID:85000000002",
-        "prism:doi": "10.1038/s41586-020-0002-2",
+        "prism:doi": "10.5555/sf.example.0002",
         "dc:title": "Deep learning for medical image analysis: a review",
         "dc:creator": "Kumar S.",
         "prism:publicationName": "Nature",
@@ -24,7 +24,7 @@
       },
       {
         "dc:identifier": "SCOPUS_ID:85000000003",
-        "prism:doi": "10.1038/s41558-018-0085-1",
+        "prism:doi": "10.5555/sf.example.0003",
         "dc:title": "Climate change adaptation in coastal megacities",
         "dc:creator": "Okafor N.",
         "prism:publicationName": "Nature Climate Change",
@@ -33,7 +33,7 @@
       },
       {
         "dc:identifier": "SCOPUS_ID:85000000004",
-        "prism:doi": "10.1002/adma.202100001",
+        "prism:doi": "10.5555/sf.example.0004",
         "dc:title": "Graphene electrodes for next-generation energy storage",
         "dc:creator": "Tanaka H.",
         "prism:publicationName": "Advanced Materials",
@@ -42,7 +42,7 @@
       },
       {
         "dc:identifier": "SCOPUS_ID:85000000005",
-        "prism:doi": "10.1016/S1470-2045(20)30013-9",
+        "prism:doi": "10.5555/sf.example.0005",
         "dc:title": "Checkpoint inhibitors in cancer immunotherapy",
         "dc:creator": "Garcia M.",
         "prism:publicationName": "The Lancet Oncology",
@@ -51,9 +51,9 @@
       },
       {
         "dc:identifier": "SCOPUS_ID:85000000006",
-        "prism:doi": "10.1103/PhysRevLett.116.061102",
-        "dc:title": "Observation of gravitational waves from a binary black hole merger",
-        "dc:creator": "Abbott B.",
+        "prism:doi": "10.5555/sf.example.0006",
+        "dc:title": "Transient signal detection in interferometric observatories",
+        "dc:creator": "Novak P.",
         "prism:publicationName": "Physical Review Letters",
         "prism:coverDate": "2016-02-11",
         "citedby-count": "4200"

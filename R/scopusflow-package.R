@@ -9,5 +9,8 @@
 ## usethis namespace: end
 NULL
 
-# Quiet R CMD check for tidy-eval pronouns used in examples/vignettes.
-utils::globalVariables(".data")
+# Quiet R CMD check for tidy-eval pronouns used in examples/vignettes, and for
+# the lazy-loaded `example_records` dataset, which the app's demo mode reads
+# from the package's own namespace (LazyData is on, so it is bound at run time,
+# but static analysis cannot see that).
+utils::globalVariables(c(".data", "example_records"))

@@ -24,6 +24,7 @@ Draws a horizontal bar chart from the output of \code{\link[=scopus_top]{scopus_
 }
 \examples{
 \dontshow{if (rlang::is_installed("ggplot2")) withAutoprint(\{ # examplesIf}
+# On the bundled corpus of real articles, which needs no key.
 plot_scopus_top(scopus_top(example_records, by = "source"))
 \dontshow{\}) # examplesIf}
 }

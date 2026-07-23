@@ -154,6 +154,9 @@ scopus_refman_write <- function(out, file) {
 #'   invisibly when `file` is supplied).
 #' @seealso [as_bibliometrix()], [write_scopus_records()], [scopus_extract_dois()]
 #' @examples
+#' # On the bundled corpus of real articles, which stands in for a retrieval
+#' # of your own because 'Scopus' records may not be redistributed. Only the
+#' # opening of each export is shown; pass `file` to write the whole set.
 #' cat(substr(as_bibtex(example_records), 1, 200))
 #' cat(substr(as_ris(example_records), 1, 200))
 #' @export

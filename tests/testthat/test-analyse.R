@@ -1,9 +1,9 @@
 test_that("scopus_top tallies sources, counting the modal one highest", {
   top <- scopus_top(example_records, by = "source")
   expect_s3_class(top, "scopus_top")
-  expect_equal(top$value[1], "Nature")   # appears twice in the fixture
-  expect_equal(top$n[1], 2L)
-  expect_equal(nrow(top), 5L)            # five distinct sources
+  expect_equal(top$value[1], "ACS Applied Materials & Interfaces")
+  expect_equal(top$n[1], 8L)             # the modal source in the harvest
+  expect_equal(nrow(top), 10L)           # the default keeps the top ten
 })
 
 test_that("scopus_top splits multi-author strings and honours n", {
