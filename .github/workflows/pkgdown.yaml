@@ -41,8 +41,24 @@ jobs:
       - name: Remove the redundant, unrendered licence stub page
         # pkgdown always renders the bare LICENSE file (needed for CRAN's
         # "MIT + file LICENSE" field) to its own orphaned page, alongside the
-        # full text built from LICENSE.md. Keep only the full-text page live.
-        run: rm -f docs/LICENSE-text.html
+        # full text built from LICENSE.md. Keep only the full-text page live,
+        # and drop the markdown copy pkgdown leaves beside the stub.
+        #
+        # The sitemap entry has to go with the page. pkgdown writes sitemap.xml
+        # before this step runs, so deleting the page alone left a <loc>
+        # advertising a URL that 404s -- and a sitemap is read by search engines,
+        # which is the one audience that would then follow it. pkgdown emits one
+        # <url> per line, so a line filter removes exactly that entry.
+        run: |
+          rm -f docs/LICENSE-text.html docs/LICENSE-text.md
+          if [ -f docs/sitemap.xml ]; then
+            grep -v '/LICENSE-text\.html<' docs/sitemap.xml > docs/sitemap.new || true
+            if [ -s docs/sitemap.new ]; then
+              mv docs/sitemap.new docs/sitemap.xml
+            else
+              rm -f docs/sitemap.new
+            fi
+          fi
 
       - name: Deploy to GitHub pages 🚀
         if: github.event_name != 'pull_request'
