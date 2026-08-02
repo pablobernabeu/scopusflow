@@ -89,7 +89,7 @@ Retrieving a thousand records in pages of 200 therefore costs five
 requests, where pages of 25 would cost forty. For that reason
 `page_size` defaults to the largest the view allows, which is the same
 efficiency `rscopus` relies on, and is in no sense an evasion of the
-quota: every request is counted, and the 5000-record ceiling still
+quota. Every request is counted, and the 5000-record ceiling still
 holds.
 
 ``` r
@@ -122,7 +122,7 @@ attr(n, "quota")
 That allowance is parsed from the response headers by
 [`scopus_quota()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_quota.md).
 To show its shape without a network call, apply it to a constructed
-response:
+response.
 
 ``` r
 
@@ -182,7 +182,7 @@ The cache lives under
 [`scopus_cache_dir()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_dir.md).
 To force a fresh retrieval, empty it with
 [`scopus_cache_clear()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_clear.md).
-Both are shown but not run, so the article does not touch a real cache:
+Both are shown but not run, so the article does not touch a real cache.
 
 ``` r
 
@@ -259,13 +259,14 @@ Under offset paging, a query matching more than 5000 records cannot be
 retrieved in full from a single call.
 [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
 returns the first 5000 and warns. One remedy is to split the search by
-year, or by any other facet, so that each cell stays under the ceiling;
+year, or by any other facet, so that each cell stays under the ceiling,
+and
 [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md)
 tells you in advance whether a split is needed. The other is
 `scopus_fetch(cursor = TRUE)`, which follows the API’s cursor instead of
 an offset and retrieves the whole set in one call, at the price of
 deep-paging rather than relevance order. The *Analysing a literature*
-article weighs the two: a plan gives cached, resumable cells, the cursor
+article weighs the two. A plan gives cached, resumable cells, the cursor
 a complete set in a single pass.
 
 ## Handling interruptions

@@ -97,10 +97,10 @@
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>The released version is on CRAN:</p>
+<p>The released version is on CRAN.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"scopusflow"</span><span class="op">)</span></span></code></pre></div>
-<p>CRAN currently carries 0.1.0. Much of what this page describes arrived after that release, among it cursor paging, abstract and reference retrieval, the trend, top-source and intersection plots, and the code-free app. Until the next CRAN release those live on GitHub:</p>
+<p>CRAN carries version 0.1.0. Much of what this page describes arrived after that release, among it cursor paging, abstract and reference retrieval, the trend, top-source and intersection plots, and the code-free app. Until the next CRAN release those live on GitHub.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"pablobernabeu/scopusflow"</span><span class="op">)</span></span></code></pre></div>
@@ -108,7 +108,7 @@
 <div class="section level2">
 <h2 id="api-key">API key<a class="anchor" aria-label="anchor" href="#api-key"></a>
 </h2>
-<p>scopusflow never stores your key. It is read, in order, from the <code>api_key</code> argument, the <code>scopusflow.api_key</code> option, or the <code>SCOPUS_API_KEY</code> environment variable. Store it in <code>~/.Renviron</code>:</p>
+<p>scopusflow never stores your key. It is read, in order, from the <code>api_key</code> argument, the <code>scopusflow.api_key</code> option, or the <code>SCOPUS_API_KEY</code> environment variable. Store it in <code>~/.Renviron</code>.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>SCOPUS_API_KEY<span class="ot">=</span>your<span class="sc">-</span>key<span class="sc">-</span>here</span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co"># Optional, for off-campus access to subscriber content:</span></span>
 <span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>SCOPUS_INST_TOKEN<span class="ot">=</span>your<span class="sc">-</span>institutional<span class="sc">-</span>token</span></code></pre></div>
@@ -120,7 +120,7 @@
 <div class="section level2">
 <h2 id="the-workflow-in-brief">The workflow in brief<a class="anchor" aria-label="anchor" href="#the-workflow-in-brief"></a>
 </h2>
-<p>With a key configured, a search runs as a plan: compose the query, size it, execute it with caching, then export or analyse the result. These calls contact the API and consume quota, so they are not run here:</p>
+<p>With a key configured, a search runs as a plan: compose the query, size it, execute it with caching, then export or analyse the result. These calls contact the API and consume quota, so they are not run here.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Compose a field-tagged query, then a reproducible plan partitioned by</span></span>
 <span><span class="co"># year to stay under the API's start &lt; 5000 ceiling.</span></span>
@@ -197,6 +197,7 @@
 <div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
 </h2>
+<p>If scopusflow contributes to published work, please cite it. R prints the reference and its BibTeX entry.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span><span class="st">"scopusflow"</span><span class="op">)</span></span></code></pre></div>
 <p>The <a href="https://pablobernabeu.github.io/scopusflow/articles/about.html">About page</a> carries the same citation with a BibTeX entry, and a short note on the developer. The repository also ships a <code>CITATION.cff</code>, which is what GitHub’s ‘Cite this repository’ button reads.</p>
@@ -273,7 +274,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Released under the <a href="/scopusflow/LICENSE.html">MIT licence</a>. ‘Scopus’ is a trademark of Elsevier; scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
+  <p>Released under the <a href="/scopusflow/LICENSE.html">MIT licence</a>. ‘Scopus’ is a trademark of Elsevier. scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

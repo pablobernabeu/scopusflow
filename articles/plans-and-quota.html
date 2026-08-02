@@ -311,7 +311,7 @@ to 200 records under the <code>STANDARD</code> view, or 25 under
 therefore costs five requests, where pages of 25 would cost forty. For
 that reason <code>page_size</code> defaults to the largest the view
 allows, which is the same efficiency <code>rscopus</code> relies on, and
-is in no sense an evasion of the quota: every request is counted, and
+is in no sense an evasion of the quota. Every request is counted, and
 the 5000-record ceiling still holds.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="va">q</span>, view <span class="op">=</span> <span class="st">"STANDARD"</span><span class="op">)</span><span class="op">$</span><span class="va">page_size</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span></code></pre></div>
@@ -332,7 +332,7 @@ workflow decide whether it has the allowance to proceed.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">n</span>, <span class="st">"quota"</span><span class="op">)</span></span></code></pre></div>
 <p>That allowance is parsed from the response headers by
 <code><a href="../reference/scopus_quota.html">scopus_quota()</a></code>. To show its shape without a network call,
-apply it to a constructed response:</p>
+apply it to a constructed response.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">resp</span> <span class="op">&lt;-</span> <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/response.html" class="external-link">response</a></span><span class="op">(</span></span>
 <span>  status_code <span class="op">=</span> <span class="fl">200</span>,</span>
@@ -380,7 +380,7 @@ query with the plan cell before loading it and refetches on a mismatch,
 but the clean arrangement is a separate directory per plan.</p>
 <p>The cache lives under <code><a href="../reference/scopus_cache_dir.html">scopus_cache_dir()</a></code>. To force a
 fresh retrieval, empty it with <code><a href="../reference/scopus_cache_clear.html">scopus_cache_clear()</a></code>. Both
-are shown but not run, so the article does not touch a real cache:</p>
+are shown but not run, so the article does not touch a real cache.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_cache_dir.html">scopus_cache_dir</a></span><span class="op">(</span><span class="op">)</span>    <span class="co"># where completed cells are written</span></span>
 <span><span class="fu"><a href="../reference/scopus_cache_clear.html">scopus_cache_clear</a></span><span class="op">(</span><span class="op">)</span>  <span class="co"># remove them, so the next run re-fetches from scratch</span></span></code></pre></div>
@@ -542,12 +542,12 @@ carries an identifier on every record, so the same call would return
 <p>Under offset paging, a query matching more than 5000 records cannot
 be retrieved in full from a single call. <code><a href="../reference/scopus_fetch.html">scopus_fetch()</a></code>
 returns the first 5000 and warns. One remedy is to split the search by
-year, or by any other facet, so that each cell stays under the ceiling;
-<code><a href="../reference/scopus_count.html">scopus_count()</a></code> tells you in advance whether a split is
+year, or by any other facet, so that each cell stays under the ceiling,
+and <code><a href="../reference/scopus_count.html">scopus_count()</a></code> tells you in advance whether a split is
 needed. The other is <code>scopus_fetch(cursor = TRUE)</code>, which
 follows the API’s cursor instead of an offset and retrieves the whole
 set in one call, at the price of deep-paging rather than relevance
-order. The <em>Analysing a literature</em> article weighs the two: a
+order. The <em>Analysing a literature</em> article weighs the two. A
 plan gives cached, resumable cells, the cursor a complete set in a
 single pass.</p>
 </div>
@@ -579,7 +579,7 @@ pause costs nothing for the work already done.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Released under the <a href="/scopusflow/LICENSE.html">MIT licence</a>. ‘Scopus’ is a trademark of Elsevier; scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
+  <p>Released under the <a href="/scopusflow/LICENSE.html">MIT licence</a>. ‘Scopus’ is a trademark of Elsevier. scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

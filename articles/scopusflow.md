@@ -14,8 +14,8 @@ with their real titles, DOIs, journals, first authors and citation
 counts. They come from OpenAlex, whose metadata is released under CC0,
 reshaped into the schema a retrieval returns. The harvest is complete
 rather than sampled, so its rows per year are the real number of
-publications per year for that query, and its gaps are genuine too:
-eleven records carry no DOI and two no source title, exactly as they
+publications per year for that query, and its gaps are genuine too.
+Eleven records carry no DOI and two no source title, exactly as they
 arrive. Running the equivalent query against Scopus yields the same kind
 of object, with the same columns and the same handling, though not an
 identical set of records. The steps that genuinely need the API are
@@ -57,7 +57,7 @@ plan
 |   10 | TITLE-ABS-KEY(graphene supercapacitor) | 2024 | 2024 | STANDARD |       200 |
 
 Each row is one query cell. Field tags wrap the query and years become a
-date filter:
+date filter.
 
 ``` r
 
@@ -75,7 +75,7 @@ scopus_plan("x", years = 2015:2020)$date
 
 ``` r
 
-# A plan is a classed object; is_scopus_plan() confirms it.
+# A plan is a classed object, and is_scopus_plan() confirms it.
 is_scopus_plan(plan)
 ```
 
@@ -86,7 +86,7 @@ is_scopus_plan(plan)
 [`scopus_has_key()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_has_key.md)
 reports whether a key is configured, without revealing it. It is the
 guard the package’s own examples use to skip the steps that need the
-API, so it is the natural switch for a reproducible script:
+API, so it is the natural switch for a reproducible script.
 
 ``` r
 
@@ -98,7 +98,7 @@ scopus_has_key()
 With a key configured, you size a search cheaply and then execute the
 plan, optionally caching each cell so that an interrupted run resumes
 without re-spending quota. These contact the API, so they are not
-evaluated here:
+evaluated here.
 
 ``` r
 
@@ -123,7 +123,7 @@ harvest, and the sections below run on it.
 Whether records come from the API or from the bundled corpus, they share
 one stable schema, so everything below would read the same on a harvest
 of your own. [`summary()`](https://rdrr.io/r/base/summary.html) takes
-stock of a set, and the first rows show the columns:
+stock of a set, and the first rows show the columns.
 
 ``` r
 
@@ -159,7 +159,8 @@ head(records)
 
 ``` r
 
-# A record set is a classed tibble; is_scopus_records() confirms the contract.
+# A record set is a classed tibble, and is_scopus_records() confirms the
+# contract.
 is_scopus_records(records)
 ```
 
@@ -169,7 +170,7 @@ is_scopus_records(records)
 produces this same shape from a raw API response, flattening the nested
 result into one row per record. The entry below carries the fields of a
 real article, one of those in the bundled corpus, in the form the API
-returns them:
+returns them.
 
 ``` r
 
@@ -224,7 +225,7 @@ retrieval in depth.
 
 Extract a clean, deduplicated DOI list for import into a reference
 manager, and compare two retrievals to see exactly what changed. Eleven
-of the 138 records arrived without a DOI, so 127 come back:
+of the 138 records arrived without a DOI, so 127 come back.
 
 ``` r
 
@@ -244,7 +245,7 @@ head(dois, 4)
 
 A search re-run later gains records and occasionally loses one to
 re-indexing. Here the baseline stops at 2023 and the second pull adds
-the 2024 articles while dropping the first record:
+the 2024 articles while dropping the first record.
 
 ``` r
 
@@ -271,7 +272,7 @@ print(scopus_diff_dois(old = baseline, new = later))
      [38;5;246m# ℹ 117 more rows [39m
 
 You can write the DOIs to a path you specify, and read the file back to
-see exactly what lands on disk:
+see exactly what lands on disk.
 
 ``` r
 
@@ -291,7 +292,7 @@ writeLines(head(readLines(out), 5))
 [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
 measures how the internal emphasis of a literature shifts, expressed as
 each comparison topic’s yearly share of the reference literature. It
-issues one count request per term per year, so it needs the API:
+issues one count request per term per year, so it needs the API.
 
 ``` r
 
@@ -317,7 +318,7 @@ how to read the bands.
 A search only returns the fields the Search API carries. Author keywords
 and a document’s own reference list need `view = "COMPLETE"` and
 Abstract Retrieval respectively, both at a materially different quota
-cost from an ordinary search;
+cost from an ordinary search.
 [`vignette("keywords-and-references")`](https://pablobernabeu.github.io/scopusflow/articles/keywords-and-references.md)
 walks through both, and
 [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md),
@@ -326,7 +327,7 @@ which combines them into a minimal
 
 ## Export and interoperability
 
-Hand results to `bibliometrix`-style workflows, or save and reload them:
+Hand results to `bibliometrix`-style workflows, or save and reload them.
 
 ``` r
 
@@ -355,7 +356,7 @@ identical(read_scopus_records(path), records)
 ## Handling failures
 
 Network and API problems surface as typed conditions, all inheriting
-from `scopus_error`, so a workflow can respond to them in code:
+from `scopus_error`, so a workflow can respond to them in code.
 
 ``` r
 

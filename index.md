@@ -31,17 +31,17 @@ article builds the same table and explains every column.
 
 ## Installation
 
-The released version is on CRAN:
+The released version is on CRAN.
 
 ``` r
 
 install.packages("scopusflow")
 ```
 
-CRAN currently carries 0.1.0. Much of what this page describes arrived
+CRAN carries version 0.1.0. Much of what this page describes arrived
 after that release, among it cursor paging, abstract and reference
 retrieval, the trend, top-source and intersection plots, and the
-code-free app. Until the next CRAN release those live on GitHub:
+code-free app. Until the next CRAN release those live on GitHub.
 
 ``` r
 
@@ -53,7 +53,7 @@ pak::pak("pablobernabeu/scopusflow")
 
 scopusflow never stores your key. It is read, in order, from the
 `api_key` argument, the `scopusflow.api_key` option, or the
-`SCOPUS_API_KEY` environment variable. Store it in `~/.Renviron`:
+`SCOPUS_API_KEY` environment variable. Store it in `~/.Renviron`.
 
 ``` R
 SCOPUS_API_KEY=your-key-here
@@ -72,7 +72,7 @@ scopus_has_key()
 
 With a key configured, a search runs as a plan: compose the query, size
 it, execute it with caching, then export or analyse the result. These
-calls contact the API and consume quota, so they are not run here:
+calls contact the API and consume quota, so they are not run here.
 
 ``` r
 
@@ -176,6 +176,9 @@ and some fields are available only in the `COMPLETE` view and to
 subscribers.
 
 ## Citation
+
+If scopusflow contributes to published work, please cite it. R prints
+the reference and its BibTeX entry.
 
 ``` r
 

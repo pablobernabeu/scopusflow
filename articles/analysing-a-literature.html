@@ -235,7 +235,7 @@ the semicolon-joined author lists a live harvest returns.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_scopus_top.html">plot_scopus_top</a></span><span class="op">(</span><span class="fu"><a href="../reference/scopus_top.html">scopus_top</a></span><span class="op">(</span><span class="va">records</span>, by <span class="op">=</span> <span class="st">"author"</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="analysing-a-literature_files/figure-html/unnamed-chunk-6-1.png" class="r-plt" alt="A horizontal bar chart of the most frequent authors" width="672"></p>
-<p>A record set also has an honest default view: <code>autoplot()</code>
+<p>A record set also has an honest default view. <code>autoplot()</code>
 draws its records per year. Because this corpus is a complete harvest of
 one query rather than a sample, those bars are the real number of
 publications per year for that query. The same <code>autoplot()</code>
@@ -345,7 +345,7 @@ the offset ceiling discussed below.</p>
 <h2 id="where-a-niche-sits">Where a niche sits<a class="anchor" aria-label="anchor" href="#where-a-niche-sits"></a>
 </h2>
 <p>A study that crosses two or more fields is best introduced by sizing
-those fields and their overlap: each parent literature may hold
+those fields and their overlap. Each parent literature may hold
 thousands of records while their intersection holds a handful, which is
 the niche the study occupies. <code><a href="../reference/scopus_intersections.html">scopus_intersections()</a></code> counts
 a named set of concepts and any requested intersections of them, at one
@@ -481,7 +481,7 @@ cursor retrieves all of them in one call. The records then arrive in the
 API’s deep-paging order rather than sorted by relevance, which is the
 right trade for a complete harvest. This is the one-call alternative to
 the year-partitioned plan in the <em>Search plans and quota-aware
-retrieval</em> article: a plan keeps each cell under the ceiling and
+retrieval</em> article. A plan keeps each cell under the ceiling and
 preserves relevance order, whereas <code>cursor = TRUE</code> harvests
 the whole set in a single pass. Reach for the plan when you want cached,
 resumable cells, and the cursor when you want the complete set at
@@ -498,7 +498,7 @@ once.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Released under the <a href="/scopusflow/LICENSE.html">MIT licence</a>. ‘Scopus’ is a trademark of Elsevier; scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
+  <p>Released under the <a href="/scopusflow/LICENSE.html">MIT licence</a>. ‘Scopus’ is a trademark of Elsevier. scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

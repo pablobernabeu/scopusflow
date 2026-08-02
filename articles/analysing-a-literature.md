@@ -116,7 +116,7 @@ plot_scopus_top(scopus_top(records, by = "author", n = 5))
 ![A horizontal bar chart of the most frequent
 authors](analysing-a-literature_files/figure-html/unnamed-chunk-6-1.png)
 
-A record set also has an honest default view: `autoplot()` draws its
+A record set also has an honest default view. `autoplot()` draws its
 records per year. Because this corpus is a complete harvest of one query
 rather than a sample, those bars are the real number of publications per
 year for that query. The same `autoplot()` generic dispatches on
@@ -201,7 +201,7 @@ below.
 ## Where a niche sits
 
 A study that crosses two or more fields is best introduced by sizing
-those fields and their overlap: each parent literature may hold
+those fields and their overlap. Each parent literature may hold
 thousands of records while their intersection holds a handful, which is
 the niche the study occupies.
 [`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md)
@@ -339,7 +339,7 @@ cursor retrieves all of them in one call. The records then arrive in the
 API’s deep-paging order rather than sorted by relevance, which is the
 right trade for a complete harvest. This is the one-call alternative to
 the year-partitioned plan in the *Search plans and quota-aware
-retrieval* article: a plan keeps each cell under the ceiling and
+retrieval* article. A plan keeps each cell under the ceiling and
 preserves relevance order, whereas `cursor = TRUE` harvests the whole
 set in a single pass. Reach for the plan when you want cached, resumable
 cells, and the cursor when you want the complete set at once.

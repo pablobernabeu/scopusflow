@@ -53,7 +53,7 @@ Scopus/Elsevier account contact.
 
 ## References via Abstract Retrieval
 
-The reference list is not available from Search under any view; it needs
+The reference list is not available from Search under any view. It needs
 Abstract Retrieval’s `FULL` or `REF` view, an entitlement separate from
 ordinary abstract access and from Search access. This is a per-document
 endpoint, so retrieving references for *n* documents costs *n* requests
@@ -82,7 +82,7 @@ ab$references[[1]][, c("title", "authors", "source", "year")]
 | ImageNet classification with deep convolutional neural networks | Krizhevsky A.; Sutskever I.; Hinton G. | Advances in Neural Information Processing Systems | 2012 |
 | Learning representations by back-propagating errors | Rumelhart D.; Hinton G.; Williams R. | Nature | 1986 |
 
-`view = "FULL"` is the recommended default: in development, it returned
+`view = "FULL"` is the recommended default. In development, it returned
 a complete, correctly counted reference list for every document tried,
 while `view = "REF"` returned an inconsistent, sometimes-truncated
 subset, on an otherwise identical request made moments apart.
@@ -93,7 +93,7 @@ silently.
 
 The number of requests spent and the remaining Abstract Retrieval quota
 are attached as attributes, since this endpoint draws on a separate,
-smaller quota that is easy to exhaust unnoticed:
+smaller quota that is easy to exhaust unnoticed.
 
 ``` r
 
@@ -117,7 +117,7 @@ account-level property, not a per-document one.
 
 For more than a handful of identifiers, pass `cache_dir` so an
 interrupted or quota-limited batch resumes without re-spending quota
-already spent:
+already spent.
 
 ``` r
 
@@ -164,7 +164,7 @@ nrow(corpus$references[[1]])
 
 The keywords list-column is ready for the co-occurrence analysis this
 article is named for, unnested and tallied into a per-keyword document
-count across the corpus:
+count across the corpus.
 
 ``` r
 

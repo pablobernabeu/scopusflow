@@ -10,7 +10,7 @@ in a reference manager or as input to a science-mapping tool. This
 article covers that export end of the workflow. Every step runs without
 an API key, on the bundled `example_records`, a corpus of 138 real
 journal articles that stands in for a harvest of your own because Scopus
-records may not be redistributed;
+records may not be redistributed. The article
 [`vignette("scopusflow")`](https://pablobernabeu.github.io/scopusflow/articles/scopusflow.md)
 describes where it comes from.
 
@@ -120,7 +120,7 @@ scopus_extract_dois(c("https://doi.org/10.1/A", "doi: 10.1/a", "10.2/B"),
 
 The list can be written to a single-column CSV at a path you choose.
 Nothing is written unless a path is given. Here are the first few lines
-of the file, which holds a header and one DOI per line:
+of the file, which holds a header and one DOI per line.
 
 ``` r
 
@@ -171,7 +171,7 @@ The first two entries of 138 are shown. The second has no DOI, so its
 `DO` line is simply absent rather than empty, and the entry still
 imports on its title, author and year.
 
-Pass a `file` to write the whole set; nothing is written without one.
+Pass a `file` to write the whole set. Nothing is written without one.
 
 ``` r
 

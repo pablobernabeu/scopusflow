@@ -10,8 +10,8 @@ compose correct, field-tagged ‘Scopus’ queries with
 [`scopus_query()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_query.md)
 rather than pasting fragments by hand, where a missing bracket or a
 mistyped tag quietly returns the wrong records. Everything here is
-string construction, so it all runs offline; each query is shown as the
-literal string it produces.
+string construction, so it all runs offline, and each query is shown as
+the literal string it produces.
 
 ## Field tags decide where to look
 

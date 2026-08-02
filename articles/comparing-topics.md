@@ -13,7 +13,7 @@ faster than the share about computer vision?
 answers exactly this, and
 [`plot_scopus_comparison()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_comparison.md)
 shows the answer. The comparison itself contacts the API, so it is shown
-but not run; the plotting is reproduced offline from an object of the
+but not run. The plotting is reproduced offline from an object of the
 same shape.
 
 ## What the comparison measures
@@ -131,6 +131,8 @@ rather than as a misleading zero.
 
 ## A first plot
 
+Drawing the comparison takes one call on the result.
+
 ``` r
 
 plot_scopus_comparison(cmp, legend_inside = TRUE)
@@ -146,7 +148,7 @@ line at its end. Left at its default the chart uses whole-number year
 breaks, a colour-blind-safe palette and, because there are only a few
 topics, labels the lines directly so the reader need not match colours
 to a legend. Each label carries the topic’s total record count. The
-shaded band around each line is a Wilson stability range: it is wide in
+shaded band around each line is a Wilson stability range. It is wide in
 the early years, when the reference set is small and the share would
 move easily, and narrows as the literature grows. Because ‘Scopus’
 returns exact counts rather than a sample, the band is illustrative
@@ -204,7 +206,7 @@ with end labels automatically spread apart rather than
 overlapping](comparing-topics_files/figure-html/unnamed-chunk-6-1.png)
 
 Without this, six labels ending within three points of each other would
-print on top of one another; here every one is still readable, each
+print on top of one another. Here every one is still readable, each
 colour-matched to its own line and spread in the same order as the line
 ends.
 
@@ -245,7 +247,7 @@ away.
 ## Reading the result as a table
 
 Sometimes the numbers matter more than the picture. Because the output
-is a tibble, the usual tools apply: here are the topics ranked by their
+is a tibble, the usual tools apply. Here are the topics ranked by their
 average share.
 
 ``` r

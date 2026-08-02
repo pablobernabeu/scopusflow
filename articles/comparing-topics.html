@@ -98,7 +98,7 @@ research, say, is the share of work that also concerns medical imaging
 growing faster than the share about computer vision?
 <code><a href="../reference/scopus_compare_topics.html">scopus_compare_topics()</a></code> answers exactly this, and
 <code><a href="../reference/plot_scopus_comparison.html">plot_scopus_comparison()</a></code> shows the answer. The comparison
-itself contacts the API, so it is shown but not run; the plotting is
+itself contacts the API, so it is shown but not run. The plotting is
 reproduced offline from an object of the same shape.</p>
 <div class="section level2">
 <h2 id="what-the-comparison-measures">What the comparison measures<a class="anchor" aria-label="anchor" href="#what-the-comparison-measures"></a>
@@ -638,6 +638,7 @@ recorded as <code>NA</code> rather than as a misleading zero.</p>
 <div class="section level2">
 <h2 id="a-first-plot">A first plot<a class="anchor" aria-label="anchor" href="#a-first-plot"></a>
 </h2>
+<p>Drawing the comparison takes one call on the result.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_scopus_comparison.html">plot_scopus_comparison</a></span><span class="op">(</span><span class="va">cmp</span>, legend_inside <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="comparing-topics_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="Four application areas' share of the deep-learning literature from 2013 to 2021, with shaded uncertainty bands and an in-panel legend" width="768"></p>
@@ -647,7 +648,7 @@ labelling each line at its end. Left at its default the chart uses
 whole-number year breaks, a colour-blind-safe palette and, because there
 are only a few topics, labels the lines directly so the reader need not
 match colours to a legend. Each label carries the topic’s total record
-count. The shaded band around each line is a Wilson stability range: it
+count. The shaded band around each line is a Wilson stability range. It
 is wide in the early years, when the reference set is small and the
 share would move easily, and narrows as the literature grows. Because
 ‘Scopus’ returns exact counts rather than a sample, the band is
@@ -694,7 +695,7 @@ within three points of one another.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_scopus_comparison.html">plot_scopus_comparison</a></span><span class="op">(</span><span class="va">cmp_converging</span><span class="op">)</span></span></code></pre></div>
 <p><img src="comparing-topics_files/figure-html/unnamed-chunk-6-1.png" class="r-plt" alt="Six materials-science sub-areas converging to similar shares by 2021, with end labels automatically spread apart rather than overlapping" width="768"></p>
 <p>Without this, six labels ending within three points of each other
-would print on top of one another; here every one is still readable,
+would print on top of one another. Here every one is still readable,
 each colour-matched to its own line and spread in the same order as the
 line ends.</p>
 </div>
@@ -724,7 +725,7 @@ one <code><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="e
 <h2 id="reading-the-result-as-a-table">Reading the result as a table<a class="anchor" aria-label="anchor" href="#reading-the-result-as-a-table"></a>
 </h2>
 <p>Sometimes the numbers matter more than the picture. Because the
-output is a tibble, the usual tools apply: here are the topics ranked by
+output is a tibble, the usual tools apply. Here are the topics ranked by
 their average share.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">comp</span> <span class="op">&lt;-</span> <span class="va">cmp</span><span class="op">[</span><span class="va">cmp</span><span class="op">$</span><span class="va">query_type</span> <span class="op">==</span> <span class="st">"comparison"</span>, <span class="op">]</span></span>
@@ -765,7 +766,7 @@ their average share.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Released under the <a href="/scopusflow/LICENSE.html">MIT licence</a>. ‘Scopus’ is a trademark of Elsevier; scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
+  <p>Released under the <a href="/scopusflow/LICENSE.html">MIT licence</a>. ‘Scopus’ is a trademark of Elsevier. scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

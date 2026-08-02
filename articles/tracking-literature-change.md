@@ -74,10 +74,11 @@ print(changes)
 The newly indexed papers come back as `added`, the records present both
 times as `unchanged`, and anything dropped from the later pull as
 `removed`. The counts work out at fourteen added, one removed and 112
-unchanged: fourteen because that is how many of the 2024 papers carry a
-DOI, and 112 rather than 113 because the re-indexed record is no longer
-among them. Records without a DOI cannot be tracked this way at all,
-which is one reason to prefer the ‘Scopus’ identifier when there is one.
+unchanged. Fourteen are added because that is how many of the 2024
+papers carry a DOI, and 112 rather than 113 remain unchanged because the
+re-indexed record is no longer among them. Records without a DOI cannot
+be tracked this way at all, which is one reason to prefer the ‘Scopus’
+identifier when there is one.
 
 To act on one category, filter the table, which is an ordinary tibble.
 
