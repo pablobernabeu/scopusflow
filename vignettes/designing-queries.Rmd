@@ -28,8 +28,8 @@ library(scopusflow)
 A retrieval is only as good as its query. This article shows how to compose
 correct, field-tagged 'Scopus' queries with `scopus_query()` rather than pasting
 fragments by hand, where a missing bracket or a mistyped tag quietly returns the
-wrong records. Everything here is string construction, so it all runs offline;
-each query is shown as the literal string it produces.
+wrong records. Everything here is string construction, so it all runs offline,
+and each query is shown as the literal string it produces.
 
 ## Field tags decide where to look
 

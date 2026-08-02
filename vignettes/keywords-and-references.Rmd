@@ -57,7 +57,7 @@ recs$authkeywords
 # Representative COMPLETE-view result, assembled offline. authkeywords is the
 # single string scopus_fetch() returns under view = "COMPLETE", one element
 # per record, in Scopus' own " | "-delimited form. The bibliographic fields are
-# the document's own; the 'Scopus' identifier and citation count are left NA
+# the document's own. The 'Scopus' identifier and citation count are left NA
 # rather than guessed at, since nothing on the page prints them.
 recs <- tibble::tibble(
   entry_number = 1L, scopus_id = NA_character_, doi = "10.1038/nature14539",
@@ -81,7 +81,7 @@ than the documents genuinely having none. If your own keywords come back all
 
 ## References via Abstract Retrieval
 
-The reference list is not available from Search under any view; it needs
+The reference list is not available from Search under any view. It needs
 Abstract Retrieval's `FULL` or `REF` view, an entitlement separate from
 ordinary abstract access and from Search access. This is a per-document
 endpoint, so retrieving references for *n* documents costs *n* requests
@@ -123,7 +123,7 @@ refs <- tibble::tibble(
     "Advances in Neural Information Processing Systems", "Nature"
   ),
   year = c(1998L, 2015L, 2012L, 1986L),
-  # NA is what view = "FULL" actually returns for this column; only view =
+  # NA is what view = "FULL" actually returns for this column. Only view =
   # "REF" populates a cited work's own citation count.
   citedbycount = NA_integer_
 )
@@ -132,7 +132,7 @@ ab <- tibble::tibble(
   doi = "10.1038/nature14539",
   title = "Deep learning",
   year = 2015L,
-  # scopus_abstract() joins keywords "; ", like its authors column; only
+  # scopus_abstract() joins keywords "; ", like its authors column. Only
   # Search's COMPLETE view uses the " | " form shown above.
   authkeywords =
   "deep learning; neural networks; representation learning; backpropagation",
@@ -146,7 +146,7 @@ attr(ab, "quota") <- list(remaining = 24999L, reset = NA_character_)
 ab$references[[1]][, c("title", "authors", "source", "year")]
 ```
 
-`view = "FULL"` is the recommended default: in development, it returned a
+`view = "FULL"` is the recommended default. In development, it returned a
 complete, correctly counted reference list for every document tried, while
 `view = "REF"` returned an inconsistent, sometimes-truncated subset, on an
 otherwise identical request made moments apart. `scopus_abstract()` warns
@@ -155,7 +155,7 @@ reported count, rather than returning a partial list silently.
 
 The number of requests spent and the remaining Abstract Retrieval quota are
 attached as attributes, since this endpoint draws on a separate, smaller quota
-that is easy to exhaust unnoticed:
+that is easy to exhaust unnoticed.
 
 ```{r}
 attr(ab, "n_requests")        # requests spent so far
@@ -169,7 +169,7 @@ every remaining identifier, since entitlement is an account-level property,
 not a per-document one.
 
 For more than a handful of identifiers, pass `cache_dir` so an interrupted or
-quota-limited batch resumes without re-spending quota already spent:
+quota-limited batch resumes without re-spending quota already spent.
 
 ```r
 ab <- scopus_abstract(
@@ -215,7 +215,7 @@ nrow(corpus$references[[1]])
 
 The keywords list-column is ready for the co-occurrence analysis this article
 is named for, unnested and tallied into a per-keyword document count across the
-corpus:
+corpus.
 
 ```{r}
 sort(table(unlist(corpus$keywords)), decreasing = TRUE)

@@ -28,8 +28,8 @@ library(scopusflow)
 The Elsevier Scopus Search API is generous but bounded. A weekly quota limits how
 many requests you may make, a short-term rate limit caps how fast you may make
 them, and under the ordinary offset paging no single query will return more
-than its first 5000 records. This
-article shows how scopusflow works within those bounds so that a large retrieval
+than its first 5000 records. This article shows how scopusflow works within
+those bounds so that a large retrieval
 is reproducible, efficient and resumable. The steps that contact the API need a
 key and are not run here. Everything else runs offline.
 
@@ -72,7 +72,7 @@ records under the `STANDARD` view, or 25 under `COMPLETE`. Retrieving a thousand
 records in pages of 200 therefore costs five requests, where pages of 25 would
 cost forty. For that reason `page_size` defaults to the largest the view allows,
 which is the same efficiency `rscopus` relies on, and is in no sense an evasion
-of the quota: every request is counted, and the 5000-record ceiling still holds.
+of the quota. Every request is counted, and the 5000-record ceiling still holds.
 
 ```{r}
 scopus_plan(q, view = "STANDARD")$page_size[1]
@@ -92,7 +92,7 @@ attr(n, "quota")
 ```
 
 That allowance is parsed from the response headers by `scopus_quota()`. To show
-its shape without a network call, apply it to a constructed response:
+its shape without a network call, apply it to a constructed response.
 
 ```{r}
 resp <- httr2::response(
@@ -130,7 +130,7 @@ on a mismatch, but the clean arrangement is a separate directory per plan.
 
 The cache lives under `scopus_cache_dir()`. To force a fresh retrieval, empty it
 with `scopus_cache_clear()`. Both are shown but not run, so the article does not
-touch a real cache:
+touch a real cache.
 
 ```{r eval = FALSE}
 scopus_cache_dir()    # where completed cells are written
@@ -187,11 +187,11 @@ so the same call would return 138.
 Under offset paging, a query matching more than 5000 records cannot be retrieved
 in full from a single call. `scopus_fetch()` returns the first 5000 and warns.
 One remedy is to split the search by year, or by any other facet, so that each
-cell stays under the ceiling; `scopus_count()` tells you in advance whether a
-split is needed. The other is `scopus_fetch(cursor = TRUE)`, which follows the
+cell stays under the ceiling, and `scopus_count()` tells you in advance whether
+a split is needed. The other is `scopus_fetch(cursor = TRUE)`, which follows the
 API's cursor instead of an offset and retrieves the whole set in one call, at
 the price of deep-paging rather than relevance order. The *Analysing a
-literature* article weighs the two: a plan gives cached, resumable cells, the
+literature* article weighs the two. A plan gives cached, resumable cells, the
 cursor a complete set in a single pass.
 
 ## Handling interruptions

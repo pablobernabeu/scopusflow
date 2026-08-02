@@ -1,6 +1,11 @@
 # scopusflow 0.3.0
 
+A data and documentation release. The bundled corpus becomes a real harvest, and
+every example and article is rebuilt on it.
+
 ## The bundled example records
+
+The dataset the package ships for offline work was replaced outright.
 
 * `example_records` is now a worked example harvest of 138 real journal articles
   on graphene supercapacitors published between 2015 and 2024, carrying their
@@ -18,6 +23,9 @@
   identifier is missing.
 
 ## Documentation
+
+The material a reader meets was rebuilt on the new corpus, and one misleading
+fixture was replaced.
 
 * Every vignette and example runs on that corpus, paired with the key-gated live
   call a reader would actually write, and the figures quoted in the prose were
@@ -59,13 +67,16 @@ top of a retrieval, and introduces a local, code-free app.
 
 ## Deeper retrieval
 
+A search now reaches further into the API, past the offset ceiling and beyond
+the fields the Search endpoint returns.
+
 * [`scopus_fetch()`] gains `cursor = TRUE`, cursor-based pagination that
   retrieves a whole large query without the 5000-record ceiling of offset
   paging. The warning on a query that exceeds the ceiling suggests this
   alongside partitioning with [`scopus_plan()`].
 * [`scopus_fetch()`] and [`scopus_fetch_plan()`] add an `authkeywords` column
   when `view = "COMPLETE"` is requested, at no cost beyond that view's own
-  smaller page size; `view = "STANDARD"` output is unchanged, and
+  smaller page size. The `view = "STANDARD"` output is unchanged, and
   [`read_scopus_records()`] keeps the column across a CSV round-trip.
 * [`scopus_abstract()`] retrieves the abstract and fuller metadata for one or
   many records from the 'Scopus' Abstract Retrieval API, resilient to an
@@ -90,6 +101,8 @@ top of a retrieval, and introduces a local, code-free app.
   cache directory is still best kept to a single plan.
 
 ## Analysis and plots
+
+The package gains a layer for summarising a literature and drawing the result.
 
 * [`scopus_trend()`] reports annual record counts for a query (the size of a
   literature over time), with [`plot_scopus_trend()`].
@@ -118,17 +131,21 @@ top of a retrieval, and introduces a local, code-free app.
   a legend when there are too many topics to label legibly. The labels are
   spread when the figure is drawn, against the rendered text height, so they
   stay legible at any figure size, including a short panel such as the app's
-  result card. They carry no leader lines: the labels are colour-matched to
+  result card. They carry no leader lines. The labels are colour-matched to
   their lines and spread in the same order as the line ends, so the link is
   clear without a leader that would otherwise cut across neighbouring labels.
 
 ## Export
+
+A retrieval can now leave the package in the formats other tools read.
 
 * [`as_bibtex()`] and [`as_ris()`] export a record set to the BibTeX and RIS
   interchange formats, so a search can be carried into Zotero, EndNote,
   Mendeley or a LaTeX bibliography.
 
 ## A code-free app
+
+The whole workflow is now available without writing any R.
 
 * [`run_app()`] launches a local, code-free Shiny app for building a search,
   retrieving records with a live progress terminal, and exporting them. A panel
@@ -146,6 +163,8 @@ top of a retrieval, and introduces a local, code-free app.
   comparison terms, and tells you when there is nothing to cancel.
 
 ## Other improvements
+
+One rough edge in the package's messaging was smoothed.
 
 * The no-key error renders its guidance (the option name, the `api_key`
   argument and the key-request URL) through cli instead of leaking raw
@@ -181,5 +200,5 @@ First release.
 * The bundled `example_records` spans several disciplines, and the examples and
   five workflow vignettes draw on a wide range of fields.
 * Multiple authors are retained in the `authors` column rather than truncated to
-  the first; very large result totals are handled without overflow; and DOI
+  the first. Very large result totals are handled without overflow, and DOI
   cleaning copes with `www.doi.org` hosts and `DOI:` labels.

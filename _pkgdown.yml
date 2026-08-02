@@ -39,9 +39,12 @@ footer:
     # and leaves the same bare filename. A leading slash is the one form that
     # survives, and it is unambiguous from any depth. The sidebar keeps its
     # relative href because it renders only on the home page, at the site root.
+    # The trademark note is worded exactly as the Python twin's mkdocs.yml
+    # copyright line words it, so that a reader moving between the two sites
+    # meets the same sentences.
     legal: >
       Released under the [MIT licence](/scopusflow/LICENSE.html). 'Scopus' is a
-      trademark of Elsevier; scopusflow is an independent client, not affiliated
+      trademark of Elsevier. scopusflow is an independent client, not affiliated
       with or endorsed by Elsevier.
 
 home:

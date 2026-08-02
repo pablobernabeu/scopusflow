@@ -70,16 +70,27 @@ article builds the same table and explains every column.
 
 ## Installation
 
-The released version is on CRAN:
+```{r cran-version, include = FALSE}
+# The version that is currently on CRAN, named once here and used in the prose
+# below so that the page never states it twice. Nothing in the build can work
+# this out for itself: querying CRAN while the README knits would make the page
+# depend on the network and on a service that may be slow or unreachable, and
+# would also break an offline check. BUMP cran_version WHENEVER A RELEASE
+# REACHES CRAN. It lags DESCRIPTION's Version field, which moves as soon as
+# development starts on the next version, so the two are not interchangeable.
+cran_version <- "0.1.0"
+```
+
+The released version is on CRAN.
 
 ```r
 install.packages("scopusflow")
 ```
 
-CRAN currently carries 0.1.0. Much of what this page describes arrived after
-that release, among it cursor paging, abstract and reference retrieval, the
-trend, top-source and intersection plots, and the code-free app. Until the next
-CRAN release those live on GitHub:
+CRAN carries version `r cran_version`. Much of what this page describes arrived
+after that release, among it cursor paging, abstract and reference retrieval,
+the trend, top-source and intersection plots, and the code-free app. Until the
+next CRAN release those live on GitHub.
 
 ```r
 # install.packages("pak")
@@ -90,7 +101,7 @@ pak::pak("pablobernabeu/scopusflow")
 
 scopusflow never stores your key. It is read, in order, from the `api_key`
 argument, the `scopusflow.api_key` option, or the `SCOPUS_API_KEY` environment
-variable. Store it in `~/.Renviron`:
+variable. Store it in `~/.Renviron`.
 
 ```
 SCOPUS_API_KEY=your-key-here
@@ -107,7 +118,7 @@ scopus_has_key()
 
 With a key configured, a search runs as a plan: compose the query, size it,
 execute it with caching, then export or analyse the result. These calls
-contact the API and consume quota, so they are not run here:
+contact the API and consume quota, so they are not run here.
 
 ```{r eval = FALSE}
 # Compose a field-tagged query, then a reproducible plan partitioned by
@@ -195,6 +206,9 @@ on your Elsevier entitlement, and some fields are available only in the
 `COMPLETE` view and to subscribers.
 
 ## Citation
+
+If scopusflow contributes to published work, please cite it. R prints the
+reference and its BibTeX entry.
 
 ```{r eval = FALSE}
 citation("scopusflow")

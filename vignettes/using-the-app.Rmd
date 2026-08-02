@@ -13,7 +13,7 @@ knitr::opts_chunk$set(collapse = FALSE, comment = "", eval = FALSE)
 
 <!-- The screenshots in figures/ were captured from run_app() with Demo mode
      left on, so they need no key and no network. Recapture them whenever the
-     app's layout changes: unlike the figures in the other articles, which are
+     app's layout changes. Unlike the figures in the other articles, which are
      drawn when the vignette is knitted, a static image of an interface drifts
      silently. -->
 

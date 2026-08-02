@@ -29,8 +29,8 @@ A retrieval becomes useful once it leaves the package, as a reading list in a
 reference manager or as input to a science-mapping tool. This article covers that
 export end of the workflow. Every step runs without an API key, on the bundled
 `example_records`, a corpus of 138 real journal articles that stands in for a
-harvest of your own because Scopus records may not be redistributed;
-`vignette("scopusflow")` describes where it comes from.
+harvest of your own because Scopus records may not be redistributed. The
+article `vignette("scopusflow")` describes where it comes from.
 
 ## Take stock first
 
@@ -81,7 +81,7 @@ scopus_extract_dois(c("https://doi.org/10.1/A", "doi: 10.1/a", "10.2/B"),
 
 The list can be written to a single-column CSV at a path you choose. Nothing is
 written unless a path is given. Here are the first few lines of the file, which
-holds a header and one DOI per line:
+holds a header and one DOI per line.
 
 ```{r}
 out <- file.path(tempdir(), "reference-set.csv")
@@ -104,7 +104,7 @@ The first two entries of 138 are shown. The second has no DOI, so its `DO` line
 is simply absent rather than empty, and the entry still imports on its title,
 author and year.
 
-Pass a `file` to write the whole set; nothing is written without one.
+Pass a `file` to write the whole set. Nothing is written without one.
 
 ```{r}
 bib <- file.path(tempdir(), "reference-set.bib")
