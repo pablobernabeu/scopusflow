@@ -2,6 +2,9 @@
 
 ## Plan and size
 
+Write a field-tagged query, measure how large it is, and partition it
+into a reproducible plan.
+
 - [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md)
   [`is_scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md)
   : Build a reproducible 'Scopus' search plan
@@ -13,6 +16,9 @@
   : Recognised 'Scopus' field tags
 
 ## Retrieve
+
+Run a plan against the API, caching each cell so that an interrupted
+harvest resumes without re-spending quota.
 
 - [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
   : Fetch 'Scopus' records for a query
@@ -28,6 +34,9 @@
   : Clear the scopusflow managed cache
 
 ## Records
+
+The retrieved table itself, what it holds, and how to summarise and
+combine harvests.
 
 - [`as_tibble(`*`<scopus_records>`*`)`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
   [`as.data.frame(`*`<scopus_records>`*`)`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
@@ -45,12 +54,18 @@
 
 ## DOIs and change tracking
 
+Extract the identifiers of a harvest, and see what a later retrieval
+added or dropped.
+
 - [`scopus_extract_dois()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_extract_dois.md)
   : Extract, clean and optionally export DOIs
 - [`scopus_diff_dois()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_diff_dois.md)
   : Compare two DOI retrievals
 
 ## Analyse and visualise
+
+Summarise a literature over time and by source, compare topics within
+it, and plot the result.
 
 - [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md)
   : Annual publication counts for a query
@@ -75,6 +90,9 @@
 
 ## Export and I/O
 
+Hand records to bibliometrix, to a reference manager, or to a file on
+disk.
+
 - [`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)
   : Convert records to a bibliometrix-compatible data frame
 - [`as_bibtex()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
@@ -86,15 +104,21 @@
 
 ## App
 
+The code-free interface to the same workflow.
+
 - [`run_app()`](https://pablobernabeu.github.io/scopusflow/reference/run_app.md)
   : Launch the scopusflow app
 
 ## Keys
 
+Check whether a key is configured before making a call that needs one.
+
 - [`scopus_has_key()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_has_key.md)
   : Locate the 'Scopus' API key and institutional token
 
 ## Data
+
+The bundled harvest that the examples and the app’s demo mode run on.
 
 - [`example_records`](https://pablobernabeu.github.io/scopusflow/reference/example_records.md)
   : A worked example harvest, in the shape 'Scopus' records take
