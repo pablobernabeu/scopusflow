@@ -147,6 +147,9 @@ in code. The Get started vignette shows the `tryCatch()` pattern.
 
 ## How it compares
 
+Several R packages cover neighbouring ground, and scopusflow is meant to
+work alongside them rather than replace them.
+
 | Package | Focus | Relationship to scopusflow |
 |----|----|----|
 | [`rscopus`](https://cran.r-project.org/package=rscopus) | Low-level Scopus API wrapper | scopusflow sits at a higher workflow layer (plans, quotas, caching, diffs) and calls the API directly through `httr2` |

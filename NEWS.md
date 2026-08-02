@@ -106,8 +106,8 @@ top of a retrieval, and introduces a local, code-free app.
   wrapped again. [`plot_scopus_intersections()`] draws the result as a
   lollipop chart on a log-scale axis, with an `autoplot()` method and an
   optional highlight (for example the niche itself) whose legend label is
-  derived from what is highlighted: "Focal intersection" for intersections,
-  "Focal concept" for concepts and "Focal set" for a mixture. An explicit
+  derived from what is highlighted: 'Focal intersection' for intersections,
+  'Focal concept' for concepts and 'Focal set' for a mixture. An explicit
   `highlight_label` still wins.
 * [`plot_scopus_comparison()`] gains `legend_inside`. When set, and a legend is
   drawn, it is placed inside the panel in whichever corner has the most free

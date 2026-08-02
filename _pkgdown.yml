@@ -129,12 +129,14 @@ articles:
 
 reference:
 - title: Plan and size
+  desc: Write a field-tagged query, measure how large it is, and partition it into a reproducible plan.
   contents:
   - scopus_plan
   - scopus_query
   - scopus_count
   - scopus_field_tags
 - title: Retrieve
+  desc: Run a plan against the API, caching each cell so that an interrupted harvest resumes without re-spending quota.
   contents:
   - scopus_fetch
   - scopus_fetch_plan
@@ -143,16 +145,19 @@ reference:
   - scopus_cache_dir
   - scopus_cache_clear
 - title: Records
+  desc: The retrieved table itself, what it holds, and how to summarise and combine harvests.
   contents:
   - scopus_records
   - summary.scopus_records
   - scopus_combine
   - scopus_quota
 - title: DOIs and change tracking
+  desc: Extract the identifiers of a harvest, and see what a later retrieval added or dropped.
   contents:
   - scopus_extract_dois
   - scopus_diff_dois
 - title: Analyse and visualise
+  desc: Summarise a literature over time and by source, compare topics within it, and plot the result.
   contents:
   - scopus_trend
   - scopus_top
@@ -163,17 +168,21 @@ reference:
   - plot_scopus_comparison
   - plot_scopus_intersections
 - title: Export and I/O
+  desc: Hand records to bibliometrix, to a reference manager, or to a file on disk.
   contents:
   - as_bibliometrix
   - as_bibtex
   - as_ris
   - write_scopus_records
 - title: App
+  desc: The code-free interface to the same workflow.
   contents:
   - run_app
 - title: Keys
+  desc: Check whether a key is configured before making a call that needs one.
   contents:
   - scopus_has_key
 - title: Data
+  desc: The bundled harvest that the examples and the app's demo mode run on.
   contents:
   - example_records
