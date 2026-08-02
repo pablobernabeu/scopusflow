@@ -62,14 +62,24 @@ date filter:
 ``` r
 
 scopus_plan("language learning", field = "TITLE")$query
-#> [1] "TITLE(language learning)"
+```
+
+    [1] "TITLE(language learning)"
+
+``` r
+
 scopus_plan("x", years = 2015:2020)$date
-#> [1] "2015-2020"
+```
+
+    [1] "2015-2020"
+
+``` r
 
 # A plan is a classed object; is_scopus_plan() confirms it.
 is_scopus_plan(plan)
-#> [1] TRUE
 ```
+
+    [1] TRUE
 
 ## Sizing and fetching
 
@@ -81,8 +91,9 @@ API, so it is the natural switch for a reproducible script:
 ``` r
 
 scopus_has_key()
-#> [1] FALSE
 ```
+
+    [1] FALSE
 
 With a key configured, you size a search cheaply and then execute the
 plan, optionally caching each cell so that an interrupted run resumes
@@ -91,9 +102,17 @@ evaluated here:
 
 ``` r
 
-scopus_count("graphene supercapacitor", years = 2015:2024, field = "TITLE-ABS-KEY")
+scopus_count(
+  "graphene supercapacitor",
+  years = 2015:2024,
+  field = "TITLE-ABS-KEY"
+)
 
-records <- scopus_fetch_plan(plan, cache_dir = scopus_cache_dir(), resume = TRUE)
+records <- scopus_fetch_plan(
+  plan,
+  cache_dir = scopus_cache_dir(),
+  resume = TRUE
+)
 ```
 
 Without a key, the bundled corpus stands in for the result of that
@@ -110,12 +129,21 @@ stock of a set, and the first rows show the columns:
 
 records <- example_records
 summary(records)
-#> <scopus_records> summary
-#> 138 records, from 2015 to 2024.
-#> 90 sources, 127 with a DOI.
-#> Cited 7015 times in total, median 24 per record.
-#> Most frequent source: ACS Applied Materials & Interfaces.
-#> Most cited: Graphene for batteries, supercapacitors and beyond.
+```
+
+     [34m<scopus_records> [39m summary
+
+    138 records, from 2015 to 2024.
+
+    90 sources, 127 with a DOI.
+
+    Cited 7015 times in total, median 24 per record.
+
+    Most frequent source: ACS Applied Materials & Interfaces.
+
+    Most cited:  [3mGraphene for batteries, supercapacitors and beyond [23m.
+
+``` r
 
 head(records)
 ```
@@ -131,11 +159,11 @@ head(records)
 
 ``` r
 
-
 # A record set is a classed tibble; is_scopus_records() confirms the contract.
 is_scopus_records(records)
-#> [1] TRUE
 ```
+
+    [1] TRUE
 
 [`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
 produces this same shape from a raw API response, flattening the nested
@@ -147,7 +175,8 @@ returns them:
 
 raw <- list(entry = list(
   list(`prism:doi` = "10.1021/am509065d",
-       `dc:title` = "Flexible and Stackable Laser-Induced Graphene Supercapacitors",
+       `dc:title` =
+         "Flexible and Stackable Laser-Induced Graphene Supercapacitors",
        `dc:creator` = "Zhiwei Peng",
        `prism:publicationName` = "ACS Applied Materials & Interfaces",
        `prism:coverDate` = "2015-01-13", `citedby-count` = "469")
@@ -201,11 +230,17 @@ of the 138 records arrived without a DOI, so 127 come back:
 
 dois <- scopus_extract_dois(records)
 length(dois)
-#> [1] 127
-head(dois, 4)
-#> [1] "10.15541/jim20140527"            "10.1021/am509065d"              
-#> [3] "10.1016/j.electacta.2015.02.019" "10.1002/smll.201403383"
 ```
+
+    [1] 127
+
+``` r
+
+head(dois, 4)
+```
+
+    [1] "10.15541/jim20140527"            "10.1021/am509065d"              
+    [3] "10.1016/j.electacta.2015.02.019" "10.1002/smll.201403383"         
 
 A search re-run later gains records and occasionally loses one to
 re-indexing. Here the baseline stops at 2023 and the second pull adds
@@ -216,22 +251,24 @@ the 2024 articles while dropping the first record:
 baseline <- records[records$year <= 2023, ]
 later <- records[-1, ]
 print(scopus_diff_dois(old = baseline, new = later))
-#> <scopus_doi_diff> 14 added, 1 removed, 112 unchanged
-#> # A tibble: 127 × 2
-#>    doi                            status
-#>    <chr>                          <fct> 
-#>  1 10.1002/adfm.202315137         added 
-#>  2 10.1002/asia.202400548         added 
-#>  3 10.1002/slct.202302535         added 
-#>  4 10.1016/j.cej.2024.148822      added 
-#>  5 10.1016/j.diamond.2024.110842  added 
-#>  6 10.1016/j.isci.2024.111696     added 
-#>  7 10.1016/j.jallcom.2024.175000  added 
-#>  8 10.1016/j.jallcom.2024.177248  added 
-#>  9 10.1016/j.jpowsour.2024.234127 added 
-#> 10 10.1016/j.jpowsour.2024.236149 added 
-#> # ℹ 117 more rows
 ```
+
+     [34m<scopus_doi_diff> [39m 14 added, 1 removed, 112 unchanged
+
+     [38;5;246m# A tibble: 127 × 2 [39m
+       doi                            status
+        [3m [38;5;246m<chr> [39m [23m                           [3m [38;5;246m<fct> [39m [23m 
+     [38;5;250m 1 [39m 10.1002/adfm.202315137         added 
+     [38;5;250m 2 [39m 10.1002/asia.202400548         added 
+     [38;5;250m 3 [39m 10.1002/slct.202302535         added 
+     [38;5;250m 4 [39m 10.1016/j.cej.2024.148822      added 
+     [38;5;250m 5 [39m 10.1016/j.diamond.2024.110842  added 
+     [38;5;250m 6 [39m 10.1016/j.isci.2024.111696     added 
+     [38;5;250m 7 [39m 10.1016/j.jallcom.2024.175000  added 
+     [38;5;250m 8 [39m 10.1016/j.jallcom.2024.177248  added 
+     [38;5;250m 9 [39m 10.1016/j.jpowsour.2024.234127 added 
+     [38;5;250m10 [39m 10.1016/j.jpowsour.2024.236149 added 
+     [38;5;246m# ℹ 117 more rows [39m
 
 You can write the DOIs to a path you specify, and read the file back to
 see exactly what lands on disk:
@@ -308,12 +345,12 @@ head(m[, c("AU", "TI", "PY", "SO", "TC")])
 
 ``` r
 
-
 path <- file.path(tempdir(), "records.rds")
 write_scopus_records(records, path)
 identical(read_scopus_records(path), records)
-#> [1] TRUE
 ```
+
+    [1] TRUE
 
 ## Handling failures
 
@@ -325,7 +362,9 @@ from `scopus_error`, so a workflow can respond to them in code:
 tryCatch(
   scopus_fetch("..."),
   scopus_error_no_key     = function(e) message("No API key configured."),
-  scopus_error_rate_limit = function(e) message("Rate limited, so backing off."),
-  scopus_error            = function(e) message("Scopus error: ", conditionMessage(e))
+  scopus_error_rate_limit = function(e)
+    message("Rate limited, so backing off."),
+  scopus_error            = function(e)
+    message("Scopus error: ", conditionMessage(e))
 )
 ```

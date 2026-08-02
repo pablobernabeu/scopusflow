@@ -31,6 +31,18 @@ article builds the same table and explains every column.
 
 ## Installation
 
+The released version is on CRAN:
+
+``` r
+
+install.packages("scopusflow")
+```
+
+CRAN currently carries 0.1.0. Much of what this page describes arrived
+after that release, among it cursor paging, abstract and reference
+retrieval, the trend, top-source and intersection plots, and the
+code-free app. Until the next CRAN release those live on GitHub:
+
 ``` r
 
 # install.packages("pak")
@@ -150,7 +162,7 @@ a large search is best partitioned by year with
 or harvested in one pass with `scopus_fetch(cursor = TRUE)`, which
 trades relevance order for completeness.
 [`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)
-maps the core descriptive fields the Search API returns; structured
+maps the core descriptive fields the Search API returns. Structured
 reference lists are available through
 `scopus_abstract(include = "references")` and
 [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md),
@@ -170,7 +182,8 @@ citation("scopusflow")
 The [About
 page](https://pablobernabeu.github.io/scopusflow/articles/about.html)
 carries the same citation with a BibTeX entry, and a short note on the
-developer.
+developer. The repository also ships a `CITATION.cff`, which is what
+GitHub’s ‘Cite this repository’ button reads.
 
 ## Licence
 
@@ -185,8 +198,9 @@ describes the development setup and the conventions the package follows,
 and everyone taking part is asked to honour the [Code of
 Conduct](https://github.com/pablobernabeu/scopusflow/blob/main/.github/CODE_OF_CONDUCT.md).
 
-Alongside the per-commit checks on Windows, macOS and several versions
-of R, a scheduled job re-checks the package every other day against the
-current and development versions of its dependencies, so that breakage
-from an upstream change is caught early. The contributing guide
-describes how it reports, and tries to resolve, any problem it finds.
+Alongside the per-commit checks on Windows, macOS and Linux across
+several versions of R, a scheduled job re-checks the package every other
+day against the current and development versions of its dependencies, so
+that breakage from an upstream change is caught early. The contributing
+guide describes how it reports, and tries to resolve, any problem it
+finds.

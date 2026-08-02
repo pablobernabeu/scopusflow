@@ -84,7 +84,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Get started</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.3.0/vignettes/scopusflow.Rmd" class="external-link"><code>vignettes/scopusflow.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/vignettes/scopusflow.Rmd" class="external-link"><code>vignettes/scopusflow.Rmd</code></a></small>
       <div class="d-none name"><code>scopusflow.Rmd</code></div>
     </div>
 
@@ -229,14 +229,15 @@ export.</p>
 <p>Each row is one query cell. Field tags wrap the query and years
 become a date filter:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="st">"language learning"</span>, field <span class="op">=</span> <span class="st">"TITLE"</span><span class="op">)</span><span class="op">$</span><span class="va">query</span></span>
-<span><span class="co">#&gt; [1] "TITLE(language learning)"</span></span>
-<span><span class="fu"><a href="../reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="st">"x"</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2020</span><span class="op">)</span><span class="op">$</span><span class="va">date</span></span>
-<span><span class="co">#&gt; [1] "2015-2020"</span></span>
-<span></span>
-<span><span class="co"># A plan is a classed object; is_scopus_plan() confirms it.</span></span>
-<span><span class="fu"><a href="../reference/scopus_plan.html">is_scopus_plan</a></span><span class="op">(</span><span class="va">plan</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="st">"language learning"</span>, field <span class="op">=</span> <span class="st">"TITLE"</span><span class="op">)</span><span class="op">$</span><span class="va">query</span></span></code></pre></div>
+<pre><code>[1] "TITLE(language learning)"</code></pre>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="st">"x"</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2020</span><span class="op">)</span><span class="op">$</span><span class="va">date</span></span></code></pre></div>
+<pre><code>[1] "2015-2020"</code></pre>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># A plan is a classed object; is_scopus_plan() confirms it.</span></span>
+<span><span class="fu"><a href="../reference/scopus_plan.html">is_scopus_plan</a></span><span class="op">(</span><span class="va">plan</span><span class="op">)</span></span></code></pre></div>
+<pre><code>[1] TRUE</code></pre>
 </div>
 <div class="section level2">
 <h2 id="sizing-and-fetching">Sizing and fetching<a class="anchor" aria-label="anchor" href="#sizing-and-fetching"></a>
@@ -245,17 +246,25 @@ become a date filter:</p>
 without revealing it. It is the guard the package’s own examples use to
 skip the steps that need the API, so it is the natural switch for a
 reproducible script:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_has_key.html">scopus_has_key</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] FALSE</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_has_key.html">scopus_has_key</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<pre><code>[1] FALSE</code></pre>
 <p>With a key configured, you size a search cheaply and then execute the
 plan, optionally caching each cell so that an interrupted run resumes
 without re-spending quota. These contact the API, so they are not
 evaluated here:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_count.html">scopus_count</a></span><span class="op">(</span><span class="st">"graphene supercapacitor"</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2024</span>, field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_count.html">scopus_count</a></span><span class="op">(</span></span>
+<span>  <span class="st">"graphene supercapacitor"</span>,</span>
+<span>  years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2024</span>,</span>
+<span>  field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan</a></span><span class="op">(</span><span class="va">plan</span>, cache_dir <span class="op">=</span> <span class="fu"><a href="../reference/scopus_cache_dir.html">scopus_cache_dir</a></span><span class="op">(</span><span class="op">)</span>, resume <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan</a></span><span class="op">(</span></span>
+<span>  <span class="va">plan</span>,</span>
+<span>  cache_dir <span class="op">=</span> <span class="fu"><a href="../reference/scopus_cache_dir.html">scopus_cache_dir</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  resume <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p>Without a key, the bundled corpus stands in for the result of that
 harvest, and the sections below run on it.</p>
 </div>
@@ -266,17 +275,17 @@ harvest, and the sections below run on it.</p>
 share one stable schema, so everything below would read the same on a
 harvest of your own. <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> takes stock of a set, and
 the first rows show the columns:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">records</span> <span class="op">&lt;-</span> <span class="va">example_records</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">&lt;scopus_records&gt;</span> summary</span></span>
-<span><span class="co">#&gt; 138 records, from 2015 to 2024.</span></span>
-<span><span class="co">#&gt; 90 sources, 127 with a DOI.</span></span>
-<span><span class="co">#&gt; Cited 7015 times in total, median 24 per record.</span></span>
-<span><span class="co">#&gt; Most frequent source: ACS Applied Materials &amp; Interfaces.</span></span>
-<span><span class="co">#&gt; Most cited: <span style="font-style: italic;">Graphene for batteries, supercapacitors and beyond</span>.</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span></code></pre></div>
+<pre><code> [34m&lt;scopus_records&gt; [39m summary</code></pre>
+<pre><code>138 records, from 2015 to 2024.</code></pre>
+<pre><code>90 sources, 127 with a DOI.</code></pre>
+<pre><code>Cited 7015 times in total, median 24 per record.</code></pre>
+<pre><code>Most frequent source: ACS Applied Materials &amp; Interfaces.</code></pre>
+<pre><code>Most cited:  [3mGraphene for batteries, supercapacitors and beyond [23m.</code></pre>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
 <col width="3%">
@@ -385,19 +394,19 @@ vacuum-assisted thermal process for electrochemical energy storage</td>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># A record set is a classed tibble; is_scopus_records() confirms the contract.</span></span>
-<span><span class="fu"><a href="../reference/scopus_records.html">is_scopus_records</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># A record set is a classed tibble; is_scopus_records() confirms the contract.</span></span>
+<span><span class="fu"><a href="../reference/scopus_records.html">is_scopus_records</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span></code></pre></div>
+<pre><code>[1] TRUE</code></pre>
 <p><code><a href="../reference/scopus_records.html">scopus_records()</a></code> produces this same shape from a raw API
 response, flattening the nested result into one row per record. The
 entry below carries the fields of a real article, one of those in the
 bundled corpus, in the form the API returns them:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>entry <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>`prism:doi` <span class="op">=</span> <span class="st">"10.1021/am509065d"</span>,</span>
-<span>       `dc:title` <span class="op">=</span> <span class="st">"Flexible and Stackable Laser-Induced Graphene Supercapacitors"</span>,</span>
+<span>       `dc:title` <span class="op">=</span></span>
+<span>         <span class="st">"Flexible and Stackable Laser-Induced Graphene Supercapacitors"</span>,</span>
 <span>       `dc:creator` <span class="op">=</span> <span class="st">"Zhiwei Peng"</span>,</span>
 <span>       `prism:publicationName` <span class="op">=</span> <span class="st">"ACS Applied Materials &amp; Interfaces"</span>,</span>
 <span>       `prism:coverDate` <span class="op">=</span> <span class="st">"2015-01-13"</span>, `citedby-count` <span class="op">=</span> <span class="st">"469"</span><span class="op">)</span></span>
@@ -452,7 +461,7 @@ counting each contributor once per record. Across these 138 articles the
 tally is long-tailed, as a real literature is. They are spread over 90
 distinct journals, and only one, <em>ACS Applied Materials &amp;
 Interfaces</em>, appears more than five times.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_top.html">scopus_top</a></span><span class="op">(</span><span class="va">records</span>, by <span class="op">=</span> <span class="st">"source"</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
@@ -511,38 +520,39 @@ top-source and top-author plots and abstract retrieval in depth.</p>
 <p>Extract a clean, deduplicated DOI list for import into a reference
 manager, and compare two retrievals to see exactly what changed. Eleven
 of the 138 records arrived without a DOI, so 127 come back:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dois</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">dois</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 127</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dois</span>, <span class="fl">4</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "10.15541/jim20140527"            "10.1021/am509065d"              </span></span>
-<span><span class="co">#&gt; [3] "10.1016/j.electacta.2015.02.019" "10.1002/smll.201403383"</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">dois</span><span class="op">)</span></span></code></pre></div>
+<pre><code>[1] 127</code></pre>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dois</span>, <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
+<pre><code>[1] "10.15541/jim20140527"            "10.1021/am509065d"              
+[3] "10.1016/j.electacta.2015.02.019" "10.1002/smll.201403383"         </code></pre>
 <p>A search re-run later gains records and occasionally loses one to
 re-indexing. Here the baseline stops at 2023 and the second pull adds
 the 2024 articles while dropping the first record:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">baseline</span> <span class="op">&lt;-</span> <span class="va">records</span><span class="op">[</span><span class="va">records</span><span class="op">$</span><span class="va">year</span> <span class="op">&lt;=</span> <span class="fl">2023</span>, <span class="op">]</span></span>
 <span><span class="va">later</span> <span class="op">&lt;-</span> <span class="va">records</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span>, <span class="op">]</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="../reference/scopus_diff_dois.html">scopus_diff_dois</a></span><span class="op">(</span>old <span class="op">=</span> <span class="va">baseline</span>, new <span class="op">=</span> <span class="va">later</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">&lt;scopus_doi_diff&gt;</span> 14 added, 1 removed, 112 unchanged</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 127 × 2</span></span></span>
-<span><span class="co">#&gt;    doi                            status</span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                          <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 10.1002/adfm.202315137         added </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 10.1002/asia.202400548         added </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 10.1002/slct.202302535         added </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 10.1016/j.cej.2024.148822      added </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 10.1016/j.diamond.2024.110842  added </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 10.1016/j.isci.2024.111696     added </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 10.1016/j.jallcom.2024.175000  added </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 10.1016/j.jallcom.2024.177248  added </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 10.1016/j.jpowsour.2024.234127 added </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 10.1016/j.jpowsour.2024.236149 added </span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 117 more rows</span></span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="../reference/scopus_diff_dois.html">scopus_diff_dois</a></span><span class="op">(</span>old <span class="op">=</span> <span class="va">baseline</span>, new <span class="op">=</span> <span class="va">later</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code> [34m&lt;scopus_doi_diff&gt; [39m 14 added, 1 removed, 112 unchanged</code></pre>
+<pre><code> [38;5;246m# A tibble: 127 × 2 [39m
+   doi                            status
+    [3m [38;5;246m&lt;chr&gt; [39m [23m                           [3m [38;5;246m&lt;fct&gt; [39m [23m 
+ [38;5;250m 1 [39m 10.1002/adfm.202315137         added 
+ [38;5;250m 2 [39m 10.1002/asia.202400548         added 
+ [38;5;250m 3 [39m 10.1002/slct.202302535         added 
+ [38;5;250m 4 [39m 10.1016/j.cej.2024.148822      added 
+ [38;5;250m 5 [39m 10.1016/j.diamond.2024.110842  added 
+ [38;5;250m 6 [39m 10.1016/j.isci.2024.111696     added 
+ [38;5;250m 7 [39m 10.1016/j.jallcom.2024.175000  added 
+ [38;5;250m 8 [39m 10.1016/j.jallcom.2024.177248  added 
+ [38;5;250m 9 [39m 10.1016/j.jpowsour.2024.234127 added 
+ [38;5;250m10 [39m 10.1016/j.jpowsour.2024.236149 added 
+ [38;5;246m# ℹ 117 more rows [39m</code></pre>
 <p>You can write the DOIs to a path you specify, and read the file back
 to see exactly what lands on disk:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"dois.csv"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">records</span>, file <span class="op">=</span> <span class="va">out</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html" class="external-link">writeLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -559,7 +569,7 @@ to see exactly what lands on disk:</p>
 emphasis of a literature shifts, expressed as each comparison topic’s
 yearly share of the reference literature. It issues one count request
 per term per year, so it needs the API:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_compare_topics.html">scopus_compare_topics</a></span><span class="op">(</span></span>
 <span>  reference_query  <span class="op">=</span> <span class="st">"language learning"</span>,</span>
 <span>  comparison_terms <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"effect size"</span>, <span class="st">"Bayesian"</span><span class="op">)</span>,</span>
@@ -590,7 +600,7 @@ shape for downstream tools.</p>
 </h2>
 <p>Hand results to <code>bibliometrix</code>-style workflows, or save
 and reload them:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">m</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/as_bibliometrix.html">as_bibliometrix</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">m</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AU"</span>, <span class="st">"TI"</span>, <span class="st">"PY"</span>, <span class="st">"SO"</span>, <span class="st">"TC"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
@@ -661,12 +671,11 @@ VACUUM-ASSISTED THERMAL PROCESS FOR ELECTROCHEMICAL ENERGY STORAGE</td>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"records.rds"</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"records.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/write_scopus_records.html">write_scopus_records</a></span><span class="op">(</span><span class="va">records</span>, <span class="va">path</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="../reference/write_scopus_records.html">read_scopus_records</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span>, <span class="va">records</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="../reference/write_scopus_records.html">read_scopus_records</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span>, <span class="va">records</span><span class="op">)</span></span></code></pre></div>
+<pre><code>[1] TRUE</code></pre>
 </div>
 <div class="section level2">
 <h2 id="handling-failures">Handling failures<a class="anchor" aria-label="anchor" href="#handling-failures"></a>
@@ -674,12 +683,14 @@ VACUUM-ASSISTED THERMAL PROCESS FOR ELECTROCHEMICAL ENERGY STORAGE</td>
 <p>Network and API problems surface as typed conditions, all inheriting
 from <code>scopus_error</code>, so a workflow can respond to them in
 code:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/scopus_fetch.html">scopus_fetch</a></span><span class="op">(</span><span class="st">"..."</span><span class="op">)</span>,</span>
 <span>  scopus_error_no_key     <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"No API key configured."</span><span class="op">)</span>,</span>
-<span>  scopus_error_rate_limit <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"Rate limited, so backing off."</span><span class="op">)</span>,</span>
-<span>  scopus_error            <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"Scopus error: "</span>, <span class="fu"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">conditionMessage</a></span><span class="op">(</span><span class="va">e</span><span class="op">)</span><span class="op">)</span></span>
+<span>  scopus_error_rate_limit <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"Rate limited, so backing off."</span><span class="op">)</span>,</span>
+<span>  scopus_error            <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"Scopus error: "</span>, <span class="fu"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">conditionMessage</a></span><span class="op">(</span><span class="va">e</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
@@ -693,7 +704,7 @@ code:</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Released under the <a href="LICENSE.html">MIT licence</a>. ‘Scopus’ is a trademark of Elsevier; scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
+  <p>Released under the <a href="/scopusflow/LICENSE.html">MIT licence</a>. ‘Scopus’ is a trademark of Elsevier; scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

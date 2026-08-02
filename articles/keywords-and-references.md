@@ -40,8 +40,9 @@ recs$authkeywords
 ``` r
 
 recs$authkeywords
-#> [1] "deep learning | neural networks | representation learning | backpropagation"
 ```
+
+    [1] "deep learning | neural networks | representation learning | backpropagation"
 
 In development, this field came back `NA` even on a live, otherwise
 fully-entitled key, for documents that do carry author keywords in
@@ -97,10 +98,16 @@ smaller quota that is easy to exhaust unnoticed:
 ``` r
 
 attr(ab, "n_requests")        # requests spent so far
-#> [1] 1
-attr(ab, "quota")$remaining   # Abstract Retrieval quota left
-#> [1] 24999
 ```
+
+    [1] 1
+
+``` r
+
+attr(ab, "quota")$remaining   # Abstract Retrieval quota left
+```
+
+    [1] 24999
 
 A key or subscription tier that does not cover the requested view raises
 a `scopus_error_forbidden` condition naming the view, rather than a
@@ -143,11 +150,17 @@ nrow(corpus$references[[1]])
 ``` r
 
 corpus$keywords[[1]]
-#> [1] "deep learning"           "neural networks"        
-#> [3] "representation learning" "backpropagation"
-nrow(corpus$references[[1]])
-#> [1] 4
 ```
+
+    [1] "deep learning"           "neural networks"        
+    [3] "representation learning" "backpropagation"        
+
+``` r
+
+nrow(corpus$references[[1]])
+```
+
+    [1] 4
 
 The keywords list-column is ready for the co-occurrence analysis this
 article is named for, unnested and tallied into a per-keyword document
@@ -156,12 +169,13 @@ count across the corpus:
 ``` r
 
 sort(table(unlist(corpus$keywords)), decreasing = TRUE)
-#> 
-#>         backpropagation           deep learning         neural networks 
-#>                       1                       1                       1 
-#> representation learning 
-#>                       1
 ```
+
+
+            backpropagation           deep learning         neural networks 
+                          1                       1                       1 
+    representation learning 
+                          1 
 
 This costs one Abstract Retrieval request per record in `recs`, on top
 of whatever retrieved `recs` in the first place.

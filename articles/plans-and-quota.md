@@ -24,8 +24,9 @@ fragments are pasted together by hand.
 
 q <- scopus_query("language learning", "effect size", .field = "TITLE-ABS-KEY")
 q
-#> [1] "TITLE-ABS-KEY(language learning) AND TITLE-ABS-KEY(effect size)"
 ```
+
+    [1] "TITLE-ABS-KEY(language learning) AND TITLE-ABS-KEY(effect size)"
 
 The recognised field tags, and what each one searches, are listed by
 [`scopus_field_tags()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_field_tags.md).
@@ -94,10 +95,16 @@ holds.
 ``` r
 
 scopus_plan(q, view = "STANDARD")$page_size[1]
-#> [1] 200
-scopus_plan(q, view = "COMPLETE")$page_size[1]
-#> [1] 25
 ```
+
+    [1] 200
+
+``` r
+
+scopus_plan(q, view = "COMPLETE")$page_size[1]
+```
+
+    [1] 25
 
 ## Sizing before spending
 
@@ -128,21 +135,22 @@ resp <- httr2::response(
   )
 )
 scopus_quota(resp)
-#> $limit
-#> [1] 20000
-#> 
-#> $remaining
-#> [1] 19987
-#> 
-#> $reset
-#> [1] "2023-11-14 22:13:20 UTC"
-#> 
-#> $status
-#> [1] NA
-#> 
-#> $retry_after
-#> [1] NA
 ```
+
+    $limit
+    [1] 20000
+
+    $remaining
+    [1] 19987
+
+    $reset
+    [1] "2023-11-14 22:13:20 UTC"
+
+    $status
+    [1] NA
+
+    $retry_after
+    [1] NA
 
 ## Fetching, with caching and resume
 
@@ -209,7 +217,11 @@ Per-cell progress is silent by default and switched on with
 
 ``` r
 
-records <- scopus_fetch_plan(plan, cache_dir = scopus_cache_dir(), verbose = TRUE)
+records <- scopus_fetch_plan(
+  plan,
+  cache_dir = scopus_cache_dir(),
+  verbose = TRUE
+)
 ```
 
 A line is reported as each cell is fetched or loaded from cache.
@@ -229,8 +241,9 @@ is merged with a later one covering the whole period.
 baseline <- example_records[example_records$year <= 2023, ]
 combined <- scopus_combine(baseline, example_records, dedupe = TRUE)
 nrow(combined)
-#> [1] 149
 ```
+
+    [1] 149
 
 The 138 distinct articles come back as 149 rows, which is worth
 understanding rather than working around. De-duplication needs something

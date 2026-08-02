@@ -84,7 +84,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Tracking how a literature changes between retrievals</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.3.0/vignettes/tracking-literature-change.Rmd" class="external-link"><code>vignettes/tracking-literature-change.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/vignettes/tracking-literature-change.Rmd" class="external-link"><code>vignettes/tracking-literature-change.Rmd</code></a></small>
       <div class="d-none name"><code>tracking-literature-change.Rmd</code></div>
     </div>
 
@@ -108,8 +108,8 @@ slices of the same search.</p>
 published up to then.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">baseline</span> <span class="op">&lt;-</span> <span class="va">example_records</span><span class="op">[</span><span class="va">example_records</span><span class="op">$</span><span class="va">year</span> <span class="op">&lt;=</span> <span class="fl">2023</span>, <span class="op">]</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">baseline</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 124</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">baseline</span><span class="op">)</span></span></code></pre></div>
+<pre><code>[1] 124</code></pre>
 </div>
 <div class="section level2">
 <h2 id="a-later-retrieval">A later retrieval<a class="anchor" aria-label="anchor" href="#a-later-retrieval"></a>
@@ -117,10 +117,10 @@ published up to then.</p>
 <p>A year on, the search is repeated. It now picks up the 2024 papers,
 and one record that was present the first time has since been re-indexed
 and no longer matches.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">later</span> <span class="op">&lt;-</span> <span class="va">example_records</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span>, <span class="op">]</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">later</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 137</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">later</span><span class="op">)</span></span></code></pre></div>
+<pre><code>[1] 137</code></pre>
 </div>
 <div class="section level2">
 <h2 id="what-changed">What changed<a class="anchor" aria-label="anchor" href="#what-changed"></a>
@@ -128,24 +128,24 @@ and no longer matches.</p>
 <p><code><a href="../reference/scopus_diff_dois.html">scopus_diff_dois()</a></code> reports which DOIs were added,
 removed or unchanged between the two retrievals, and prints the counts
 in each category.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">changes</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_diff_dois.html">scopus_diff_dois</a></span><span class="op">(</span>old <span class="op">=</span> <span class="va">baseline</span>, new <span class="op">=</span> <span class="va">later</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">changes</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">&lt;scopus_doi_diff&gt;</span> 14 added, 1 removed, 112 unchanged</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 127 × 2</span></span></span>
-<span><span class="co">#&gt;    doi                            status</span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                          <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 10.1002/adfm.202315137         added </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 10.1002/asia.202400548         added </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 10.1002/slct.202302535         added </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 10.1016/j.cej.2024.148822      added </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 10.1016/j.diamond.2024.110842  added </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 10.1016/j.isci.2024.111696     added </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 10.1016/j.jallcom.2024.175000  added </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 10.1016/j.jallcom.2024.177248  added </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 10.1016/j.jpowsour.2024.234127 added </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 10.1016/j.jpowsour.2024.236149 added </span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 117 more rows</span></span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">changes</span><span class="op">)</span></span></code></pre></div>
+<pre><code> [34m&lt;scopus_doi_diff&gt; [39m 14 added, 1 removed, 112 unchanged</code></pre>
+<pre><code> [38;5;246m# A tibble: 127 × 2 [39m
+   doi                            status
+    [3m [38;5;246m&lt;chr&gt; [39m [23m                           [3m [38;5;246m&lt;fct&gt; [39m [23m 
+ [38;5;250m 1 [39m 10.1002/adfm.202315137         added 
+ [38;5;250m 2 [39m 10.1002/asia.202400548         added 
+ [38;5;250m 3 [39m 10.1002/slct.202302535         added 
+ [38;5;250m 4 [39m 10.1016/j.cej.2024.148822      added 
+ [38;5;250m 5 [39m 10.1016/j.diamond.2024.110842  added 
+ [38;5;250m 6 [39m 10.1016/j.isci.2024.111696     added 
+ [38;5;250m 7 [39m 10.1016/j.jallcom.2024.175000  added 
+ [38;5;250m 8 [39m 10.1016/j.jallcom.2024.177248  added 
+ [38;5;250m 9 [39m 10.1016/j.jpowsour.2024.234127 added 
+ [38;5;250m10 [39m 10.1016/j.jpowsour.2024.236149 added 
+ [38;5;246m# ℹ 117 more rows [39m</code></pre>
 <p>The newly indexed papers come back as <code>added</code>, the records
 present both times as <code>unchanged</code>, and anything dropped from
 the later pull as <code>removed</code>. The counts work out at fourteen
@@ -156,7 +156,7 @@ be tracked this way at all, which is one reason to prefer the ‘Scopus’
 identifier when there is one.</p>
 <p>To act on one category, filter the table, which is an ordinary
 tibble.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">changes</span><span class="op">[</span><span class="va">changes</span><span class="op">$</span><span class="va">status</span> <span class="op">==</span> <span class="st">"added"</span>, <span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
@@ -198,10 +198,10 @@ tibble.</p>
 <code><a href="../reference/scopus_combine.html">scopus_combine()</a></code> renumbers the records and, with
 <code>dedupe = TRUE</code>, keeps each one once by ‘Scopus’ identifier
 or DOI, so the records the two pulls share are not doubled.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">combined</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_combine.html">scopus_combine</a></span><span class="op">(</span><span class="va">baseline</span>, <span class="va">later</span>, dedupe <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">combined</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 149</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">combined</span><span class="op">)</span></span></code></pre></div>
+<pre><code>[1] 149</code></pre>
 <p>That is 149 rows for 138 distinct articles, and the gap is
 instructive. These records carry no ‘Scopus’ identifier, not having come
 from ‘Scopus’, so de-duplication falls back to the DOI. The eleven that
@@ -211,25 +211,25 @@ same call on two real pulls returns each article once.</p>
 <p>The base <code><a href="https://rdrr.io/r/base/c.html" class="external-link">c()</a></code> method concatenates record sets directly,
 renumbering but without de-duplicating, so it is the building block that
 <code><a href="../reference/scopus_combine.html">scopus_combine()</a></code> adds the duplicate handling to.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">stacked</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">baseline</span>, <span class="va">later</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">stacked</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 261</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">stacked</span><span class="op">)</span></span></code></pre></div>
+<pre><code>[1] 261</code></pre>
 </div>
 <div class="section level2">
 <h2 id="keeping-a-record-of-each-pull">Keeping a record of each pull<a class="anchor" aria-label="anchor" href="#keeping-a-record-of-each-pull"></a>
 </h2>
 <p>Saving each retrieval lets you compare against it next time. The
 <code>.rds</code> form round-trips exactly.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"baseline.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/write_scopus_records.html">write_scopus_records</a></span><span class="op">(</span><span class="va">baseline</span>, <span class="va">path</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="../reference/write_scopus_records.html">read_scopus_records</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span>, <span class="va">baseline</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="../reference/write_scopus_records.html">read_scopus_records</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span>, <span class="va">baseline</span><span class="op">)</span></span></code></pre></div>
+<pre><code>[1] TRUE</code></pre>
 <p>In a live setting the later retrieval would come from the API rather
 than from a slice of the bundled corpus, with everything else
 unchanged.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">later</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch.html">scopus_fetch</a></span><span class="op">(</span><span class="st">"graphene supercapacitor"</span>, field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/scopus_diff_dois.html">scopus_diff_dois</a></span><span class="op">(</span>old <span class="op">=</span> <span class="fu"><a href="../reference/write_scopus_records.html">read_scopus_records</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span>, new <span class="op">=</span> <span class="va">later</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -244,7 +244,7 @@ unchanged.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Released under the <a href="LICENSE.html">MIT licence</a>. ‘Scopus’ is a trademark of Elsevier; scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
+  <p>Released under the <a href="/scopusflow/LICENSE.html">MIT licence</a>. ‘Scopus’ is a trademark of Elsevier; scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

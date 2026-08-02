@@ -84,7 +84,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Analysing and visualising a literature</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.3.0/vignettes/analysing-a-literature.Rmd" class="external-link"><code>vignettes/analysing-a-literature.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/vignettes/analysing-a-literature.Rmd" class="external-link"><code>vignettes/analysing-a-literature.Rmd</code></a></small>
       <div class="d-none name"><code>analysing-a-literature.Rmd</code></div>
     </div>
 
@@ -107,16 +107,16 @@ from.</p>
 holds, and it is worth running before any closer analysis.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">records</span> <span class="op">&lt;-</span> <span class="va">example_records</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">&lt;scopus_records&gt;</span> summary</span></span>
-<span><span class="co">#&gt; 138 records, from 2015 to 2024.</span></span>
-<span><span class="co">#&gt; 90 sources, 127 with a DOI.</span></span>
-<span><span class="co">#&gt; Cited 7015 times in total, median 24 per record.</span></span>
-<span><span class="co">#&gt; Most frequent source: ACS Applied Materials &amp; Interfaces.</span></span>
-<span><span class="co">#&gt; Most cited: <span style="font-style: italic;">Graphene for batteries, supercapacitors and beyond</span>.</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span></code></pre></div>
+<pre><code> [34m&lt;scopus_records&gt; [39m summary</code></pre>
+<pre><code>138 records, from 2015 to 2024.</code></pre>
+<pre><code>90 sources, 127 with a DOI.</code></pre>
+<pre><code>Cited 7015 times in total, median 24 per record.</code></pre>
+<pre><code>Most frequent source: ACS Applied Materials &amp; Interfaces.</code></pre>
+<pre><code>Most cited:  [3mGraphene for batteries, supercapacitors and beyond [23m.</code></pre>
 <p><code><a href="../reference/scopus_top.html">scopus_top()</a></code> tallies the most frequent sources or
 authors.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_top.html">scopus_top</a></span><span class="op">(</span><span class="va">records</span>, by <span class="op">=</span> <span class="st">"source"</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
@@ -166,7 +166,7 @@ authors.</p>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_top.html">scopus_top</a></span><span class="op">(</span><span class="va">records</span>, by <span class="op">=</span> <span class="st">"author"</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
@@ -206,7 +206,7 @@ contributor is counted once per record. The bundled corpus names only
 the first author of each paper, so it cannot show that happening. Two
 records with placeholder names can, and the same splitting applies to
 the semicolon-joined author lists a live harvest returns.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">multi</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_records.html">scopus_records</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>entry <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>`dc:creator` <span class="op">=</span> <span class="st">"Author A.; Author B."</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>`dc:creator` <span class="op">=</span> <span class="st">"Author B."</span><span class="op">)</span></span>
@@ -228,11 +228,11 @@ the semicolon-joined author lists a live harvest returns.</p>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_scopus_top.html">plot_scopus_top</a></span><span class="op">(</span><span class="fu"><a href="../reference/scopus_top.html">scopus_top</a></span><span class="op">(</span><span class="va">records</span>, by <span class="op">=</span> <span class="st">"source"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="analysing-a-literature_files/figure-html/unnamed-chunk-5-1.png" class="r-plt" alt="A horizontal bar chart of the most frequent sources" width="672"></p>
 <p>The same plot works on the author tally.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_scopus_top.html">plot_scopus_top</a></span><span class="op">(</span><span class="fu"><a href="../reference/scopus_top.html">scopus_top</a></span><span class="op">(</span><span class="va">records</span>, by <span class="op">=</span> <span class="st">"author"</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="analysing-a-literature_files/figure-html/unnamed-chunk-6-1.png" class="r-plt" alt="A horizontal bar chart of the most frequent authors" width="672"></p>
 <p>A record set also has an honest default view: <code>autoplot()</code>
@@ -241,7 +241,7 @@ one query rather than a sample, those bars are the real number of
 publications per year for that query. The same <code>autoplot()</code>
 generic dispatches on <code>scopus_trend</code> and
 <code>scopus_top</code> objects too, delegating to the plots above.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span></code></pre></div>
 <p><img src="analysing-a-literature_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" alt="A bar chart of publications per year from 2015 to 2024, fluctuating around fifteen a year" width="672"></p>
 </div>
@@ -251,7 +251,7 @@ generic dispatches on <code>scopus_trend</code> and
 <p><code><a href="../reference/scopus_trend.html">scopus_trend()</a></code> counts how many records match a query in
 each year, which is the size of a literature over time. It issues one
 count request per year, so it needs the API.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_trend.html">scopus_trend</a></span><span class="op">(</span><span class="st">"graphene supercapacitor"</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2024</span>,</span>
 <span>                   field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_scopus_trend.html">plot_scopus_trend</a></span><span class="op">(</span><span class="va">tr</span><span class="op">)</span></span></code></pre></div>
@@ -259,7 +259,7 @@ count request per year, so it needs the API.</p>
 already contains its own yearly counts, so tallying the records by year
 gives what a count per year would have returned, in the shape
 <code><a href="../reference/scopus_trend.html">scopus_trend()</a></code> returns it.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">by_year</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">records</span><span class="op">$</span><span class="va">year</span><span class="op">)</span></span>
 <span><span class="va">tr</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
 <span>  query <span class="op">=</span> <span class="st">"TITLE-ABS-KEY(graphene supercapacitor)"</span>,</span>
@@ -327,7 +327,7 @@ gives what a count per year would have returned, in the shape
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_scopus_trend.html">plot_scopus_trend</a></span><span class="op">(</span><span class="va">tr</span><span class="op">)</span></span></code></pre></div>
 <p><img src="analysing-a-literature_files/figure-html/unnamed-chunk-10-1.png" class="r-plt" alt="A line and area chart of publications per year from 2015 to 2024, peaking in 2019" width="720"></p>
 <p>The figure draws the same counts as the bar chart above, which is the
@@ -353,7 +353,7 @@ count request per row, so the whole landscape is as cheap as a few
 <code><a href="../reference/scopus_count.html">scopus_count()</a></code> calls. Concept values may be bare terms,
 wrapped in <code>field</code> for you, or complete field-tagged
 expressions, used exactly as given.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_intersections.html">scopus_intersections</a></span><span class="op">(</span></span>
 <span>  concepts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>    <span class="st">"semantic priming"</span>  <span class="op">=</span> <span class="st">"semantic priming"</span>,</span>
@@ -365,7 +365,10 @@ expressions, used exactly as given.</p>
 <span>  intersections <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"semantic priming"</span>, <span class="st">"mental simulation"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/plot_scopus_intersections.html">plot_scopus_intersections</a></span><span class="op">(</span><span class="va">sets</span>, highlight <span class="op">=</span> <span class="va">sets</span><span class="op">$</span><span class="va">label</span><span class="op">[</span><span class="va">sets</span><span class="op">$</span><span class="va">type</span> <span class="op">==</span> <span class="st">"intersection"</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/plot_scopus_intersections.html">plot_scopus_intersections</a></span><span class="op">(</span></span>
+<span>  <span class="va">sets</span>,</span>
+<span>  highlight <span class="op">=</span> <span class="va">sets</span><span class="op">$</span><span class="va">label</span><span class="op">[</span><span class="va">sets</span><span class="op">$</span><span class="va">type</span> <span class="op">==</span> <span class="st">"intersection"</span><span class="op">]</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p>Here <code>field</code> leaves the third value untouched, since it
 already reads as a complete field-tagged expression, so a concept can be
 a synonym set rather than a single term.</p>
@@ -375,7 +378,7 @@ rebuilt in its own shape with illustrative counts, purely to show the
 plot. The lollipop chart uses a log-scale axis, so the small
 intersection stays legible beside its large parent fields, and the
 highlighted row draws the eye to the niche itself.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sets</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
 <span>  label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"semantic priming"</span>, <span class="st">"mental simulation"</span>, <span class="st">"embodied simulation"</span>,</span>
 <span>            <span class="st">"semantic priming × mental simulation"</span><span class="op">)</span>,</span>
@@ -390,7 +393,10 @@ highlighted row draws the eye to the niche itself.</p>
 <span>              <span class="st">"semantic priming; mental simulation"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">sets</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"scopus_intersections"</span>, <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">sets</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/plot_scopus_intersections.html">plot_scopus_intersections</a></span><span class="op">(</span><span class="va">sets</span>, highlight <span class="op">=</span> <span class="va">sets</span><span class="op">$</span><span class="va">label</span><span class="op">[</span><span class="va">sets</span><span class="op">$</span><span class="va">type</span> <span class="op">==</span> <span class="st">"intersection"</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/plot_scopus_intersections.html">plot_scopus_intersections</a></span><span class="op">(</span></span>
+<span>  <span class="va">sets</span>,</span>
+<span>  highlight <span class="op">=</span> <span class="va">sets</span><span class="op">$</span><span class="va">label</span><span class="op">[</span><span class="va">sets</span><span class="op">$</span><span class="va">type</span> <span class="op">==</span> <span class="st">"intersection"</span><span class="op">]</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p><img src="analysing-a-literature_files/figure-html/unnamed-chunk-12-1.png" class="r-plt" alt="A log-scale lollipop chart showing three concepts and a small intersection, with the intersection highlighted" width="720"></p>
 </div>
 <div class="section level2">
@@ -402,7 +408,7 @@ and the fuller metadata for a record you already know,
 or ‘Scopus’ identifier. A batch is resilient, so an identifier that
 cannot be found yields a row of <code>NA</code>s with a warning rather
 than stopping the run.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ab</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_abstract.html">scopus_abstract</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>The result is a tibble of class <code>scopus_abstracts</code>, one
 row per identifier. To show its shape without a key, here is a stand-in
@@ -411,7 +417,7 @@ every column but the abstract itself. The abstract is the one thing a
 live call adds and the corpus does not carry, so it is marked as a
 placeholder rather than invented, and the columns are listed by name
 because the prose is far too wide to typeset.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">top2</span> <span class="op">&lt;-</span> <span class="va">records</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="op">-</span><span class="va">records</span><span class="op">$</span><span class="va">citations</span><span class="op">)</span>, <span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, <span class="op">]</span></span>
 <span><span class="va">ab</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
 <span>  id          <span class="op">=</span> <span class="va">top2</span><span class="op">$</span><span class="va">doi</span>,</span>
@@ -424,11 +430,11 @@ because the prose is far too wide to typeset.</p>
 <span>  citations   <span class="op">=</span> <span class="va">top2</span><span class="op">$</span><span class="va">citations</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">ab</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"scopus_abstracts"</span>, <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">ab</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">ab</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "id"          "scopus_id"   "doi"         "title"       "abstract"   </span></span>
-<span><span class="co">#&gt; [6] "publication" "year"        "citations"</span></span>
-<span></span>
-<span><span class="va">ab</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"title"</span>, <span class="st">"publication"</span>, <span class="st">"year"</span>, <span class="st">"citations"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">ab</span><span class="op">)</span></span></code></pre></div>
+<pre><code>[1] "id"          "scopus_id"   "doi"         "title"       "abstract"   
+[6] "publication" "year"        "citations"  </code></pre>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ab</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"title"</span>, <span class="st">"publication"</span>, <span class="st">"year"</span>, <span class="st">"citations"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
 <table class="table">
 <colgroup>
 <col width="55%">
@@ -466,10 +472,9 @@ Supercapacitors</td>
 under the ordinary offset paging. When you need the whole of a larger
 result set in one pass, <code>scopus_fetch(cursor = TRUE)</code> follows
 the API’s cursor instead, which has no such ceiling.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">recs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch.html">scopus_fetch</a></span><span class="op">(</span><span class="st">"TITLE-ABS-KEY(microplastics)"</span>, cursor <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">recs</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 38374</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">recs</span><span class="op">)</span></span></code></pre></div>
 <p>That query matched 38,374 records when this article was written (the
 literature keeps growing), several times the offset ceiling, and the
 cursor retrieves all of them in one call. The records then arrive in the
@@ -493,7 +498,7 @@ once.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Released under the <a href="LICENSE.html">MIT licence</a>. ‘Scopus’ is a trademark of Elsevier; scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
+  <p>Released under the <a href="/scopusflow/LICENSE.html">MIT licence</a>. ‘Scopus’ is a trademark of Elsevier; scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

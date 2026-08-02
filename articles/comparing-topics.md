@@ -169,9 +169,12 @@ another.
 
 years <- 2013:2021
 ends <- c(18, 18.6, 19.2, 19.8, 20.4, 21)
-names(ends) <- c("graphene", "perovskites", "MXenes", "COFs", "MOFs", "aerogels")
+names(ends) <- c(
+  "graphene", "perovskites", "MXenes", "COFs", "MOFs", "aerogels"
+)
 ref_n <- round(seq(500, 2000, length.out = length(years)))
-converge <- function(end) round(end * (0.5 + 0.5 * (0:(length(years) - 1)) / (length(years) - 1)) * ref_n / 100)
+converge <- function(end) round(end *
+  (0.5 + 0.5 * (0:(length(years) - 1)) / (length(years) - 1)) * ref_n / 100)
 counts <- lapply(ends, converge)
 
 cmp_converging <- tibble::tibble(

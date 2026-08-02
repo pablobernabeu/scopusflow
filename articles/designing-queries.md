@@ -50,17 +50,40 @@ query string that would be sent to ‘Scopus’.
 
 ``` r
 
-scopus_query("CRISPR", .field = "TITLE-ABS-KEY")              # molecular biology
-#> [1] "TITLE-ABS-KEY(CRISPR)"
-scopus_query("gravitational waves", .field = "TITLE-ABS-KEY") # physics
-#> [1] "TITLE-ABS-KEY(gravitational waves)"
-scopus_query("microplastics", .field = "TITLE-ABS-KEY")       # environmental science
-#> [1] "TITLE-ABS-KEY(microplastics)"
-scopus_query("blockchain", .field = "TITLE-ABS-KEY")          # computer science
-#> [1] "TITLE-ABS-KEY(blockchain)"
-scopus_query("digital humanities", .field = "AUTHKEY")        # humanities
-#> [1] "AUTHKEY(digital humanities)"
+# molecular biology
+scopus_query("CRISPR", .field = "TITLE-ABS-KEY")
 ```
+
+    [1] "TITLE-ABS-KEY(CRISPR)"
+
+``` r
+
+scopus_query("gravitational waves", .field = "TITLE-ABS-KEY") # physics
+```
+
+    [1] "TITLE-ABS-KEY(gravitational waves)"
+
+``` r
+
+# environmental science
+scopus_query("microplastics", .field = "TITLE-ABS-KEY")
+```
+
+    [1] "TITLE-ABS-KEY(microplastics)"
+
+``` r
+
+scopus_query("blockchain", .field = "TITLE-ABS-KEY")          # computer science
+```
+
+    [1] "TITLE-ABS-KEY(blockchain)"
+
+``` r
+
+scopus_query("digital humanities", .field = "AUTHKEY")        # humanities
+```
+
+    [1] "AUTHKEY(digital humanities)"
 
 The last example uses `AUTHKEY`, the author-supplied keywords, which
 isolates work that self-identifies with a field and so cuts incidental
@@ -75,20 +98,33 @@ Passing several terms joins them. The default operator is `AND`, and
 
 # Two concepts that must co-occur (materials science).
 scopus_query("perovskite", "solar cell", .field = "TITLE-ABS-KEY")
-#> [1] "TITLE-ABS-KEY(perovskite) AND TITLE-ABS-KEY(solar cell)"
+```
+
+    [1] "TITLE-ABS-KEY(perovskite) AND TITLE-ABS-KEY(solar cell)"
+
+``` r
 
 # Spelling variants, either of which will do (economics).
 scopus_query("behavioral economics", "behavioural economics", .op = "OR")
-#> [1] "behavioral economics OR behavioural economics"
+```
+
+    [1] "behavioral economics OR behavioural economics"
+
+``` r
 
 # A family of related tools (molecular biology).
 scopus_query("CRISPR", "Cas9", "Cas12", .op = "OR")
-#> [1] "CRISPR OR Cas9 OR Cas12"
+```
+
+    [1] "CRISPR OR Cas9 OR Cas12"
+
+``` r
 
 # Excluding a dominant homonym (programming, not herpetology).
 scopus_query("python", "snake", .op = "AND NOT", .field = "TITLE-ABS-KEY")
-#> [1] "TITLE-ABS-KEY(python) AND NOT TITLE-ABS-KEY(snake)"
 ```
+
+    [1] "TITLE-ABS-KEY(python) AND NOT TITLE-ABS-KEY(snake)"
 
 ## From a query to a plan
 
@@ -100,7 +136,12 @@ anchors a year-partitioned plan, which keeps each cell under the API’s
 
 q <- scopus_query("gut microbiome", "immunology", .field = "TITLE-ABS-KEY")
 q
-#> [1] "TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS-KEY(immunology)"
+```
+
+    [1] "TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS-KEY(immunology)"
+
+``` r
+
 plan <- scopus_plan(q, years = 2015:2022, partition = "year")
 plan
 ```
@@ -138,8 +179,9 @@ which turns a query into an institution-level view of output.
 ``` r
 
 scopus_query("Max Planck", .field = "AFFILORG")
-#> [1] "AFFILORG(Max Planck)"
 ```
+
+    [1] "AFFILORG(Max Planck)"
 
 ## When a term is empty
 
@@ -152,5 +194,6 @@ tryCatch(
   scopus_query("graphene", ""),
   scopus_error_bad_input = function(e) conditionMessage(e)
 )
-#> [1] "`...` must be one or more non-empty character terms."
 ```
+
+    [1] "`...` must be one or more non-empty character terms."

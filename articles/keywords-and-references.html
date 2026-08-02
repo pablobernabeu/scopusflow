@@ -84,7 +84,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Author keywords and references</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.3.0/vignettes/keywords-and-references.Rmd" class="external-link"><code>vignettes/keywords-and-references.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/vignettes/keywords-and-references.Rmd" class="external-link"><code>vignettes/keywords-and-references.Rmd</code></a></small>
       <div class="d-none name"><code>keywords-and-references.Rmd</code></div>
     </div>
 
@@ -121,8 +121,8 @@ quota, for the same number of records.</p>
 <code class="sourceCode R"><span><span class="va">recs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch.html">scopus_fetch</a></span><span class="op">(</span><span class="st">"DOI(10.1038/nature14539)"</span>, view <span class="op">=</span> <span class="st">"COMPLETE"</span><span class="op">)</span></span>
 <span><span class="va">recs</span><span class="op">$</span><span class="va">authkeywords</span></span></code></pre></div>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">recs</span><span class="op">$</span><span class="va">authkeywords</span></span>
-<span><span class="co">#&gt; [1] "deep learning | neural networks | representation learning | backpropagation"</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">recs</span><span class="op">$</span><span class="va">authkeywords</span></span></code></pre></div>
+<pre><code>[1] "deep learning | neural networks | representation learning | backpropagation"</code></pre>
 <p>In development, this field came back <code>NA</code> even on a live,
 otherwise fully-entitled key, for documents that do carry author
 keywords in ‘Scopus’ itself, which points to an entitlement gap specific
@@ -141,13 +141,13 @@ access. This is a per-document endpoint, so retrieving references for
 Retrieval’s own, smaller weekly quota, separate from Search’s. Each row
 of the returned <code>references</code> data frame is one cited
 work.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ab</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_abstract.html">scopus_abstract</a></span><span class="op">(</span></span>
 <span>  <span class="st">"10.1038/nature14539"</span>,</span>
 <span>  view <span class="op">=</span> <span class="st">"FULL"</span>, include <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"references"</span>, <span class="st">"keywords"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">ab</span><span class="op">$</span><span class="va">references</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"title"</span>, <span class="st">"authors"</span>, <span class="st">"source"</span>, <span class="st">"year"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ab</span><span class="op">$</span><span class="va">references</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"title"</span>, <span class="st">"authors"</span>, <span class="st">"source"</span>, <span class="st">"year"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
 <table class="table">
 <colgroup>
@@ -203,11 +203,12 @@ reported count, rather than returning a partial list silently.</p>
 <p>The number of requests spent and the remaining Abstract Retrieval
 quota are attached as attributes, since this endpoint draws on a
 separate, smaller quota that is easy to exhaust unnoticed:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">ab</span>, <span class="st">"n_requests"</span><span class="op">)</span>        <span class="co"># requests spent so far</span></span>
-<span><span class="co">#&gt; [1] 1</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">ab</span>, <span class="st">"quota"</span><span class="op">)</span><span class="op">$</span><span class="va">remaining</span>   <span class="co"># Abstract Retrieval quota left</span></span>
-<span><span class="co">#&gt; [1] 24999</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">ab</span>, <span class="st">"n_requests"</span><span class="op">)</span>        <span class="co"># requests spent so far</span></span></code></pre></div>
+<pre><code>[1] 1</code></pre>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">ab</span>, <span class="st">"quota"</span><span class="op">)</span><span class="op">$</span><span class="va">remaining</span>   <span class="co"># Abstract Retrieval quota left</span></span></code></pre></div>
+<pre><code>[1] 24999</code></pre>
 <p>A key or subscription tier that does not cover the requested view
 raises a <code>scopus_error_forbidden</code> condition naming the view,
 rather than a generic HTTP failure, and stops the whole batch rather
@@ -216,7 +217,7 @@ entitlement is an account-level property, not a per-document one.</p>
 <p>For more than a handful of identifiers, pass <code>cache_dir</code>
 so an interrupted or quota-limited batch resumes without re-spending
 quota already spent:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ab</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_abstract.html">scopus_abstract</a></span><span class="op">(</span></span>
 <span>  <span class="va">dois</span>, view <span class="op">=</span> <span class="st">"FULL"</span>, include <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"references"</span>, <span class="st">"keywords"</span><span class="op">)</span>,</span>
 <span>  cache_dir <span class="op">=</span> <span class="st">"abstract-cache"</span></span>
@@ -234,27 +235,28 @@ list-column of data frames), rather than bibliometrix’s semicolon-joined
 citation strings. It does not replace [<code><a href="../reference/as_bibliometrix.html">as_bibliometrix()</a></code>],
 which keeps its own field-mapping convention for users who want that
 instead.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">recs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch.html">scopus_fetch</a></span><span class="op">(</span><span class="st">"DOI(10.1038/nature14539)"</span>, max_results <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">corpus</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_corpus.html">scopus_corpus</a></span><span class="op">(</span><span class="va">recs</span>, view <span class="op">=</span> <span class="st">"FULL"</span><span class="op">)</span></span>
 <span><span class="va">corpus</span><span class="op">$</span><span class="va">keywords</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">corpus</span><span class="op">$</span><span class="va">references</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">corpus</span><span class="op">$</span><span class="va">keywords</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="co">#&gt; [1] "deep learning"           "neural networks"        </span></span>
-<span><span class="co">#&gt; [3] "representation learning" "backpropagation"</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">corpus</span><span class="op">$</span><span class="va">references</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 4</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">corpus</span><span class="op">$</span><span class="va">keywords</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span></code></pre></div>
+<pre><code>[1] "deep learning"           "neural networks"        
+[3] "representation learning" "backpropagation"        </code></pre>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">corpus</span><span class="op">$</span><span class="va">references</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
+<pre><code>[1] 4</code></pre>
 <p>The keywords list-column is ready for the co-occurrence analysis this
 article is named for, unnested and tallied into a per-keyword document
 count across the corpus:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">corpus</span><span class="op">$</span><span class="va">keywords</span><span class="op">)</span><span class="op">)</span>, decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;         backpropagation           deep learning         neural networks </span></span>
-<span><span class="co">#&gt;                       1                       1                       1 </span></span>
-<span><span class="co">#&gt; representation learning </span></span>
-<span><span class="co">#&gt;                       1</span></span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">corpus</span><span class="op">$</span><span class="va">keywords</span><span class="op">)</span><span class="op">)</span>, decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<pre><code>
+        backpropagation           deep learning         neural networks 
+                      1                       1                       1 
+representation learning 
+                      1 </code></pre>
 <p>This costs one Abstract Retrieval request per record in
 <code>recs</code>, on top of whatever retrieved <code>recs</code> in the
 first place.</p>
@@ -270,7 +272,7 @@ first place.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Released under the <a href="LICENSE.html">MIT licence</a>. ‘Scopus’ is a trademark of Elsevier; scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
+  <p>Released under the <a href="/scopusflow/LICENSE.html">MIT licence</a>. ‘Scopus’ is a trademark of Elsevier; scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

@@ -84,7 +84,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Designing precise queries across disciplines</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.3.0/vignettes/designing-queries.Rmd" class="external-link"><code>vignettes/designing-queries.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/vignettes/designing-queries.Rmd" class="external-link"><code>vignettes/designing-queries.Rmd</code></a></small>
       <div class="d-none name"><code>designing-queries.Rmd</code></div>
     </div>
 
@@ -171,16 +171,22 @@ catch a topic without the noise of a full-text match.</p>
 <p>The same builder serves any field. Each call below returns the exact
 query string that would be sent to ‘Scopus’.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"CRISPR"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span>              <span class="co"># molecular biology</span></span>
-<span><span class="co">#&gt; [1] "TITLE-ABS-KEY(CRISPR)"</span></span>
-<span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"gravitational waves"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span> <span class="co"># physics</span></span>
-<span><span class="co">#&gt; [1] "TITLE-ABS-KEY(gravitational waves)"</span></span>
-<span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"microplastics"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span>       <span class="co"># environmental science</span></span>
-<span><span class="co">#&gt; [1] "TITLE-ABS-KEY(microplastics)"</span></span>
-<span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"blockchain"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span>          <span class="co"># computer science</span></span>
-<span><span class="co">#&gt; [1] "TITLE-ABS-KEY(blockchain)"</span></span>
-<span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"digital humanities"</span>, .field <span class="op">=</span> <span class="st">"AUTHKEY"</span><span class="op">)</span>        <span class="co"># humanities</span></span>
-<span><span class="co">#&gt; [1] "AUTHKEY(digital humanities)"</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># molecular biology</span></span>
+<span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"CRISPR"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span></code></pre></div>
+<pre><code>[1] "TITLE-ABS-KEY(CRISPR)"</code></pre>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"gravitational waves"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span> <span class="co"># physics</span></span></code></pre></div>
+<pre><code>[1] "TITLE-ABS-KEY(gravitational waves)"</code></pre>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># environmental science</span></span>
+<span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"microplastics"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span></code></pre></div>
+<pre><code>[1] "TITLE-ABS-KEY(microplastics)"</code></pre>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"blockchain"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span>          <span class="co"># computer science</span></span></code></pre></div>
+<pre><code>[1] "TITLE-ABS-KEY(blockchain)"</code></pre>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"digital humanities"</span>, .field <span class="op">=</span> <span class="st">"AUTHKEY"</span><span class="op">)</span>        <span class="co"># humanities</span></span></code></pre></div>
+<pre><code>[1] "AUTHKEY(digital humanities)"</code></pre>
 <p>The last example uses <code>AUTHKEY</code>, the author-supplied
 keywords, which isolates work that self-identifies with a field and so
 cuts incidental mentions.</p>
@@ -191,22 +197,22 @@ cuts incidental mentions.</p>
 <p>Passing several terms joins them. The default operator is
 <code>AND</code>, and <code>OR</code> or <code>AND NOT</code> are
 available through <code>.op</code>.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Two concepts that must co-occur (materials science).</span></span>
-<span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"perovskite"</span>, <span class="st">"solar cell"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "TITLE-ABS-KEY(perovskite) AND TITLE-ABS-KEY(solar cell)"</span></span>
-<span></span>
-<span><span class="co"># Spelling variants, either of which will do (economics).</span></span>
-<span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"behavioral economics"</span>, <span class="st">"behavioural economics"</span>, .op <span class="op">=</span> <span class="st">"OR"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "behavioral economics OR behavioural economics"</span></span>
-<span></span>
-<span><span class="co"># A family of related tools (molecular biology).</span></span>
-<span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"CRISPR"</span>, <span class="st">"Cas9"</span>, <span class="st">"Cas12"</span>, .op <span class="op">=</span> <span class="st">"OR"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "CRISPR OR Cas9 OR Cas12"</span></span>
-<span></span>
-<span><span class="co"># Excluding a dominant homonym (programming, not herpetology).</span></span>
-<span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"python"</span>, <span class="st">"snake"</span>, .op <span class="op">=</span> <span class="st">"AND NOT"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "TITLE-ABS-KEY(python) AND NOT TITLE-ABS-KEY(snake)"</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"perovskite"</span>, <span class="st">"solar cell"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span></code></pre></div>
+<pre><code>[1] "TITLE-ABS-KEY(perovskite) AND TITLE-ABS-KEY(solar cell)"</code></pre>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Spelling variants, either of which will do (economics).</span></span>
+<span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"behavioral economics"</span>, <span class="st">"behavioural economics"</span>, .op <span class="op">=</span> <span class="st">"OR"</span><span class="op">)</span></span></code></pre></div>
+<pre><code>[1] "behavioral economics OR behavioural economics"</code></pre>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># A family of related tools (molecular biology).</span></span>
+<span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"CRISPR"</span>, <span class="st">"Cas9"</span>, <span class="st">"Cas12"</span>, .op <span class="op">=</span> <span class="st">"OR"</span><span class="op">)</span></span></code></pre></div>
+<pre><code>[1] "CRISPR OR Cas9 OR Cas12"</code></pre>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Excluding a dominant homonym (programming, not herpetology).</span></span>
+<span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"python"</span>, <span class="st">"snake"</span>, .op <span class="op">=</span> <span class="st">"AND NOT"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span></code></pre></div>
+<pre><code>[1] "TITLE-ABS-KEY(python) AND NOT TITLE-ABS-KEY(snake)"</code></pre>
 </div>
 <div class="section level2">
 <h2 id="from-a-query-to-a-plan">From a query to a plan<a class="anchor" aria-label="anchor" href="#from-a-query-to-a-plan"></a>
@@ -214,11 +220,12 @@ available through <code>.op</code>.</p>
 <p>A composed query drops straight into the rest of the workflow. Here
 it anchors a year-partitioned plan, which keeps each cell under the
 API’s 5000-record ceiling.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">q</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"gut microbiome"</span>, <span class="st">"immunology"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span>
-<span><span class="va">q</span></span>
-<span><span class="co">#&gt; [1] "TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS-KEY(immunology)"</span></span>
-<span><span class="va">plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="va">q</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2022</span>, partition <span class="op">=</span> <span class="st">"year"</span><span class="op">)</span></span>
+<span><span class="va">q</span></span></code></pre></div>
+<pre><code>[1] "TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS-KEY(immunology)"</code></pre>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="va">q</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2022</span>, partition <span class="op">=</span> <span class="st">"year"</span><span class="op">)</span></span>
 <span><span class="va">plan</span></span></code></pre></div>
 <table class="table">
 <colgroup>
@@ -313,7 +320,7 @@ TITLE-ABS-KEY(immunology)</td>
 </tbody>
 </table>
 <p>The plan is ready to size and run, which contacts the API.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_count.html">scopus_count</a></span><span class="op">(</span><span class="va">q</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2022</span><span class="op">)</span></span>
 <span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan</a></span><span class="op">(</span><span class="va">plan</span><span class="op">)</span></span></code></pre></div>
 <p>Without a key, <code><a href="../articles/scopusflow.html">vignette("scopusflow")</a></code> carries the same
@@ -327,21 +334,21 @@ redistributed.</p>
 <p>Field tags reach beyond topics. <code>AFFILORG</code> searches the
 affiliation, which turns a query into an institution-level view of
 output.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"Max Planck"</span>, .field <span class="op">=</span> <span class="st">"AFFILORG"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "AFFILORG(Max Planck)"</span></span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"Max Planck"</span>, .field <span class="op">=</span> <span class="st">"AFFILORG"</span><span class="op">)</span></span></code></pre></div>
+<pre><code>[1] "AFFILORG(Max Planck)"</code></pre>
 </div>
 <div class="section level2">
 <h2 id="when-a-term-is-empty">When a term is empty<a class="anchor" aria-label="anchor" href="#when-a-term-is-empty"></a>
 </h2>
 <p>The builder validates its input, so a stray empty term is caught
 early rather than producing a malformed query.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"graphene"</span>, <span class="st">""</span><span class="op">)</span>,</span>
 <span>  scopus_error_bad_input <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">conditionMessage</a></span><span class="op">(</span><span class="va">e</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "`...` must be one or more non-empty character terms."</span></span></code></pre></div>
+<span><span class="op">)</span></span></code></pre></div>
+<pre><code>[1] "`...` must be one or more non-empty character terms."</code></pre>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
@@ -354,7 +361,7 @@ early rather than producing a malformed query.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Released under the <a href="LICENSE.html">MIT licence</a>. ‘Scopus’ is a trademark of Elsevier; scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
+  <p>Released under the <a href="/scopusflow/LICENSE.html">MIT licence</a>. ‘Scopus’ is a trademark of Elsevier; scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

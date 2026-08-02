@@ -24,13 +24,19 @@ the most-cited record.
 ``` r
 
 summary(example_records)
-#> <scopus_records> summary
-#> 138 records, from 2015 to 2024.
-#> 90 sources, 127 with a DOI.
-#> Cited 7015 times in total, median 24 per record.
-#> Most frequent source: ACS Applied Materials & Interfaces.
-#> Most cited: Graphene for batteries, supercapacitors and beyond.
 ```
+
+     [34m<scopus_records> [39m summary
+
+    138 records, from 2015 to 2024.
+
+    90 sources, 127 with a DOI.
+
+    Cited 7015 times in total, median 24 per record.
+
+    Most frequent source: ACS Applied Materials & Interfaces.
+
+    Most cited:  [3mGraphene for batteries, supercapacitors and beyond [23m.
 
 Eleven of those 138 records arrived without a DOI, which is why the
 summary counts 127 with one. That is ordinary in a real harvest, and the
@@ -78,12 +84,18 @@ or in a different case.
 
 dois <- scopus_extract_dois(example_records)
 length(dois)
-#> [1] 127
-head(dois, 6)
-#> [1] "10.15541/jim20140527"            "10.1021/am509065d"              
-#> [3] "10.1016/j.electacta.2015.02.019" "10.1002/smll.201403383"         
-#> [5] "10.1016/j.jpowsour.2015.03.015"  "10.1103/physrevb.91.125415"
 ```
+
+    [1] 127
+
+``` r
+
+head(dois, 6)
+```
+
+    [1] "10.15541/jim20140527"            "10.1021/am509065d"              
+    [3] "10.1016/j.electacta.2015.02.019" "10.1002/smll.201403383"         
+    [5] "10.1016/j.jpowsour.2015.03.015"  "10.1103/physrevb.91.125415"     
 
 The same cleaning applies to a plain vector of DOIs from any source, so
 the first two entries below collapse to one because comparison ignores
@@ -94,11 +106,17 @@ retrievals.
 ``` r
 
 scopus_extract_dois(c("https://doi.org/10.1/A", "doi: 10.1/a", "10.2/B"))
-#> [1] "10.1/A" "10.2/B"
+```
+
+    [1] "10.1/A" "10.2/B"
+
+``` r
+
 scopus_extract_dois(c("https://doi.org/10.1/A", "doi: 10.1/a", "10.2/B"),
                     dedupe = FALSE)
-#> [1] "10.1/A" "10.1/a" "10.2/B"
 ```
+
+    [1] "10.1/A" "10.1/a" "10.2/B"
 
 The list can be written to a single-column CSV at a path you choose.
 Nothing is written unless a path is given. Here are the first few lines
@@ -212,5 +230,6 @@ back. The `.rds` form preserves the types and class exactly, while
 path <- file.path(tempdir(), "records.rds")
 write_scopus_records(example_records, path)
 identical(read_scopus_records(path), example_records)
-#> [1] TRUE
 ```
+
+    [1] TRUE

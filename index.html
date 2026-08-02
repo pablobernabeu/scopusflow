@@ -97,7 +97,11 @@
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
+<p>The released version is on CRAN:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"scopusflow"</span><span class="op">)</span></span></code></pre></div>
+<p>CRAN currently carries 0.1.0. Much of what this page describes arrived after that release, among it cursor paging, abstract and reference retrieval, the trend, top-source and intersection plots, and the code-free app. Until the next CRAN release those live on GitHub:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"pablobernabeu/scopusflow"</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -105,10 +109,10 @@
 <h2 id="api-key">API key<a class="anchor" aria-label="anchor" href="#api-key"></a>
 </h2>
 <p>scopusflow never stores your key. It is read, in order, from the <code>api_key</code> argument, the <code>scopusflow.api_key</code> option, or the <code>SCOPUS_API_KEY</code> environment variable. Store it in <code>~/.Renviron</code>:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>SCOPUS_API_KEY<span class="ot">=</span>your<span class="sc">-</span>key<span class="sc">-</span>here</span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="co"># Optional, for off-campus access to subscriber content:</span></span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>SCOPUS_INST_TOKEN<span class="ot">=</span>your<span class="sc">-</span>institutional<span class="sc">-</span>token</span></code></pre></div>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>SCOPUS_API_KEY<span class="ot">=</span>your<span class="sc">-</span>key<span class="sc">-</span>here</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co"># Optional, for off-campus access to subscriber content:</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>SCOPUS_INST_TOKEN<span class="ot">=</span>your<span class="sc">-</span>institutional<span class="sc">-</span>token</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pablobernabeu/scopusflow" class="external-link">scopusflow</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/scopus_has_key.html">scopus_has_key</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
@@ -117,7 +121,7 @@
 <h2 id="the-workflow-in-brief">The workflow in brief<a class="anchor" aria-label="anchor" href="#the-workflow-in-brief"></a>
 </h2>
 <p>With a key configured, a search runs as a plan: compose the query, size it, execute it with caching, then export or analyse the result. These calls contact the API and consume quota, so they are not run here:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Compose a field-tagged query, then a reproducible plan partitioned by</span></span>
 <span><span class="co"># year to stay under the API's start &lt; 5000 ceiling.</span></span>
 <span><span class="va">q</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"perovskite"</span>, <span class="st">"solar cell"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span>
@@ -138,7 +142,7 @@
 <h2 id="code-free-app">Code-free app<a class="anchor" aria-label="anchor" href="#code-free-app"></a>
 </h2>
 <p><code><a href="reference/run_app.html">run_app()</a></code> opens a local Shiny app that drives the whole workflow without writing code, and mirrors every choice back as a runnable R script, so it works as an on-ramp to the package rather than a replacement. It runs on your own machine, so your API key never leaves it, and a demo mode lets you try the flow with no key, on the corpus of real articles bundled with the package.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/run_app.html">run_app</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>The retrieval runs in a background process with a live progress terminal, and records appear as a table and as plots with one-click export. It needs the suggested packages shiny, bslib and callr. The <a href="https://pablobernabeu.github.io/scopusflow/articles/using-the-app.html">Using the code-free app</a> article walks through every panel.</p>
 </div>
@@ -187,14 +191,14 @@
 <div class="section level2">
 <h2 id="limitations">Limitations<a class="anchor" aria-label="anchor" href="#limitations"></a>
 </h2>
-<p>A few limits are worth keeping in mind. Under ordinary offset paging the Scopus Search API returns at most the first 5000 records of a query, so a large search is best partitioned by year with <code><a href="reference/scopus_plan.html">scopus_plan()</a></code> or harvested in one pass with <code>scopus_fetch(cursor = TRUE)</code>, which trades relevance order for completeness. <code><a href="reference/as_bibliometrix.html">as_bibliometrix()</a></code> maps the core descriptive fields the Search API returns; structured reference lists are available through <code>scopus_abstract(include = "references")</code> and <code><a href="reference/scopus_corpus.html">scopus_corpus()</a></code>, but an analysis that needs full affiliations, or bibliometrix’s own cited-reference (CR) field, will still call for a complete Scopus export. What you can retrieve also depends on your Elsevier entitlement, and some fields are available only in the <code>COMPLETE</code> view and to subscribers.</p>
+<p>A few limits are worth keeping in mind. Under ordinary offset paging the Scopus Search API returns at most the first 5000 records of a query, so a large search is best partitioned by year with <code><a href="reference/scopus_plan.html">scopus_plan()</a></code> or harvested in one pass with <code>scopus_fetch(cursor = TRUE)</code>, which trades relevance order for completeness. <code><a href="reference/as_bibliometrix.html">as_bibliometrix()</a></code> maps the core descriptive fields the Search API returns. Structured reference lists are available through <code>scopus_abstract(include = "references")</code> and <code><a href="reference/scopus_corpus.html">scopus_corpus()</a></code>, but an analysis that needs full affiliations, or bibliometrix’s own cited-reference (CR) field, will still call for a complete Scopus export. What you can retrieve also depends on your Elsevier entitlement, and some fields are available only in the <code>COMPLETE</code> view and to subscribers.</p>
 </div>
 <div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
 </h2>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span><span class="st">"scopusflow"</span><span class="op">)</span></span></code></pre></div>
-<p>The <a href="https://pablobernabeu.github.io/scopusflow/articles/about.html">About page</a> carries the same citation with a BibTeX entry, and a short note on the developer.</p>
+<p>The <a href="https://pablobernabeu.github.io/scopusflow/articles/about.html">About page</a> carries the same citation with a BibTeX entry, and a short note on the developer. The repository also ships a <code>CITATION.cff</code>, which is what GitHub’s ‘Cite this repository’ button reads.</p>
 </div>
 <div class="section level2">
 <h2 id="licence">Licence<a class="anchor" aria-label="anchor" href="#licence"></a>
@@ -205,7 +209,7 @@
 <h2 id="contributing">Contributing<a class="anchor" aria-label="anchor" href="#contributing"></a>
 </h2>
 <p>Issues and pull requests are welcome. The <a href="https://github.com/pablobernabeu/scopusflow/blob/main/.github/CONTRIBUTING.md" class="external-link">contributing guide</a> describes the development setup and the conventions the package follows, and everyone taking part is asked to honour the <a href="https://github.com/pablobernabeu/scopusflow/blob/main/.github/CODE_OF_CONDUCT.md" class="external-link">Code of Conduct</a>.</p>
-<p>Alongside the per-commit checks on Windows, macOS and several versions of R, a scheduled job re-checks the package every other day against the current and development versions of its dependencies, so that breakage from an upstream change is caught early. The contributing guide describes how it reports, and tries to resolve, any problem it finds.</p>
+<p>Alongside the per-commit checks on Windows, macOS and Linux across several versions of R, a scheduled job re-checks the package every other day against the current and development versions of its dependencies, so that breakage from an upstream change is caught early. The contributing guide describes how it reports, and tries to resolve, any problem it finds.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
@@ -252,6 +256,7 @@
 <div class="dev-status">
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
+<li><a href="https://CRAN.R-project.org/package=scopusflow" class="external-link"><img src="https://www.r-pkg.org/badges/version/scopusflow" alt="CRAN status"></a></li>
 <li><a href="https://github.com/pablobernabeu/scopusflow/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/pablobernabeu/scopusflow/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
 <li><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a></li>
 <li><a href="https://opensource.org/license/MIT" class="external-link"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a></li>
@@ -267,7 +272,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Released under the <a href="LICENSE.html">MIT licence</a>. ‘Scopus’ is a trademark of Elsevier; scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
+  <p>Released under the <a href="/scopusflow/LICENSE.html">MIT licence</a>. ‘Scopus’ is a trademark of Elsevier; scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

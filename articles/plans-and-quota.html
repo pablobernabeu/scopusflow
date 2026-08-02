@@ -84,7 +84,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Search plans and quota-aware retrieval</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.3.0/vignettes/plans-and-quota.Rmd" class="external-link"><code>vignettes/plans-and-quota.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/vignettes/plans-and-quota.Rmd" class="external-link"><code>vignettes/plans-and-quota.Rmd</code></a></small>
       <div class="d-none name"><code>plans-and-quota.Rmd</code></div>
     </div>
 
@@ -107,11 +107,11 @@ need a key and are not run here. Everything else runs offline.</p>
 mistakes that creep in when fragments are pasted together by hand.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">q</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"language learning"</span>, <span class="st">"effect size"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span>
-<span><span class="va">q</span></span>
-<span><span class="co">#&gt; [1] "TITLE-ABS-KEY(language learning) AND TITLE-ABS-KEY(effect size)"</span></span></code></pre></div>
+<span><span class="va">q</span></span></code></pre></div>
+<pre><code>[1] "TITLE-ABS-KEY(language learning) AND TITLE-ABS-KEY(effect size)"</code></pre>
 <p>The recognised field tags, and what each one searches, are listed by
 <code><a href="../reference/scopus_field_tags.html">scopus_field_tags()</a></code>.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_field_tags.html">scopus_field_tags</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
@@ -176,7 +176,7 @@ mistakes that creep in when fragments are pasted together by hand.</p>
 <p>A plan records exactly what will be fetched, so it can be saved,
 reviewed and re-run. Partitioning by year is the recommended way to stay
 under the 5000-record ceiling, since each year becomes its own cell.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="va">q</span>, years <span class="op">=</span> <span class="fl">2010</span><span class="op">:</span><span class="fl">2020</span>, partition <span class="op">=</span> <span class="st">"year"</span><span class="op">)</span></span>
 <span><span class="va">plan</span></span></code></pre></div>
 <table style="width:100%;" class="table">
@@ -313,11 +313,12 @@ that reason <code>page_size</code> defaults to the largest the view
 allows, which is the same efficiency <code>rscopus</code> relies on, and
 is in no sense an evasion of the quota: every request is counted, and
 the 5000-record ceiling still holds.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="va">q</span>, view <span class="op">=</span> <span class="st">"STANDARD"</span><span class="op">)</span><span class="op">$</span><span class="va">page_size</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span>
-<span><span class="co">#&gt; [1] 200</span></span>
-<span><span class="fu"><a href="../reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="va">q</span>, view <span class="op">=</span> <span class="st">"COMPLETE"</span><span class="op">)</span><span class="op">$</span><span class="va">page_size</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span>
-<span><span class="co">#&gt; [1] 25</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="va">q</span>, view <span class="op">=</span> <span class="st">"STANDARD"</span><span class="op">)</span><span class="op">$</span><span class="va">page_size</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span></code></pre></div>
+<pre><code>[1] 200</code></pre>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="va">q</span>, view <span class="op">=</span> <span class="st">"COMPLETE"</span><span class="op">)</span><span class="op">$</span><span class="va">page_size</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span></code></pre></div>
+<pre><code>[1] 25</code></pre>
 </div>
 <div class="section level2">
 <h2 id="sizing-before-spending">Sizing before spending<a class="anchor" aria-label="anchor" href="#sizing-before-spending"></a>
@@ -325,14 +326,14 @@ the 5000-record ceiling still holds.</p>
 <p>Counting is cheap and does not download records, so it is worth doing
 first. The count comes back with the parsed quota attached, which lets a
 workflow decide whether it has the allowance to proceed.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_count.html">scopus_count</a></span><span class="op">(</span><span class="va">q</span>, years <span class="op">=</span> <span class="fl">2010</span><span class="op">:</span><span class="fl">2020</span><span class="op">)</span></span>
 <span><span class="va">n</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">n</span>, <span class="st">"quota"</span><span class="op">)</span></span></code></pre></div>
 <p>That allowance is parsed from the response headers by
 <code><a href="../reference/scopus_quota.html">scopus_quota()</a></code>. To show its shape without a network call,
 apply it to a constructed response:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">resp</span> <span class="op">&lt;-</span> <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/response.html" class="external-link">response</a></span><span class="op">(</span></span>
 <span>  status_code <span class="op">=</span> <span class="fl">200</span>,</span>
 <span>  headers <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
@@ -341,21 +342,21 @@ apply it to a constructed response:</p>
 <span>    `X-RateLimit-Reset`     <span class="op">=</span> <span class="st">"1700000000"</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/scopus_quota.html">scopus_quota</a></span><span class="op">(</span><span class="va">resp</span><span class="op">)</span></span>
-<span><span class="co">#&gt; $limit</span></span>
-<span><span class="co">#&gt; [1] 20000</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $remaining</span></span>
-<span><span class="co">#&gt; [1] 19987</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $reset</span></span>
-<span><span class="co">#&gt; [1] "2023-11-14 22:13:20 UTC"</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $status</span></span>
-<span><span class="co">#&gt; [1] NA</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $retry_after</span></span>
-<span><span class="co">#&gt; [1] NA</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/scopus_quota.html">scopus_quota</a></span><span class="op">(</span><span class="va">resp</span><span class="op">)</span></span></code></pre></div>
+<pre><code>$limit
+[1] 20000
+
+$remaining
+[1] 19987
+
+$reset
+[1] "2023-11-14 22:13:20 UTC"
+
+$status
+[1] NA
+
+$retry_after
+[1] NA</code></pre>
 </div>
 <div class="section level2">
 <h2 id="fetching-with-caching-and-resume">Fetching, with caching and resume<a class="anchor" aria-label="anchor" href="#fetching-with-caching-and-resume"></a>
@@ -364,7 +365,7 @@ apply it to a constructed response:</p>
 cache directory it writes each cell to disk as it completes, so a run
 interrupted halfway, or stopped by the quota, resumes from where it left
 off rather than paying for the same cells again.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan</a></span><span class="op">(</span></span>
 <span>  <span class="va">plan</span>,</span>
 <span>  cache_dir <span class="op">=</span> <span class="fu"><a href="../reference/scopus_cache_dir.html">scopus_cache_dir</a></span><span class="op">(</span><span class="op">)</span>,</span>
@@ -380,7 +381,7 @@ but the clean arrangement is a separate directory per plan.</p>
 <p>The cache lives under <code><a href="../reference/scopus_cache_dir.html">scopus_cache_dir()</a></code>. To force a
 fresh retrieval, empty it with <code><a href="../reference/scopus_cache_clear.html">scopus_cache_clear()</a></code>. Both
 are shown but not run, so the article does not touch a real cache:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_cache_dir.html">scopus_cache_dir</a></span><span class="op">(</span><span class="op">)</span>    <span class="co"># where completed cells are written</span></span>
 <span><span class="fu"><a href="../reference/scopus_cache_clear.html">scopus_cache_clear</a></span><span class="op">(</span><span class="op">)</span>  <span class="co"># remove them, so the next run re-fetches from scratch</span></span></code></pre></div>
 <p>The result is a <code>scopus_records</code> tibble, the same shape
@@ -388,7 +389,7 @@ returned by <code><a href="../reference/scopus_fetch.html">scopus_fetch()</a></c
 key, the bundled <code>example_records</code> stands in for it: 138 real
 journal articles in that same schema, shipped because Scopus records may
 not be redistributed.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
@@ -505,8 +506,12 @@ vacuum-assisted thermal process for electrochemical energy storage</td>
 <p>Per-cell progress is silent by default and switched on with
 <code>verbose = TRUE</code>, worth doing for a harvest spanning many
 years.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan</a></span><span class="op">(</span><span class="va">plan</span>, cache_dir <span class="op">=</span> <span class="fu"><a href="../reference/scopus_cache_dir.html">scopus_cache_dir</a></span><span class="op">(</span><span class="op">)</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan</a></span><span class="op">(</span></span>
+<span>  <span class="va">plan</span>,</span>
+<span>  cache_dir <span class="op">=</span> <span class="fu"><a href="../reference/scopus_cache_dir.html">scopus_cache_dir</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p>A line is reported as each cell is fetched or loaded from cache.</p>
 </div>
 <div class="section level2">
@@ -518,11 +523,11 @@ duplicates by Scopus identifier or DOI. This is preferable to
 <code><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind()</a></code>, which would leave duplicate entry numbers. Here a
 baseline retrieval that stopped at 2023 is merged with a later one
 covering the whole period.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">baseline</span> <span class="op">&lt;-</span> <span class="va">example_records</span><span class="op">[</span><span class="va">example_records</span><span class="op">$</span><span class="va">year</span> <span class="op">&lt;=</span> <span class="fl">2023</span>, <span class="op">]</span></span>
 <span><span class="va">combined</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_combine.html">scopus_combine</a></span><span class="op">(</span><span class="va">baseline</span>, <span class="va">example_records</span>, dedupe <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">combined</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 149</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">combined</span><span class="op">)</span></span></code></pre></div>
+<pre><code>[1] 149</code></pre>
 <p>The 138 distinct articles come back as 149 rows, which is worth
 understanding rather than working around. De-duplication needs something
 to match on. These records carry no Scopus identifier, not having come
@@ -552,7 +557,7 @@ single pass.</p>
 <p>Network and API problems are raised as typed conditions, all
 inheriting from <code>scopus_error</code>, so a long retrieval can
 respond to them rather than stopping dead.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan</a></span><span class="op">(</span><span class="va">plan</span>, cache_dir <span class="op">=</span> <span class="fu"><a href="../reference/scopus_cache_dir.html">scopus_cache_dir</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  scopus_error_rate_limit <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="op">{</span></span>
@@ -574,7 +579,7 @@ pause costs nothing for the work already done.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Released under the <a href="LICENSE.html">MIT licence</a>. ‘Scopus’ is a trademark of Elsevier; scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
+  <p>Released under the <a href="/scopusflow/LICENSE.html">MIT licence</a>. ‘Scopus’ is a trademark of Elsevier; scopusflow is an independent client, not affiliated with or endorsed by Elsevier. Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

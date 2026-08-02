@@ -24,13 +24,19 @@ analysis.
 
 records <- example_records
 summary(records)
-#> <scopus_records> summary
-#> 138 records, from 2015 to 2024.
-#> 90 sources, 127 with a DOI.
-#> Cited 7015 times in total, median 24 per record.
-#> Most frequent source: ACS Applied Materials & Interfaces.
-#> Most cited: Graphene for batteries, supercapacitors and beyond.
 ```
+
+     [34m<scopus_records> [39m summary
+
+    138 records, from 2015 to 2024.
+
+    90 sources, 127 with a DOI.
+
+    Cited 7015 times in total, median 24 per record.
+
+    Most frequent source: ACS Applied Materials & Interfaces.
+
+    Most cited:  [3mGraphene for batteries, supercapacitors and beyond [23m.
 
 [`scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_top.md)
 tallies the most frequent sources or authors.
@@ -219,7 +225,10 @@ sets <- scopus_intersections(
   intersections = list(c("semantic priming", "mental simulation")),
   field = "TITLE-ABS-KEY"
 )
-plot_scopus_intersections(sets, highlight = sets$label[sets$type == "intersection"])
+plot_scopus_intersections(
+  sets,
+  highlight = sets$label[sets$type == "intersection"]
+)
 ```
 
 Here `field` leaves the third value untouched, since it already reads as
@@ -249,7 +258,10 @@ sets <- tibble::tibble(
               "semantic priming; mental simulation")
 )
 class(sets) <- c("scopus_intersections", class(sets))
-plot_scopus_intersections(sets, highlight = sets$label[sets$type == "intersection"])
+plot_scopus_intersections(
+  sets,
+  highlight = sets$label[sets$type == "intersection"]
+)
 ```
 
 ![A log-scale lollipop chart showing three concepts and a small
@@ -293,8 +305,12 @@ ab <- tibble::tibble(
 )
 class(ab) <- c("scopus_abstracts", class(ab))
 names(ab)
-#> [1] "id"          "scopus_id"   "doi"         "title"       "abstract"   
-#> [6] "publication" "year"        "citations"
+```
+
+    [1] "id"          "scopus_id"   "doi"         "title"       "abstract"   
+    [6] "publication" "year"        "citations"  
+
+``` r
 
 ab[, c("title", "publication", "year", "citations")]
 ```
@@ -315,7 +331,6 @@ instead, which has no such ceiling.
 
 recs <- scopus_fetch("TITLE-ABS-KEY(microplastics)", cursor = TRUE)
 nrow(recs)
-#> [1] 38374
 ```
 
 That query matched 38,374 records when this article was written (the
