@@ -8,7 +8,7 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(collapse = FALSE, comment = "")
 # Render data frames and tibbles as tables rather than console text.
 local({
   kp <- function(x, ...) {
@@ -83,7 +83,7 @@ The list can be written to a single-column CSV at a path you choose. Nothing is
 written unless a path is given. Here are the first few lines of the file, which
 holds a header and one DOI per line:
 
-```{r, comment = "", collapse = FALSE}
+```{r}
 out <- file.path(tempdir(), "reference-set.csv")
 scopus_extract_dois(example_records, file = out)
 writeLines(head(readLines(out), 6))
@@ -96,7 +96,7 @@ A DOI list is enough for an import-by-identifier, but a full record carries more
 reference managers read, so a search moves straight into Zotero, EndNote or a
 LaTeX bibliography. Each record becomes one entry, with its authors split out.
 
-```{r, comment = "", collapse = FALSE}
+```{r}
 cat(substr(as_ris(example_records), 1, 470))
 ```
 

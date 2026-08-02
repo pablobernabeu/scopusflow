@@ -8,7 +8,7 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(collapse = FALSE, comment = "")
 # Render data frames and tibbles as tables rather than console text.
 local({
   kp <- function(x, ...) {
@@ -64,7 +64,8 @@ recs <- tibble::tibble(
   title = "Deep learning", authors = "LeCun Y.; Bengio Y.; Hinton G.",
   year = 2015L, date = "2015-05-28", publication = "Nature",
   citations = NA_integer_,
-  authkeywords = "deep learning | neural networks | representation learning | backpropagation"
+  authkeywords =
+  "deep learning | neural networks | representation learning | backpropagation"
 )
 ```
 
@@ -133,7 +134,8 @@ ab <- tibble::tibble(
   year = 2015L,
   # scopus_abstract() joins keywords "; ", like its authors column; only
   # Search's COMPLETE view uses the " | " form shown above.
-  authkeywords = "deep learning; neural networks; representation learning; backpropagation",
+  authkeywords =
+  "deep learning; neural networks; representation learning; backpropagation",
   references = list(refs)
 )
 attr(ab, "n_requests") <- 1L

@@ -182,6 +182,34 @@ Every export carries roxygen2 documentation with fast, fixture-based examples.
 The package also ships a README, one vignette driven by fixtures, an
 `inst/CITATION` file, a `NEWS.md` and a `cran-comments.md`.
 
+### How chunk output is presented
+
+The vignettes set `collapse = FALSE, comment = ""`, so knitr writes each chunk's
+output into a block of its own carrying no `#>` marker. Two considerations
+decided this. The prefix exists to keep a collapsed block paste-safe, output
+lines staying valid R comments when the whole block is copied; once output sits
+in a separate block the source is paste-clean without it, so the marker earns
+nothing. It also cost parity: the Python twin renders results through
+markdown-exec, which has never prefixed anything, so the two documentation sets
+disagreed on every page.
+
+Two surfaces keep the prefix deliberately. The README renders on GitHub and CRAN,
+where the site stylesheet does not reach, leaving the marker as the only thing
+distinguishing output from code. pkgdown reference pages interleave input and
+output line by line inside one block, which is precisely the case the marker
+disambiguates; splitting them there is not under our control.
+
+The convention is enforced by the stylesheet rather than by the prefix: an output
+block is a bare `<pre>`, highlighted source always being wrapped in
+`div.sourceCode`, and `pkgdown/extra.scss` gives it a raised navy ground and an
+accent rule. Rejected alternative: `comment = ""` while leaving the default
+`collapse = TRUE`. That merges unprefixed output into the source fence, where it
+is highlighted as R and swept into the copy button.
+
+Note that `cat()` never affected the prefix. It removes the quotes and the `[1]`
+index, and it remains necessary for multi-line generated strings such as an RIS
+export, since `print()` renders those as a single escaped one-liner.
+
 ### Where the bundled example records come from
 
 The examples need a corpus that looks like what a user really retrieves,

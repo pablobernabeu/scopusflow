@@ -8,7 +8,7 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(collapse = FALSE, comment = "")
 # Render data frames and tibbles as tables rather than console text.
 local({
   kp <- function(x, ...) {
@@ -50,9 +50,11 @@ The same builder serves any field. Each call below returns the exact query strin
 that would be sent to 'Scopus'.
 
 ```{r}
-scopus_query("CRISPR", .field = "TITLE-ABS-KEY")              # molecular biology
+# molecular biology
+scopus_query("CRISPR", .field = "TITLE-ABS-KEY")
 scopus_query("gravitational waves", .field = "TITLE-ABS-KEY") # physics
-scopus_query("microplastics", .field = "TITLE-ABS-KEY")       # environmental science
+# environmental science
+scopus_query("microplastics", .field = "TITLE-ABS-KEY")
 scopus_query("blockchain", .field = "TITLE-ABS-KEY")          # computer science
 scopus_query("digital humanities", .field = "AUTHKEY")        # humanities
 ```

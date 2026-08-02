@@ -8,7 +8,7 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(collapse = FALSE, comment = "")
 # Render data frames and tibbles as tables rather than console text.
 local({
   kp <- function(x, ...) {
@@ -86,9 +86,17 @@ optionally caching each cell so that an interrupted run resumes without
 re-spending quota. These contact the API, so they are not evaluated here:
 
 ```{r eval = FALSE}
-scopus_count("graphene supercapacitor", years = 2015:2024, field = "TITLE-ABS-KEY")
+scopus_count(
+  "graphene supercapacitor",
+  years = 2015:2024,
+  field = "TITLE-ABS-KEY"
+)
 
-records <- scopus_fetch_plan(plan, cache_dir = scopus_cache_dir(), resume = TRUE)
+records <- scopus_fetch_plan(
+  plan,
+  cache_dir = scopus_cache_dir(),
+  resume = TRUE
+)
 ```
 
 Without a key, the bundled corpus stands in for the result of that harvest, and
@@ -118,7 +126,8 @@ them:
 ```{r}
 raw <- list(entry = list(
   list(`prism:doi` = "10.1021/am509065d",
-       `dc:title` = "Flexible and Stackable Laser-Induced Graphene Supercapacitors",
+       `dc:title` =
+         "Flexible and Stackable Laser-Induced Graphene Supercapacitors",
        `dc:creator` = "Zhiwei Peng",
        `prism:publicationName` = "ACS Applied Materials & Interfaces",
        `prism:coverDate` = "2015-01-13", `citedby-count` = "469")
@@ -166,7 +175,7 @@ print(scopus_diff_dois(old = baseline, new = later))
 You can write the DOIs to a path you specify, and read the file back to see
 exactly what lands on disk:
 
-```{r, comment = "", collapse = FALSE}
+```{r}
 out <- file.path(tempdir(), "dois.csv")
 scopus_extract_dois(records, file = out)
 writeLines(head(readLines(out), 5))
@@ -225,7 +234,9 @@ Network and API problems surface as typed conditions, all inheriting from
 tryCatch(
   scopus_fetch("..."),
   scopus_error_no_key     = function(e) message("No API key configured."),
-  scopus_error_rate_limit = function(e) message("Rate limited, so backing off."),
-  scopus_error            = function(e) message("Scopus error: ", conditionMessage(e))
+  scopus_error_rate_limit = function(e)
+    message("Rate limited, so backing off."),
+  scopus_error            = function(e)
+    message("Scopus error: ", conditionMessage(e))
 )
 ```

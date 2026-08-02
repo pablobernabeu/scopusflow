@@ -8,7 +8,7 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(collapse = FALSE, comment = "")
 # Render data frames and tibbles as tables rather than console text.
 local({
   kp <- function(x, ...) {
@@ -173,7 +173,10 @@ sets <- scopus_intersections(
   intersections = list(c("semantic priming", "mental simulation")),
   field = "TITLE-ABS-KEY"
 )
-plot_scopus_intersections(sets, highlight = sets$label[sets$type == "intersection"])
+plot_scopus_intersections(
+  sets,
+  highlight = sets$label[sets$type == "intersection"]
+)
 ```
 
 Here `field` leaves the third value untouched, since it already reads as a
@@ -201,7 +204,10 @@ sets <- tibble::tibble(
               "semantic priming; mental simulation")
 )
 class(sets) <- c("scopus_intersections", class(sets))
-plot_scopus_intersections(sets, highlight = sets$label[sets$type == "intersection"])
+plot_scopus_intersections(
+  sets,
+  highlight = sets$label[sets$type == "intersection"]
+)
 ```
 
 ## Reading the fuller record
@@ -251,7 +257,6 @@ such ceiling.
 ```{r eval = FALSE}
 recs <- scopus_fetch("TITLE-ABS-KEY(microplastics)", cursor = TRUE)
 nrow(recs)
-#> [1] 38374
 ```
 
 That query matched 38,374 records when this article was written (the literature
