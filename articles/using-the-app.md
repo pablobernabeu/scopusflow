@@ -195,3 +195,21 @@ The comparison can be saved as a CSV. None of this contacts the API
 again, because it works on results already in hand. Between the
 downloaded script and the exported records, a session in the app leaves
 you with both the data and the code that produced it.
+
+## Beyond the app
+
+Anything you can do in the app you can also do from code, but the
+reverse does not hold. The app covers planning, retrieval and the trend,
+top and comparison analyses, and the package goes further.
+[`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md)
+counts how a set of named concepts and their intersections overlap in
+the literature, and
+[`plot_scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_intersections.md)
+draws the result.
+[`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+retrieves abstract text and richer metadata than the Search API returns,
+and
+[`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
+builds on it to give a harvest author keywords and structured references
+for tools further downstream. When a session in the app has taken you as
+far as it goes, the downloaded script is the place to carry on from.

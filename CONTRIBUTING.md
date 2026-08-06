@@ -77,9 +77,13 @@ A dependency canary (`.github/workflows/dependency-check.yaml`) runs
 every other day. It rebuilds and checks the package against the current
 and the development versions of the key dependencies, `httr2` above all,
 and so catches a breaking change before it reaches a release. When the
-check fails it opens, or updates, a single issue with the log, and
-closes it again once the check passes. It can also be run on demand from
-the Actions tab.
+check fails it opens, or updates, a single issue with the log, finishes
+red, and closes the issue again once the check passes. It can also be
+run on demand from the Actions tab. Because the canary executes
+development code fetched from other repositories, it runs with read-only
+repository access; the write side lives in a companion workflow
+(`.github/workflows/dependency-autofix.yaml`) that only wakes after a
+failed check.
 
 The whole canary, the issue flagging and Dependabot run on GitHub’s free
 Actions minutes for public repositories and need no secret. When a
@@ -90,9 +94,9 @@ order of capability:
   diagnose the breakage and propose a fix, and includes that suggestion
   in the issue it raises. This costs nothing.
 - With a `CLAUDE_CODE_OAUTH_TOKEN` secret, generated from a Claude Pro
-  or Max subscription with `claude setup-token`, the Claude Code action
-  attempts a full fix and opens a pull request for review, billed to the
-  subscription rather than per token.
+  or Max subscription with `claude setup-token`, the companion autofix
+  workflow has the Claude Code action attempt a full fix and open a pull
+  request for review, billed to the subscription rather than per token.
 - With an `ANTHROPIC_API_KEY` secret, the same agentic fix runs against
   the paid API.
 
@@ -102,18 +106,20 @@ HTTP, so it cannot tell whether the real ‘Scopus’ API has renamed a
 field or changed its envelope. The live test runs a tiny real query and
 checks that the records come back with the documented columns populated.
 It needs a `SCOPUS_API_KEY` repository secret; until one is set, the
-live tests skip themselves and the run stays green, so adding the
-workflow costs nothing.
+live tests skip themselves and the run stays green, though it flags
+itself as dormant in the log and the run summary. Once a key is present,
+a skipped live test fails the run, so a green result always means the
+tests really ran.
 
 Dependabot (`.github/dependabot.yml`) keeps the GitHub Actions used by
 the workflows up to date through weekly pull requests. It does not track
 CRAN packages, which is why the dependency canary watches those at
 runtime instead.
 
-For the issue and pull-request automation to work, the repository’s
-*Settings → Actions → General → Workflow permissions* must grant read
-and write permissions and, for the auto-fix pull request, allow GitHub
-Actions to create pull requests.
+Each workflow declares the permissions it needs, so the repository’s
+default workflow permissions can stay read-only. The auto-fix pull
+request additionally requires *Settings → Actions → General* to allow
+GitHub Actions to create and approve pull requests.
 
 ## Submitting a pull request
 

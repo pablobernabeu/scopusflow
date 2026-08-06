@@ -1,5 +1,7 @@
 # scopusflow (R)
 
+Documentation: <https://pablobernabeu.github.io/scopusflow/>
+
 scopusflow is a reproducible, quota-aware workflow layer over the
 Elsevier [Scopus](https://dev.elsevier.com/sc_apis.html) Search API. It
 turns one-off bibliographic queries into inspectable plans, retrieves
