@@ -1,9 +1,12 @@
 # Weekly live smoke test against the real Elsevier 'Scopus' Search API, so that a
 # change to the API's response schema or auth is caught early rather than by a
 # user's bug report. The offline test suite cannot cover this, since it mocks all
-# HTTP. The tests skip themselves unless a SCOPUS_API_KEY secret is configured, so
-# this workflow is harmless (and green) until the maintainer opts in by adding the
-# key. It uses about two API requests per run.
+# HTTP. The tests skip themselves unless a SCOPUS_API_KEY secret is configured.
+# Until the maintainer opts in by adding the key, the run stays green but says
+# so plainly: it emits a warning and a step-summary line that the check is
+# dormant, so a green badge is never mistaken for live coverage. Once the key
+# is present, any skipped test fails the run, because a skip then means the
+# check silently exercised nothing. It uses about two API requests per run.
 on:
   schedule:
     - cron: "23 6 * * 1" # weekly, Monday 06:23 UTC
@@ -47,4 +50,23 @@ jobs:
                       sum(df$failed), sum(df$skipped), sum(df$passed)))
           if (sum(df$failed) > 0L) {
             quit(status = 1L)
+          }
+          # A green run must mean the live tests genuinely ran. With a key
+          # configured, a skipped test is a silent gap in coverage, so it fails
+          # the run; without one, the run is honest about being dormant.
+          key_present <- nzchar(Sys.getenv("SCOPUS_API_KEY"))
+          if (key_present && sum(df$skipped) > 0L) {
+            cat(sprintf(
+              "::error::%d live test(s) skipped although SCOPUS_API_KEY is configured, so the live check exercised less than it reports.\n",
+              sum(df$skipped)
+            ))
+            quit(status = 1L)
+          }
+          if (!key_present) {
+            cat("::warning::The live API check is dormant: no SCOPUS_API_KEY secret is configured, so every live test skipped itself.\n")
+            summary_file <- Sys.getenv("GITHUB_STEP_SUMMARY")
+            if (nzchar(summary_file)) {
+              cat("The live 'Scopus' API check is dormant: no SCOPUS_API_KEY secret is configured, so every live test skipped itself.\n",
+                  file = summary_file, append = TRUE)
+            }
           }

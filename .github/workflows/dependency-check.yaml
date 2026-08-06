@@ -1,8 +1,14 @@
 # Scheduled "dependency canary": builds and checks the package against the
 # current and development versions of its dependencies, so that a breaking change
-# upstream (for example in httr2) is caught early. On failure it attempts an
-# automatic fix via the Claude Code action (only when an ANTHROPIC_API_KEY secret
-# is configured) and always flags the maintainer with a de-duplicated issue.
+# upstream (for example in httr2) is caught early. This workflow only observes
+# and reports. It installs and executes the development heads of the
+# dependencies, which is untrusted code, so it runs with a read-only checkout
+# plus issue access and never holds a token that could push commits or open
+# pull requests. On failure it flags the maintainer with a de-duplicated issue,
+# including a free GitHub Models diagnosis when no Claude credential is
+# configured, and then finishes red. That red conclusion is what triggers the
+# companion dependency-autofix.yaml workflow, which holds the write permissions
+# and attempts the agentic fix in a separate run.
 on:
   schedule:
     - cron: "17 5 */2 * *" # every other day at 05:17 UTC
@@ -11,33 +17,29 @@ on:
 name: dependency-check.yaml
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
   issues: write
-  actions: read
   models: read # free GitHub Models inference for the no-cost diagnosis path
 
 jobs:
   dependency-check:
     runs-on: ubuntu-latest
     env:
+      # The token behind GITHUB_PAT carries only the read-and-issues grants
+      # declared above. pak needs it to install the development heads from
+      # GitHub without tripping the anonymous API rate limit.
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
-      # Each evaluates to the string "true" only when the secret is configured;
-      # the secret values themselves are never exposed. A Claude subscription
-      # OAuth token (CLAUDE_CODE_OAUTH_TOKEN) drives the agentic auto-fix at no
-      # API cost; an ANTHROPIC_API_KEY is the paid alternative.
+      # Evaluates to the string "true" only when a Claude credential is
+      # configured; the secret values themselves are never exposed. A Claude
+      # subscription OAuth token (CLAUDE_CODE_OAUTH_TOKEN) drives the agentic
+      # auto-fix at no API cost; an ANTHROPIC_API_KEY is the paid alternative.
+      # When true, the free GitHub Models diagnosis below is skipped, because
+      # the companion dependency-autofix.yaml workflow will attempt a full fix.
       HAS_CLAUDE: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' || secrets.ANTHROPIC_API_KEY != '' }}
 
     steps:
       - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-
-      - name: Configure git for the auto-fix step
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - uses: r-lib/actions/setup-pandoc@v2
 
@@ -127,40 +129,6 @@ jobs:
             } > ai-suggestion.md
           fi
 
-      # Subscription/paid path: a full agentic fix that opens a pull request.
-      # Uses a Claude subscription OAuth token if present (no API cost), else an
-      # ANTHROPIC_API_KEY.
-      - name: Attempt an automatic fix (Claude)
-        if: steps.check.outputs.status == 'fail' && env.HAS_CLAUDE == 'true'
-        continue-on-error: true
-        uses: anthropics/claude-code-action@v1
-        with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          prompt: |
-            The scheduled dependency check for this R package (scopusflow) is
-            failing, most likely because an updated dependency introduced a
-            breaking change. The file check-problems.txt in the repository root
-            holds the R CMD check errors and warnings.
-
-            Please:
-              1. Read check-problems.txt and the relevant files under R/ and
-                 tests/.
-              2. Make the smallest change that restores compatibility with the
-                 updated dependency, preserving behaviour and the package's
-                 conventions (typed conditions via rlang::abort, British spelling,
-                 offline tests).
-              3. Run Rscript -e 'devtools::test()' to confirm the fix.
-              4. Open a pull request from a new branch named
-                 fix/dependency-canary-${{ github.run_number }} with a clear title
-                 and a description of what broke and how you fixed it, using:
-                 gh pr create --base main --head <branch> --title "..." --body "...".
-
-            Do not edit files under .github/ and do not bump the package version.
-          claude_args: >-
-            --max-turns 25
-            --allowedTools "Bash(git:*),Bash(gh:*),Bash(Rscript:*),Bash(R:*),Edit,Read,Write"
-
       - name: Flag the maintainer
         if: steps.check.outputs.status == 'fail'
         env:
@@ -181,9 +149,9 @@ jobs:
             echo '```'
             if [ "$HAS_CLAUDE" = "true" ]; then
               echo ""
-              echo "A full automatic fix was attempted with the Claude Code action."
-              echo "Look for an open pull request named"
-              echo "fix/dependency-canary-${{ github.run_number }}."
+              echo "The companion dependency-autofix workflow will attempt a full"
+              echo "automatic fix once this run completes. Look for an open pull"
+              echo "request from a branch named fix/dependency-canary-*."
             fi
             if [ -f ai-suggestion.md ]; then
               echo ""
@@ -214,3 +182,13 @@ jobs:
               --body "The scheduled dependency check is passing again. Closing."
             gh issue close "$existing"
           fi
+
+      - name: Fail the run when the check failed
+        # None of the steps above fails the job itself (the check step records
+        # its verdict instead of erroring, so the issue steps always get to
+        # run), so without this the workflow would finish green even when R CMD
+        # check found problems. Finishing red keeps the Actions overview honest
+        # and is the signal the companion dependency-autofix.yaml workflow
+        # listens for through its workflow_run trigger.
+        if: steps.check.outputs.status == 'fail'
+        run: exit 1

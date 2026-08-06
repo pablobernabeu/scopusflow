@@ -12,7 +12,10 @@ status](https://www.r-pkg.org/badges/version/scopusflow)](https://CRAN.R-project
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![License:
 MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/license/MIT)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21252669.svg)](https://doi.org/10.5281/zenodo.21252669)
 <!-- badges: end -->
+
+Documentation: <https://pablobernabeu.github.io/scopusflow/>
 
 scopusflow is a reproducible, quota-aware workflow layer over the
 Elsevier [Scopus](https://dev.elsevier.com/sc_apis.html) Search API. It

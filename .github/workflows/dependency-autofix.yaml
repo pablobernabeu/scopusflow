@@ -1,0 +1,123 @@
+# Companion auto-fix for the dependency canary. dependency-check.yaml installs
+# and executes the development heads of the package's dependencies, which is
+# untrusted code, so that workflow runs under a read-only token. The write
+# permissions live here instead: when the check finishes red, this workflow
+# asks Claude Code to reproduce the breakage and open a pull request with the
+# smallest safe fix. Reproducing the failure means dependency code runs in this
+# job too, beside the write token; that trade-off is accepted because the job
+# is inert until the maintainer opts in by adding a CLAUDE_CODE_OAUTH_TOKEN or
+# ANTHROPIC_API_KEY secret, runs only after a failed check rather than on every
+# schedule, and produces a reviewable pull request rather than an unattended
+# push to main. Opening pull requests also requires enabling "Allow GitHub
+# Actions to create and approve pull requests" under Settings > Actions >
+# General.
+on:
+  workflow_run:
+    workflows: ["dependency-check.yaml"]
+    types: [completed]
+  workflow_dispatch:
+
+name: dependency-autofix.yaml
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  actions: read
+
+jobs:
+  dependency-autofix:
+    # A manual dispatch always runs (useful for testing the plumbing); the
+    # scheduled path only reacts to a failed dependency check.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+      # Evaluates to the string "true" only when a Claude credential is
+      # configured; the secret values themselves are never exposed. A Claude
+      # subscription OAuth token (CLAUDE_CODE_OAUTH_TOKEN) drives the fix at no
+      # API cost; an ANTHROPIC_API_KEY is the paid alternative. Without either,
+      # every step below skips and the dependency-check issue remains the sole
+      # means of flagging the maintainer.
+      HAS_CLAUDE: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' || secrets.ANTHROPIC_API_KEY != '' }}
+
+    steps:
+      - uses: actions/checkout@v7
+        if: env.HAS_CLAUDE == 'true'
+        with:
+          fetch-depth: 0
+
+      - name: Configure git for the fix branch
+        if: env.HAS_CLAUDE == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - uses: r-lib/actions/setup-pandoc@v2
+        if: env.HAS_CLAUDE == 'true'
+
+      - uses: r-lib/actions/setup-r@v2
+        if: env.HAS_CLAUDE == 'true'
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        if: env.HAS_CLAUDE == 'true'
+        with:
+          extra-packages: any::rcmdcheck, any::devtools
+          needs: check
+
+      - name: Install development versions of the key dependencies
+        # The same development heads the canary checks against, so that the
+        # failure reproduces here rather than vanishing under the released
+        # versions.
+        if: env.HAS_CLAUDE == 'true'
+        continue-on-error: true
+        shell: Rscript {0}
+        run: |
+          pak::pak(c(
+            "r-lib/httr2", "r-lib/cli", "r-lib/rlang",
+            "tidyverse/tibble", "jeroen/jsonlite"
+          ), ask = FALSE)
+
+      - name: Attempt an automatic fix (Claude)
+        if: env.HAS_CLAUDE == 'true'
+        continue-on-error: true
+        # Pinned to a full commit SHA because anthropics/ is outside the small
+        # set of publishers this family trusts to float on a major tag.
+        uses: anthropics/claude-code-action@c038e4dcdedfbbca18dfb17df35a17e40ded4ddc # v1 (v1.0.186)
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            The scheduled dependency check for this R package (scopusflow) is
+            failing, most likely because an updated dependency introduced a
+            breaking change. The development versions of the key dependencies
+            (httr2, cli, rlang, tibble, jsonlite) are already installed in this
+            environment.
+
+            Please:
+              1. Reproduce the failure by running
+                 Rscript -e 'rcmdcheck::rcmdcheck(args = c("--no-manual", "--as-cran"), error_on = "never")'
+                 and read the relevant files under R/ and tests/.
+              2. Make the smallest change that restores compatibility with the
+                 updated dependency, preserving behaviour and the package's
+                 conventions (typed conditions via rlang::abort, British spelling,
+                 offline tests).
+              3. Run Rscript -e 'devtools::test()' to confirm the fix.
+              4. Open a pull request from a new branch named
+                 fix/dependency-canary-${{ github.run_number }} with a clear title
+                 and a description of what broke and how you fixed it, using:
+                 gh pr create --base main --head <branch> --title "..." --body "...".
+
+            If the failure cannot be resolved safely without a larger redesign,
+            do not force a change: instead summarise the cause and the options
+            in a comment on the open issue titled "Scheduled dependency check
+            is failing".
+
+            Do not edit files under .github/ and do not bump the package version.
+          claude_args: >-
+            --max-turns 25
+            --allowedTools "Bash(git:*),Bash(gh:*),Bash(Rscript:*),Bash(R:*),Edit,Read,Write"
