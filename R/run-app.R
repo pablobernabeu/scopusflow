@@ -299,10 +299,14 @@ app_server <- function(input, output, session) {
       shiny::showNotification("A retrieval is already running.", type = "warning")
       return()
     }
-    key <- gsub("[^a-zA-Z0-9]+", "-",
-                paste(input$query, input$field, input$view,
-                      paste(range(years_value() %||% 0L), collapse = "-")))
-    cache_dir <- file.path(tempdir(), "scopusflow-app", substr(key, 1L, 80L))
+    # Everything that shapes the harvest belongs in the key, the record cap
+    # included: a cell cached under "25 per year" is not the answer to a later
+    # request for all of them. Hashed rather than truncated to a readable slug,
+    # because two long queries sharing an opening 80 characters would otherwise
+    # share a directory and so each other's checkpoints.
+    key <- rlang::hash(list(input$query, input$field, input$view,
+                            range(years_value() %||% 0L), max_value()))
+    cache_dir <- file.path(tempdir(), "scopusflow-app", key)
     dir.create(cache_dir, recursive = TRUE, showWarnings = FALSE)
     if (!is.null(rv$logfile) && file.exists(rv$logfile)) unlink(rv$logfile)
     logfile <- tempfile("scopusflow-log-", fileext = ".txt")

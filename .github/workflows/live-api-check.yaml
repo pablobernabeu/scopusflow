@@ -6,7 +6,10 @@
 # so plainly: it emits a warning and a step-summary line that the check is
 # dormant, so a green badge is never mistaken for live coverage. Once the key
 # is present, any skipped test fails the run, because a skip then means the
-# check silently exercised nothing. It uses about two API requests per run.
+# check silently exercised nothing. It uses about six 'Scopus' Search requests
+# and one Abstract Retrieval request per run. Abstract Retrieval draws on its
+# own weekly quota, the smaller of the two, so weigh any new test on that path
+# against a schedule that runs unattended.
 on:
   schedule:
     - cron: "23 6 * * 1" # weekly, Monday 06:23 UTC

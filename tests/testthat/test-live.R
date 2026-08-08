@@ -1,6 +1,8 @@
 # Live integration tests. These are skipped on CRAN and only run when a real key
 # is configured and the user has opted in via NOT_CRAN. They make genuine network
-# requests and consume a small amount of quota (about two requests).
+# requests and consume a small amount of quota: about six 'Scopus' Search
+# requests and one Abstract Retrieval request, the latter drawing on its own
+# weekly quota, which is the smaller of the two.
 #
 # Their job is the one thing the offline mocks cannot do: confirm the package
 # still works against the live, evolving 'Scopus' API, so that a renamed field or

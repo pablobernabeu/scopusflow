@@ -12,17 +12,27 @@
 #'   `scopus_cache_dir()` to use a managed, clearable cache under
 #'   [tools::R_user_dir()]. Caching happens only when you opt in through this
 #'   argument. A cache directory serves one plan: cells are checkpointed by
-#'   their position in the plan, so give each distinct plan its own directory.
-#'   As a safeguard, a checkpoint whose records carry a different query than
-#'   the plan cell is treated as a cache miss, refetched and overwritten; a
-#'   checkpoint written by an older scopusflow that carries no query
-#'   information is loaded as before.
+#'   their position in the plan and their year, so give each distinct plan its
+#'   own directory. As a safeguard, a checkpoint is served only when the query,
+#'   year, view and page size it was fetched under all match the plan cell, and
+#'   only when its own `max_results` did not truncate it below what is being
+#'   asked for now; anything else is a cache miss, refetched and overwritten. A
+#'   checkpoint that cannot be read back, for example one left half-written by
+#'   an interrupted run, is also treated as a miss rather than aborting the
+#'   harvest.
 #' @param resume Logical. When `TRUE` and `cache_dir` is set, a cell whose cache
 #'   file already exists is loaded from disk rather than fetched again.
 #' @param api_key,inst_token Optional credentials (see [scopus_has_key()]).
 #' @param verbose Logical. When `TRUE`, per-cell progress is reported.
 #' @return A [scopus_records] tibble combining all cells, with the originating
-#'   `plan` attached as the `plan` attribute.
+#'   `plan` attached as the `plan` attribute. The `retrieved_at` and
+#'   `scopusflow_version` attributes described in [scopus_fetch()] are carried
+#'   across from the cells: the time is the earliest of them, since a combined
+#'   set is only as fresh as its oldest cell, and every version that
+#'   contributed is listed, since resuming an older cache means more than one
+#'   did. Both are omitted when any cell cannot supply them, as a checkpoint
+#'   written before they existed cannot, rather than dating the whole from a
+#'   part of it.
 #' @section API access:
 #' Any cell not served from cache requires a valid API key and internet access.
 #' The *API access* section of [scopus_count()] gives the details.
@@ -76,19 +86,35 @@ scopus_fetch_plan <- function(plan,
     cache_file <- if (is.null(cache_dir)) {
       NULL
     } else {
-      file.path(cache_dir, sprintf("cell-%03d.rds", cell$cell))
+      file.path(cache_dir, scopus_cell_cache_name(cell))
     }
 
     if (!is.null(cache_file) && resume && file.exists(cache_file)) {
-      cached <- readRDS(cache_file)
-      if (scopus_cell_cache_matches(cached, cell$query)) {
+      cached <- scopus_read_checkpoint(cache_file)
+      if (is.null(cached)) {
+        rlang::warn(
+          sprintf(
+            paste0("The checkpoint %s could not be read back, so it was ",
+                   "discarded and the cell refetched. An interrupted run can ",
+                   "leave a checkpoint half-written."),
+            cache_file
+          ),
+          class = "scopus_warning_cache_unreadable"
+        )
+      } else if (scopus_cell_cache_matches(cached, cell, max_results)) {
         if (verbose) cli::cli_inform("Cell {i}/{nrow(plan)}: loaded from cache.")
         results[[i]] <- cached
         next
-      }
-      if (verbose) {
-        cli::cli_inform(
-          "Cell {i}/{nrow(plan)}: checkpoint holds a different query; refetching."
+      } else {
+        rlang::warn(
+          sprintf(
+            paste0("The checkpoint %s was written under a different request ",
+                   "(query, view, page size or max_results), so it was ",
+                   "discarded and the cell refetched. Give each plan its own ",
+                   "cache_dir."),
+            cache_file
+          ),
+          class = "scopus_warning_cache_mismatch"
         )
       }
     }
@@ -102,7 +128,10 @@ scopus_fetch_plan <- function(plan,
       page_size = cell$page_size, max_results = max_results,
       api_key = api_key, inst_token = inst_token, verbose = verbose
     )
-    if (!is.null(cache_file)) saveRDS(recs, cache_file)
+    if (!is.null(cache_file)) {
+      attr(recs, "cache_meta") <- scopus_cell_cache_meta(cell, max_results, recs)
+      scopus_write_checkpoint(recs, cache_file)
+    }
     results[[i]] <- recs
   }
 
@@ -111,23 +140,93 @@ scopus_fetch_plan <- function(plan,
   combined
 }
 
+# The checkpoint filename for a plan cell. The cell's date is part of the name,
+# not just its position: under partition = "year" every cell carries the same
+# wrapped query and the year travels separately as the `date` parameter, so a
+# name keyed on position alone would let one plan's 2015 checkpoint serve
+# another plan's 2016 cell, and the query comparison below could never tell the
+# two apart. The Python twin reaches the same end differently, by folding the
+# year into the query it records (`_cell_query()`), which is open to it because
+# pybliometrics takes the year as part of the search expression.
+scopus_cell_cache_name <- function(cell) {
+  date <- if (is.na(cell$date)) "all" else cell$date
+  sprintf("cell-%03d-%s.rds", cell$cell, date)
+}
+
+# The identity a checkpoint is written under, saved alongside the records so a
+# later resume can tell whether they still answer the question being asked.
+# `complete` records whether the cell ran to the end of its result set rather
+# than stopping at `max_results`: a cap that never bit leaves the checkpoint
+# usable however large a later request, while one that did truncate must be
+# refetched when more is asked for.
+scopus_cell_cache_meta <- function(cell, max_results, recs) {
+  total <- attr(recs, "total_results")
+  complete <- is.infinite(max_results) || nrow(recs) < max_results ||
+    (!is.na(total) && nrow(recs) >= total)
+  list(
+    query = cell$query,
+    date = cell$date,
+    view = cell$view,
+    page_size = cell$page_size,
+    max_results = max_results,
+    complete = complete
+  )
+}
+
 # Whether a cached checkpoint can serve a plan cell. Records written by
 # scopus_fetch_core() carry the wrapped query in their `query` column, so a
 # checkpoint left behind by a different plan sharing the same cache_dir is
 # recognised and treated as a cache miss: the cell is refetched and the
-# checkpoint overwritten. A checkpoint that carries no query information (a
-# zero-row cell, or one written by an older scopusflow) is loaded as before.
-# The Python twin applies the same query comparison on resume.
-scopus_cell_cache_matches <- function(cached, query) {
+# checkpoint overwritten. Everything the query column cannot express (the year,
+# the view, the page size and the cap the cell was fetched under) is compared
+# against the manifest written beside the records. A checkpoint carrying
+# neither query nor manifest (a zero-row cell, or one written by an older
+# scopusflow) is loaded as before.
+scopus_cell_cache_matches <- function(cached, cell, max_results) {
   q <- if (is.data.frame(cached)) cached[["query"]] else NULL
-  if (is.null(q)) {
+  if (!is.null(q)) {
+    q <- unique(q[!is.na(q)])
+    if (length(q) > 1L || (length(q) == 1L && !identical(q, cell$query))) {
+      return(FALSE)
+    }
+  }
+  meta <- attr(cached, "cache_meta")
+  if (is.null(meta)) {
     return(TRUE)
   }
-  q <- unique(q[!is.na(q)])
-  if (length(q) == 0L) {
-    return(TRUE)
+  identical(meta$date, cell$date) &&
+    identical(meta$view, cell$view) &&
+    identical(meta$page_size, cell$page_size) &&
+    (isTRUE(meta$complete) || max_results <= meta$max_results)
+}
+
+# Write a checkpoint so that it is either wholly there or not there at all.
+# saveRDS() straight to the destination leaves a truncated file when the
+# session dies mid-write, and the interruptions this cache exists to survive
+# (Ctrl-C, a killed background worker, a full disk, a quota abort) are exactly
+# what produces one. Renaming within a single directory is atomic on both POSIX
+# and NTFS. file.rename() returns FALSE rather than erroring when the target is
+# locked by another process, which happens on Windows, so a failed rename falls
+# back to a direct write rather than losing the cell that was just paid for.
+scopus_write_checkpoint <- function(x, path) {
+  tmp <- tempfile(pattern = "checkpoint-", tmpdir = dirname(path), fileext = ".rds")
+  renamed <- tryCatch({
+    saveRDS(x, tmp)
+    isTRUE(suppressWarnings(file.rename(tmp, path)))
+  }, error = function(e) FALSE)
+  if (!renamed) {
+    unlink(tmp)
+    saveRDS(x, path)
   }
-  length(q) == 1L && identical(q, query)
+  invisible(path)
+}
+
+# Read a checkpoint back, returning NULL when it cannot be read. A damaged
+# checkpoint must not be able to abort every subsequent resume: refetching one
+# cell costs quota, whereas an unreadable file the caller has to find and
+# delete by hand defeats the point of resuming at all.
+scopus_read_checkpoint <- function(path) {
+  tryCatch(readRDS(path), error = function(e) NULL)
 }
 
 # Bind a list of scopus_records tibbles into one, re-numbering entries. Cells
@@ -147,7 +246,29 @@ scopus_bind_records <- function(records_list) {
     x[all_cols]
   }))
   bound$entry_number <- seq_len(nrow(bound))
-  tibble::new_tibble(as.list(bound), nrow = nrow(bound), class = "scopus_records")
+  bound <- tibble::new_tibble(as.list(bound), nrow = nrow(bound), class = "scopus_records")
+  scopus_bind_provenance(bound, records_list)
+}
+
+# Carry the cells' retrieval provenance onto the combined set. The time is the
+# earliest of them, because a combined set is only as fresh as its oldest cell
+# and a resumed harvest can span days. Every contributing version is kept,
+# since resuming a cache written by an earlier scopusflow genuinely produces a
+# set that more than one version built. Both are claimed only when every cell
+# carries them: a checkpoint written before these attributes existed has no
+# time of its own, and taking the earliest of the rest would date the combined
+# set later than one of the cells inside it, which is the one thing a
+# provenance field must never do.
+scopus_bind_provenance <- function(bound, records_list) {
+  stamps <- lapply(records_list, attr, "retrieved_at")
+  if (!any(vapply(stamps, is.null, logical(1)))) {
+    attr(bound, "retrieved_at") <- min(do.call(c, stamps))
+  }
+  versions <- lapply(records_list, attr, "scopusflow_version")
+  if (!any(vapply(versions, is.null, logical(1)))) {
+    attr(bound, "scopusflow_version") <- sort(unique(unlist(versions)))
+  }
+  bound
 }
 
 #' Managed cache directory for scopusflow

@@ -21,10 +21,12 @@
 #' @return A tibble of class `scopus_comparison` with the columns `query` (the
 #'   full query used), `query_type` (`"reference"` or `"comparison"`),
 #'   `abridged_query` (the topic label for plotting), `year`, `n` (records that
-#'   year), `reference_n` (reference records that year), `comparison_percentage`
+#'   year, as a double so very large counts are exact), `reference_n` (reference
+#'   records that year, likewise a double), `comparison_percentage`
 #'   (`100 * n / reference_n`, or `NA` when `reference_n` is 0) and
-#'   `average_comparison_percentage` (the same ratio computed on period totals).
-#'   Comparison rows are sorted by descending average percentage.
+#'   `average_comparison_percentage` (the same ratio computed on period totals,
+#'   over the years where both counts are available). Comparison rows are sorted
+#'   by descending average percentage.
 #' @section API access:
 #' This performs one count request per term per year, so it requires a valid API
 #' key and internet access. The *API access* section of [scopus_count()] gives
@@ -137,16 +139,24 @@ scopus_compare_topics <- function(reference_query,
 # that year, and the average rests on the years that are available.
 scopus_comparison_block <- function(query, query_type, abridged, years, n, ref_n) {
   pct <- ifelse(is.na(ref_n) | ref_n == 0, NA_real_, 100 * n / ref_n)
-  total_n <- sum(n, na.rm = TRUE)
-  total_ref <- sum(ref_n, na.rm = TRUE)
-  avg <- if (total_ref == 0) NA_real_ else 100 * total_n / total_ref
+  # Both totals are taken over the same years. Summing the numerator over years
+  # the denominator drops would inflate the average above every per-year share
+  # in the same tibble, and that average also orders the topics in the plot.
+  ok <- !is.na(n) & !is.na(ref_n)
+  total_n <- sum(n[ok])
+  total_ref <- sum(ref_n[ok])
+  avg <- if (!any(ok) || total_ref == 0) NA_real_ else 100 * total_n / total_ref
   data.frame(
     query = query,
     query_type = query_type,
     abridged_query = abridged,
     year = as.integer(years),
-    n = as.integer(n),
-    reference_n = as.integer(ref_n),
+    # Doubles, as scopus_total_results(), scopus_trend() and
+    # scopus_intersections() all carry their counts: a broad query can report
+    # billions of matches, which a 32-bit integer would turn into NA while
+    # leaving the percentage beside it populated.
+    n = as.numeric(n),
+    reference_n = as.numeric(ref_n),
     comparison_percentage = as.numeric(pct),
     average_comparison_percentage = as.numeric(avg),
     stringsAsFactors = FALSE

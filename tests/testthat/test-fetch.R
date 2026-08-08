@@ -37,6 +37,17 @@ test_that("retrieval is capped at the API ceiling with a warning", {
   expect_equal(nrow(recs), 6L)
 })
 
+test_that("no cap warning when max_results already asks for less than the ceiling", {
+  # The caller asked for 3 records and received 3. Telling them the retrieval
+  # was truncated, and to restructure it with cursor paging or a year
+  # partition, would be false.
+  local_scopus_test_env()
+  withr::local_options(scopusflow.hard_cap = 6L)
+  httr2::local_mocked_responses(mock_corpus(total = 20L))
+  recs <- expect_no_warning(scopus_fetch("anything", max_results = 3L, page_size = 2L))
+  expect_equal(nrow(recs), 3L)
+})
+
 test_that("a huge total still triggers the cap warning (no integer overflow)", {
   local_scopus_test_env()
   withr::local_options(scopusflow.hard_cap = 6L)
@@ -190,4 +201,31 @@ test_that("scopus_fetch(view = 'STANDARD') never carries authkeywords, even if p
   recs <- scopus_fetch("anything")
   expect_false("authkeywords" %in% names(recs))
   expect_identical(names(recs), scopusflow:::scopus_records_columns())
+})
+
+test_that("a retrieval is dated and attributed to the version that took it", {
+  # `citations` is a snapshot value, and the change-tracking workflow rests on
+  # diffing two pulls, so a saved set that cannot say when it was taken cannot
+  # honestly be compared with another.
+  local_scopus_test_env()
+  httr2::local_mocked_responses(mock_corpus(total = 2L))
+
+  before <- Sys.time()
+  recs <- scopus_fetch("anything")
+  stamp <- attr(recs, "retrieved_at")
+  expect_s3_class(stamp, "POSIXct")
+  expect_gte(as.numeric(stamp), as.numeric(before))
+  expect_equal(attr(recs, "scopusflow_version"),
+               as.character(utils::packageVersion("scopusflow")))
+
+  # Attributes, not columns, so the documented schema is untouched.
+  expect_identical(names(recs), scopusflow:::scopus_records_columns())
+})
+
+test_that("cursor paging dates its retrieval too", {
+  local_scopus_test_env()
+  httr2::local_mocked_responses(mock_cursor_corpus(total = 3L))
+  recs <- scopus_fetch("anything", cursor = TRUE, page_size = 2L)
+  expect_s3_class(attr(recs, "retrieved_at"), "POSIXct")
+  expect_false(is.null(attr(recs, "scopusflow_version")))
 })

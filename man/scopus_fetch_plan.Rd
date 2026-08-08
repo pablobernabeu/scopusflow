@@ -24,11 +24,14 @@ scopus_fetch_plan(
 \code{scopus_cache_dir()} to use a managed, clearable cache under
 \code{\link[tools:R_user_dir]{tools::R_user_dir()}}. Caching happens only when you opt in through this
 argument. A cache directory serves one plan: cells are checkpointed by
-their position in the plan, so give each distinct plan its own directory.
-As a safeguard, a checkpoint whose records carry a different query than
-the plan cell is treated as a cache miss, refetched and overwritten; a
-checkpoint written by an older scopusflow that carries no query
-information is loaded as before.}
+their position in the plan and their year, so give each distinct plan its
+own directory. As a safeguard, a checkpoint is served only when the query,
+year, view and page size it was fetched under all match the plan cell, and
+only when its own \code{max_results} did not truncate it below what is being
+asked for now; anything else is a cache miss, refetched and overwritten. A
+checkpoint that cannot be read back, for example one left half-written by
+an interrupted run, is also treated as a miss rather than aborting the
+harvest.}
 
 \item{resume}{Logical. When \code{TRUE} and \code{cache_dir} is set, a cell whose cache
 file already exists is loaded from disk rather than fetched again.}
@@ -39,7 +42,14 @@ file already exists is loaded from disk rather than fetched again.}
 }
 \value{
 A \link{scopus_records} tibble combining all cells, with the originating
-\code{plan} attached as the \code{plan} attribute.
+\code{plan} attached as the \code{plan} attribute. The \code{retrieved_at} and
+\code{scopusflow_version} attributes described in \code{\link[=scopus_fetch]{scopus_fetch()}} are carried
+across from the cells: the time is the earliest of them, since a combined
+set is only as fresh as its oldest cell, and every version that
+contributed is listed, since resuming an older cache means more than one
+did. Both are omitted when any cell cannot supply them, as a checkpoint
+written before they existed cannot, rather than dating the whole from a
+part of it.
 }
 \description{
 Runs every cell of a \code{\link[=scopus_plan]{scopus_plan()}} in turn, optionally caching each cell's

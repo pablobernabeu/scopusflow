@@ -33,6 +33,21 @@ test_that("an institutional token is sent only when configured", {
   expect_true("X-ELS-Insttoken" %in% names(req2$headers))
 })
 
+test_that("every request carries a transfer timeout", {
+  # curl's own default is no timeout at all, so a connection that opens and
+  # then stalls hangs the session outright: no response ever arrives for the
+  # retry policy to classify as transient.
+  withr::local_options(scopusflow.api_key = "k")
+  expect_equal(scopusflow:::scopus_request(list(query = "x"))$options$timeout_ms, 60000)
+  expect_equal(
+    scopusflow:::scopus_abstract_request("10.1/x", by = "doi")$options$timeout_ms,
+    60000
+  )
+
+  withr::local_options(scopusflow.timeout = 5)
+  expect_equal(scopusflow:::scopus_request(list(query = "x"))$options$timeout_ms, 5000)
+})
+
 test_that("empty-string parameters are omitted from the query", {
   withr::local_options(scopusflow.api_key = "k")
   req <- scopusflow:::scopus_request(list(query = "x", view = "", date = NULL))

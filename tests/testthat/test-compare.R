@@ -42,6 +42,43 @@ test_that("zero reference count yields NA, not NaN/Inf", {
   expect_false(any(is.infinite(cmp$comparison_percentage)))
 })
 
+test_that("the average rests on the years where both counts are available", {
+  # A year whose reference total came back NA must not contribute its
+  # comparison count to the numerator while contributing nothing to the
+  # denominator: that inflates the average past every per-year share in the
+  # same tibble, and the average also orders the topics in the plot.
+  blk <- scopus_comparison_block(
+    query = "q", query_type = "comparison", abridged = "a",
+    years = 2018:2020, n = c(100, 500, 300), ref_n = c(1000, NA, 2000)
+  )
+  expect_equal(blk$comparison_percentage, c(10, NA, 15))
+  # 400 over 3000, not 900 over 3000.
+  expect_equal(unique(blk$average_comparison_percentage), 400 / 30)
+  expect_true(is.na(blk$reference_n[2]))
+})
+
+test_that("the average is NA when no year has both counts", {
+  blk <- scopus_comparison_block(
+    query = "q", query_type = "comparison", abridged = "a",
+    years = 2018:2019, n = c(100, 200), ref_n = c(NA_real_, NA_real_)
+  )
+  expect_true(all(is.na(blk$average_comparison_percentage)))
+})
+
+test_that("comparison counts are doubles, so billion-scale totals survive", {
+  # Narrowing to a 32-bit integer here turned a broad query's counts into NA
+  # while leaving its percentage populated, contradicting scopus_trend() and
+  # scopus_intersections(), which both carry counts as doubles.
+  blk <- scopus_comparison_block(
+    query = "q", query_type = "comparison", abridged = "a",
+    years = 2020, n = 3e9, ref_n = 3e9
+  )
+  expect_type(blk$n, "double")
+  expect_type(blk$reference_n, "double")
+  expect_equal(blk$n, 3e9)
+  expect_equal(blk$reference_n, 3e9)
+})
+
 test_that("comparison rows are ordered by descending average", {
   local_scopus_test_env()
   httr2::local_mocked_responses(compare_mock())

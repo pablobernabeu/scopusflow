@@ -23,7 +23,12 @@
 #' @param verbose Logical. When `TRUE`, progress is reported as the retrieval
 #'   proceeds.
 #' @return A [scopus_records] tibble. The reported total and the most recent
-#'   parsed quota are attached as the `total_results` and `quota` attributes.
+#'   parsed quota are attached as the `total_results` and `quota` attributes,
+#'   and the harvest is dated by `retrieved_at` (a `POSIXct`) and
+#'   `scopusflow_version`. Those two matter because `citations` is a snapshot
+#'   value that keeps moving, so two saved sets are only comparable if each
+#'   records when it was taken; they survive a `.rds` round trip through
+#'   [write_scopus_records()] but not a `.csv` one, which carries columns only.
 #' @section API access:
 #' Requires a valid API key and internet access. The *API access* section of
 #' [scopus_count()] lists the conditions that may be raised.
@@ -100,7 +105,10 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
   fetched <- length(pages[[1]])
 
   known_total <- !is.na(total)
-  capped <- known_total && total > hard_cap
+  # `max_results` has to enter this: a caller who asked for fewer records than
+  # the ceiling gets exactly what they asked for, and telling them their
+  # retrieval was truncated, and to restructure it, would be false.
+  capped <- known_total && total > hard_cap && max_results > hard_cap
   if (capped) {
     rlang::warn(
       sprintf(
@@ -146,8 +154,20 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
   all_entries <- unlist(pages, recursive = FALSE)
   if (is.null(all_entries)) all_entries <- list()
   records <- scopus_records(list(entry = all_entries), query = wrapped, view = view)
+  scopus_attach_provenance(records, total = total, quota = quota)
+}
+
+# When a retrieval was taken, and by which version of the package. `citations`
+# is a snapshot value that moves continuously, and the change-tracking workflow
+# rests on diffing two pulls, so a saved set that cannot say when it was taken
+# cannot honestly be compared with another. Attributes rather than columns, so
+# the documented schema and the CSV round-trip are untouched.
+scopus_attach_provenance <- function(records, total, quota) {
   attr(records, "total_results") <- total
   attr(records, "quota") <- quota
+  attr(records, "retrieved_at") <- Sys.time()
+  attr(records, "scopusflow_version") <-
+    as.character(utils::packageVersion("scopusflow"))
   records
 }
 
@@ -217,9 +237,7 @@ scopus_fetch_cursor <- function(wrapped, date, view, page_size, max_results,
   all_entries <- unlist(pages, recursive = FALSE)
   if (is.null(all_entries)) all_entries <- list()
   records <- scopus_records(list(entry = all_entries), query = wrapped, view = view)
-  attr(records, "total_results") <- total
-  attr(records, "quota") <- quota
-  records
+  scopus_attach_provenance(records, total = total, quota = quota)
 }
 
 scopus_check_max_results <- function(max_results, call = rlang::caller_env()) {

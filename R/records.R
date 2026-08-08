@@ -244,6 +244,19 @@ print.scopus_records <- function(x, ...) {
   }
   cli::cli_text("{header}")
 
+  # Dating the harvest matters here more than in most print methods: `citations`
+  # is a snapshot, so two sets are only comparable if each says when it was
+  # taken. Absent on the bundled corpus and on anything read back from CSV.
+  retrieved <- attr(x, "retrieved_at")
+  if (!is.null(retrieved) && length(retrieved) >= 1L) {
+    stamp <- format(min(retrieved), "%Y-%m-%d %H:%M:%S %Z")
+    version <- attr(x, "scopusflow_version")
+    if (!is.null(version)) {
+      stamp <- sprintf("%s (scopusflow %s)", stamp, paste(version, collapse = ", "))
+    }
+    cli::cli_text("retrieved: {stamp}")
+  }
+
   # When the query is the same for every row, lift it into the header and hide
   # the column to keep the table readable.
   body <- x

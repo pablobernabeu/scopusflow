@@ -1,3 +1,66 @@
+# scopusflow (development version)
+
+## Two cache defects that returned the wrong records
+
+Both were silent, and both are fixed.
+
+* **A year-partitioned plan could be served another plan's years.** Checkpoints were
+  keyed by the cell's position alone, and every cell of such a plan carries the same
+  query (the year travels separately, as the API's `date` parameter), so the guard meant
+  to reject a foreign checkpoint could not tell 2015's from 2016's. A plan over 2016:2017
+  pointed at a cache written by a plan over 2015:2016 returned the 2015 records and
+  reported "loaded from cache". Checkpoints are now named `cell-NNN-YYYY.rds` and carry a
+  manifest (query, date, view, page size and record cap) that resume compares against.
+  Existing caches become invisible and refetch once, which costs quota rather than
+  correctness.
+* **A cell cached under a `max_results` cap was served to a later request asking for
+  more.** The manifest now records the cap and whether it actually bit, so a truncated
+  checkpoint is a miss for a wider request while an untruncated one stays usable for any
+  request. The Shiny app's cache key gained the record cap and now hashes the query
+  instead of truncating it at 80 characters, so two long queries sharing a prefix no
+  longer share a directory.
+
+A rejected or damaged checkpoint now warns rather than mentioning it only under
+`verbose`, and checkpoints are written to a sibling temporary file and renamed into
+place, so an interrupted run can no longer leave a half-written file that breaks every
+later resume.
+
+## Other fixes
+
+* `average_comparison_percentage` summed the numerator over years the denominator
+  excluded, so a year with a missing reference count inflated it — a figure that
+  contradicted the per-year shares printed beside it, and that drives the topic ordering
+  in `plot_scopus_comparison()`. It is now computed over the years where both counts are
+  available.
+* `scopus_abstract(include = "references")` aborted the whole batch when one document's
+  response omitted its reference-count attribute. Because that surfaced as a bare base
+  error rather than a typed `scopus_error`, the per-identifier handler could not catch
+  it, defeating the documented promise that one bad identifier does not lose a batch.
+* The 5000-record cap warning fired even when `max_results` had already asked for fewer
+  records than the ceiling, advising a remedy for a problem the caller did not have.
+* `scopus_compare_topics()` carries its counts as doubles, matching `scopus_trend()` and
+  `scopus_intersections()`, so billion-scale totals no longer coerce to `NA`.
+* Every request carries a 60-second transfer timeout, tunable through
+  `getOption("scopusflow.timeout")`, so a stalled connection cannot hang a session.
+* Retrievals record when they were taken and by which package version, as the
+  `retrieved_at` and `scopusflow_version` attributes, preserved through the `.rds` round
+  trip. They are attributes rather than columns, so the documented schema and the CSV
+  round trip are unchanged.
+
+## Continuous integration and metadata
+
+* **The dependency canary finished green having exercised nothing** when no development
+  head was actually installed. It now says so, in a warning and in the step summary, and
+  it installs the ggplot2 development head alongside the Imports.
+* The declared dependency floors are now installed and tested by a `min-deps` job, and
+  the check matrix reaches back to roughly R 4.3.
+* `rlang`'s floor is corrected to 1.1.0. This is evidence, not preference: httr2 1.0.0's
+  own DESCRIPTION requires `rlang (>= 1.1.0)`, so the old floor described a combination
+  no user could have installed. It is CRAN-visible metadata.
+* The live API check's documented request cost, the cache guard's description in the
+  documentation and vignette, and the path to the Python twin's copy of the example
+  records were all corrected.
+
 # scopusflow 0.3.0
 
 A data and documentation release. The bundled corpus becomes a real harvest, and

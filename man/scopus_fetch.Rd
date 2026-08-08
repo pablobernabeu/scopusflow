@@ -57,7 +57,12 @@ proceeds.}
 }
 \value{
 A \link{scopus_records} tibble. The reported total and the most recent
-parsed quota are attached as the \code{total_results} and \code{quota} attributes.
+parsed quota are attached as the \code{total_results} and \code{quota} attributes,
+and the harvest is dated by \code{retrieved_at} (a \code{POSIXct}) and
+\code{scopusflow_version}. Those two matter because \code{citations} is a snapshot
+value that keeps moving, so two saved sets are only comparable if each
+records when it was taken; they survive a \code{.rds} round trip through
+\code{\link[=write_scopus_records]{write_scopus_records()}} but not a \code{.csv} one, which carries columns only.
 }
 \description{
 Retrieves records page by page, accumulating them and returning a single

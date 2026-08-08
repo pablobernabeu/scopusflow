@@ -49,7 +49,9 @@ without a cache re-spends quota already spent.}
 
 \item{resume}{Logical. When \code{TRUE} (the default) and \code{cache_dir} is set, an
 identifier whose cache file already exists is loaded from disk rather than
-requested again.}
+requested again. A cache file that cannot be read back, for example one
+left half-written by an interrupted run, is retrieved again with a warning
+rather than aborting the batch.}
 
 \item{api_key, inst_token}{Optional credentials (see \code{\link[=scopus_has_key]{scopus_has_key()}}).}
 

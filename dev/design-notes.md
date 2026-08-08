@@ -151,6 +151,12 @@ The empty-result sentinel is recognised only when an entry carries an `error` fi
 *and* no identifier, so a real record with a per-entry error annotation is not
 dropped. Totals are carried as doubles, since broad queries can report billions of
 matches that would overflow a 32-bit integer to `NA` and suppress the cap warning.
+The cap warning itself is conditioned on `max_results` as well as the total, so a
+caller who asked for fewer records than the ceiling and received exactly that is
+not told their retrieval was truncated. Every request carries a transfer timeout,
+read from `getOption("scopusflow.timeout", 60)`: curl's own default is no timeout
+at all, so a connection that opens and then stalls hangs the session outright, and
+the retry policy never fires because no response arrives to be classified.
 
 ## Naming
 
@@ -454,6 +460,71 @@ itself a finding. The axis breaks come from a small internal helper
 spans) rather than from the scales package, which would otherwise have to be
 added to Suggests for a single call; the colours reuse the package palette,
 with the comparison plot's accent marking the optional highlight.
+
+## Checkpoint identity, and what a cache hit has to prove
+
+A checkpoint used to be keyed on the plan cell's position alone, guarded only by
+comparing the query recorded in the cached records. Under `partition = "year"`,
+which is the arrangement the documentation recommends, every cell of a plan
+carries the same field-wrapped query and the year travels separately as the
+`date` request parameter, so that guard could never distinguish one year's
+checkpoint from another's. Two plans over overlapping year spans pointed at one
+directory therefore returned each other's years, silently.
+
+The year is now part of the checkpoint's filename, and the rest of what shapes
+a cell (query, view, page size, and the `max_results` it was fetched under) is
+written as a manifest beside the records and compared on resume. Folding the
+year into the recorded query, which is how the Python twin solves the same
+problem in `_cell_query()`, was rejected here: pybliometrics takes the year as
+part of the search expression, whereas this package sends it as a separate
+`date` parameter, so folding it in would have changed the requests made and the
+`query` column every record carries, for no gain over naming the file properly.
+
+`max_results` had to enter the identity for the same reason. A cell fetched
+under a cap was served unchanged to a later caller asking for everything, so a
+capped exploratory run poisoned the full harvest that followed. The manifest
+records whether the cap actually bit; one that never did leaves the checkpoint
+usable for any later request, so the common case costs no extra quota.
+
+Checkpoints are written to a sibling temp file and renamed, since a rename
+within one directory is atomic on POSIX and NTFS alike, and read through
+`tryCatch()`. The interruptions this cache exists to survive are exactly what
+leaves a half-written `.rds`, and before this a damaged checkpoint aborted every
+subsequent resume with an untyped error that could only be cleared by finding
+and deleting the file by hand.
+
+## Dating a retrieval
+
+`citations` is a snapshot value that moves continuously, and the
+change-tracking workflow rests on diffing two pulls, so a saved set that cannot
+say when it was taken cannot honestly be compared with another. Retrievals now
+carry `retrieved_at` and `scopusflow_version`. These are attributes rather than
+columns, which keeps the documented schema and the CSV round-trip untouched, at
+the cost of `.csv` not preserving them. A combined harvest takes the earliest of
+its cells' times, since a combined set is only as fresh as its oldest cell, and
+lists every version that contributed, since resuming an older cache means more
+than one did. The bundled `example_records` deliberately carries neither, so
+that the round-trip identity shown in the documentation stays deterministic.
+
+## Tested version floors
+
+`R (>= 4.1.0)` was an untested claim: the check matrix reached only `oldrel-1`,
+around four minor versions above it. It now also runs `oldrel-2` and `oldrel-3`,
+which reaches roughly R 4.3. The remaining gap between R 4.1 and R 4.3 is still
+untested, and closing it means either pinning an explicit old R in the matrix,
+where current CRAN builds of the dependencies may not be installable, or raising
+the declared floor. That is a release decision and is left open deliberately.
+
+The package floors are now exercised by a `min-deps` job that installs
+`httr2@1.0.0` and runs the check against it. Only httr2 is pinned: it is the
+dependency whose API this package leans on hardest, and pinning it alone avoids
+dragging the rest of the library backwards and failing the job for reasons that
+have nothing to do with scopusflow. The declared `rlang (>= 1.0.0)` was
+corrected to `1.1.0`, which is not a narrowing: httr2 1.0.0 declares
+`rlang (>= 1.1.0)` itself, so no installation satisfying the httr2 floor could
+ever have used rlang 1.0.0. The job asserts the versions it ended up with, since
+a pin that silently failed would leave the check passing against the current
+releases and proving nothing.
 
 ## Assumptions
 

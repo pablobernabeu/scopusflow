@@ -4,7 +4,11 @@
 #' round-trip. The file extension selects the format. An `.rds` file preserves
 #' the types and class exactly, while a `.csv` file is portable plain text.
 #' The optional `authkeywords` column a `view = "COMPLETE"` retrieval adds
-#' (see [scopus_records()]) round-trips through both formats.
+#' (see [scopus_records()]) round-trips through both formats. The attributes a
+#' live retrieval carries, including `retrieved_at` and `scopusflow_version`
+#' (see [scopus_fetch()]), survive the `.rds` form only: `.csv` is a table of
+#' columns and cannot hold them, so save as `.rds` when a set is a baseline to
+#' be compared against later.
 #'
 #' @param x A [scopus_records] tibble to write.
 #' @param path Explicit file path. The functions read from, or write to, exactly

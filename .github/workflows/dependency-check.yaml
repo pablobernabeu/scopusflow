@@ -1,6 +1,10 @@
 # Scheduled "dependency canary": builds and checks the package against the
-# current and development versions of its dependencies, so that a breaking change
-# upstream (for example in httr2) is caught early. This workflow only observes
+# current and development versions of every Import, and of ggplot2, the one
+# Suggest with a real breakage surface here (it backs all three plot files and
+# gates every plotting example). A breaking change upstream, for example in
+# httr2, is then caught early. The remaining Suggests are reported in the
+# version dump below but their development heads are not installed. This
+# workflow only observes
 # and reports. It installs and executes the development heads of the
 # dependencies, which is untrusted code, so it runs with a read-only checkout
 # plus issue access and never holds a token that could push commits or open
@@ -54,21 +58,63 @@ jobs:
           needs: check
 
       - name: Install development versions of the key dependencies
+        # Tolerated rather than fatal, because a GitHub outage or a compile
+        # error in somebody else's development head should not turn a two-day
+        # cron red. The step below is what stops that tolerance from being
+        # silent.
         continue-on-error: true
         shell: Rscript {0}
         run: |
           pak::pak(c(
             "r-lib/httr2", "r-lib/cli", "r-lib/rlang",
-            "tidyverse/tibble", "jeroen/jsonlite"
+            "tidyverse/tibble", "jeroen/jsonlite", "tidyverse/ggplot2"
           ), ask = FALSE)
 
       - name: Record installed dependency versions
         shell: Rscript {0}
         run: |
-          deps <- c("httr2", "cli", "rlang", "tibble", "jsonlite", "ggplot2")
-          for (p in deps) {
-            v <- tryCatch(as.character(packageVersion(p)), error = function(e) "absent")
-            cat(sprintf("%-10s %s\n", p, v))
+          # Because the install above is continue-on-error, R CMD check would
+          # otherwise run against the plain CRAN releases and pass, and the
+          # canary would finish green having exercised nothing it exists to
+          # exercise. Comparing each installed version against the release it
+          # would otherwise have had says plainly whether any development head
+          # landed. A warning and a step-summary line rather than a failure,
+          # matching the dormancy notice in live-api-check.yaml: red on every
+          # transient pak outage would be noise, but silence would be a lie.
+          dev_heads <- c("httr2", "cli", "rlang", "tibble", "jsonlite", "ggplot2")
+          reported_only <- c("shiny", "bslib", "callr")
+          released <- tryCatch(available.packages()[, "Version"],
+                               error = function(e) character())
+          ahead <- character()
+          for (p in c(dev_heads, reported_only)) {
+            have <- tryCatch(as.character(packageVersion(p)),
+                             error = function(e) NA_character_)
+            rel <- if (p %in% names(released)) released[[p]] else NA_character_
+            is_dev <- !is.na(have) && !is.na(rel) &&
+              package_version(have) > package_version(rel)
+            if (is_dev && p %in% dev_heads) ahead <- c(ahead, p)
+            cat(sprintf(
+              "%-10s %-16s release %-16s %s\n", p,
+              if (is.na(have)) "absent" else have,
+              if (is.na(rel)) "unknown" else rel,
+              if (is_dev) "<- development head" else ""
+            ))
+          }
+          note <- if (length(ahead)) {
+            sprintf("Development heads in use: %s.", paste(ahead, collapse = ", "))
+          } else if (!length(released)) {
+            paste("The release versions could not be read, so whether any",
+                  "development head landed is unknown for this run.")
+          } else {
+            paste("No development head is ahead of its CRAN release, so this run",
+                  "checked the package against the ordinary releases only. The",
+                  "install step above most likely failed; see its log.")
+          }
+          if (!length(ahead)) cat(sprintf("::warning::%s\n", note))
+          summary_file <- Sys.getenv("GITHUB_STEP_SUMMARY")
+          if (nzchar(summary_file)) {
+            cat(sprintf("### Dependency canary\n\n%s\n", note),
+                file = summary_file, append = TRUE)
           }
 
       - name: Check the package

@@ -20,7 +20,7 @@
 #
 # `example_records.csv` is committed beside this script so the dataset rebuilds
 # without network access. It is the same file the Python twin ships at
-# src/scopusflow/data/example_records.csv; refresh the two together.
+# src/scopusflow/_data/example_records.csv; refresh the two together.
 #
 # Run with: source("data-raw/example_records.R")
 

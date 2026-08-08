@@ -39,10 +39,12 @@ query (see \code{\link[=scopus_plan]{scopus_plan()}}).}
 A tibble of class \code{scopus_comparison} with the columns \code{query} (the
 full query used), \code{query_type} (\code{"reference"} or \code{"comparison"}),
 \code{abridged_query} (the topic label for plotting), \code{year}, \code{n} (records that
-year), \code{reference_n} (reference records that year), \code{comparison_percentage}
+year, as a double so very large counts are exact), \code{reference_n} (reference
+records that year, likewise a double), \code{comparison_percentage}
 (\code{100 * n / reference_n}, or \code{NA} when \code{reference_n} is 0) and
-\code{average_comparison_percentage} (the same ratio computed on period totals).
-Comparison rows are sorted by descending average percentage.
+\code{average_comparison_percentage} (the same ratio computed on period totals,
+over the years where both counts are available). Comparison rows are sorted
+by descending average percentage.
 }
 \description{
 Compares how often a set of \emph{comparison} topics co-occur with a \emph{reference}

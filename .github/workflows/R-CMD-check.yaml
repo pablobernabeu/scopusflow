@@ -29,6 +29,12 @@ jobs:
           - {os: ubuntu-latest,  r: 'devel', http-user-agent: 'release'}
           - {os: ubuntu-latest,  r: 'release'}
           - {os: ubuntu-latest,  r: 'oldrel-1'}
+          # DESCRIPTION promises R (>= 4.1.0). oldrel-1 alone sits four minor
+          # versions above that, so the claim went untested; these two reach
+          # down to roughly R 4.3. The remaining gap to 4.1 is noted in
+          # dev/design-notes.md.
+          - {os: ubuntu-latest,  r: 'oldrel-2'}
+          - {os: ubuntu-latest,  r: 'oldrel-3'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -88,4 +94,74 @@ jobs:
           # skip RE-building them during the depends-only check, where rmarkdown
           # is absent.
           args: 'c("--no-manual", "--as-cran", "--no-vignettes")'
+          build_args: 'c("--no-manual")'
+
+  # The version floors in DESCRIPTION are a promise to users that the matrix
+  # above never tests: setup-r-dependencies always resolves the newest version,
+  # so httr2 1.0.0 had never once been exercised. This job installs it and runs
+  # the check against it, turning the floor into something asserted rather than
+  # asserted-about.
+  #
+  # Only httr2 is pinned. It is the dependency whose API this package leans on
+  # hardest (`.redact` in req_headers(), `is_transient` and `after` in
+  # req_retry(), req_timeout(), and local_mocked_responses() throughout the test
+  # suite), and pinning it alone avoids dragging the rest of the library
+  # backwards, which would fail the job for reasons that have nothing to do with
+  # scopusflow. rlang is asserted rather than pinned: httr2 1.0.0 declares
+  # `rlang (>= 1.1.0)` itself, so nothing can install this package with rlang
+  # below that, and DESCRIPTION now says so.
+  min-deps:
+    runs-on: ubuntu-latest
+    name: min-deps (declared floors)
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
+
+      - name: Install the declared dependency floors
+        shell: Rscript {0}
+        run: |
+          pak::pak("httr2@1.0.0", ask = FALSE)
+
+      - name: Assert the floors are what is actually installed
+        # Without this the job is the always-green hazard in miniature: a pin
+        # that silently did not take would leave the check running against the
+        # current releases and passing, having proved nothing about the floors.
+        shell: Rscript {0}
+        run: |
+          floors <- c(httr2 = "1.0.0", rlang = "1.1.0")
+          have <- vapply(names(floors), function(p) as.character(packageVersion(p)),
+                         character(1))
+          print(data.frame(package = names(floors), declared = unname(floors),
+                           installed = unname(have)))
+          if (!identical(have[["httr2"]], floors[["httr2"]])) {
+            cat(sprintf(
+              "::error::httr2 %s is installed, not the declared floor %s. The pin did not take, so this job proves nothing about the floor.\n",
+              have[["httr2"]], floors[["httr2"]]
+            ))
+            quit(status = 1)
+          }
+          if (package_version(have[["rlang"]]) < package_version(floors[["rlang"]])) {
+            cat(sprintf(
+              "::error::rlang %s is below the floor DESCRIPTION declares (%s).\n",
+              have[["rlang"]], floors[["rlang"]]
+            ))
+            quit(status = 1)
+          }
+
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          args: 'c("--no-manual", "--no-vignettes")'
           build_args: 'c("--no-manual")'

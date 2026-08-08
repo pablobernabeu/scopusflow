@@ -251,6 +251,43 @@ test_that("a reference-count mismatch warns rather than silently truncating", {
   expect_equal(nrow(ab$references[[1]]), 1L)
 })
 
+test_that("a response omitting its reference count is parsed, not fatal", {
+  # An absent count attribute made `as.integer(NULL)` an integer(0) that the
+  # mismatch guard fed straight into `if`, aborting on a zero-length condition.
+  # The error was a bare simpleError, so scopus_abstract()'s per-identifier
+  # handler could not catch it and one malformed document lost the whole batch.
+  local_scopus_test_env()
+  httr2::local_mocked_responses(function(req) {
+    mock_json_response(list(`abstracts-retrieval-response` = list(
+      references = list(reference = list(
+        list(`@id` = "1", `ref-info` = list(`ref-title` = list(`ref-titletext` = "Uncounted")))
+      ))
+    )))
+  })
+  ab <- expect_no_warning(
+    scopus_abstract("10.1/x", view = "REF", include = "references")
+  )
+  expect_equal(nrow(ab$references[[1]]), 1L)
+  expect_equal(ab$references[[1]]$title, "Uncounted")
+})
+
+test_that("a FULL-view response omitting @refcount is parsed, not fatal", {
+  local_scopus_test_env()
+  httr2::local_mocked_responses(function(req) {
+    mock_abstract_full(
+      core = list(`prism:doi` = "10.1/x"),
+      references = list(list(
+        `@id` = "1",
+        `ref-info` = list(`ref-title` = list(`ref-titletext` = "Uncounted"))
+      ))
+    )
+  })
+  ab <- expect_no_warning(
+    scopus_abstract("10.1/x", view = "FULL", include = "references")
+  )
+  expect_equal(nrow(ab$references[[1]]), 1L)
+})
+
 test_that("an entitlement 403 stops the batch with a clear, actionable message", {
   local_scopus_test_env()
   calls <- 0L

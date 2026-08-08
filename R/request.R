@@ -42,7 +42,22 @@ scopus_request <- function(params,
   }, logical(1))
   params <- params[!absent]
   req <- httr2::req_url_query(req, !!!params)
-  req
+  scopus_req_timeout(req)
+}
+
+# curl's default transfer timeout is infinite, so a connection that opens and
+# then stalls hangs the session outright: no response ever arrives for
+# scopus_is_transient() to classify, so the retry in scopus_perform() never
+# fires either. Worst under run_app(), where the harvest runs in a background
+# process whose only recovery is the Cancel button. 60 seconds per request is
+# generous against Elsevier's observed latencies, including a COMPLETE-view
+# page; the option is there for a slower link or a tighter budget.
+scopus_req_timeout <- function(req) {
+  seconds <- suppressWarnings(as.numeric(getOption("scopusflow.timeout", 60)))
+  if (length(seconds) != 1L || is.na(seconds) || seconds <= 0) {
+    return(req)
+  }
+  httr2::req_timeout(req, seconds)
 }
 
 # Perform a request, retrying transient failures, and return the httr2 response.

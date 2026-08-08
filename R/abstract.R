@@ -35,7 +35,9 @@
 #'   without a cache re-spends quota already spent.
 #' @param resume Logical. When `TRUE` (the default) and `cache_dir` is set, an
 #'   identifier whose cache file already exists is loaded from disk rather than
-#'   requested again.
+#'   requested again. A cache file that cannot be read back, for example one
+#'   left half-written by an interrupted run, is retrieved again with a warning
+#'   rather than aborting the batch.
 #' @param api_key,inst_token Optional credentials (see [scopus_has_key()]).
 #' @param verbose Logical. When `TRUE`, progress is reported.
 #' @return A tibble of class `scopus_abstracts`, one row per identifier, with
@@ -225,9 +227,22 @@ scopus_abstract <- function(ids,
       )
     }
     if (!is.null(cache_file) && resume && file.exists(cache_file)) {
-      if (verbose) cli::cli_inform("{i}/{length(ids)}: {.val {ids[i]}} loaded from cache.")
-      rows[[i]] <- readRDS(cache_file)
-      next
+      cached <- scopus_read_checkpoint(cache_file)
+      if (is.null(cached)) {
+        rlang::warn(
+          sprintf(
+            paste0("The checkpoint %s could not be read back, so it was ",
+                   "discarded and the identifier retrieved again. An ",
+                   "interrupted run can leave a checkpoint half-written."),
+            cache_file
+          ),
+          class = "scopus_warning_cache_unreadable"
+        )
+      } else {
+        if (verbose) cli::cli_inform("{i}/{length(ids)}: {.val {ids[i]}} loaded from cache.")
+        rows[[i]] <- cached
+        next
+      }
     }
 
     if (verbose) cli::cli_inform("Retrieving {i}/{length(ids)}: {ids[i]}.")
@@ -281,7 +296,7 @@ scopus_abstract <- function(ids,
         call = rlang::caller_env()
       )
     }
-    if (!is.null(cache_file)) saveRDS(row, cache_file)
+    if (!is.null(cache_file)) scopus_write_checkpoint(row, cache_file)
     rows[[i]] <- row
   }
 
@@ -357,7 +372,7 @@ scopus_abstract_request <- function(id, by, view = NULL, api_key = NULL, inst_to
   if (!is.null(view)) {
     req <- httr2::req_url_query(req, view = view)
   }
-  req
+  scopus_req_timeout(req)
 }
 
 scopus_abstract_one <- function(id, by, view = NULL, include = character(),
@@ -465,7 +480,10 @@ scopus_parse_references <- function(full, view) {
   }
   rows <- lapply(items, scopus_parse_one_reference, view = view)
   out <- do.call(rbind, c(rows, list(stringsAsFactors = FALSE)))
-  if (!is.na(total) && nrow(out) != total) {
+  # `total` is integer(0) when the response omits its count attribute
+  # altogether, which `!is.na()` alone would pass straight into `if` as a
+  # zero-length condition and abort the whole batch on one malformed document.
+  if (length(total) == 1L && !is.na(total) && nrow(out) != total) {
     rlang::warn(
       sprintf(
         paste0("A document reports %d references but only %d were returned ",
