@@ -42,12 +42,15 @@ scopus_fetch_plan(
   to use a managed, clearable cache under
   [`tools::R_user_dir()`](https://rdrr.io/r/tools/userdir.html). Caching
   happens only when you opt in through this argument. A cache directory
-  serves one plan: cells are checkpointed by their position in the plan,
-  so give each distinct plan its own directory. As a safeguard, a
-  checkpoint whose records carry a different query than the plan cell is
-  treated as a cache miss, refetched and overwritten; a checkpoint
-  written by an older scopusflow that carries no query information is
-  loaded as before.
+  serves one plan: cells are checkpointed by their position in the plan
+  and their year, so give each distinct plan its own directory. As a
+  safeguard, a checkpoint is served only when the query, year, view and
+  page size it was fetched under all match the plan cell, and only when
+  its own `max_results` did not truncate it below what is being asked
+  for now; anything else is a cache miss, refetched and overwritten. A
+  checkpoint that cannot be read back, for example one left half-written
+  by an interrupted run, is also treated as a miss rather than aborting
+  the harvest.
 
 - resume:
 
@@ -68,7 +71,15 @@ scopus_fetch_plan(
 A
 [scopus_records](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
 tibble combining all cells, with the originating `plan` attached as the
-`plan` attribute.
+`plan` attribute. The `retrieved_at` and `scopusflow_version` attributes
+described in
+[`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
+are carried across from the cells: the time is the earliest of them,
+since a combined set is only as fresh as its oldest cell, and every
+version that contributed is listed, since resuming an older cache means
+more than one did. Both are omitted when any cell cannot supply them, as
+a checkpoint written before they existed cannot, rather than dating the
+whole from a part of it.
 
 ## API access
 

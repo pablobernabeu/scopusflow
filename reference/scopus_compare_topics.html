@@ -124,10 +124,12 @@ query (see <code><a href="scopus_plan.html">scopus_plan()</a></code>).</p></dd>
     <p>A tibble of class <code>scopus_comparison</code> with the columns <code>query</code> (the
 full query used), <code>query_type</code> (<code>"reference"</code> or <code>"comparison"</code>),
 <code>abridged_query</code> (the topic label for plotting), <code>year</code>, <code>n</code> (records that
-year), <code>reference_n</code> (reference records that year), <code>comparison_percentage</code>
+year, as a double so very large counts are exact), <code>reference_n</code> (reference
+records that year, likewise a double), <code>comparison_percentage</code>
 (<code>100 * n / reference_n</code>, or <code>NA</code> when <code>reference_n</code> is 0) and
-<code>average_comparison_percentage</code> (the same ratio computed on period totals).
-Comparison rows are sorted by descending average percentage.</p>
+<code>average_comparison_percentage</code> (the same ratio computed on period totals,
+over the years where both counts are available). Comparison rows are sorted
+by descending average percentage.</p>
     </div>
     <div class="section level2">
     <h2 id="api-access">API access<a class="anchor" aria-label="anchor" href="#api-access"></a></h2>

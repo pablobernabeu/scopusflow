@@ -96,11 +96,14 @@ bound once into a single <a href="scopus_records.html">scopus_records</a> tibble
 <code><a href="scopus_cache_dir.html">scopus_cache_dir()</a></code> to use a managed, clearable cache under
 <code><a href="https://rdrr.io/r/tools/userdir.html" class="external-link">tools::R_user_dir()</a></code>. Caching happens only when you opt in through this
 argument. A cache directory serves one plan: cells are checkpointed by
-their position in the plan, so give each distinct plan its own directory.
-As a safeguard, a checkpoint whose records carry a different query than
-the plan cell is treated as a cache miss, refetched and overwritten; a
-checkpoint written by an older scopusflow that carries no query
-information is loaded as before.</p></dd>
+their position in the plan and their year, so give each distinct plan its
+own directory. As a safeguard, a checkpoint is served only when the query,
+year, view and page size it was fetched under all match the plan cell, and
+only when its own <code>max_results</code> did not truncate it below what is being
+asked for now; anything else is a cache miss, refetched and overwritten. A
+checkpoint that cannot be read back, for example one left half-written by
+an interrupted run, is also treated as a miss rather than aborting the
+harvest.</p></dd>
 
 
 <dt id="arg-resume">resume<a class="anchor" aria-label="anchor" href="#arg-resume"></a></dt>
@@ -119,7 +122,14 @@ file already exists is loaded from disk rather than fetched again.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A <a href="scopus_records.html">scopus_records</a> tibble combining all cells, with the originating
-<code>plan</code> attached as the <code>plan</code> attribute.</p>
+<code>plan</code> attached as the <code>plan</code> attribute. The <code>retrieved_at</code> and
+<code>scopusflow_version</code> attributes described in <code><a href="scopus_fetch.html">scopus_fetch()</a></code> are carried
+across from the cells: the time is the earliest of them, since a combined
+set is only as fresh as its oldest cell, and every version that
+contributed is listed, since resuming an older cache means more than one
+did. Both are omitted when any cell cannot supply them, as a checkpoint
+written before they existed cannot, rather than dating the whole from a
+part of it.</p>
     </div>
     <div class="section level2">
     <h2 id="api-access">API access<a class="anchor" aria-label="anchor" href="#api-access"></a></h2>

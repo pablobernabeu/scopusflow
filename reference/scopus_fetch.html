@@ -140,7 +140,12 @@ proceeds.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A <a href="scopus_records.html">scopus_records</a> tibble. The reported total and the most recent
-parsed quota are attached as the <code>total_results</code> and <code>quota</code> attributes.</p>
+parsed quota are attached as the <code>total_results</code> and <code>quota</code> attributes,
+and the harvest is dated by <code>retrieved_at</code> (a <code>POSIXct</code>) and
+<code>scopusflow_version</code>. Those two matter because <code>citations</code> is a snapshot
+value that keeps moving, so two saved sets are only comparable if each
+records when it was taken; they survive a <code>.rds</code> round trip through
+<code><a href="write_scopus_records.html">write_scopus_records()</a></code> but not a <code>.csv</code> one, which carries columns only.</p>
     </div>
     <div class="section level2">
     <h2 id="api-access">API access<a class="anchor" aria-label="anchor" href="#api-access"></a></h2>

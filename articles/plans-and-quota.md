@@ -171,12 +171,14 @@ records
 ```
 
 A cache directory serves one plan. Cells are checkpointed by their
-position in the plan, so pointing a second, different plan at the same
-directory would pair its cells with the first plan’s checkpoints.
+position in the plan and their year, so a second plan pointed at the
+same directory could otherwise be paired with the first plan’s
+checkpoints. Before loading one,
 [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
-compares each checkpoint’s recorded query with the plan cell before
-loading it and refetches on a mismatch, but the clean arrangement is a
-separate directory per plan.
+checks that the query, year, view, page size and record cap it was
+written under all match the cell being run, and refetches with a warning
+when they do not. The clean arrangement is still a separate directory
+per plan.
 
 The cache lives under
 [`scopus_cache_dir()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_dir.md).

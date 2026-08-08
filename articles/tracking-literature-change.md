@@ -147,11 +147,22 @@ identical(read_scopus_records(path), baseline)
 
     [1] TRUE
 
+A live retrieval also carries the date it was taken, as the
+`retrieved_at` attribute, together with the `scopusflow` version that
+took it. That matters for this workflow in particular, because
+`citations` is a snapshot value that keeps moving, so a difference
+between two pulls only means something once you know how far apart they
+were. Both survive the `.rds` form and neither survives `.csv`, which is
+a table of columns. The bundled corpus used here carries neither, which
+is why it round-trips identically above.
+
 In a live setting the later retrieval would come from the API rather
-than from a slice of the bundled corpus, with everything else unchanged.
+than from a slice of the bundled corpus, with everything else unchanged,
+and both pulls could then say when they were taken.
 
 ``` r
 
 later <- scopus_fetch("graphene supercapacitor", field = "TITLE-ABS-KEY")
+attr(later, "retrieved_at")
 scopus_diff_dois(old = read_scopus_records(path), new = later)
 ```

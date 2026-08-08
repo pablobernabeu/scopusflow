@@ -92,7 +92,13 @@ scopus_fetch(
 A
 [scopus_records](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
 tibble. The reported total and the most recent parsed quota are attached
-as the `total_results` and `quota` attributes.
+as the `total_results` and `quota` attributes, and the harvest is dated
+by `retrieved_at` (a `POSIXct`) and `scopusflow_version`. Those two
+matter because `citations` is a snapshot value that keeps moving, so two
+saved sets are only comparable if each records when it was taken; they
+survive a `.rds` round trip through
+[`write_scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_records.md)
+but not a `.csv` one, which carries columns only.
 
 ## API access
 

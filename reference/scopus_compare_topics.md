@@ -63,11 +63,12 @@ scopus_compare_topics(
 A tibble of class `scopus_comparison` with the columns `query` (the full
 query used), `query_type` (`"reference"` or `"comparison"`),
 `abridged_query` (the topic label for plotting), `year`, `n` (records
-that year), `reference_n` (reference records that year),
+that year, as a double so very large counts are exact), `reference_n`
+(reference records that year, likewise a double),
 `comparison_percentage` (`100 * n / reference_n`, or `NA` when
 `reference_n` is 0) and `average_comparison_percentage` (the same ratio
-computed on period totals). Comparison rows are sorted by descending
-average percentage.
+computed on period totals, over the years where both counts are
+available). Comparison rows are sorted by descending average percentage.
 
 ## API access
 

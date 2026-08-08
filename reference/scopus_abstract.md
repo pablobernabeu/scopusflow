@@ -72,7 +72,9 @@ scopus_abstract(
 
   Logical. When `TRUE` (the default) and `cache_dir` is set, an
   identifier whose cache file already exists is loaded from disk rather
-  than requested again.
+  than requested again. A cache file that cannot be read back, for
+  example one left half-written by an interrupted run, is retrieved
+  again with a warning rather than aborting the batch.
 
 - api_key, inst_token:
 

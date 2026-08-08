@@ -133,7 +133,9 @@ without a cache re-spends quota already spent.</p></dd>
 <dt id="arg-resume">resume<a class="anchor" aria-label="anchor" href="#arg-resume"></a></dt>
 <dd><p>Logical. When <code>TRUE</code> (the default) and <code>cache_dir</code> is set, an
 identifier whose cache file already exists is loaded from disk rather than
-requested again.</p></dd>
+requested again. A cache file that cannot be read back, for example one
+left half-written by an interrupted run, is retrieved again with a warning
+rather than aborting the batch.</p></dd>
 
 
 <dt id="arg-api-key-inst-token">api_key, inst_token<a class="anchor" aria-label="anchor" href="#arg-api-key-inst-token"></a></dt>
