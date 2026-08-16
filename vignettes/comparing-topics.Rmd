@@ -9,6 +9,12 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(collapse = FALSE, comment = "")
+# Console colour carries no meaning on a rendered page. pkgdown turns it on for
+# its own build, and the escape sequences then reach the reader as literal text,
+# so colour is switched off here for a plain vignette render and a site build
+# alike. The fixed width keeps tibbles inside the documentation column.
+options(cli.num_colors = 1, cli.hyperlink = FALSE, crayon.enabled = FALSE,
+        width = 80)
 # Render data frames and tibbles as tables rather than console text.
 local({
   kp <- function(x, ...) {
@@ -108,8 +114,19 @@ cmp <- tibble::tibble(
                                     rep(c(40, 33, 15, 9), each = length(years)))
 )
 class(cmp) <- c("scopus_comparison", class(cmp))
-cmp
+
+# The whole table is too long to read here, so show its first year across every
+# topic. The `query` column is left out because a real comparison carries the
+# whole query string sent to the API in it, which is too long for a table. The
+# illustrative table built above holds a placeholder there instead.
+cmp[cmp$year == min(cmp$year), setdiff(names(cmp), "query")]
 ```
+
+Those are the five rows for the first year, one for the reference and one for
+each comparison term. The whole table has `r nrow(cmp)` rows on the same
+pattern. The `query` column left out above is still in the object. A real
+comparison carries the whole query behind each count there, where this
+illustrative table carries a placeholder.
 
 The `comparison_percentage` column is the per-year share, and
 `average_comparison_percentage` is the same ratio computed over the whole period,

@@ -237,7 +237,7 @@ scopus_intersections <- function(concepts,
 print.scopus_intersections <- function(x, ...) {
   n_concepts <- sum(x$type == "concept")
   n_inter <- sum(x$type == "intersection")
-  cli::cli_text(
+  scopus_print_line(
     "{.cls scopus_intersections} ({n_concepts} concept{?s}, {n_inter} intersection{?s})"
   )
   NextMethod()

@@ -165,7 +165,9 @@ scopus_comparison_block <- function(query, query_type, abridged, years, n, ref_n
 
 #' @export
 print.scopus_comparison <- function(x, ...) {
-  cli::cli_text("{.cls scopus_comparison} ({length(unique(x$abridged_query))} topic{?s})")
+  scopus_print_line(
+    "{.cls scopus_comparison} ({length(unique(x$abridged_query))} topic{?s})"
+  )
   NextMethod()
   invisible(x)
 }

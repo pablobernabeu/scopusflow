@@ -54,21 +54,21 @@ print.scopus_records_summary <- function(x, ...) {
   } else {
     sprintf("from %d to %d", x$years[1], x$years[2])
   }
-  cli::cli_text("{.cls scopus_records} summary")
-  cli::cli_text("{x$n_records} record{?s}, {year_text}.")
-  cli::cli_text(
+  scopus_print_line("{.cls scopus_records} summary")
+  scopus_print_line("{x$n_records} record{?s}, {year_text}.")
+  scopus_print_line(
     "{x$n_sources} source{?s}, {x$n_with_doi} with a DOI."
   )
   if (!is.na(x$total_citations)) {
-    cli::cli_text(
+    scopus_print_line(
       "Cited {x$total_citations} time{?s} in total, median {x$median_citations} per record."
     )
   }
   if (!is.na(x$top_source)) {
-    cli::cli_text("Most frequent source: {x$top_source}.")
+    scopus_print_line("Most frequent source: {x$top_source}.")
   }
   if (!is.na(x$top_cited)) {
-    cli::cli_text("Most cited: {.emph {x$top_cited}}.")
+    scopus_print_line("Most cited: {.emph {x$top_cited}}.")
   }
   invisible(x)
 }

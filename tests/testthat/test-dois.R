@@ -77,7 +77,7 @@ test_that("diff is case-insensitive and handles empty sets", {
 
 test_that("the diff prints its counts", {
   d <- scopus_diff_dois(c("10.1/a", "10.1/b"), c("10.1/b", "10.1/c"))
-  out <- paste(cli::cli_fmt(print(d)), collapse = " ")
+  out <- paste(utils::capture.output(print(d)), collapse = " ")
   expect_match(out, "added")
 })
 

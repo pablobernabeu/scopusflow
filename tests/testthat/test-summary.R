@@ -21,7 +21,8 @@ test_that("summary copes with empty records and missing years", {
 })
 
 test_that("summary prints a readable report", {
-  out <- paste(cli::cli_fmt(print(summary(example_records))), collapse = " ")
+  out <- paste(utils::capture.output(print(summary(example_records))), collapse = " ")
   expect_match(out, "record")
+  withr::local_output_sink(nullfile())
   expect_invisible(print(summary(example_records)))
 })

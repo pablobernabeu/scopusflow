@@ -183,9 +183,10 @@ test_that("print gives a one-line class summary", {
     concepts = c(A = "aaa", B = "bbb"),
     intersections = list(c("A", "B"))
   )
-  # The summary line arrives through cli's message stream, not stdout.
-  expect_message(invisible(capture.output(print(sets))), "2 concepts")
-  expect_message(invisible(capture.output(print(sets))), "1 intersection")
+  # The summary line shares the standard-output stream with the tibble beneath
+  # it, so that one printed object renders as one block.
+  expect_output(print(sets), "2 concepts")
+  expect_output(print(sets), "1 intersection")
 })
 
 # A ready-made object for the plot tests, mirroring the compute output.

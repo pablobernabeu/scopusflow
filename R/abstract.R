@@ -584,7 +584,7 @@ chained_get <- function(x, path) {
 
 #' @export
 print.scopus_abstracts <- function(x, ...) {
-  cli::cli_text("{.cls scopus_abstracts} ({nrow(x)} record{?s})")
+  scopus_print_line("{.cls scopus_abstracts} ({nrow(x)} record{?s})")
   NextMethod()
   invisible(x)
 }

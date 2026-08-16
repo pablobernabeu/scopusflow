@@ -78,7 +78,9 @@ scopus_trend <- function(query,
 #' @export
 print.scopus_trend <- function(x, ...) {
   total <- sum(x$n, na.rm = TRUE)
-  cli::cli_text("{.cls scopus_trend} ({nrow(x)} year{?s}, {format(total, big.mark = ',')} records)")
+  scopus_print_line(
+    "{.cls scopus_trend} ({nrow(x)} year{?s}, {format(total, big.mark = ',')} records)"
+  )
   NextMethod()
   invisible(x)
 }

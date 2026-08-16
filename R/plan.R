@@ -105,7 +105,7 @@ is_scopus_plan <- function(x) {
 
 #' @export
 print.scopus_plan <- function(x, ...) {
-  cli::cli_text(
+  scopus_print_line(
     "{.cls scopus_plan} ({nrow(x)} cell{?s}, view {.val {attr(x, 'view')}}, ",
     "partition {.val {attr(x, 'partition')}})"
   )

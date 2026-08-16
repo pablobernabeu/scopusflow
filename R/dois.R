@@ -106,7 +106,7 @@ scopus_diff_dois <- function(old, new) {
 #' @export
 print.scopus_doi_diff <- function(x, ...) {
   counts <- table(factor(x$status, levels = c("added", "removed", "unchanged")))
-  cli::cli_text(
+  scopus_print_line(
     "{.cls scopus_doi_diff} {counts[['added']]} added, ",
     "{counts[['removed']]} removed, {counts[['unchanged']]} unchanged"
   )

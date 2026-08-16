@@ -242,7 +242,7 @@ print.scopus_records <- function(x, ...) {
   if (!is.null(total) && length(total) == 1L && !is.na(total) && total > n) {
     header <- sprintf("%s of %s matching", header, format(total, big.mark = ","))
   }
-  cli::cli_text("{header}")
+  scopus_print_line("{header}")
 
   # Dating the harvest matters here more than in most print methods: `citations`
   # is a snapshot, so two sets are only comparable if each says when it was
@@ -254,7 +254,7 @@ print.scopus_records <- function(x, ...) {
     if (!is.null(version)) {
       stamp <- sprintf("%s (scopusflow %s)", stamp, paste(version, collapse = ", "))
     }
-    cli::cli_text("retrieved: {stamp}")
+    scopus_print_line("retrieved: {stamp}")
   }
 
   # When the query is the same for every row, lift it into the header and hide
@@ -262,7 +262,7 @@ print.scopus_records <- function(x, ...) {
   body <- x
   q <- unique(x$query)
   if (length(q) == 1L && !is.na(q)) {
-    cli::cli_text("query: {.val {q}}")
+    scopus_print_line("query: {.val {q}}")
     body <- x[setdiff(names(x), "query")]
   }
   print(tibble::as_tibble(body), ...)
