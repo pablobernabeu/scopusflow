@@ -55,6 +55,16 @@ test_that("file= writes and returns invisibly", {
   expect_match(paste(readLines(path), collapse = "\n"), "@article{", fixed = TRUE)
 })
 
+test_that("file exports carry LF line endings on every platform", {
+  bib <- withr::local_tempfile(fileext = ".bib")
+  as_bibtex(example_records[1:3, ], file = bib)
+  expect_false(any(readBin(bib, "raw", file.size(bib)) == as.raw(0x0d)))
+
+  ris <- withr::local_tempfile(fileext = ".ris")
+  as_ris(example_records[1:3, ], file = ris)
+  expect_false(any(readBin(ris, "raw", file.size(ris)) == as.raw(0x0d)))
+})
+
 test_that("export rejects a non-records object", {
   expect_error(as_bibtex(data.frame(a = 1)), class = "scopus_error_bad_input")
   expect_error(as_ris(mtcars), class = "scopus_error_bad_input")

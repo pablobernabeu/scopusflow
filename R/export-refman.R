@@ -131,7 +131,7 @@ scopus_refman_write <- function(out, file) {
       rlang::abort("`file` must be `NULL` or a single path.",
                    class = "scopus_error_bad_input")
     }
-    writeLines(out, file)
+    scopus_write_lines(out, file)
     return(invisible(out))
   }
   out

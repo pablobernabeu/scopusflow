@@ -40,9 +40,29 @@ write_scopus_records <- function(x, path) {
   switch(
     scopus_path_format(path),
     rds = saveRDS(x, path),
-    csv = utils::write.csv(as.data.frame(x), file = path, row.names = FALSE)
+    csv = scopus_write_csv(as.data.frame(x), path)
   )
   invisible(x)
+}
+
+# Text artifacts carry LF line endings on every platform. Written through a
+# text-mode connection on Windows, each "\n" would be translated to CRLF, so
+# the connection is opened in binary mode, where no translation happens.
+scopus_write_lines <- function(text, path) {
+  con <- file(path, open = "wb")
+  on.exit(close(con))
+  writeLines(text, con, sep = "\n")
+  invisible(path)
+}
+
+# write.csv() counterpart of scopus_write_lines(): the line endings come from
+# the connection, not from write.csv() itself, so a binary-mode connection
+# keeps CSV output LF-terminated on Windows too.
+scopus_write_csv <- function(x, path) {
+  con <- file(path, open = "wb")
+  on.exit(close(con))
+  utils::write.csv(x, file = con, row.names = FALSE)
+  invisible(path)
 }
 
 #' @rdname write_scopus_records

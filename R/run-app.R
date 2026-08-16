@@ -460,7 +460,7 @@ app_server <- function(input, output, session) {
 
   output$dl_script <- shiny::downloadHandler(
     filename = "scopusflow-script.R",
-    content = function(file) writeLines(code_text(), file)
+    content = function(file) scopus_write_lines(code_text(), file)
   )
 
   # Topic comparison. The highlight choices track the entered terms; the note
@@ -586,7 +586,7 @@ app_server <- function(input, output, session) {
     filename = "scopus-comparison.csv",
     content = function(file) {
       shiny::req(rv$comparison)
-      utils::write.csv(as.data.frame(rv$comparison), file, row.names = FALSE)
+      scopus_write_csv(as.data.frame(rv$comparison), file)
     }
   )
 

@@ -16,7 +16,9 @@
 #'   own directory. As a safeguard, a checkpoint is served only when the query,
 #'   year, view and page size it was fetched under all match the plan cell, and
 #'   only when its own `max_results` did not truncate it below what is being
-#'   asked for now; anything else is a cache miss, refetched and overwritten. A
+#'   asked for now; anything else is a cache miss, refetched and overwritten.
+#'   A checkpoint holding more records than the current `max_results` asks for
+#'   is served trimmed to that cap, the fuller set staying on disk. A
 #'   checkpoint that cannot be read back, for example one left half-written by
 #'   an interrupted run, is also treated as a miss rather than aborting the
 #'   harvest.
@@ -103,7 +105,7 @@ scopus_fetch_plan <- function(plan,
         )
       } else if (scopus_cell_cache_matches(cached, cell, max_results)) {
         if (verbose) cli::cli_inform("Cell {i}/{nrow(plan)}: loaded from cache.")
-        results[[i]] <- cached
+        results[[i]] <- scopus_serve_checkpoint(cached, max_results)
         next
       } else {
         rlang::warn(
@@ -177,11 +179,12 @@ scopus_cell_cache_meta <- function(cell, max_results, recs) {
 # scopus_fetch_core() carry the wrapped query in their `query` column, so a
 # checkpoint left behind by a different plan sharing the same cache_dir is
 # recognised and treated as a cache miss: the cell is refetched and the
-# checkpoint overwritten. Everything the query column cannot express (the year,
-# the view, the page size and the cap the cell was fetched under) is compared
-# against the manifest written beside the records. A checkpoint carrying
-# neither query nor manifest (a zero-row cell, or one written by an older
-# scopusflow) is loaded as before.
+# checkpoint overwritten. The manifest written beside the records is compared
+# as well, including its own copy of the query: a zero-row checkpoint has no
+# query column values, so the record-column guard passes it vacuously, and
+# without the manifest's copy an empty cell written under one query would
+# serve any other. A checkpoint carrying neither query nor manifest (one
+# written by an older scopusflow) is loaded as before.
 scopus_cell_cache_matches <- function(cached, cell, max_results) {
   q <- if (is.data.frame(cached)) cached[["query"]] else NULL
   if (!is.null(q)) {
@@ -194,10 +197,27 @@ scopus_cell_cache_matches <- function(cached, cell, max_results) {
   if (is.null(meta)) {
     return(TRUE)
   }
-  identical(meta$date, cell$date) &&
+  identical(meta$query, cell$query) &&
+    identical(meta$date, cell$date) &&
     identical(meta$view, cell$view) &&
     identical(meta$page_size, cell$page_size) &&
     (isTRUE(meta$complete) || max_results <= meta$max_results)
+}
+
+# Serve a checkpoint at the cap of the current request. A complete checkpoint
+# matches any max_results, so it can hold more rows than are being asked for
+# now; the surplus is trimmed from the served copy only, leaving the fuller
+# set on disk for a later, wider request. The provenance attributes are
+# restated explicitly rather than trusted to survive the subsetting.
+scopus_serve_checkpoint <- function(cached, max_results) {
+  if (!is.finite(max_results) || nrow(cached) <= max_results) {
+    return(cached)
+  }
+  out <- utils::head(cached, max_results)
+  for (a in c("total_results", "quota", "retrieved_at", "scopusflow_version")) {
+    attr(out, a) <- attr(cached, a)
+  }
+  out
 }
 
 # Write a checkpoint so that it is either wholly there or not there at all.

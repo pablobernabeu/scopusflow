@@ -88,7 +88,7 @@ scopus_records <- function(x, query = NA_character_, view = NULL) {
   cols <- scopus_records_columns()
 
   if (length(entries) == 0L) {
-    return(new_scopus_records(cols, query = query, view = view))
+    return(new_scopus_records(cols, view = view))
   }
 
   rows <- lapply(
@@ -147,7 +147,7 @@ scopus_records_columns <- function() {
 # Build a zero/typed tibble of class scopus_records. `authkeywords` is added
 # only for view = "COMPLETE", so a STANDARD-view (or view-less) empty result
 # keeps exactly the historical column set.
-new_scopus_records <- function(cols, query = NA_character_, view = NULL) {
+new_scopus_records <- function(cols, view = NULL) {
   proto <- list(
     entry_number = integer(),
     scopus_id = character(),

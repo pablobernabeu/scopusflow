@@ -28,7 +28,9 @@ their position in the plan and their year, so give each distinct plan its
 own directory. As a safeguard, a checkpoint is served only when the query,
 year, view and page size it was fetched under all match the plan cell, and
 only when its own \code{max_results} did not truncate it below what is being
-asked for now; anything else is a cache miss, refetched and overwritten. A
+asked for now; anything else is a cache miss, refetched and overwritten.
+A checkpoint holding more records than the current \code{max_results} asks for
+is served trimmed to that cap, the fuller set staying on disk. A
 checkpoint that cannot be read back, for example one left half-written by
 an interrupted run, is also treated as a miss rather than aborting the
 harvest.}

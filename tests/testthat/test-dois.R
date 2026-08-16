@@ -46,6 +46,12 @@ test_that("writing happens only to the explicit path", {
   expect_equal(res, "10.1/a")
 })
 
+test_that("the DOI CSV carries LF line endings on every platform", {
+  path <- withr::local_tempfile(fileext = ".csv")
+  scopus_extract_dois(c("10.1/a", "10.2/b"), file = path)
+  expect_false(any(readBin(path, "raw", file.size(path)) == as.raw(0x0d)))
+})
+
 test_that("write rejects an empty path", {
   expect_error(scopus_extract_dois("10.1/a", file = ""), class = "scopus_error_bad_input")
 })

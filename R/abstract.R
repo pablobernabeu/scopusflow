@@ -228,6 +228,7 @@ scopus_abstract <- function(ids,
     }
     if (!is.null(cache_file) && resume && file.exists(cache_file)) {
       cached <- scopus_read_checkpoint(cache_file)
+      cached_id <- if (is.data.frame(cached)) cached[["id"]] else NULL
       if (is.null(cached)) {
         rlang::warn(
           sprintf(
@@ -238,14 +239,27 @@ scopus_abstract <- function(ids,
           ),
           class = "scopus_warning_cache_unreadable"
         )
-      } else {
+      } else if (identical(cached_id, ids[i])) {
         if (verbose) cli::cli_inform("{i}/{length(ids)}: {.val {ids[i]}} loaded from cache.")
         rows[[i]] <- cached
         next
+      } else {
+        # scopus_safe_filename() is lossy, so a distinct identifier can map to
+        # this same file; the cached row's own id says which one it holds.
+        rlang::warn(
+          sprintf(
+            paste0("The checkpoint %s was written for a different identifier ",
+                   "that shares this cache filename, so it was discarded and ",
+                   "%s retrieved again."),
+            cache_file, ids[i]
+          ),
+          class = "scopus_warning_cache_mismatch"
+        )
       }
     }
 
     if (verbose) cli::cli_inform("Retrieving {i}/{length(ids)}: {ids[i]}.")
+    failed <- FALSE
     row <- tryCatch({
       # A plain `<-` here, not `<<-`: this block is evaluated directly in
       # scopus_abstract()'s own frame (tryCatch()'s first argument is not a
@@ -273,6 +287,7 @@ scopus_abstract <- function(ids,
       NULL
     }, scopus_error = function(e) {
       n_requests <<- n_requests + 1L
+      failed <<- TRUE
       cli::cli_warn("Could not retrieve {.val {ids[i]}}: {conditionMessage(e)}")
       scopus_abstract_row(ids[i], list(), include = include)
     })
@@ -296,7 +311,11 @@ scopus_abstract <- function(ids,
         call = rlang::caller_env()
       )
     }
-    if (!is.null(cache_file)) scopus_write_checkpoint(row, cache_file)
+    # Only a row parsed from a successful response is checkpointed. The NA row
+    # a failed retrieval (rate limit, server error, offline, not found) leaves
+    # behind keeps the batch alive, but cached it would make the failure
+    # permanent: a resumed run would serve it as data instead of retrying.
+    if (!is.null(cache_file) && !failed) scopus_write_checkpoint(row, cache_file)
     rows[[i]] <- row
   }
 
@@ -335,8 +354,10 @@ scopus_check_include <- function(include, call = rlang::caller_env()) {
 }
 
 # A filesystem-safe cache key for an identifier: non-alphanumerics become "_",
-# keeping the result human-decipherable for debugging (unlike a hash) since
-# collisions between distinct real DOIs/Scopus IDs are effectively impossible.
+# keeping the result human-decipherable for debugging (unlike a hash). The
+# mapping is lossy, so distinct identifiers ("10.1/a.b", "10.1/a-b") can share
+# a filename; the resume path in scopus_abstract() therefore checks the cached
+# row's id and treats a mismatch as a cache miss.
 scopus_safe_filename <- function(id) {
   gsub("[^A-Za-z0-9]+", "_", id)
 }

@@ -173,7 +173,6 @@ scopus_search_page <- function(query,
                                count = 25L,
                                view = "STANDARD",
                                date = NULL,
-                               field = NULL,
                                cursor = NULL,
                                api_key = NULL,
                                inst_token = NULL,
@@ -186,7 +185,6 @@ scopus_search_page <- function(query,
     count = format(as.integer(count), scientific = FALSE),
     view = view,
     date = date,
-    field = field,
     cursor = cursor
   )
   req <- scopus_request(params, api_key = api_key, inst_token = inst_token, call = call)

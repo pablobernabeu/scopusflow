@@ -53,6 +53,22 @@ test_that("a title with comma, quote and newline survives CSV round-trip", {
   expect_equal(read_scopus_records(path)$title, recs$title)
 })
 
+test_that("the record CSV carries LF line endings on every platform", {
+  path <- withr::local_tempfile(fileext = ".csv")
+  write_scopus_records(make_records(), path)
+  expect_false(any(readBin(path, "raw", file.size(path)) == as.raw(0x0d)))
+})
+
+test_that("scopus_write_lines writes LF endings on every platform", {
+  # The app's script download writes through this helper, so pinning it here
+  # covers that path too.
+  path <- withr::local_tempfile(fileext = ".R")
+  scopusflow:::scopus_write_lines(c("library(scopusflow)", "example_records"), path)
+  bytes <- readBin(path, "raw", file.size(path))
+  expect_false(any(bytes == as.raw(0x0d)))
+  expect_equal(readLines(path), c("library(scopusflow)", "example_records"))
+})
+
 test_that("unsupported extensions are rejected", {
   recs <- make_records()
   path <- withr::local_tempfile(fileext = ".txt")

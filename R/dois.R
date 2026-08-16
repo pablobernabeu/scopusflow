@@ -52,7 +52,7 @@ scopus_extract_dois <- function(x, dedupe = TRUE, file = NULL) {
         class = "scopus_error_bad_input"
       )
     }
-    utils::write.csv(data.frame(doi = dois), file = file, row.names = FALSE)
+    scopus_write_csv(data.frame(doi = dois), file)
     return(invisible(dois))
   }
   dois

@@ -103,16 +103,72 @@ test_that("a checkpoint truncated by max_results is not served to a wider reques
   )
   expect_equal(nrow(recs), 40L)
 
-  # A narrower request is still served from the wider checkpoint, and a repeat
-  # of the same request costs nothing.
+  # A narrower request is served from the wider checkpoint, trimmed to its own
+  # cap, and costs nothing.
   calls <- 0L
   httr2::local_mocked_responses(function(req) {
     calls <<- calls + 1L
     mock_corpus(total = 40L)(req)
   })
   expect_equal(nrow(scopus_fetch_plan(plan, max_results = 5, cache_dir = cache,
-                                      resume = TRUE)), 40L)
+                                      resume = TRUE)), 5L)
   expect_equal(calls, 0L)
+})
+
+test_that("a checkpoint holding more than the request is served trimmed to the cap", {
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  calls <- 0L
+  httr2::local_mocked_responses(function(req) {
+    calls <<- calls + 1L
+    mock_corpus(total = 5L)(req)
+  })
+  plan <- scopus_plan("x", years = 2020, partition = "year")
+
+  expect_equal(nrow(scopus_fetch_plan(plan, cache_dir = cache, resume = TRUE)), 5L)
+  after_first <- calls
+
+  recs <- scopus_fetch_plan(plan, max_results = 2, cache_dir = cache, resume = TRUE)
+  expect_equal(calls, after_first)   # served from cache, no new requests
+  expect_equal(nrow(recs), 2L)
+  # Provenance survives the trim.
+  expect_s3_class(attr(recs, "retrieved_at"), "POSIXct")
+
+  # The checkpoint on disk keeps all five rows for a later, wider request.
+  expect_equal(nrow(scopus_fetch_plan(plan, cache_dir = cache, resume = TRUE)), 5L)
+  expect_equal(calls, after_first)
+})
+
+test_that("a zero-row checkpoint is not served to a different query", {
+  # An empty cell has no query column values, so the record-column guard passes
+  # it vacuously; the manifest's own copy of the query has to reject the
+  # mismatch.
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  calls <- 0L
+  httr2::local_mocked_responses(function(req) {
+    calls <<- calls + 1L
+    mock_corpus(total = 0L)(req)
+  })
+
+  recs_a <- scopus_fetch_plan(scopus_plan("graphene", years = 2020),
+                              cache_dir = cache, resume = TRUE)
+  expect_equal(nrow(recs_a), 0L)
+  first_calls <- calls
+
+  expect_warning(
+    recs_b <- scopus_fetch_plan(scopus_plan("perovskite", years = 2020),
+                                cache_dir = cache, resume = TRUE),
+    class = "scopus_warning_cache_mismatch"
+  )
+  expect_gt(calls, first_calls)
+  expect_equal(nrow(recs_b), 0L)
+
+  # The overwritten checkpoint then serves its own query from cache.
+  calls_after <- calls
+  scopus_fetch_plan(scopus_plan("perovskite", years = 2020),
+                    cache_dir = cache, resume = TRUE)
+  expect_equal(calls, calls_after)
 })
 
 test_that("a cap that never bit leaves the checkpoint usable for any request", {

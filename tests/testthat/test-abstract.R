@@ -323,6 +323,72 @@ test_that("caching writes per-identifier files and resume avoids re-fetching", {
   expect_equal(nrow(ab), 2L)
 })
 
+test_that("a failed retrieval is not checkpointed, so a resumed run retries it", {
+  # The all-NA row a failure degrades to keeps the batch alive, but written to
+  # the cache it would be served back as data on resume, never retried.
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  fail <- TRUE
+  httr2::local_mocked_responses(function(req) {
+    if (fail) {
+      mock_json_response(list(), status = 500L)
+    } else {
+      mock_abstract(list(`prism:doi` = "10.1/a", `dc:title` = "Recovered"))
+    }
+  })
+
+  expect_warning(
+    first <- scopus_abstract("10.1/a", cache_dir = cache, resume = TRUE)
+  )
+  expect_true(is.na(first$title))
+  expect_equal(length(list.files(cache, pattern = "^id-")), 0L)
+
+  fail <- FALSE
+  second <- scopus_abstract("10.1/a", cache_dir = cache, resume = TRUE)
+  expect_equal(second$title, "Recovered")
+  expect_equal(length(list.files(cache, pattern = "^id-")), 1L)
+})
+
+test_that("identifiers colliding on one cache filename are never served each other's row", {
+  # scopus_safe_filename() maps every non-alphanumeric to "_", so these two
+  # distinct identifiers share a checkpoint path.
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  ids <- c("10.1/a.b", "10.1/a-b")
+  expect_identical(scopusflow:::scopus_safe_filename(ids[1]),
+                   scopusflow:::scopus_safe_filename(ids[2]))
+
+  calls <- 0L
+  httr2::local_mocked_responses(function(req) {
+    calls <<- calls + 1L
+    doi <- utils::URLdecode(sub("^.*/doi/", "", req$url))
+    mock_abstract(list(`prism:doi` = doi, `dc:title` = doi))
+  })
+
+  # Within one batch the second id finds the first's row in the shared file
+  # and must refetch rather than serve it.
+  expect_warning(
+    first <- scopus_abstract(ids, cache_dir = cache, resume = TRUE),
+    class = "scopus_warning_cache_mismatch"
+  )
+  expect_equal(calls, 2L)
+  expect_equal(first$title, ids)   # each identifier got its own record
+
+  # On resume the shared file holds the other id's row for whichever is asked,
+  # so both are misses again, and neither is handed the wrong record.
+  mismatches <- 0L
+  withCallingHandlers(
+    again <- scopus_abstract(ids, cache_dir = cache, resume = TRUE),
+    scopus_warning_cache_mismatch = function(w) {
+      mismatches <<- mismatches + 1L
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_equal(mismatches, 2L)
+  expect_equal(again$id, ids)
+  expect_equal(again$title, ids)
+})
+
 test_that("the cache key carries the include set, so extras are not served stale", {
   local_scopus_test_env()
   cache <- withr::local_tempdir()

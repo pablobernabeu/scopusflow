@@ -127,8 +127,13 @@ the plan and their year, so a second plan pointed at the same directory could
 otherwise be paired with the first plan's checkpoints. Before loading one,
 `scopus_fetch_plan()` checks that the query, year, view, page size and record
 cap it was written under all match the cell being run, and refetches with a
-warning when they do not. The clean arrangement is still a separate directory
-per plan.
+warning when they do not. A checkpoint holding more records than the current
+`max_results` asks for is served trimmed to that cap, with the fuller set left
+on disk for a later, wider request. A checkpoint that stopped at a smaller cap
+than is being asked for now is a mismatch, refetched with a warning. One that
+ran to the end of its result set is not, however few records that turned out to
+be, because there is nothing further to fetch. The clean arrangement is still a
+separate directory per plan.
 
 The cache lives under `scopus_cache_dir()`. To force a fresh retrieval, empty it
 with `scopus_cache_clear()`. Both are shown but not run, so the article does not
