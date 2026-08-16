@@ -2,9 +2,9 @@
 
 ## scopusflow (development version)
 
-### Two cache defects that returned the wrong records
+### Cache defects that returned the wrong records
 
-Both were silent, and both are fixed.
+All were silent, and all are fixed.
 
 - **A year-partitioned plan could be served another plan’s years.**
   Checkpoints were keyed by the cell’s position alone, and every cell of
@@ -23,6 +23,31 @@ Both were silent, and both are fixed.
   The Shiny app’s cache key gained the record cap and now hashes the
   query instead of truncating it at 80 characters, so two long queries
   sharing a prefix no longer share a directory.
+- **A zero-row checkpoint answered for any query.** The guard that
+  recognises a foreign checkpoint reads the cached rows’ `query` column,
+  which an empty cell has no rows to carry, and the manifest comparison
+  never consulted its own copy of the query. So a plan that legitimately
+  found nothing left a checkpoint that a different plan pointed at the
+  same `cache_dir` would load as its own empty result. The manifest’s
+  query must now match as well.
+- **A failed abstract retrieval was checkpointed as if it were data.** A
+  rate-limited, server-error or offline attempt in
+  [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+  degrades to an all-NA row so the batch survives, but that row was
+  written to the cache, so a resumed run served the failure from disk
+  rather than retrying it. Only rows parsed from successful responses
+  are checkpointed now.
+- **Two identifiers could share one abstract checkpoint.** The cache
+  filename reduces every non-alphanumeric character to `_`, so distinct
+  identifiers such as `10.1/a.b` and `10.1/a-b` collide on the same
+  file, and resume never asked which identifier a cached row belonged
+  to. The cached row’s own id must now match; a collision warns and
+  refetches.
+- A checkpoint holding more records than the current `max_results` asks
+  for is now served trimmed to that cap rather than whole, with the
+  fuller set left on disk for a later, wider request. The opposite
+  direction, a checkpoint truncated below what is asked for, already
+  refetched with a warning.
 
 A rejected or damaged checkpoint now warns rather than mentioning it
 only under `verbose`, and checkpoints are written to a sibling temporary
@@ -59,6 +84,10 @@ half-written file that breaks every later resume.
   through the `.rds` round trip. They are attributes rather than
   columns, so the documented schema and the CSV round trip are
   unchanged.
+- Every text file the package writes now carries LF line endings on all
+  platforms: the BibTeX and RIS exports, the DOI and record CSVs, and
+  the app’s script and comparison downloads previously arrived with CRLF
+  endings when written on Windows.
 
 ### Continuous integration and metadata
 

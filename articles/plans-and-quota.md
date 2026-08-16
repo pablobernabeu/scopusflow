@@ -177,7 +177,13 @@ checkpoints. Before loading one,
 [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
 checks that the query, year, view, page size and record cap it was
 written under all match the cell being run, and refetches with a warning
-when they do not. The clean arrangement is still a separate directory
+when they do not. A checkpoint holding more records than the current
+`max_results` asks for is served trimmed to that cap, with the fuller
+set left on disk for a later, wider request. A checkpoint that stopped
+at a smaller cap than is being asked for now is a mismatch, refetched
+with a warning. One that ran to the end of its result set is not,
+however few records that turned out to be, because there is nothing
+further to fetch. The clean arrangement is still a separate directory
 per plan.
 
 The cache lives under

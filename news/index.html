@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,12 +54,19 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="scopusflow-development-version">scopusflow (development version)<a class="anchor" aria-label="anchor" href="#scopusflow-development-version"></a></h2>
 <div class="section level3">
-<h3 id="two-cache-defects-that-returned-the-wrong-records-development-version">Two cache defects that returned the wrong records<a class="anchor" aria-label="anchor" href="#two-cache-defects-that-returned-the-wrong-records-development-version"></a></h3>
-<p>Both were silent, and both are fixed.</p>
+<h3 id="cache-defects-that-returned-the-wrong-records-development-version">Cache defects that returned the wrong records<a class="anchor" aria-label="anchor" href="#cache-defects-that-returned-the-wrong-records-development-version"></a></h3>
+<p>All were silent, and all are fixed.</p>
 <ul><li>
 <strong>A year-partitioned plan could be served another plan’s years.</strong> Checkpoints were keyed by the cell’s position alone, and every cell of such a plan carries the same query (the year travels separately, as the API’s <code>date</code> parameter), so the guard meant to reject a foreign checkpoint could not tell 2015’s from 2016’s. A plan over 2016:2017 pointed at a cache written by a plan over 2015:2016 returned the 2015 records and reported “loaded from cache”. Checkpoints are now named <code>cell-NNN-YYYY.rds</code> and carry a manifest (query, date, view, page size and record cap) that resume compares against. Existing caches become invisible and refetch once, which costs quota rather than correctness.</li>
 <li>
 <strong>A cell cached under a <code>max_results</code> cap was served to a later request asking for more.</strong> The manifest now records the cap and whether it actually bit, so a truncated checkpoint is a miss for a wider request while an untruncated one stays usable for any request. The Shiny app’s cache key gained the record cap and now hashes the query instead of truncating it at 80 characters, so two long queries sharing a prefix no longer share a directory.</li>
+<li>
+<strong>A zero-row checkpoint answered for any query.</strong> The guard that recognises a foreign checkpoint reads the cached rows’ <code>query</code> column, which an empty cell has no rows to carry, and the manifest comparison never consulted its own copy of the query. So a plan that legitimately found nothing left a checkpoint that a different plan pointed at the same <code>cache_dir</code> would load as its own empty result. The manifest’s query must now match as well.</li>
+<li>
+<strong>A failed abstract retrieval was checkpointed as if it were data.</strong> A rate-limited, server-error or offline attempt in <code><a href="../reference/scopus_abstract.html">scopus_abstract()</a></code> degrades to an all-NA row so the batch survives, but that row was written to the cache, so a resumed run served the failure from disk rather than retrying it. Only rows parsed from successful responses are checkpointed now.</li>
+<li>
+<strong>Two identifiers could share one abstract checkpoint.</strong> The cache filename reduces every non-alphanumeric character to <code>_</code>, so distinct identifiers such as <code>10.1/a.b</code> and <code>10.1/a-b</code> collide on the same file, and resume never asked which identifier a cached row belonged to. The cached row’s own id must now match; a collision warns and refetches.</li>
+<li>A checkpoint holding more records than the current <code>max_results</code> asks for is now served trimmed to that cap rather than whole, with the fuller set left on disk for a later, wider request. The opposite direction, a checkpoint truncated below what is asked for, already refetched with a warning.</li>
 </ul><p>A rejected or damaged checkpoint now warns rather than mentioning it only under <code>verbose</code>, and checkpoints are written to a sibling temporary file and renamed into place, so an interrupted run can no longer leave a half-written file that breaks every later resume.</p>
 </div>
 <div class="section level3">
@@ -73,6 +80,7 @@
 <code><a href="../reference/scopus_compare_topics.html">scopus_compare_topics()</a></code> carries its counts as doubles, matching <code><a href="../reference/scopus_trend.html">scopus_trend()</a></code> and <code><a href="../reference/scopus_intersections.html">scopus_intersections()</a></code>, so billion-scale totals no longer coerce to <code>NA</code>.</li>
 <li>Every request carries a 60-second transfer timeout, tunable through <code>getOption("scopusflow.timeout")</code>, so a stalled connection cannot hang a session.</li>
 <li>Retrievals record when they were taken and by which package version, as the <code>retrieved_at</code> and <code>scopusflow_version</code> attributes, preserved through the <code>.rds</code> round trip. They are attributes rather than columns, so the documented schema and the CSV round trip are unchanged.</li>
+<li>Every text file the package writes now carries LF line endings on all platforms: the BibTeX and RIS exports, the DOI and record CSVs, and the app’s script and comparison downloads previously arrived with CRLF endings when written on Windows.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="continuous-integration-and-metadata-development-version">Continuous integration and metadata<a class="anchor" aria-label="anchor" href="#continuous-integration-and-metadata-development-version"></a></h3>

@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -378,8 +378,14 @@ same directory could otherwise be paired with the first plan’s
 checkpoints. Before loading one, <code><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan()</a></code> checks
 that the query, year, view, page size and record cap it was written
 under all match the cell being run, and refetches with a warning when
-they do not. The clean arrangement is still a separate directory per
-plan.</p>
+they do not. A checkpoint holding more records than the current
+<code>max_results</code> asks for is served trimmed to that cap, with
+the fuller set left on disk for a later, wider request. A checkpoint
+that stopped at a smaller cap than is being asked for now is a mismatch,
+refetched with a warning. One that ran to the end of its result set is
+not, however few records that turned out to be, because there is nothing
+further to fetch. The clean arrangement is still a separate directory
+per plan.</p>
 <p>The cache lives under <code><a href="../reference/scopus_cache_dir.html">scopus_cache_dir()</a></code>. To force a
 fresh retrieval, empty it with <code><a href="../reference/scopus_cache_clear.html">scopus_cache_clear()</a></code>. Both
 are shown but not run, so the article does not touch a real cache.</p>

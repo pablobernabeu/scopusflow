@@ -48,6 +48,8 @@ scopus_fetch_plan(
   page size it was fetched under all match the plan cell, and only when
   its own `max_results` did not truncate it below what is being asked
   for now; anything else is a cache miss, refetched and overwritten. A
+  checkpoint holding more records than the current `max_results` asks
+  for is served trimmed to that cap, the fuller set staying on disk. A
   checkpoint that cannot be read back, for example one left half-written
   by an interrupted run, is also treated as a miss rather than aborting
   the harvest.
