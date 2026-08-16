@@ -43,20 +43,20 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: r-lib/actions/setup-pandoc@v2
+      - uses: r-lib/actions/setup-pandoc@d3c5be51b12e724e68f33216ca3c148b66d5f0b6  # v2.12.1
 
-      - uses: r-lib/actions/setup-r@v2
+      - uses: r-lib/actions/setup-r@d3c5be51b12e724e68f33216ca3c148b66d5f0b6  # v2.12.1
         with:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
-      - uses: r-lib/actions/setup-r-dependencies@v2
+      - uses: r-lib/actions/setup-r-dependencies@d3c5be51b12e724e68f33216ca3c148b66d5f0b6  # v2.12.1
         with:
           extra-packages: any::rcmdcheck
           needs: check
 
-      - uses: r-lib/actions/check-r-package@v2
+      - uses: r-lib/actions/check-r-package@d3c5be51b12e724e68f33216ca3c148b66d5f0b6  # v2.12.1
         with:
           upload-snapshots: true
           build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
@@ -77,18 +77,18 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: r-lib/actions/setup-pandoc@v2
+      - uses: r-lib/actions/setup-pandoc@d3c5be51b12e724e68f33216ca3c148b66d5f0b6  # v2.12.1
 
-      - uses: r-lib/actions/setup-r@v2
+      - uses: r-lib/actions/setup-r@d3c5be51b12e724e68f33216ca3c148b66d5f0b6  # v2.12.1
         with:
           use-public-rspm: true
 
-      - uses: r-lib/actions/setup-r-dependencies@v2
+      - uses: r-lib/actions/setup-r-dependencies@d3c5be51b12e724e68f33216ca3c148b66d5f0b6  # v2.12.1
         with:
           extra-packages: any::rcmdcheck
           needs: check
 
-      - uses: r-lib/actions/check-r-package@v2
+      - uses: r-lib/actions/check-r-package@d3c5be51b12e724e68f33216ca3c148b66d5f0b6  # v2.12.1
         with:
           # Build the vignettes normally (R CMD build sees the full library), but
           # skip RE-building them during the depends-only check, where rmarkdown
@@ -119,13 +119,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: r-lib/actions/setup-pandoc@v2
+      - uses: r-lib/actions/setup-pandoc@d3c5be51b12e724e68f33216ca3c148b66d5f0b6  # v2.12.1
 
-      - uses: r-lib/actions/setup-r@v2
+      - uses: r-lib/actions/setup-r@d3c5be51b12e724e68f33216ca3c148b66d5f0b6  # v2.12.1
         with:
           use-public-rspm: true
 
-      - uses: r-lib/actions/setup-r-dependencies@v2
+      - uses: r-lib/actions/setup-r-dependencies@d3c5be51b12e724e68f33216ca3c148b66d5f0b6  # v2.12.1
         with:
           extra-packages: any::rcmdcheck
           needs: check
@@ -161,7 +161,95 @@ jobs:
             quit(status = 1)
           }
 
-      - uses: r-lib/actions/check-r-package@v2
+      - uses: r-lib/actions/check-r-package@d3c5be51b12e724e68f33216ca3c148b66d5f0b6  # v2.12.1
         with:
           args: 'c("--no-manual", "--no-vignettes")'
           build_args: 'c("--no-manual")'
+
+  # A NAMESPACE that has drifted from the roxygen tags is invisible to the test
+  # suite, because testthat runs inside the package namespace, where an object
+  # that lost its export() still resolves. The dropped export reaches users and
+  # nobody else. Regenerating NAMESPACE here and diffing it against the
+  # committed copy is the only check in this repository that can see it.
+  #
+  # NAMESPACE only, deliberately. Rd formatting churns between roxygen2
+  # releases, so gating man/ would report a version gap as though it were a
+  # stale file and leave the job flaky. Keeping this out of the matrix above is
+  # the same judgement: eight platform legs would establish the same fact eight
+  # times, and a red cell there reads as a platform fault rather than as a
+  # document() that was never run.
+  namespace:
+    runs-on: ubuntu-latest
+    name: namespace (committed vs regenerated)
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: r-lib/actions/setup-r@d3c5be51b12e724e68f33216ca3c148b66d5f0b6  # v2.12.1
+        with:
+          use-public-rspm: true
+
+      # roxygen2 loads the package in order to read its tags, so the package's
+      # own dependencies have to be installed before it can run at all.
+      - uses: r-lib/actions/setup-r-dependencies@d3c5be51b12e724e68f33216ca3c148b66d5f0b6  # v2.12.1
+
+      - name: Install the pinned roxygen2
+        # Pinned so that a roxygen2 release cannot turn this job red with no
+        # change to the sources. Raise the pin and re-run devtools::document()
+        # in the same commit.
+        shell: Rscript {0}
+        run: |
+          pak::pak("roxygen2@8.0.0", ask = FALSE)
+
+      - name: Report the roxygen2 version and check it against DESCRIPTION
+        # DESCRIPTION records the version that last wrote NAMESPACE. If a
+        # different one is installed, the diff below would show that gap rather
+        # than a stale file, so name the cause instead of leaving the next
+        # reader to work it out. This also catches a pin that failed to take,
+        # which would otherwise leave the job checking something other than what
+        # it claims to check.
+        shell: Rscript {0}
+        run: |
+          have <- as.character(packageVersion("roxygen2"))
+          d <- read.dcf("DESCRIPTION")
+          field <- intersect(c("Config/roxygen2/version", "RoxygenNote"), colnames(d))
+          want <- if (length(field)) unname(d[1, field[1]]) else NA_character_
+          cat(sprintf("roxygen2 installed: %s\n", have))
+          cat(sprintf("DESCRIPTION %s: %s\n",
+                      if (length(field)) field[1] else "(no roxygen2 version recorded)",
+                      if (is.na(want)) "-" else want))
+          if (!is.na(want) && !identical(have, want)) {
+            cat(sprintf(
+              "::error file=DESCRIPTION::roxygen2 %s is installed but DESCRIPTION records %s, so any NAMESPACE difference below would be that version gap and not a stale file. Either raise the pin in .github/workflows/R-CMD-check.yaml to %s, or re-run devtools::document() under %s and commit DESCRIPTION and NAMESPACE together.\n",
+              have, want, want, have))
+            quit(status = 1)
+          }
+
+      - name: Confirm NAMESPACE carries the roxygen header
+        # roxygenise() leaves a NAMESPACE it did not write alone, and says so
+        # only in passing. A file that lost the header would therefore keep the
+        # diff below clean however stale it had become, and this job would pass
+        # by never having run. That is the failure that prompted the job, so it
+        # is asserted rather than assumed.
+        run: |
+          head -n 1 NAMESPACE
+          if ! head -n 1 NAMESPACE | grep -q '^# Generated by roxygen2'; then
+            echo "::error file=NAMESPACE::NAMESPACE has no 'Generated by roxygen2' header, so roxygenise() will not rewrite it and this job cannot see drift. Delete NAMESPACE, run devtools::document() to regenerate it with the header, and commit the result."
+            exit 1
+          fi
+
+      - name: Regenerate NAMESPACE from the roxygen tags
+        # roclets = "namespace" rather than the default set, so that man/ is
+        # left untouched and only the export list is under test.
+        shell: Rscript {0}
+        run: |
+          roxygen2::roxygenise(".", roclets = "namespace")
+
+      - name: Compare the regenerated NAMESPACE with the committed one
+        run: |
+          if ! git diff --exit-code -- NAMESPACE; then
+            echo "::error file=NAMESPACE::NAMESPACE is out of date with the @export tags in R/. The diff above is what roxygen2 would have written. Run devtools::document() and commit the updated NAMESPACE."
+            exit 1
+          fi
+          echo "NAMESPACE matches the @export tags in R/."
