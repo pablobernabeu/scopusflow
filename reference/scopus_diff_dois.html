@@ -96,7 +96,7 @@ status then DOI, and printing shows the counts in each category.</p>
 <span class="r-in"><span><span class="va">baseline</span> <span class="op">&lt;-</span> <span class="va">example_records</span><span class="op">[</span><span class="va">example_records</span><span class="op">$</span><span class="va">year</span> <span class="op">&lt;=</span> <span class="fl">2023</span>, <span class="op">]</span></span></span>
 <span class="r-in"><span><span class="va">later</span> <span class="op">&lt;-</span> <span class="va">example_records</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span>, <span class="op">]</span></span></span>
 <span class="r-in"><span><span class="fu">scopus_diff_dois</span><span class="op">(</span>old <span class="op">=</span> <span class="va">baseline</span>, new <span class="op">=</span> <span class="va">later</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #0000BB;">&lt;scopus_doi_diff&gt;</span> 14 added, 1 removed, 112 unchanged</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #0000BB;">&lt;scopus_doi_diff&gt;</span> 14 added, 1 removed, 112 unchanged</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 127 × 2</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    doi                            status</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                          <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> </span>

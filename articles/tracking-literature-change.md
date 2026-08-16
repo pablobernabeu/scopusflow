@@ -54,22 +54,21 @@ changes <- scopus_diff_dois(old = baseline, new = later)
 print(changes)
 ```
 
-     [34m<scopus_doi_diff> [39m 14 added, 1 removed, 112 unchanged
-
-     [38;5;246m# A tibble: 127 × 2 [39m
+    <scopus_doi_diff> 14 added, 1 removed, 112 unchanged
+    # A tibble: 127 × 2
        doi                            status
-        [3m [38;5;246m<chr> [39m [23m                           [3m [38;5;246m<fct> [39m [23m 
-     [38;5;250m 1 [39m 10.1002/adfm.202315137         added 
-     [38;5;250m 2 [39m 10.1002/asia.202400548         added 
-     [38;5;250m 3 [39m 10.1002/slct.202302535         added 
-     [38;5;250m 4 [39m 10.1016/j.cej.2024.148822      added 
-     [38;5;250m 5 [39m 10.1016/j.diamond.2024.110842  added 
-     [38;5;250m 6 [39m 10.1016/j.isci.2024.111696     added 
-     [38;5;250m 7 [39m 10.1016/j.jallcom.2024.175000  added 
-     [38;5;250m 8 [39m 10.1016/j.jallcom.2024.177248  added 
-     [38;5;250m 9 [39m 10.1016/j.jpowsour.2024.234127 added 
-     [38;5;250m10 [39m 10.1016/j.jpowsour.2024.236149 added 
-     [38;5;246m# ℹ 117 more rows [39m
+       <chr>                          <fct> 
+     1 10.1002/adfm.202315137         added 
+     2 10.1002/asia.202400548         added 
+     3 10.1002/slct.202302535         added 
+     4 10.1016/j.cej.2024.148822      added 
+     5 10.1016/j.diamond.2024.110842  added 
+     6 10.1016/j.isci.2024.111696     added 
+     7 10.1016/j.jallcom.2024.175000  added 
+     8 10.1016/j.jallcom.2024.177248  added 
+     9 10.1016/j.jpowsour.2024.234127 added 
+    10 10.1016/j.jpowsour.2024.236149 added 
+    # ℹ 117 more rows
 
 The newly indexed papers come back as `added`, the records present both
 times as `unchanged`, and anything dropped from the later pull as

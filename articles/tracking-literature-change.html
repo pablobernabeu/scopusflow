@@ -131,21 +131,21 @@ in each category.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">changes</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_diff_dois.html">scopus_diff_dois</a></span><span class="op">(</span>old <span class="op">=</span> <span class="va">baseline</span>, new <span class="op">=</span> <span class="va">later</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">changes</span><span class="op">)</span></span></code></pre></div>
-<pre><code> [34m&lt;scopus_doi_diff&gt; [39m 14 added, 1 removed, 112 unchanged</code></pre>
-<pre><code> [38;5;246m# A tibble: 127 × 2 [39m
+<pre><code>&lt;scopus_doi_diff&gt; 14 added, 1 removed, 112 unchanged
+# A tibble: 127 × 2
    doi                            status
-    [3m [38;5;246m&lt;chr&gt; [39m [23m                           [3m [38;5;246m&lt;fct&gt; [39m [23m 
- [38;5;250m 1 [39m 10.1002/adfm.202315137         added 
- [38;5;250m 2 [39m 10.1002/asia.202400548         added 
- [38;5;250m 3 [39m 10.1002/slct.202302535         added 
- [38;5;250m 4 [39m 10.1016/j.cej.2024.148822      added 
- [38;5;250m 5 [39m 10.1016/j.diamond.2024.110842  added 
- [38;5;250m 6 [39m 10.1016/j.isci.2024.111696     added 
- [38;5;250m 7 [39m 10.1016/j.jallcom.2024.175000  added 
- [38;5;250m 8 [39m 10.1016/j.jallcom.2024.177248  added 
- [38;5;250m 9 [39m 10.1016/j.jpowsour.2024.234127 added 
- [38;5;250m10 [39m 10.1016/j.jpowsour.2024.236149 added 
- [38;5;246m# ℹ 117 more rows [39m</code></pre>
+   &lt;chr&gt;                          &lt;fct&gt; 
+ 1 10.1002/adfm.202315137         added 
+ 2 10.1002/asia.202400548         added 
+ 3 10.1002/slct.202302535         added 
+ 4 10.1016/j.cej.2024.148822      added 
+ 5 10.1016/j.diamond.2024.110842  added 
+ 6 10.1016/j.isci.2024.111696     added 
+ 7 10.1016/j.jallcom.2024.175000  added 
+ 8 10.1016/j.jallcom.2024.177248  added 
+ 9 10.1016/j.jpowsour.2024.234127 added 
+10 10.1016/j.jpowsour.2024.236149 added 
+# ℹ 117 more rows</code></pre>
 <p>The newly indexed papers come back as <code>added</code>, the records
 present both times as <code>unchanged</code>, and anything dropped from
 the later pull as <code>removed</code>. The counts work out at fourteen
@@ -156,7 +156,7 @@ without a DOI cannot be tracked this way at all, which is one reason to
 prefer the ‘Scopus’ identifier when there is one.</p>
 <p>To act on one category, filter the table, which is an ordinary
 tibble.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">changes</span><span class="op">[</span><span class="va">changes</span><span class="op">$</span><span class="va">status</span> <span class="op">==</span> <span class="st">"added"</span>, <span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
@@ -198,7 +198,7 @@ tibble.</p>
 <code><a href="../reference/scopus_combine.html">scopus_combine()</a></code> renumbers the records and, with
 <code>dedupe = TRUE</code>, keeps each one once by ‘Scopus’ identifier
 or DOI, so the records the two pulls share are not doubled.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">combined</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_combine.html">scopus_combine</a></span><span class="op">(</span><span class="va">baseline</span>, <span class="va">later</span>, dedupe <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">combined</span><span class="op">)</span></span></code></pre></div>
 <pre><code>[1] 149</code></pre>
@@ -211,7 +211,7 @@ same call on two real pulls returns each article once.</p>
 <p>The base <code><a href="https://rdrr.io/r/base/c.html" class="external-link">c()</a></code> method concatenates record sets directly,
 renumbering but without de-duplicating, so it is the building block that
 <code><a href="../reference/scopus_combine.html">scopus_combine()</a></code> adds the duplicate handling to.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">stacked</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">baseline</span>, <span class="va">later</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">stacked</span><span class="op">)</span></span></code></pre></div>
 <pre><code>[1] 261</code></pre>
@@ -221,7 +221,7 @@ renumbering but without de-duplicating, so it is the building block that
 </h2>
 <p>Saving each retrieval lets you compare against it next time. The
 <code>.rds</code> form round-trips exactly.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"baseline.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/write_scopus_records.html">write_scopus_records</a></span><span class="op">(</span><span class="va">baseline</span>, <span class="va">path</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="../reference/write_scopus_records.html">read_scopus_records</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span>, <span class="va">baseline</span><span class="op">)</span></span></code></pre></div>
@@ -238,7 +238,7 @@ is why it round-trips identically above.</p>
 <p>In a live setting the later retrieval would come from the API rather
 than from a slice of the bundled corpus, with everything else unchanged,
 and both pulls could then say when they were taken.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">later</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch.html">scopus_fetch</a></span><span class="op">(</span><span class="st">"graphene supercapacitor"</span>, field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">later</span>, <span class="st">"retrieved_at"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/scopus_diff_dois.html">scopus_diff_dois</a></span><span class="op">(</span>old <span class="op">=</span> <span class="fu"><a href="../reference/write_scopus_records.html">read_scopus_records</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span>, new <span class="op">=</span> <span class="va">later</span><span class="op">)</span></span></code></pre></div>

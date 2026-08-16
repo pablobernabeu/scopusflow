@@ -88,6 +88,12 @@ half-written file that breaks every later resume.
   platforms: the BibTeX and RIS exports, the DOI and record CSVs, and
   the app’s script and comparison downloads previously arrived with CRLF
   endings when written on Windows.
+- Every [`print()`](https://rdrr.io/r/base/print.html) method now sends
+  its whole output to standard output. The header line went through cli,
+  which writes to the message stream, so
+  [`capture.output()`](https://rdrr.io/r/utils/capture.output.html)
+  returned the table without its header, and a knitted document showed
+  one printed object as two separate blocks.
 
 ### Continuous integration and metadata
 
@@ -149,6 +155,18 @@ misleading fixture was replaced.
   example prefix. It previously paired genuine, resolving DOIs with
   invented titles and authors, so a reader who checked one found a real
   paper mislabelled.
+- Every vignette now turns console colour off and fixes the console
+  width while it renders. pkgdown enables colour for its own build, and
+  the escape sequences were reaching the reader as literal text in the
+  middle of the tables.
+- [`vignette("comparing-topics")`](https://pablobernabeu.github.io/scopusflow/articles/comparing-topics.md)
+  shows one year of its illustrative comparison across every topic
+  rather than the whole table, and leaves out the `query` column, which
+  in a real comparison holds the whole query string and so reads badly
+  in a table.
+- The README no longer opens with a link to the documentation site,
+  which on the site’s own home page pointed the reader at the page in
+  front of them.
 
 ## scopusflow 0.2.1
 

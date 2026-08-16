@@ -278,13 +278,13 @@ the first rows show the columns.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">records</span> <span class="op">&lt;-</span> <span class="va">example_records</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span></code></pre></div>
-<pre><code> [34m&lt;scopus_records&gt; [39m summary</code></pre>
-<pre><code>138 records, from 2015 to 2024.</code></pre>
-<pre><code>90 sources, 127 with a DOI.</code></pre>
-<pre><code>Cited 7015 times in total, median 24 per record.</code></pre>
-<pre><code>Most frequent source: ACS Applied Materials &amp; Interfaces.</code></pre>
-<pre><code>Most cited:  [3mGraphene for batteries, supercapacitors and beyond [23m.</code></pre>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<pre><code>&lt;scopus_records&gt; summary
+138 records, from 2015 to 2024.
+90 sources, 127 with a DOI.
+Cited 7015 times in total, median 24 per record.
+Most frequent source: ACS Applied Materials &amp; Interfaces.
+Most cited: Graphene for batteries, supercapacitors and beyond.</code></pre>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
@@ -394,7 +394,7 @@ vacuum-assisted thermal process for electrochemical energy storage</td>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># A record set is a classed tibble, and is_scopus_records() confirms the</span></span>
 <span><span class="co"># contract.</span></span>
 <span><span class="fu"><a href="../reference/scopus_records.html">is_scopus_records</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span></code></pre></div>
@@ -403,7 +403,7 @@ vacuum-assisted thermal process for electrochemical energy storage</td>
 response, flattening the nested result into one row per record. The
 entry below carries the fields of a real article, one of those in the
 bundled corpus, in the form the API returns them.</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>entry <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>`prism:doi` <span class="op">=</span> <span class="st">"10.1021/am509065d"</span>,</span>
 <span>       `dc:title` <span class="op">=</span></span>
@@ -462,7 +462,7 @@ counting each contributor once per record. Across these 138 articles the
 tally is long-tailed, as a real literature is. They are spread over 90
 distinct journals, and only one, <em>ACS Applied Materials &amp;
 Interfaces</em>, appears more than five times.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_top.html">scopus_top</a></span><span class="op">(</span><span class="va">records</span>, by <span class="op">=</span> <span class="st">"source"</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
@@ -521,39 +521,39 @@ top-source and top-author plots and abstract retrieval in depth.</p>
 <p>Extract a clean, deduplicated DOI list for import into a reference
 manager, and compare two retrievals to see exactly what changed. Eleven
 of the 138 records arrived without a DOI, so 127 come back.</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dois</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">dois</span><span class="op">)</span></span></code></pre></div>
 <pre><code>[1] 127</code></pre>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dois</span>, <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
 <pre><code>[1] "10.15541/jim20140527"            "10.1021/am509065d"              
 [3] "10.1016/j.electacta.2015.02.019" "10.1002/smll.201403383"         </code></pre>
 <p>A search re-run later gains records and occasionally loses one to
 re-indexing. Here the baseline stops at 2023 and the second pull adds
 the 2024 articles while dropping the first record.</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">baseline</span> <span class="op">&lt;-</span> <span class="va">records</span><span class="op">[</span><span class="va">records</span><span class="op">$</span><span class="va">year</span> <span class="op">&lt;=</span> <span class="fl">2023</span>, <span class="op">]</span></span>
 <span><span class="va">later</span> <span class="op">&lt;-</span> <span class="va">records</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span>, <span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="../reference/scopus_diff_dois.html">scopus_diff_dois</a></span><span class="op">(</span>old <span class="op">=</span> <span class="va">baseline</span>, new <span class="op">=</span> <span class="va">later</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code> [34m&lt;scopus_doi_diff&gt; [39m 14 added, 1 removed, 112 unchanged</code></pre>
-<pre><code> [38;5;246m# A tibble: 127 × 2 [39m
+<pre><code>&lt;scopus_doi_diff&gt; 14 added, 1 removed, 112 unchanged
+# A tibble: 127 × 2
    doi                            status
-    [3m [38;5;246m&lt;chr&gt; [39m [23m                           [3m [38;5;246m&lt;fct&gt; [39m [23m 
- [38;5;250m 1 [39m 10.1002/adfm.202315137         added 
- [38;5;250m 2 [39m 10.1002/asia.202400548         added 
- [38;5;250m 3 [39m 10.1002/slct.202302535         added 
- [38;5;250m 4 [39m 10.1016/j.cej.2024.148822      added 
- [38;5;250m 5 [39m 10.1016/j.diamond.2024.110842  added 
- [38;5;250m 6 [39m 10.1016/j.isci.2024.111696     added 
- [38;5;250m 7 [39m 10.1016/j.jallcom.2024.175000  added 
- [38;5;250m 8 [39m 10.1016/j.jallcom.2024.177248  added 
- [38;5;250m 9 [39m 10.1016/j.jpowsour.2024.234127 added 
- [38;5;250m10 [39m 10.1016/j.jpowsour.2024.236149 added 
- [38;5;246m# ℹ 117 more rows [39m</code></pre>
+   &lt;chr&gt;                          &lt;fct&gt; 
+ 1 10.1002/adfm.202315137         added 
+ 2 10.1002/asia.202400548         added 
+ 3 10.1002/slct.202302535         added 
+ 4 10.1016/j.cej.2024.148822      added 
+ 5 10.1016/j.diamond.2024.110842  added 
+ 6 10.1016/j.isci.2024.111696     added 
+ 7 10.1016/j.jallcom.2024.175000  added 
+ 8 10.1016/j.jallcom.2024.177248  added 
+ 9 10.1016/j.jpowsour.2024.234127 added 
+10 10.1016/j.jpowsour.2024.236149 added 
+# ℹ 117 more rows</code></pre>
 <p>You can write the DOIs to a path you specify, and read the file back
 to see exactly what lands on disk.</p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"dois.csv"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">records</span>, file <span class="op">=</span> <span class="va">out</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html" class="external-link">writeLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -570,7 +570,7 @@ to see exactly what lands on disk.</p>
 emphasis of a literature shifts, expressed as each comparison topic’s
 yearly share of the reference literature. It issues one count request
 per term per year, so it needs the API.</p>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_compare_topics.html">scopus_compare_topics</a></span><span class="op">(</span></span>
 <span>  reference_query  <span class="op">=</span> <span class="st">"language learning"</span>,</span>
 <span>  comparison_terms <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"effect size"</span>, <span class="st">"Bayesian"</span><span class="op">)</span>,</span>
@@ -601,7 +601,7 @@ shape for downstream tools.</p>
 </h2>
 <p>Hand results to <code>bibliometrix</code>-style workflows, or save
 and reload them.</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">m</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/as_bibliometrix.html">as_bibliometrix</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">m</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AU"</span>, <span class="st">"TI"</span>, <span class="st">"PY"</span>, <span class="st">"SO"</span>, <span class="st">"TC"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
@@ -672,7 +672,7 @@ VACUUM-ASSISTED THERMAL PROCESS FOR ELECTROCHEMICAL ENERGY STORAGE</td>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"records.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/write_scopus_records.html">write_scopus_records</a></span><span class="op">(</span><span class="va">records</span>, <span class="va">path</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="../reference/write_scopus_records.html">read_scopus_records</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span>, <span class="va">records</span><span class="op">)</span></span></code></pre></div>
@@ -684,7 +684,7 @@ VACUUM-ASSISTED THERMAL PROCESS FOR ELECTROCHEMICAL ENERGY STORAGE</td>
 <p>Network and API problems surface as typed conditions, all inheriting
 from <code>scopus_error</code>, so a workflow can respond to them in
 code.</p>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/scopus_fetch.html">scopus_fetch</a></span><span class="op">(</span><span class="st">"..."</span><span class="op">)</span>,</span>
 <span>  scopus_error_no_key     <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"No API key configured."</span><span class="op">)</span>,</span>

@@ -26,17 +26,12 @@ records <- example_records
 summary(records)
 ```
 
-     [34m<scopus_records> [39m summary
-
+    <scopus_records> summary
     138 records, from 2015 to 2024.
-
     90 sources, 127 with a DOI.
-
     Cited 7015 times in total, median 24 per record.
-
     Most frequent source: ACS Applied Materials & Interfaces.
-
-    Most cited:  [3mGraphene for batteries, supercapacitors and beyond [23m.
+    Most cited: Graphene for batteries, supercapacitors and beyond.
 
 [`scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_top.md)
 tallies the most frequent sources or authors.

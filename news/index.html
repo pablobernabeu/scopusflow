@@ -81,6 +81,7 @@
 <li>Every request carries a 60-second transfer timeout, tunable through <code>getOption("scopusflow.timeout")</code>, so a stalled connection cannot hang a session.</li>
 <li>Retrievals record when they were taken and by which package version, as the <code>retrieved_at</code> and <code>scopusflow_version</code> attributes, preserved through the <code>.rds</code> round trip. They are attributes rather than columns, so the documented schema and the CSV round trip are unchanged.</li>
 <li>Every text file the package writes now carries LF line endings on all platforms: the BibTeX and RIS exports, the DOI and record CSVs, and the app’s script and comparison downloads previously arrived with CRLF endings when written on Windows.</li>
+<li>Every <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> method now sends its whole output to standard output. The header line went through cli, which writes to the message stream, so <code><a href="https://rdrr.io/r/utils/capture.output.html" class="external-link">capture.output()</a></code> returned the table without its header, and a knitted document showed one printed object as two separate blocks.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="continuous-integration-and-metadata-development-version">Continuous integration and metadata<a class="anchor" aria-label="anchor" href="#continuous-integration-and-metadata-development-version"></a></h3>
@@ -111,6 +112,10 @@
 <ul><li>Every vignette and example runs on that corpus, paired with the key-gated live call a reader would actually write, and the figures quoted in the prose were recomputed against the new data.</li>
 <li>The demo mode of <code><a href="../reference/run_app.html">run_app()</a></code> draws on the same corpus, so a first look at the app shows real articles rather than invented rows.</li>
 <li>The parser fixture in <code>inst/extdata</code> moves onto the reserved 10.5555 example prefix. It previously paired genuine, resolving DOIs with invented titles and authors, so a reader who checked one found a real paper mislabelled.</li>
+<li>Every vignette now turns console colour off and fixes the console width while it renders. pkgdown enables colour for its own build, and the escape sequences were reaching the reader as literal text in the middle of the tables.</li>
+<li>
+<code><a href="../articles/comparing-topics.html">vignette("comparing-topics")</a></code> shows one year of its illustrative comparison across every topic rather than the whole table, and leaves out the <code>query</code> column, which in a real comparison holds the whole query string and so reads badly in a table.</li>
+<li>The README no longer opens with a link to the documentation site, which on the site’s own home page pointed the reader at the page in front of them.</li>
 </ul></div>
 </div>
     <div class="section level2">

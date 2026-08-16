@@ -26,17 +26,12 @@ the most-cited record.
 summary(example_records)
 ```
 
-     [34m<scopus_records> [39m summary
-
+    <scopus_records> summary
     138 records, from 2015 to 2024.
-
     90 sources, 127 with a DOI.
-
     Cited 7015 times in total, median 24 per record.
-
     Most frequent source: ACS Applied Materials & Interfaces.
-
-    Most cited:  [3mGraphene for batteries, supercapacitors and beyond [23m.
+    Most cited: Graphene for batteries, supercapacitors and beyond.
 
 Eleven of those 138 records arrived without a DOI, which is why the
 summary counts 127 with one. That is ordinary in a real harvest, and the

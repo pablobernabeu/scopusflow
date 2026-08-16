@@ -72,56 +72,27 @@ cmp <- tibble::tibble(
                                     rep(c(40, 33, 15, 9), each = length(years)))
 )
 class(cmp) <- c("scopus_comparison", class(cmp))
-cmp
+
+# The whole table is too long to read here, so show its first year across every
+# topic. The `query` column is left out because a real comparison carries the
+# whole query string sent to the API in it, which is too long for a table. The
+# illustrative table built above holds a placeholder there instead.
+cmp[cmp$year == min(cmp$year), setdiff(names(cmp), "query")]
 ```
 
-| query | query_type | abridged_query | year | n | reference_n | comparison_percentage | average_comparison_percentage |
-|:---|:---|:---|---:|---:|---:|---:|---:|
-| q | reference | deep learning | 2013 | 400 | 400 | 100.000000 | 100 |
-| q | reference | deep learning | 2014 | 550 | 550 | 100.000000 | 100 |
-| q | reference | deep learning | 2015 | 700 | 700 | 100.000000 | 100 |
-| q | reference | deep learning | 2016 | 850 | 850 | 100.000000 | 100 |
-| q | reference | deep learning | 2017 | 1000 | 1000 | 100.000000 | 100 |
-| q | reference | deep learning | 2018 | 1150 | 1150 | 100.000000 | 100 |
-| q | reference | deep learning | 2019 | 1300 | 1300 | 100.000000 | 100 |
-| q | reference | deep learning | 2020 | 1450 | 1450 | 100.000000 | 100 |
-| q | reference | deep learning | 2021 | 1600 | 1600 | 100.000000 | 100 |
-| q | comparison | computer vision | 2013 | 140 | 400 | 35.000000 | 40 |
-| q | comparison | computer vision | 2014 | 212 | 550 | 38.545454 | 40 |
-| q | comparison | computer vision | 2015 | 285 | 700 | 40.714286 | 40 |
-| q | comparison | computer vision | 2016 | 358 | 850 | 42.117647 | 40 |
-| q | comparison | computer vision | 2017 | 430 | 1000 | 43.000000 | 40 |
-| q | comparison | computer vision | 2018 | 502 | 1150 | 43.652174 | 40 |
-| q | comparison | computer vision | 2019 | 575 | 1300 | 44.230769 | 40 |
-| q | comparison | computer vision | 2020 | 648 | 1450 | 44.689655 | 40 |
-| q | comparison | computer vision | 2021 | 720 | 1600 | 45.000000 | 40 |
-| q | comparison | natural language processing | 2013 | 90 | 400 | 22.500000 | 33 |
-| q | comparison | natural language processing | 2014 | 146 | 550 | 26.545455 | 33 |
-| q | comparison | natural language processing | 2015 | 202 | 700 | 28.857143 | 33 |
-| q | comparison | natural language processing | 2016 | 259 | 850 | 30.470588 | 33 |
-| q | comparison | natural language processing | 2017 | 315 | 1000 | 31.500000 | 33 |
-| q | comparison | natural language processing | 2018 | 371 | 1150 | 32.260870 | 33 |
-| q | comparison | natural language processing | 2019 | 428 | 1300 | 32.923077 | 33 |
-| q | comparison | natural language processing | 2020 | 484 | 1450 | 33.379310 | 33 |
-| q | comparison | natural language processing | 2021 | 540 | 1600 | 33.750000 | 33 |
-| q | comparison | medical imaging | 2013 | 15 | 400 | 3.750000 | 15 |
-| q | comparison | medical imaging | 2014 | 46 | 550 | 8.363636 | 15 |
-| q | comparison | medical imaging | 2015 | 76 | 700 | 10.857143 | 15 |
-| q | comparison | medical imaging | 2016 | 107 | 850 | 12.588235 | 15 |
-| q | comparison | medical imaging | 2017 | 138 | 1000 | 13.800000 | 15 |
-| q | comparison | medical imaging | 2018 | 168 | 1150 | 14.608696 | 15 |
-| q | comparison | medical imaging | 2019 | 199 | 1300 | 15.307692 | 15 |
-| q | comparison | medical imaging | 2020 | 229 | 1450 | 15.793103 | 15 |
-| q | comparison | medical imaging | 2021 | 260 | 1600 | 16.250000 | 15 |
-| q | comparison | drug discovery | 2013 | 8 | 400 | 2.000000 | 9 |
-| q | comparison | drug discovery | 2014 | 28 | 550 | 5.090909 | 9 |
-| q | comparison | drug discovery | 2015 | 48 | 700 | 6.857143 | 9 |
-| q | comparison | drug discovery | 2016 | 69 | 850 | 8.117647 | 9 |
-| q | comparison | drug discovery | 2017 | 89 | 1000 | 8.900000 | 9 |
-| q | comparison | drug discovery | 2018 | 109 | 1150 | 9.478261 | 9 |
-| q | comparison | drug discovery | 2019 | 130 | 1300 | 10.000000 | 9 |
-| q | comparison | drug discovery | 2020 | 150 | 1450 | 10.344828 | 9 |
-| q | comparison | drug discovery | 2021 | 170 | 1600 | 10.625000 | 9 |
+| query_type | abridged_query | year | n | reference_n | comparison_percentage | average_comparison_percentage |
+|:---|:---|---:|---:|---:|---:|---:|
+| reference | deep learning | 2013 | 400 | 400 | 100.00 | 100 |
+| comparison | computer vision | 2013 | 140 | 400 | 35.00 | 40 |
+| comparison | natural language processing | 2013 | 90 | 400 | 22.50 | 33 |
+| comparison | medical imaging | 2013 | 15 | 400 | 3.75 | 15 |
+| comparison | drug discovery | 2013 | 8 | 400 | 2.00 | 9 |
+
+Those are the five rows for the first year, one for the reference and
+one for each comparison term. The whole table has 45 rows on the same
+pattern. The `query` column left out above is still in the object. A
+real comparison carries the whole query behind each count there, where
+this illustrative table carries a placeholder.
 
 The `comparison_percentage` column is the per-year share, and
 `average_comparison_percentage` is the same ratio computed over the
