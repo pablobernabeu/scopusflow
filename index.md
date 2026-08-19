@@ -90,6 +90,10 @@ records <- scopus_fetch_plan(plan, cache_dir = scopus_cache_dir(), resume = TRUE
 # (Zotero, EndNote, Mendeley) or a LaTeX bibliography.
 scopus_extract_dois(records, file = file.path(tempdir(), "dois.csv"))
 as_bibtex(records, file = file.path(tempdir(), "records.bib"))
+
+# Write the search up for the methods section, to the PRISMA-S standard,
+# from what the plan and the harvest already record.
+scopus_search_report(records, file = file.path(tempdir(), "search-record.md"))
 ```
 
 The [Get
@@ -97,12 +101,12 @@ started](https://pablobernabeu.github.io/scopusflow/articles/scopusflow.html)
 vignette walks this workflow offline, on records bundled with the
 package, and the
 [articles](https://pablobernabeu.github.io/scopusflow/articles/index.html)
-each cover one part in depth: designing queries, search plans and quota,
-building a reference set, analysing and visualising a literature
-(trends, top sources and authors, concept intersections, abstracts and
-cursor-paged harvests), author keywords and references, comparing topics
-over time (the chart above) and tracking how a literature changes
-between retrievals.
+each cover one part in depth: designing queries, search plans, quota and
+the PRISMA-S search record, building a reference set, analysing and
+visualising a literature (trends, top sources and authors, concept
+intersections, abstracts and cursor-paged harvests), author keywords and
+references, comparing topics over time (the chart above) and tracking
+how a literature changes between retrievals.
 
 ## Code-free app
 

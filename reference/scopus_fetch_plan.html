@@ -124,7 +124,16 @@ file already exists is loaded from disk rather than fetched again.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A <a href="scopus_records.html">scopus_records</a> tibble combining all cells, with the originating
-<code>plan</code> attached as the <code>plan</code> attribute. The <code>retrieved_at</code> and
+<code>plan</code> attached as the <code>plan</code> attribute and the per-cell accounting as
+<code>cell_totals</code>, a tibble of <code>cell</code>, <code>date</code>, <code>n_records</code> and
+<code>reported_total</code> (the count the API gave for that cell, <code>NA</code> where it gave
+none). <code>total_results</code> is their sum, and is <code>NA</code> unless every cell
+reported one, since a partial sum would understate the search while
+looking like a real figure. A cell that comes back shorter than the API
+said it should warns, because a truncated or refused download otherwise
+arrives as a merely small result set; a cell stopped by <code>max_results</code> is
+short by request and does not warn. <code><a href="scopus_search_report.html">scopus_search_report()</a></code> reads all of
+this back. The <code>retrieved_at</code> and
 <code>scopusflow_version</code> attributes described in <code><a href="scopus_fetch.html">scopus_fetch()</a></code> are carried
 across from the cells: the time is the earliest of them, since a combined
 set is only as fresh as its oldest cell, and every version that

@@ -6,11 +6,15 @@ search plans, retrieves records with rate-limit handling, retry with
 back-off and optional resumable caching, normalises results to a stable
 tidy schema, extracts and tracks changes in Digital Object Identifiers
 (DOIs), sizes sets of concepts and their intersections, compares
-publication trends across topics and exports to formats compatible with
-downstream bibliometric tools. Network and 'API' errors are surfaced as
-typed conditions so that callers can respond to them programmatically.
-'Scopus' is a trademark of Elsevier. This package is an independent
-client and is not affiliated with or endorsed by Elsevier.
+publication trends across topics, writes the search up as a reproducible
+record for a methods section following the 'PRISMA-S' reporting standard
+(Rethlefsen and others, 2021)
+[doi:10.1186/s13643-020-01542-z](https://doi.org/10.1186/s13643-020-01542-z)
+and exports to formats compatible with downstream bibliometric tools.
+Network and 'API' errors are surfaced as typed conditions so that
+callers can respond to them programmatically. 'Scopus' is a trademark of
+Elsevier. This package is an independent client and is not affiliated
+with or endorsed by Elsevier.
 
 ## See also
 

@@ -41,7 +41,13 @@ c(x, ...)
 A
 [scopus_records](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
 tibble. Per-retrieval attributes such as `total_results` are not carried
-over, since they describe a single fetch.
+over, since they describe a single fetch. The merge itself is recorded
+in the `combined` attribute, a list of `n_in` (records supplied),
+`n_out` (records kept), `n_removed` and `deduplicated`, which is what
+lets
+[`scopus_search_report()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_search_report.md)
+state how many duplicates were removed instead of leaving the PRISMA-S
+item unanswered.
 
 ## See also
 

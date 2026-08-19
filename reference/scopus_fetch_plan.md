@@ -73,8 +73,18 @@ scopus_fetch_plan(
 A
 [scopus_records](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
 tibble combining all cells, with the originating `plan` attached as the
-`plan` attribute. The `retrieved_at` and `scopusflow_version` attributes
-described in
+`plan` attribute and the per-cell accounting as `cell_totals`, a tibble
+of `cell`, `date`, `n_records` and `reported_total` (the count the API
+gave for that cell, `NA` where it gave none). `total_results` is their
+sum, and is `NA` unless every cell reported one, since a partial sum
+would understate the search while looking like a real figure. A cell
+that comes back shorter than the API said it should warns, because a
+truncated or refused download otherwise arrives as a merely small result
+set; a cell stopped by `max_results` is short by request and does not
+warn.
+[`scopus_search_report()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_search_report.md)
+reads all of this back. The `retrieved_at` and `scopusflow_version`
+attributes described in
 [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
 are carried across from the cells: the time is the earliest of them,
 since a combined set is only as fresh as its oldest cell, and every

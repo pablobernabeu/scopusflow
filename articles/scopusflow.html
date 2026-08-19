@@ -679,12 +679,27 @@ VACUUM-ASSISTED THERMAL PROCESS FOR ELECTROCHEMICAL ENERGY STORAGE</td>
 <pre><code>[1] TRUE</code></pre>
 </div>
 <div class="section level2">
+<h2 id="writing-the-search-up">Writing the search up<a class="anchor" aria-label="anchor" href="#writing-the-search-up"></a>
+</h2>
+<p>A search that is going into a paper has to be reported.
+<code><a href="../reference/scopus_search_report.html">scopus_search_report()</a></code> assembles that record from the plan
+and the harvest, to the PRISMA-S standard, and formats it as a methods
+paragraph. It states only what the objects hold, so the record below is
+candid about the bundled corpus carrying no retrieval time of its own.
+The <em>Search plans and quota-aware retrieval</em> article works
+through it in full.</p>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_search_report.html">scopus_search_report</a></span><span class="op">(</span><span class="va">records</span>, plan <span class="op">=</span> <span class="va">plan</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span><span class="va">report</span>, style <span class="op">=</span> <span class="st">"paragraph"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code>The literature was searched in Scopus, on the Elsevier Scopus Search API, on a date this record does not carry. The search expression was TITLE-ABS-KEY(graphene supercapacitor), limited to publication years 2015 to 2024. It was partitioned into 10 cells, one per year, each retrieved through the STANDARD view in pages of 200 records, under a paging mode this record does not carry. The search retrieved 138 records. The API's own count of matching records was not recorded, so the harvest cannot be shown to be complete. Of the records retrieved, 127 carry a DOI. No de-duplication step was recorded for this set. The version of scopusflow that produced this set is unrecorded. The PRISMA-S items this record cannot supply, among them peer review of the strategy, grey literature and any other database searched, remain yours to report.</code></pre>
+</div>
+<div class="section level2">
 <h2 id="handling-failures">Handling failures<a class="anchor" aria-label="anchor" href="#handling-failures"></a>
 </h2>
 <p>Network and API problems surface as typed conditions, all inheriting
 from <code>scopus_error</code>, so a workflow can respond to them in
 code.</p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/scopus_fetch.html">scopus_fetch</a></span><span class="op">(</span><span class="st">"..."</span><span class="op">)</span>,</span>
 <span>  scopus_error_no_key     <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">message</a></span><span class="op">(</span><span class="st">"No API key configured."</span><span class="op">)</span>,</span>

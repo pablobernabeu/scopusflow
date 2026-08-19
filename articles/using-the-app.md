@@ -190,11 +190,15 @@ be saved as an RDS file, as a clean DOI list, and as BibTeX and RIS for
 a reference manager such as Zotero or EndNote, drawn from
 [`as_bibtex()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
 and
-[`as_ris()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md).
-The comparison can be saved as a CSV. None of this contacts the API
-again, because it works on results already in hand. Between the
-downloaded script and the exported records, a session in the app leaves
-you with both the data and the code that produced it.
+[`as_ris()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md),
+and as a PRISMA-S search record in Markdown, drawn from
+[`scopus_search_report()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_search_report.md).
+In demo mode that record carries no plan or retrieval time, and says so,
+since the records on screen were replayed rather than retrieved. The
+comparison can be saved as a CSV. None of this contacts the API again,
+because it works on results already in hand. Between the downloaded
+script and the exported records, a session in the app leaves you with
+both the data and the code that produced it.
 
 ## Beyond the app
 

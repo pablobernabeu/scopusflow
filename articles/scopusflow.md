@@ -347,6 +347,24 @@ identical(read_scopus_records(path), records)
 
     [1] TRUE
 
+## Writing the search up
+
+A search that is going into a paper has to be reported.
+[`scopus_search_report()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_search_report.md)
+assembles that record from the plan and the harvest, to the PRISMA-S
+standard, and formats it as a methods paragraph. It states only what the
+objects hold, so the record below is candid about the bundled corpus
+carrying no retrieval time of its own. The *Search plans and quota-aware
+retrieval* article works through it in full.
+
+``` r
+
+report <- scopus_search_report(records, plan = plan)
+cat(format(report, style = "paragraph"))
+```
+
+    The literature was searched in Scopus, on the Elsevier Scopus Search API, on a date this record does not carry. The search expression was TITLE-ABS-KEY(graphene supercapacitor), limited to publication years 2015 to 2024. It was partitioned into 10 cells, one per year, each retrieved through the STANDARD view in pages of 200 records, under a paging mode this record does not carry. The search retrieved 138 records. The API's own count of matching records was not recorded, so the harvest cannot be shown to be complete. Of the records retrieved, 127 carry a DOI. No de-duplication step was recorded for this set. The version of scopusflow that produced this set is unrecorded. The PRISMA-S items this record cannot supply, among them peer review of the strategy, grey literature and any other database searched, remain yours to report.
+
 ## Handling failures
 
 Network and API problems surface as typed conditions, all inheriting

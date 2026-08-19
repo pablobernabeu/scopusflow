@@ -52,6 +52,15 @@ combine harvests.
 - [`scopus_quota()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_quota.md)
   : Parse 'Scopus' quota and rate-limit headers
 
+## Reporting
+
+Write the search up for a methods section, to the PRISMA-S standard.
+
+- [`scopus_search_report()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_search_report.md)
+  [`format(`*`<scopus_search_report>`*`)`](https://pablobernabeu.github.io/scopusflow/reference/scopus_search_report.md)
+  [`print(`*`<scopus_search_report>`*`)`](https://pablobernabeu.github.io/scopusflow/reference/scopus_search_report.md)
+  : Assemble a reproducible record of a 'Scopus' search
+
 ## DOIs and change tracking
 
 Extract the identifiers of a harvest, and see what a later retrieval

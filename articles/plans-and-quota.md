@@ -261,6 +261,213 @@ without one cannot be matched to their own copies. A live Scopus harvest
 carries an identifier on every record, so the same call would return
 138.
 
+## Writing the search up
+
+A harvest is rarely the end of the work. A systematic review has to
+report the search itself, in enough detail that a reader can repeat it,
+and the reporting standard for that is PRISMA-S (Rethlefsen et al.,
+2021).
+[`scopus_search_report()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_search_report.md)
+assembles the record from what the plan and the harvest already carry,
+so the methods section is written from the objects rather than from
+memory.
+
+A plan on its own can be reported before it is run, which is useful when
+a protocol has to be registered in advance. The plan below describes the
+search that produced the bundled corpus, so that the record and the
+records match.
+
+``` r
+
+graphene <- scopus_plan("graphene supercapacitor", years = 2015:2024,
+                        field = "TITLE-ABS-KEY", partition = "year")
+report <- scopus_search_report(graphene)
+report
+```
+
+    Search strategy record (PRISMA-S)
+
+    Database: Scopus, on the Elsevier Scopus Search API
+    Search expression: TITLE-ABS-KEY(graphene supercapacitor)
+    Field tag: TITLE-ABS-KEY
+    Years: 2015 to 2024
+    Partition: one cell per year, 10 cells
+    View: STANDARD
+    Page size: 200 records per request
+    Paging: unrecorded
+    Date searched: unrecorded, this plan has not been run
+    Software: unrecorded
+    Records retrieved: none, this plan has not been run
+    Records reported as matching: unrecorded, this plan has not been run
+    Completeness: unrecorded, this plan has not been run
+    Duplicates removed: unrecorded, this plan has not been run
+    Records carrying a DOI: unrecorded, this plan has not been run
+
+    Cells
+      1 (2015): retrieved records unrecorded
+      2 (2016): retrieved records unrecorded
+      3 (2017): retrieved records unrecorded
+      4 (2018): retrieved records unrecorded
+      5 (2019): retrieved records unrecorded
+      6 (2020): retrieved records unrecorded
+      7 (2021): retrieved records unrecorded
+      8 (2022): retrieved records unrecorded
+      9 (2023): retrieved records unrecorded
+      10 (2024): retrieved records unrecorded
+
+    PRISMA 2020 identification
+      Records identified from Scopus: unrecorded, this plan has not been run
+      Duplicate records removed before screening: unrecorded, this plan has not been run
+
+    PRISMA-S items this record supplies
+      1 Database name. Scopus, searched on the Elsevier Scopus Search API.
+      8 Full search strategies. The search expression, field tag and year limit of every cell, as the plan sends them.
+      9 Limits and restrictions. Publication years 2015 to 2024. scopusflow applies no document type, language or subject area limit of its own.
+
+    PRISMA-S items only you can supply
+      2 Multi-database searching. Whether any database besides Scopus was searched, and how the strategy was translated for it.
+      3 Study registries. Any trial or study registry searched.
+      4 Online resources and browsing. Any web site, table of contents or other source searched or browsed by hand.
+      5 Citation searching. Any backward or forward citation searching.
+      6 Contacts. Any authors or organisations contacted for studies.
+      7 Other methods. Any further method used to identify records.
+      10 Search filters. Any published or validated search filter used, and where it came from. scopusflow applies none of its own.
+      11 Prior work. Any earlier review or strategy this search was adapted from.
+      12 Updates. Whether the search was re-run or updated, and when.
+      13 Dates of searches. The date of each search, which this plan has not been run to produce.
+      14 Peer review. Whether the strategy was peer reviewed, and by whom.
+      15 Total records. The number of records identified, which this plan has not been run to produce.
+      16 Deduplication. How duplicate records were removed, which this plan has not been run to produce.
+
+    The reporting standard is PRISMA-S (Rethlefsen et al., 2021, Systematic Reviews, 10, 39, https://doi.org/10.1186/s13643-020-01542-z), with the identification counts of the PRISMA 2020 flow diagram.
+
+    The methods paragraph is format(x, style = "paragraph"); pass file = to write the whole record as Markdown.
+
+Notice how much of it says “unrecorded”. Nothing has been retrieved yet,
+so there is nothing to state, and the report says so rather than leaving
+a blank that a reader might mistake for a zero. That is the governing
+rule here: the record states only what the objects hold. It never
+substitutes the current time for a retrieval that did not record one,
+never gives a completeness figure for a harvest whose reported total is
+unknown, and never counts duplicates unless a merge recorded removing
+them.
+
+After a harvest the picture fills in.
+[`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
+attaches the plan, the retrieval time, the version, the paging mode and
+the per-cell accounting, so the report has everything it needs and you
+never set any of it yourself. The bundled corpus stands in for a harvest
+here, since Scopus records may not be redistributed, so those attributes
+are written out below to show what each one contributes.
+
+``` r
+
+records <- example_records
+attr(records, "plan") <- graphene
+attr(records, "retrieved_at") <- as.POSIXct("2026-07-22 09:15:00", tz = "UTC")
+attr(records, "scopusflow_version") <- "0.3.0"
+attr(records, "paging") <- "offset"
+per_year <- as.integer(table(example_records$year))
+attr(records, "cell_totals") <- tibble::tibble(
+  cell = 1:10, date = as.character(2015:2024),
+  n_records = per_year, reported_total = as.numeric(per_year)
+)
+
+report <- scopus_search_report(records)
+report
+```
+
+    Search strategy record (PRISMA-S)
+
+    Database: Scopus, on the Elsevier Scopus Search API
+    Search expression: TITLE-ABS-KEY(graphene supercapacitor)
+    Field tag: TITLE-ABS-KEY
+    Years: 2015 to 2024
+    Partition: one cell per year, 10 cells
+    View: STANDARD
+    Page size: 200 records per request
+    Paging: offset
+    Date searched: 2026-07-22 09:15:00 UTC
+    Software: scopusflow 0.3.0
+    Records retrieved: 138
+    Records reported as matching: 138
+    Completeness: every record the API reported as matching was retrieved
+    Duplicates removed: unrecorded, no de-duplication step was recorded for this set
+    Records carrying a DOI: 127 of 138
+
+    Cells
+      1 (2015): 15 retrieved, 15 reported, complete
+      2 (2016): 9 retrieved, 9 reported, complete
+      3 (2017): 10 retrieved, 10 reported, complete
+      4 (2018): 15 retrieved, 15 reported, complete
+      5 (2019): 19 retrieved, 19 reported, complete
+      6 (2020): 13 retrieved, 13 reported, complete
+      7 (2021): 13 retrieved, 13 reported, complete
+      8 (2022): 15 retrieved, 15 reported, complete
+      9 (2023): 15 retrieved, 15 reported, complete
+      10 (2024): 14 retrieved, 14 reported, complete
+
+    PRISMA 2020 identification
+      Records identified from Scopus: 138
+      Duplicate records removed before screening: unrecorded, no de-duplication step was recorded for this set
+
+    PRISMA-S items this record supplies
+      1 Database name. Scopus, searched on the Elsevier Scopus Search API.
+      8 Full search strategies. The search expression, field tag and year limit of every cell, as the plan sends them.
+      9 Limits and restrictions. Publication years 2015 to 2024. scopusflow applies no document type, language or subject area limit of its own.
+      13 Dates of searches. 2026-07-22 09:15:00 UTC.
+      15 Total records. 138 records retrieved from Scopus, of 138 the API reported as matching.
+
+    PRISMA-S items only you can supply
+      2 Multi-database searching. Whether any database besides Scopus was searched, and how the strategy was translated for it.
+      3 Study registries. Any trial or study registry searched.
+      4 Online resources and browsing. Any web site, table of contents or other source searched or browsed by hand.
+      5 Citation searching. Any backward or forward citation searching.
+      6 Contacts. Any authors or organisations contacted for studies.
+      7 Other methods. Any further method used to identify records.
+      10 Search filters. Any published or validated search filter used, and where it came from. scopusflow applies none of its own.
+      11 Prior work. Any earlier review or strategy this search was adapted from.
+      12 Updates. Whether the search was re-run or updated, and when.
+      14 Peer review. Whether the strategy was peer reviewed, and by whom.
+      16 Deduplication. How duplicate records were removed, which this set does not record.
+
+    The reporting standard is PRISMA-S (Rethlefsen et al., 2021, Systematic Reviews, 10, 39, https://doi.org/10.1186/s13643-020-01542-z), with the identification counts of the PRISMA 2020 flow diagram.
+
+    The methods paragraph is format(x, style = "paragraph"); pass file = to write the whole record as Markdown.
+
+The completeness lines are worth a moment. Each cell is shown against
+the number of records the API reported for it, so a cell that came back
+short is visible rather than buried in a total, and the overall figure
+is given only because every cell reported one. Drop any of those
+attributes and the corresponding line says so instead.
+
+The methods paragraph is the same record as prose, ready to paste into a
+manuscript and edit.
+
+``` r
+
+cat(format(report, style = "paragraph"))
+```
+
+    The literature was searched in Scopus, on the Elsevier Scopus Search API, on 22 July 2026. The search expression was TITLE-ABS-KEY(graphene supercapacitor), limited to publication years 2015 to 2024. It was partitioned into 10 cells, one per year, each retrieved through the STANDARD view in pages of 200 records under offset paging. The search retrieved 138 records, matching the 138 the API reported, so every reported record was retrieved. Of the records retrieved, 127 carry a DOI. No de-duplication step was recorded for this set. The search was run with scopusflow 0.3.0. The PRISMA-S items this record cannot supply, among them peer review of the strategy, grey literature and any other database searched, remain yours to report.
+
+Supplying a `file` writes the whole record as Markdown, including a
+runnable snippet that rebuilds the plan, which makes a natural
+supplementary file.
+
+``` r
+
+scopus_search_report(records, file = "search-record.md")
+```
+
+Five of the sixteen PRISMA-S items are answered here from the objects,
+and a sixth, de-duplication, would be too had these records been merged
+with
+[`scopus_combine()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md).
+The rest, among them peer review of the strategy, grey literature and
+any other database searched, are listed as yours to supply, because the
+package has no way to know them.
+
 ## When the ceiling bites
 
 Under offset paging, a query matching more than 5000 records cannot be
