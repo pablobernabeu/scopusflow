@@ -161,11 +161,13 @@ app_ui <- function() {
         shiny::br(),
         shiny::p(shiny::tags$small(
           "Carry the records into a reference manager (Zotero, EndNote) or a ",
-          "LaTeX bibliography.")),
+          "LaTeX bibliography, or write the search up for a methods section.")),
         shiny::downloadButton("dl_rds", "Records (.rds)", class = "btn-outline-secondary"),
         shiny::downloadButton("dl_dois", "DOIs (.csv)", class = "btn-outline-secondary"),
         shiny::downloadButton("dl_bibtex", "BibTeX (.bib)", class = "btn-outline-secondary"),
-        shiny::downloadButton("dl_ris", "RIS (.ris)", class = "btn-outline-secondary")
+        shiny::downloadButton("dl_ris", "RIS (.ris)", class = "btn-outline-secondary"),
+        shiny::downloadButton("dl_report", "Search record (.md)",
+                              class = "btn-outline-secondary")
       )
     ),
     shiny::tags$script(shiny::HTML(
@@ -619,6 +621,17 @@ app_server <- function(input, output, session) {
     content = function(file) {
       shiny::req(rv$records)
       as_ris(rv$records, file = file)
+    }
+  )
+
+  # The PRISMA-S search record. In demo mode the records are the bundled corpus
+  # and carry no plan or retrieval time, so the record comes out saying so,
+  # which is the honest answer rather than a defect to paper over.
+  output$dl_report <- shiny::downloadHandler(
+    filename = "scopus-search-record.md",
+    content = function(file) {
+      shiny::req(rv$records)
+      scopus_search_report(rv$records, file = file)
     }
   )
 

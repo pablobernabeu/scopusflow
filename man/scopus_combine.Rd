@@ -20,6 +20,10 @@ failing that a DOI (compared case-insensitively), are kept once.}
 \value{
 A \link{scopus_records} tibble. Per-retrieval attributes such as
 \code{total_results} are not carried over, since they describe a single fetch.
+The merge itself is recorded in the \code{combined} attribute, a list of \code{n_in}
+(records supplied), \code{n_out} (records kept), \code{n_removed} and \code{deduplicated},
+which is what lets \code{\link[=scopus_search_report]{scopus_search_report()}} state how many duplicates were
+removed instead of leaving the PRISMA-S item unanswered.
 }
 \description{
 Binds several \link{scopus_records} objects into a single one, renumbering

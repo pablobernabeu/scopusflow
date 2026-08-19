@@ -1,5 +1,44 @@
 # scopusflow (development version)
 
+## Writing up a search
+
+* `scopus_search_report()` assembles the reproducible search-strategy record a
+  systematic review has to report, from a harvest or from a plan not yet run. It
+  prints as a readable report, formats as a methods paragraph fit to paste into a
+  manuscript (`format(report, style = "paragraph")`), and writes as Markdown when
+  `file` is supplied. It carries the database and platform, the field-wrapped
+  query of every cell, the year limits, view, page size and paging mode, the date
+  searched, the records retrieved against the number the API reported as matching,
+  per-cell completeness, duplicates removed, the software versions, a runnable
+  snippet that rebuilds the plan, and an explicit map of which PRISMA-S items the
+  package can supply and which only you can. The reporting standard is PRISMA-S
+  (Rethlefsen et al., 2021, Systematic Reviews, 10, 39), with the identification
+  counts of the PRISMA 2020 flow diagram.
+
+  Because the output is written for a published methods section, the report states
+  only what the objects record. An absent retrieval time is never replaced by the
+  current one, a completeness figure is never given for a harvest whose reported
+  total is unknown, duplicates are counted only where a merge recorded removing
+  them, and every unverifiable field says it is unrecorded, in words. Ten of the
+  sixteen PRISMA-S items, among them peer review of the strategy, grey literature
+  and any other database searched, are listed as yours to supply, since the
+  package has no evidence for them.
+
+* `scopus_fetch_plan()` now carries the per-cell accounting onto its result, as
+  the `cell_totals` attribute, and sums it into `total_results` when (and only
+  when) every cell reported a total. A cell that comes back shorter than the API
+  said it should now warns, which the Python twin has done since 0.3.0; the
+  warning text is byte-identical between the two. A cell stopped by `max_results`
+  is short by request and does not warn.
+
+* `scopus_combine()` records the merge in the `combined` attribute: how many
+  records went in, how many were kept, how many were removed and whether
+  de-duplication ran. That count exists only at the moment of the merge, and
+  PRISMA-S asks for it.
+
+* A retrieval also records how it was paged, as the `paging` attribute, since an
+  offset-paged query stops at the API's ceiling where a cursor-paged one does not.
+
 ## Cache defects that returned the wrong records
 
 All were silent, and all are fixed.
@@ -47,6 +86,21 @@ later resume.
 
 ## Other fixes
 
+* `scopus_combine()` handed the merged set one input's own retrieval attributes.
+  `rbind()` keeps those of its first argument, so the result inherited that harvest's
+  `plan`, `cell_totals` and `total_results` even though it held the rows of several,
+  contradicting the documented promise that per-retrieval attributes are not carried
+  over. A search record read off the inherited total then called the union of two
+  harvests complete against a figure belonging to one of them. Only what survives a
+  merge is kept now: the earliest retrieval time, every contributing version, the
+  paging mode where the inputs agree, and the merge counts themselves.
+* The PRISMA 2020 identification block counted the records identified after
+  de-duplication, so the two figures it gives could not both be right: the diagram
+  subtracts the duplicates removed from the records identified to reach the records
+  screened, and 138 identified less 11 removed is not the 138 rows the set holds. Where
+  a merge recorded how many records went into it, that is now the identification count.
+* A plan not yet run was described in the past tense, and its date line said the set did
+  not carry a retrieval time rather than that no retrieval had happened.
 * `average_comparison_percentage` summed the numerator over years the denominator
   excluded, so a year with a missing reference count inflated it — a figure that
   contradicted the per-year shares printed beside it, and that drives the topic ordering

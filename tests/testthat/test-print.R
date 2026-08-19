@@ -38,6 +38,9 @@ print_fixtures <- function() {
     scopus_plan = scopus_plan("x", years = 2018:2019, partition = "year"),
     scopus_records = example_records,
     scopus_records_summary = summary(example_records),
+    scopus_search_report = scopus_search_report(
+      scopus_plan("x", years = 2018:2019, partition = "year")
+    ),
     scopus_trend = scopus_trend("q", years = 2015:2016)
   )
 }
@@ -70,6 +73,7 @@ test_that("every print method puts its header on standard output", {
   expect_match(on_stdout[["scopus_plan"]], "2 cells")
   expect_match(on_stdout[["scopus_records"]], "138 records")
   expect_match(on_stdout[["scopus_records_summary"]], "138 records")
+  expect_match(on_stdout[["scopus_search_report"]], "Search strategy record")
   expect_match(on_stdout[["scopus_trend"]], "2 years")
 })
 

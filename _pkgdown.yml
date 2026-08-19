@@ -154,6 +154,10 @@ reference:
   - summary.scopus_records
   - scopus_combine
   - scopus_quota
+- title: Reporting
+  desc: Write the search up for a methods section, to the PRISMA-S standard.
+  contents:
+  - scopus_search_report
 - title: DOIs and change tracking
   desc: Extract the identifiers of a harvest, and see what a later retrieval added or dropped.
   contents:

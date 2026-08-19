@@ -44,7 +44,16 @@ file already exists is loaded from disk rather than fetched again.}
 }
 \value{
 A \link{scopus_records} tibble combining all cells, with the originating
-\code{plan} attached as the \code{plan} attribute. The \code{retrieved_at} and
+\code{plan} attached as the \code{plan} attribute and the per-cell accounting as
+\code{cell_totals}, a tibble of \code{cell}, \code{date}, \code{n_records} and
+\code{reported_total} (the count the API gave for that cell, \code{NA} where it gave
+none). \code{total_results} is their sum, and is \code{NA} unless every cell
+reported one, since a partial sum would understate the search while
+looking like a real figure. A cell that comes back shorter than the API
+said it should warns, because a truncated or refused download otherwise
+arrives as a merely small result set; a cell stopped by \code{max_results} is
+short by request and does not warn. \code{\link[=scopus_search_report]{scopus_search_report()}} reads all of
+this back. The \code{retrieved_at} and
 \code{scopusflow_version} attributes described in \code{\link[=scopus_fetch]{scopus_fetch()}} are carried
 across from the cells: the time is the earliest of them, since a combined
 set is only as fresh as its oldest cell, and every version that

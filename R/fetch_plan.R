@@ -27,7 +27,16 @@
 #' @param api_key,inst_token Optional credentials (see [scopus_has_key()]).
 #' @param verbose Logical. When `TRUE`, per-cell progress is reported.
 #' @return A [scopus_records] tibble combining all cells, with the originating
-#'   `plan` attached as the `plan` attribute. The `retrieved_at` and
+#'   `plan` attached as the `plan` attribute and the per-cell accounting as
+#'   `cell_totals`, a tibble of `cell`, `date`, `n_records` and
+#'   `reported_total` (the count the API gave for that cell, `NA` where it gave
+#'   none). `total_results` is their sum, and is `NA` unless every cell
+#'   reported one, since a partial sum would understate the search while
+#'   looking like a real figure. A cell that comes back shorter than the API
+#'   said it should warns, because a truncated or refused download otherwise
+#'   arrives as a merely small result set; a cell stopped by `max_results` is
+#'   short by request and does not warn. [scopus_search_report()] reads all of
+#'   this back. The `retrieved_at` and
 #'   `scopusflow_version` attributes described in [scopus_fetch()] are carried
 #'   across from the cells: the time is the earliest of them, since a combined
 #'   set is only as fresh as its oldest cell, and every version that
@@ -83,6 +92,7 @@ scopus_fetch_plan <- function(plan,
   }
 
   results <- vector("list", nrow(plan))
+  reported <- rep(NA_real_, nrow(plan))
   for (i in seq_len(nrow(plan))) {
     cell <- plan[i, ]
     cache_file <- if (is.null(cache_dir)) {
@@ -106,6 +116,7 @@ scopus_fetch_plan <- function(plan,
       } else if (scopus_cell_cache_matches(cached, cell, max_results)) {
         if (verbose) cli::cli_inform("Cell {i}/{nrow(plan)}: loaded from cache.")
         results[[i]] <- scopus_serve_checkpoint(cached, max_results)
+        reported[i] <- scopus_reported_total(results[[i]])
         next
       } else {
         rlang::warn(
@@ -134,12 +145,57 @@ scopus_fetch_plan <- function(plan,
       attr(recs, "cache_meta") <- scopus_cell_cache_meta(cell, max_results, recs)
       scopus_write_checkpoint(recs, cache_file)
     }
+    reported[i] <- scopus_reported_total(recs)
+    scopus_warn_shortfall(i, nrow(recs), reported[i], max_results)
     results[[i]] <- recs
   }
 
   combined <- scopus_bind_records(results)
   attr(combined, "plan") <- plan
+  attr(combined, "cell_totals") <- tibble::tibble(
+    cell = as.integer(plan$cell),
+    date = as.character(plan$date),
+    n_records = vapply(results, function(r) if (is.null(r)) NA_integer_ else nrow(r),
+                       integer(1)),
+    reported_total = reported
+  )
+  # An overall total is claimed only when every cell reported one. Summing the
+  # cells that did would understate the search while looking like a real figure,
+  # and the report built from this attribute is written for a methods section.
+  attr(combined, "total_results") <- if (anyNA(reported)) NA_real_ else sum(reported)
   combined
+}
+
+# The total a cell's response reported, as a plain number, or NA when the cell
+# never carried one (a checkpoint written before the attribute existed, or a
+# response that omitted it).
+scopus_reported_total <- function(recs) {
+  total <- attr(recs, "total_results")
+  if (is.null(total) || length(total) != 1L) NA_real_ else as.numeric(total)
+}
+
+# A cell that came back shorter than the API said it should have is the one
+# failure mode a harvest cannot see for itself: a truncated or refused download
+# arrives as a merely small result set. `max_results` is exempt, since a cell
+# that stopped at a cap the caller set is short by request. The wording is
+# byte-identical to the Python twin's, which has warned on this since 0.3.0.
+scopus_warn_shortfall <- function(i, n, total, max_results) {
+  if (is.na(total) || n >= total) {
+    return(invisible(NULL))
+  }
+  if (is.finite(max_results) && n >= max_results) {
+    return(invisible(NULL))
+  }
+  rlang::warn(
+    sprintf(
+      paste0("Cell %d retrieved %d record(s), but the Scopus API reports %s for ",
+             "this query, so the harvest may be incomplete. Check the key's ",
+             "remaining quota, and consider partitioning the plan by year so ",
+             "each cell is smaller."),
+      i, n, format(total, scientific = FALSE)
+    ),
+    class = "scopus_warning_shortfall"
+  )
 }
 
 # The checkpoint filename for a plan cell. The cell's date is part of the name,
@@ -214,7 +270,7 @@ scopus_serve_checkpoint <- function(cached, max_results) {
     return(cached)
   }
   out <- utils::head(cached, max_results)
-  for (a in c("total_results", "quota", "retrieved_at", "scopusflow_version")) {
+  for (a in c("total_results", "quota", "retrieved_at", "scopusflow_version", "paging")) {
     attr(out, a) <- attr(cached, a)
   }
   out
@@ -266,7 +322,18 @@ scopus_bind_records <- function(records_list) {
     x[all_cols]
   }))
   bound$entry_number <- seq_len(nrow(bound))
-  bound <- tibble::new_tibble(as.list(bound), nrow = nrow(bound), class = "scopus_records")
+  # The bound set starts with no attributes of its own. rbind() keeps those of
+  # its first argument and as.list() keeps those of the frame, so without this
+  # the result inherited one input's `plan`, `total_results` and `cell_totals`.
+  # Those describe a single retrieval, and a set built from several is not that
+  # retrieval: a search record read off the inherited total called the union
+  # complete against a figure belonging to a part of it. What survives a merge
+  # is added back by scopus_bind_provenance(), and what only the caller knows
+  # (the plan, the per-cell accounting, the merge counts) by the caller.
+  n <- nrow(bound)
+  cols <- as.list(bound)
+  attributes(cols) <- list(names = names(cols))
+  bound <- tibble::new_tibble(cols, nrow = n, class = "scopus_records")
   scopus_bind_provenance(bound, records_list)
 }
 
@@ -287,6 +354,14 @@ scopus_bind_provenance <- function(bound, records_list) {
   versions <- lapply(records_list, attr, "scopusflow_version")
   if (!any(vapply(versions, is.null, logical(1)))) {
     attr(bound, "scopusflow_version") <- sort(unique(unlist(versions)))
+  }
+  # The paging mode is claimed only when every cell agrees on it, for the same
+  # reason as the time: one mode standing for a set that mixes two would be a
+  # provenance field stating something untrue of part of what it describes.
+  paging <- unique(unlist(lapply(records_list, attr, "paging")))
+  if (length(paging) == 1L && length(records_list) ==
+      sum(!vapply(lapply(records_list, attr, "paging"), is.null, logical(1)))) {
+    attr(bound, "paging") <- paging
   }
   bound
 }

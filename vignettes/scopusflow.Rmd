@@ -232,6 +232,20 @@ write_scopus_records(records, path)
 identical(read_scopus_records(path), records)
 ```
 
+## Writing the search up
+
+A search that is going into a paper has to be reported. `scopus_search_report()`
+assembles that record from the plan and the harvest, to the PRISMA-S standard,
+and formats it as a methods paragraph. It states only what the objects hold, so
+the record below is candid about the bundled corpus carrying no retrieval time
+of its own. The *Search plans and quota-aware retrieval* article works through
+it in full.
+
+```{r}
+report <- scopus_search_report(records, plan = plan)
+cat(format(report, style = "paragraph"))
+```
+
 ## Handling failures
 
 Network and API problems surface as typed conditions, all inheriting from

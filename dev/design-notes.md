@@ -506,6 +506,40 @@ lists every version that contributed, since resuming an older cache means more
 than one did. The bundled `example_records` deliberately carries neither, so
 that the round-trip identity shown in the documentation stays deterministic.
 
+## Writing up a search: the honesty contract
+
+`scopus_search_report()` assembles the search-strategy record a systematic
+review has to report, following PRISMA-S (Rethlefsen et al., 2021, Systematic
+Reviews, 10, 39) and the identification counts of the PRISMA 2020 flow diagram.
+The output is destined for a published methods section, which decides the whole
+design: the report may state only what the objects in front of it record.
+Nothing is inferred from the running session. `Sys.time()` never stands in for
+an absent `retrieved_at`; the reported total is read from what the API said,
+never inferred from the row count, and is claimed overall only when every cell
+reported one; duplicates are counted only where `scopus_combine()` recorded
+removing them; and a PRISMA-S item is listed as supplied only where the evidence
+exists, which leaves ten of the sixteen (peer review, other databases, grey
+literature, citation searching and the rest) explicitly the author's. A
+plausible figure nobody can check would be worse than an admitted gap, so every
+unverifiable field says it is unrecorded, in words.
+
+Three additions were needed to make that possible, and each is useful in its own
+right. `scopus_fetch_plan()` now carries per-cell accounting (`cell_totals`) and
+warns on a cell that came back shorter than the API said it should, which closes
+a parity gap: the Python twin has warned on a shortfall since 0.3.0 and the
+warning text is byte-identical between them. `scopus_combine()` records `n_in`,
+`n_out`, `n_removed` and `deduplicated`, a count that exists only at the moment
+of the merge. Retrievals also record `paging`, since an offset-paged query stops
+at the API's ceiling where a cursor-paged one does not, and the record has to
+say which was used.
+
+The rendering is held byte-identical against the Python twin's, pinned by
+`tests/testthat/golden-search-record.txt` and its copy in the Python repo. The
+reproduction snippet is the one part that cannot be shared, being code in the
+host language; both suites evaluate the snippet they emit over a grid of plans
+and assert it rebuilds an identical plan, which is the executable form of the
+report's central claim.
+
 ## Tested version floors
 
 `R (>= 4.1.0)` was an untested claim: the check matrix reached only `oldrel-1`,

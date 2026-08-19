@@ -84,7 +84,10 @@ app_code_mirror <- function(query,
     "scopus_extract_dois(records, file = \"scopus-dois.csv\")",
     "",
     "# Or export for a reference manager (Zotero, EndNote) or LaTeX.",
-    "as_bibtex(records, file = \"scopus-records.bib\")"
+    "as_bibtex(records, file = \"scopus-records.bib\")",
+    "",
+    "# Write the search up for the methods section, to the PRISMA-S standard.",
+    "scopus_search_report(records, file = \"scopus-search-record.md\")"
   )
 
   # When comparison terms are set (and a year span is available), append a

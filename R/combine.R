@@ -10,6 +10,10 @@
 #'   failing that a DOI (compared case-insensitively), are kept once.
 #' @return A [scopus_records] tibble. Per-retrieval attributes such as
 #'   `total_results` are not carried over, since they describe a single fetch.
+#'   The merge itself is recorded in the `combined` attribute, a list of `n_in`
+#'   (records supplied), `n_out` (records kept), `n_removed` and `deduplicated`,
+#'   which is what lets [scopus_search_report()] state how many duplicates were
+#'   removed instead of leaving the PRISMA-S item unanswered.
 #' @seealso [scopus_fetch_plan()], which combines plan cells the same way.
 #' @examples
 #' # A baseline retrieval and a later one, merged into a cumulative set. The
@@ -38,9 +42,20 @@ scopus_combine <- function(..., dedupe = FALSE) {
     )
   }
   out <- scopus_bind_records(sets)
+  n_in <- nrow(out)
   if (isTRUE(dedupe)) {
     out <- scopus_dedupe_records(out)
   }
+  # De-duplication is a PRISMA-S item in its own right (item 16), and the count
+  # only exists at the moment the merge happens: afterwards nothing in the
+  # result says how many rows went in. Recorded whether or not `dedupe` ran, so
+  # a report can distinguish "no duplicates were removed" from "nobody looked".
+  attr(out, "combined") <- list(
+    n_in = n_in,
+    n_out = nrow(out),
+    n_removed = n_in - nrow(out),
+    deduplicated = isTRUE(dedupe)
+  )
   out
 }
 

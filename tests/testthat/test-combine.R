@@ -51,3 +51,56 @@ test_that("coercion strips the scopus_records class", {
   expect_false(inherits(df, "scopus_records"))
   expect_true(is.data.frame(df))
 })
+
+test_that("scopus_combine records what went in and what was removed", {
+  # The count only exists at the moment of the merge, and PRISMA-S asks for it
+  # (item 16), so a report has to be able to read it back.
+  merged <- scopus_combine(example_records, example_records, dedupe = TRUE)
+  recorded <- attr(merged, "combined")
+  expect_equal(recorded$n_in, 276L)
+  expect_equal(recorded$n_out, 149L)
+  expect_equal(recorded$n_removed, 127L)
+  expect_true(recorded$deduplicated)
+
+  # Without de-duplication the merge is still recorded, so a report can tell
+  # "no duplicates were removed" from "nobody looked".
+  plain <- attr(scopus_combine(example_records, example_records), "combined")
+  expect_equal(plain$n_in, 276L)
+  expect_equal(plain$n_removed, 0L)
+  expect_false(plain$deduplicated)
+})
+
+test_that("a merge carries no attribute describing a single retrieval", {
+  # rbind() keeps the attributes of its first argument, so a merged set used to
+  # inherit one harvest's plan, cell accounting and reported total, and the
+  # search record then called the union of two harvests complete against a
+  # figure belonging to one of them.
+  harvest <- function() {
+    r <- example_records
+    attr(r, "plan") <- scopus_plan("g", years = 2015:2016, partition = "year")
+    attr(r, "total_results") <- 138
+    attr(r, "cell_totals") <- tibble::tibble(
+      cell = 1:2, date = c("2015", "2016"),
+      n_records = c(69L, 69L), reported_total = c(69, 69)
+    )
+    attr(r, "retrieved_at") <- as.POSIXct("2026-07-22 09:15:00", tz = "UTC")
+    attr(r, "scopusflow_version") <- "0.3.0"
+    r
+  }
+  merged <- scopus_combine(harvest(), harvest(), dedupe = TRUE)
+  expect_null(attr(merged, "plan"))
+  expect_null(attr(merged, "total_results"))
+  expect_null(attr(merged, "cell_totals"))
+
+  # The provenance a merge does not invalidate stays, as it does for plan cells.
+  expect_equal(attr(merged, "retrieved_at"),
+               as.POSIXct("2026-07-22 09:15:00", tz = "UTC"))
+  expect_equal(attr(merged, "scopusflow_version"), "0.3.0")
+
+  report <- scopus_search_report(merged)
+  expect_true(is.na(report$reported_total))
+  expect_true(grepl("cannot be shown to be complete",
+                    format(report, style = "paragraph"), fixed = TRUE))
+  expect_true(grepl("Records identified from Scopus: 276",
+                    format(report, style = "report"), fixed = TRUE))
+})

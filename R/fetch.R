@@ -24,10 +24,12 @@
 #'   proceeds.
 #' @return A [scopus_records] tibble. The reported total and the most recent
 #'   parsed quota are attached as the `total_results` and `quota` attributes,
-#'   and the harvest is dated by `retrieved_at` (a `POSIXct`) and
-#'   `scopusflow_version`. Those two matter because `citations` is a snapshot
-#'   value that keeps moving, so two saved sets are only comparable if each
-#'   records when it was taken; they survive a `.rds` round trip through
+#'   the harvest is dated by `retrieved_at` (a `POSIXct`) and
+#'   `scopusflow_version`, and `paging` records whether it was retrieved by
+#'   offset or by cursor. The date and version matter because `citations` is a
+#'   snapshot value that keeps moving, so two saved sets are only comparable if
+#'   each records when it was taken, and [scopus_search_report()] reads all of
+#'   them back. They survive a `.rds` round trip through
 #'   [write_scopus_records()] but not a `.csv` one, which carries columns only.
 #' @section API access:
 #' Requires a valid API key and internet access. The *API access* section of
@@ -154,20 +156,24 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
   all_entries <- unlist(pages, recursive = FALSE)
   if (is.null(all_entries)) all_entries <- list()
   records <- scopus_records(list(entry = all_entries), query = wrapped, view = view)
-  scopus_attach_provenance(records, total = total, quota = quota)
+  scopus_attach_provenance(records, total = total, quota = quota, paging = "offset")
 }
 
-# When a retrieval was taken, and by which version of the package. `citations`
-# is a snapshot value that moves continuously, and the change-tracking workflow
-# rests on diffing two pulls, so a saved set that cannot say when it was taken
-# cannot honestly be compared with another. Attributes rather than columns, so
-# the documented schema and the CSV round-trip are untouched.
-scopus_attach_provenance <- function(records, total, quota) {
+# When a retrieval was taken, by which version of the package, and how it was
+# paged. `citations` is a snapshot value that moves continuously, and the
+# change-tracking workflow rests on diffing two pulls, so a saved set that
+# cannot say when it was taken cannot honestly be compared with another. The
+# paging mode belongs with them because it decides what the set can contain: an
+# offset-paged query stops at the API's ceiling where a cursor-paged one does
+# not, and a search report has to state which was used. Attributes rather than
+# columns, so the documented schema and the CSV round-trip are untouched.
+scopus_attach_provenance <- function(records, total, quota, paging) {
   attr(records, "total_results") <- total
   attr(records, "quota") <- quota
   attr(records, "retrieved_at") <- Sys.time()
   attr(records, "scopusflow_version") <-
     as.character(utils::packageVersion("scopusflow"))
+  attr(records, "paging") <- paging
   records
 }
 
@@ -237,7 +243,7 @@ scopus_fetch_cursor <- function(wrapped, date, view, page_size, max_results,
   all_entries <- unlist(pages, recursive = FALSE)
   if (is.null(all_entries)) all_entries <- list()
   records <- scopus_records(list(entry = all_entries), query = wrapped, view = view)
-  scopus_attach_provenance(records, total = total, quota = quota)
+  scopus_attach_provenance(records, total = total, quota = quota, paging = "cursor")
 }
 
 scopus_check_max_results <- function(max_results, call = rlang::caller_env()) {

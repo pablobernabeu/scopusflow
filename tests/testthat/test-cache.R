@@ -318,3 +318,62 @@ test_that("the managed cache directory is under R_user_dir and clearable", {
   scopus_cache_clear()
   expect_false(dir.exists(dir))
 })
+
+test_that("a plan carries its per-cell accounting onto the result", {
+  local_scopus_test_env()
+  httr2::local_mocked_responses(mock_corpus(total = 2L))
+  plan <- scopus_plan("x", years = 2018:2020, partition = "year")
+  recs <- scopus_fetch_plan(plan)
+
+  cells <- attr(recs, "cell_totals")
+  expect_s3_class(cells, "tbl_df")
+  expect_equal(cells$cell, 1:3)
+  expect_equal(cells$date, as.character(2018:2020))
+  expect_equal(cells$n_records, rep(2L, 3))
+  expect_equal(cells$reported_total, rep(2, 3))
+  expect_equal(attr(recs, "total_results"), 6)
+  expect_equal(attr(recs, "paging"), "offset")
+})
+
+test_that("an overall total is claimed only when every cell reported one", {
+  local_scopus_test_env()
+  # The second cell's response omits the total, as a non-conforming or partial
+  # response can; summing the rest would understate the search.
+  httr2::local_mocked_responses(function(req) {
+    q <- httr2::url_parse(req$url)$query
+    if (identical(q$date, "2019")) {
+      return(mock_json_response(list(`search-results` = list(entry = mock_entries(2L)))))
+    }
+    mock_corpus(total = 2L)(req)
+  })
+  recs <- scopus_fetch_plan(scopus_plan("x", years = 2018:2019, partition = "year"))
+  totals <- attr(recs, "cell_totals")$reported_total
+  expect_equal(totals[1], 2)
+  expect_true(is.na(totals[2]))
+  expect_true(is.na(attr(recs, "total_results")))
+})
+
+test_that("a cell shorter than the API reported warns", {
+  local_scopus_test_env()
+  # Ten records are claimed and two are served, which is what a truncated or
+  # refused download looks like from the inside: the first page is short and
+  # the next is empty, while the reported total stays at ten.
+  page <- 0L
+  httr2::local_mocked_responses(function(req) {
+    page <<- page + 1L
+    entries <- if (page == 1L) mock_entries(2L) else list(list(error = "Result set was empty"))
+    mock_search_results(entries, total = 10L)
+  })
+  expect_warning(
+    scopus_fetch_plan(scopus_plan("x", years = 2019L)),
+    "Cell 1 retrieved 2 record(s), but the Scopus API reports 10 for this query",
+    fixed = TRUE,
+    class = "scopus_warning_shortfall"
+  )
+
+  # A cell stopped by max_results is short by request, not by failure.
+  page <- 0L
+  expect_no_warning(
+    scopus_fetch_plan(scopus_plan("x", years = 2019L), max_results = 2)
+  )
+})
