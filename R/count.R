@@ -18,7 +18,7 @@
 #'   options or environment variables (see [scopus_has_key()]).
 #' @return A single number giving the total number of matching records, or `NA`
 #'   when the API reports no total. It is returned as a double so that very large
-#'   totals are represented exactly rather than overflowing, with the parsed
+#'   totals are represented exactly, with no risk of overflow, and the parsed
 #'   quota (see [scopus_quota()]) attached as the `quota` attribute so a workflow
 #'   can pace itself off a count.
 #' @section API access:

@@ -31,8 +31,8 @@ name, which offers the same workflow on top of
 <img src="man/figures/README-readme-hero-1.png" alt="An illustrative line chart of four sub-topics' share of a deep-learning reference literature between 2013 and 2021: computer vision, natural language processing, medical imaging and drug discovery" width="100%" />
 
 The figure is drawn by `plot_scopus_comparison()` from illustrative
-counts rather than a live retrieval, so that this page builds without an
-API key. The [Comparing topics over
+counts, so that this page builds without an API key and without
+contacting Elsevier. The [Comparing topics over
 time](https://pablobernabeu.github.io/scopusflow/articles/comparing-topics.html)
 article builds the same table and explains every column.
 
@@ -110,17 +110,17 @@ each cover one part in depth: designing queries, search plans, quota and
 the PRISMA-S search record, building a reference set, analysing and
 visualising a literature (trends, top sources and authors, concept
 intersections, abstracts and cursor-paged harvests), author keywords and
-references, comparing topics over time (the chart above) and tracking how
-a literature changes between retrievals.
+references, comparing topics over time (the chart above) and tracking
+how a literature changes between retrievals.
 
 ## Code-free app
 
 `run_app()` opens a local Shiny app that drives the whole workflow
 without writing code, and mirrors every choice back as a runnable R
-script, so it works as an on-ramp to the package rather than a
-replacement. It runs on your own machine, so your API key never leaves
-it, and a demo mode lets you try the flow with no key, on the corpus of
-real articles bundled with the package.
+script, so it doubles as a way into the package itself. It runs on your
+own machine, so your API key never leaves it, and a demo mode lets you
+try the flow with no key, on the corpus of real articles bundled with
+the package.
 
 ``` r
 run_app()
@@ -138,7 +138,7 @@ article walks through every panel.
 The Scopus API enforces a weekly quota and a short-term rate limit, and
 ordinary offset paging returns at most the first 5000 records of any
 query (use `scopus_fetch(cursor = TRUE)` to go beyond that). scopusflow
-works within these limits rather than around them. It requests the
+works within these limits and never tries to evade them. It requests the
 largest page each view allows, 200 records for `STANDARD` and 25 for
 `COMPLETE`, so that a retrieval uses as few requests, and as little
 quota, as it can. This is the same approach `rscopus` takes. The quota
@@ -153,7 +153,7 @@ in code. The Get started vignette shows the `tryCatch()` pattern.
 ## How it compares
 
 Several R packages cover neighbouring ground, and scopusflow is meant to
-work alongside them rather than replace them.
+work alongside them.
 
 | Package | Focus | Relationship to scopusflow |
 |----|----|----|

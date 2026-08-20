@@ -16,7 +16,7 @@
 #' @param cursor Logical. When `TRUE`, retrieve the result set with cursor-based
 #'   pagination, which has no 5000-record ceiling, so an entire large query can be
 #'   harvested in one call. The records then arrive in the API's deep-paging
-#'   order rather than sorted by relevance. As a safeguard against a
+#'   order, which is no longer relevance order. As a safeguard against a
 #'   non-conforming server that never signals the end, cursor paging stops after
 #'   `getOption("scopusflow.max_cursor_pages", 1e5)` pages with a warning; set
 #'   that option to `Inf` to remove the ceiling.
@@ -165,7 +165,7 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
 # cannot say when it was taken cannot honestly be compared with another. The
 # paging mode belongs with them because it decides what the set can contain: an
 # offset-paged query stops at the API's ceiling where a cursor-paged one does
-# not, and a search report has to state which was used. Attributes rather than
+# not, and a search report has to state which was used. Attributes, never
 # columns, so the documented schema and the CSV round-trip are untouched.
 scopus_attach_provenance <- function(records, total, quota, paging) {
   attr(records, "total_results") <- total
@@ -191,7 +191,7 @@ scopus_fetch_cursor <- function(wrapped, date, view, page_size, max_results,
   # keeps advancing the cursor without ever signalling the end. Set generously
   # so it never bites a conforming server; configurable to keep tests fast.
   # A non-finite or invalid option means "no ceiling" (Inf), so `page_no >= Inf`
-  # is simply never true, rather than coercing to NA and aborting the loop.
+  # is simply never true, where coercing to NA would abort the loop.
   max_pages <- suppressWarnings(as.numeric(
     getOption("scopusflow.max_cursor_pages", 100000L)
   ))
@@ -255,5 +255,15 @@ scopus_check_max_results <- function(max_results, call = rlang::caller_env()) {
       call = call
     )
   }
-  if (is.infinite(max_results)) max_results else as.integer(max_results)
+  # An integer only where one fits. The validator above accepts any finite whole
+  # number, and as.integer() turns anything past the 32-bit ceiling into NA,
+  # after which every `n >= max_results` downstream is NA and the retrieval dies
+  # on an untyped "missing value where TRUE/FALSE needed". Every use of this
+  # value is a min(), an is.finite() or a head(), all of which take a double, so
+  # a cap that large is simply carried as one.
+  if (is.infinite(max_results) || max_results > .Machine$integer.max) {
+    max_results
+  } else {
+    as.integer(max_results)
+  }
 }

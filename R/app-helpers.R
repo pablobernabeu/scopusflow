@@ -58,7 +58,13 @@ app_code_mirror <- function(query,
 
   fetch_args <- "plan"
   if (is.finite(max_results)) {
-    fetch_args <- c(fetch_args, sprintf("max_results = %d", as.integer(max_results)))
+    # format(), never sprintf("%d"): a cap past the 32-bit ceiling coerces to NA
+    # there, and the panel would then hand over a script reading
+    # `max_results = NA`, which is the one thing this mirror promises never to
+    # do. scientific = FALSE keeps 1e10 out of the literal as well.
+    fetch_args <- c(fetch_args, sprintf(
+      "max_results = %s", format(max_results, scientific = FALSE, trim = TRUE)
+    ))
   }
   fetch_args <- c(fetch_args, "cache_dir = scopus_cache_dir()", "resume = TRUE")
 
@@ -134,21 +140,30 @@ app_args <- function(args) {
 }
 
 # Assemble the demo record set, so the whole app flow (table, plots, export)
-# works offline with no key. It draws on the bundled `example_records` rather
-# than fabricating rows, as the Python app's _demo_rows does, so every panel is
-# exercised on real titles, DOIs, journals and citation counts, and the by-year
-# chart shows that query's real publication curve rather than a row of identical
-# bars. Requested years outside the corpus span are clamped into it, and
+# works offline with no key. It draws on the bundled `example_records`, as the
+# Python app's _demo_rows does, so every panel is exercised on real titles,
+# DOIs, journals and citation counts, and the by-year chart shows that query's
+# real publication curve, where invented rows gave a row of identical bars.
 # `max_per_year` caps each year exactly as `max_results` caps a real cell.
+#
+# The two engines part company on one edge, and deliberately. A requested year
+# outside the corpus span is clamped into it here, then de-duplicated by the
+# unique() below, so a demo run over 2025:2026 shows 2024 once; the Python
+# _demo_rows instead returns nothing for such a year and logs that it did. Both
+# avoid the double-counting that padding a missing year with a neighbour's rows
+# would cause, and each half's app article states its own rule. Keep the two
+# descriptions in step if either rule changes.
 app_demo_records <- function(years, max_per_year = Inf) {
   span <- range(example_records$year)
   years <- if (is.null(years) || length(years) == 0L) span[2L] else as.integer(years)
   years <- sort(unique(pmin(pmax(years, span[1L]), span[2L])))
+  # Left as a double. head() takes one, and as.integer() would silently turn a
+  # cap past the 32-bit ceiling into the NA that stands here for "no cap".
   n_max <- if (is.numeric(max_per_year) && length(max_per_year) == 1L &&
                is.finite(max_per_year) && max_per_year >= 1) {
-    as.integer(max_per_year)
+    max_per_year
   } else {
-    NA_integer_
+    NA_real_
   }
   parts <- lapply(years, function(y) {
     cell <- example_records[example_records$year == y, , drop = FALSE]

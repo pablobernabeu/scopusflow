@@ -96,7 +96,7 @@ plot_scopus_intersections <- function(x, highlight = NULL,
 
   # An unset highlight label is derived from the type of the highlighted rows
   # (those still present after the zero-count drop above), so the legend says
-  # what is focal rather than merely that something is.
+  # what is focal, where a bare label says only that something is.
   if (is.null(highlight_label)) {
     hi_types <- unique(df$type[df$label %in% highlight])
     highlight_label <- if (identical(hi_types, "intersection")) {
@@ -121,7 +121,7 @@ plot_scopus_intersections <- function(x, highlight = NULL,
 
   lo <- max(1, min(df$n)) * 0.55  # the smallest point clears the axis
   hi <- max(df$n) * 4             # headroom for the widest count label
-  # Each count label sits a constant *ratio* beyond its point, not a constant
+  # Each count label sits a constant *ratio* beyond its point, never a constant
   # increment: on a log axis a fixed ratio renders as a fixed pixel gap,
   # whereas an additive nudge would hug the large counts and overshoot the
   # small ones. The ratio is in turn derived from the axis's own span, so the
@@ -191,7 +191,7 @@ plot_scopus_intersections <- function(x, highlight = NULL,
 
 # Whole-power-of-ten breaks for a log axis, interleaved with 3 * 10^k when the
 # span is narrow enough that powers of ten alone would be too sparse. Written
-# here rather than taken from the scales package so that ggplot2 remains the
+# here, sparing Suggests the scales package, so that ggplot2 remains the
 # plots' only suggested dependency.
 scopus_log_breaks <- function(lo, hi) {
   e <- seq(floor(log10(lo)), ceiling(log10(hi)))

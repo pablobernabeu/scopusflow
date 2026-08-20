@@ -44,8 +44,8 @@ request. Live integration tests are gated behind `skip_on_cran()` and a key, so
 they run only when `SCOPUS_API_KEY` is set.
 
 Errors are raised as typed conditions in the `scopus_error` family through
-`rlang::abort()`, rather than with a bare `stop()`, so that callers can handle
-them programmatically. User-facing messages use `cli`.
+`rlang::abort()`, never with a bare `stop()`, so that callers can handle them
+programmatically. User-facing messages use `cli`.
 
 An API key is a secret. It is read only from the `SCOPUS_API_KEY` environment
 variable, the `scopusflow.api_key` option or an `api_key` argument, and it is
@@ -84,7 +84,7 @@ capability:
 * With a `CLAUDE_CODE_OAUTH_TOKEN` secret, generated from a Claude Pro or Max
   subscription with `claude setup-token`, the companion autofix workflow has the
   Claude Code action attempt a full fix and open a pull request for review,
-  billed to the subscription rather than per token.
+  billed to the subscription, with no per-token charge.
 * With an `ANTHROPIC_API_KEY` secret, the same agentic fix runs against the paid
   API.
 
@@ -95,8 +95,7 @@ live test runs a tiny real query and checks that the records come back with the
 documented columns populated. It needs a `SCOPUS_API_KEY` repository secret; until
 one is set, the live tests skip themselves and the run stays green, though it
 flags itself as dormant in the log and the run summary. Once a key is present, a
-skipped live test fails the run, so a green result always means the tests really
-ran.
+skipped live test fails the run, so a green result always means the tests ran.
 
 Dependabot (`.github/dependabot.yml`) keeps the GitHub Actions used by the
 workflows up to date through weekly pull requests. It does not track CRAN

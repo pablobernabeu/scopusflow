@@ -31,7 +31,9 @@ package builds, loads and checks without them.
 
 * Local: Windows 11, R 4.6.1 (R CMD check --as-cran, 2026-07-23)
 * GitHub Actions: windows-latest (release and devel), macOS-latest (release),
-  ubuntu-latest (release, devel and oldrel-1), plus a depends-only run
+  ubuntu-latest (release, devel, oldrel-1, oldrel-2 and oldrel-3), which reaches
+  back to roughly R 4.3, plus a depends-only run, a run against the declared
+  minimum dependency versions, and a namespace check
 
 ## R CMD check results
 

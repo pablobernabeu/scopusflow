@@ -26,6 +26,20 @@ test_that("max_results limits retrieval", {
   expect_equal(nrow(recs), 10L)
 })
 
+test_that("a max_results past integer range retrieves, rather than coercing to NA", {
+  # The validator accepts any finite whole number. as.integer() used to run on
+  # the way out, so a cap past 2^31 became NA, every `n >= max_results` after it
+  # was NA, and the retrieval died on an untyped "missing value where
+  # TRUE/FALSE needed". A cap this wide simply never bites.
+  local_scopus_test_env()
+  httr2::local_mocked_responses(mock_corpus(total = 12L))
+  recs <- expect_no_warning(scopus_fetch("anything", max_results = 1e10, page_size = 5L))
+  expect_equal(nrow(recs), 12L)
+  # A cap that does fit stays an integer, so nothing downstream changes type.
+  expect_type(scopus_check_max_results(25), "integer")
+  expect_type(scopus_check_max_results(1e10), "double")
+})
+
 test_that("retrieval is capped at the API ceiling with a warning", {
   local_scopus_test_env()
   withr::local_options(scopusflow.hard_cap = 6L)

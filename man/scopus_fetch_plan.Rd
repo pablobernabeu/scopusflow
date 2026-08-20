@@ -32,11 +32,11 @@ asked for now; anything else is a cache miss, refetched and overwritten.
 A checkpoint holding more records than the current \code{max_results} asks for
 is served trimmed to that cap, the fuller set staying on disk. A
 checkpoint that cannot be read back, for example one left half-written by
-an interrupted run, is also treated as a miss rather than aborting the
+an interrupted run, is also treated as a miss, and never aborts the
 harvest.}
 
 \item{resume}{Logical. When \code{TRUE} and \code{cache_dir} is set, a cell whose cache
-file already exists is loaded from disk rather than fetched again.}
+file already exists is loaded from disk, sparing a second request.}
 
 \item{api_key, inst_token}{Optional credentials (see \code{\link[=scopus_has_key]{scopus_has_key()}}).}
 
@@ -59,8 +59,8 @@ across from the cells: the time is the earliest of them, since a combined
 set is only as fresh as its oldest cell, and every version that
 contributed is listed, since resuming an older cache means more than one
 did. Both are omitted when any cell cannot supply them, as a checkpoint
-written before they existed cannot, rather than dating the whole from a
-part of it.
+written before they existed cannot. Dating the whole from the part of it
+that can be dated would misreport the set.
 }
 \description{
 Runs every cell of a \code{\link[=scopus_plan]{scopus_plan()}} in turn, optionally caching each cell's

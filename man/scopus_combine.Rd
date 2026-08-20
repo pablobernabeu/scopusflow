@@ -23,7 +23,7 @@ A \link{scopus_records} tibble. Per-retrieval attributes such as
 The merge itself is recorded in the \code{combined} attribute, a list of \code{n_in}
 (records supplied), \code{n_out} (records kept), \code{n_removed} and \code{deduplicated},
 which is what lets \code{\link[=scopus_search_report]{scopus_search_report()}} state how many duplicates were
-removed instead of leaving the PRISMA-S item unanswered.
+removed, so the PRISMA-S item is answered.
 }
 \description{
 Binds several \link{scopus_records} objects into a single one, renumbering

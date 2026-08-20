@@ -20,10 +20,10 @@
 #'   A checkpoint holding more records than the current `max_results` asks for
 #'   is served trimmed to that cap, the fuller set staying on disk. A
 #'   checkpoint that cannot be read back, for example one left half-written by
-#'   an interrupted run, is also treated as a miss rather than aborting the
+#'   an interrupted run, is also treated as a miss, and never aborts the
 #'   harvest.
 #' @param resume Logical. When `TRUE` and `cache_dir` is set, a cell whose cache
-#'   file already exists is loaded from disk rather than fetched again.
+#'   file already exists is loaded from disk, sparing a second request.
 #' @param api_key,inst_token Optional credentials (see [scopus_has_key()]).
 #' @param verbose Logical. When `TRUE`, per-cell progress is reported.
 #' @return A [scopus_records] tibble combining all cells, with the originating
@@ -42,8 +42,8 @@
 #'   set is only as fresh as its oldest cell, and every version that
 #'   contributed is listed, since resuming an older cache means more than one
 #'   did. Both are omitted when any cell cannot supply them, as a checkpoint
-#'   written before they existed cannot, rather than dating the whole from a
-#'   part of it.
+#'   written before they existed cannot. Dating the whole from the part of it
+#'   that can be dated would misreport the set.
 #' @section API access:
 #' Any cell not served from cache requires a valid API key and internet access.
 #' The *API access* section of [scopus_count()] gives the details.
@@ -264,7 +264,7 @@ scopus_cell_cache_matches <- function(cached, cell, max_results) {
 # matches any max_results, so it can hold more rows than are being asked for
 # now; the surplus is trimmed from the served copy only, leaving the fuller
 # set on disk for a later, wider request. The provenance attributes are
-# restated explicitly rather than trusted to survive the subsetting.
+# restated explicitly, since subsetting cannot be trusted to keep them.
 scopus_serve_checkpoint <- function(cached, max_results) {
   if (!is.finite(max_results) || nrow(cached) <= max_results) {
     return(cached)
@@ -281,9 +281,9 @@ scopus_serve_checkpoint <- function(cached, max_results) {
 # session dies mid-write, and the interruptions this cache exists to survive
 # (Ctrl-C, a killed background worker, a full disk, a quota abort) are exactly
 # what produces one. Renaming within a single directory is atomic on both POSIX
-# and NTFS. file.rename() returns FALSE rather than erroring when the target is
+# and NTFS. file.rename() returns FALSE, and does not error, when the target is
 # locked by another process, which happens on Windows, so a failed rename falls
-# back to a direct write rather than losing the cell that was just paid for.
+# back to a direct write, so the cell just paid for is not lost.
 scopus_write_checkpoint <- function(x, path) {
   tmp <- tempfile(pattern = "checkpoint-", tmpdir = dirname(path), fileext = ".rds")
   renamed <- tryCatch({
@@ -308,8 +308,8 @@ scopus_read_checkpoint <- function(path) {
 # Bind a list of scopus_records tibbles into one, re-numbering entries. Cells
 # can differ in columns, for example when resuming a cache written by an
 # older package version without the `authkeywords` column, so the union of
-# columns is taken and any cell missing one is filled with NA rather than
-# letting rbind() error on a column mismatch.
+# columns is taken and any cell missing one is filled with NA, where a plain
+# rbind() would error on the column mismatch.
 scopus_bind_records <- function(records_list) {
   records_list <- Filter(Negate(is.null), records_list)
   if (length(records_list) == 0L) {

@@ -24,7 +24,7 @@ from the \code{inst_token} argument, the \code{scopusflow.inst_token} option, or
 \code{SCOPUS_INST_TOKEN} environment variable.
 
 A key is a secret. The safest home for it is \verb{~/.Renviron}, as in
-\code{SCOPUS_API_KEY=xxxx}, rather than a script, and it should stay out of version
+\code{SCOPUS_API_KEY=xxxx}, well away from any script, and it should stay out of version
 control.
 }
 \examples{

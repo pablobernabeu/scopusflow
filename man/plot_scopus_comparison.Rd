@@ -33,7 +33,8 @@ read it.}
 \item{legend_inside}{Logical. When \code{TRUE}, and a legend is drawn (that is,
 when \code{highlight} is not set), the legend is placed inside the plotting
 panel, in whichever corner has the most free space, on a small
-semi-transparent background, rather than above the panel. Direct line
+semi-transparent background, where the default places it above the
+panel. Direct line
 labelling is suppressed so the in-panel legend carries the topic key.
 Defaults to \code{FALSE}, which keeps the legend above the panel, or the direct
 line labels a few topics would otherwise receive.}

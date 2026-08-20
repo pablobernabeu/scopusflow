@@ -93,7 +93,7 @@ read_scopus_records <- function(path) {
 # Coerce a read-in data frame back to the typed scopus_records schema. A
 # COMPLETE-view record set carries an extra authkeywords column beyond the
 # standard schema; it is kept, so the CSV round-trip is stable for that view
-# too rather than silently dropping the column on read.
+# too, and the column is never silently dropped on read.
 scopus_coerce_records <- function(raw) {
   cols <- scopus_records_columns()
   if ("authkeywords" %in% names(raw)) cols <- union(cols, "authkeywords")

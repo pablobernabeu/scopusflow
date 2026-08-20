@@ -15,7 +15,7 @@ knitr::opts_chunk$set(collapse = FALSE, comment = "")
 # alike. The fixed width keeps tibbles inside the documentation column.
 options(cli.num_colors = 1, cli.hyperlink = FALSE, crayon.enabled = FALSE,
         width = 80)
-# Render data frames and tibbles as tables rather than console text.
+# Print data frames and tibbles as formatted tables.
 local({
   kp <- function(x, ...) {
     if (any(vapply(x, is.list, logical(1)))) return(knitr::normal_print(x))
@@ -107,8 +107,8 @@ cat(substr(as_ris(example_records), 1, 470))
 ```
 
 The first two entries of 138 are shown. The second has no DOI, so its `DO` line
-is simply absent rather than empty, and the entry still imports on its title,
-author and year.
+is simply absent, with no empty field written in its place, and the entry still
+imports on its title, author and year.
 
 Pass a `file` to write the whole set. Nothing is written without one.
 

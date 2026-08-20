@@ -60,8 +60,8 @@ class(hero) <- c("scopus_comparison", class(hero))
 plot_scopus_comparison(hero)
 ```
 
-The figure is drawn by `plot_scopus_comparison()` from illustrative counts rather
-than a live retrieval, so that this page builds without an API key. The
+The figure is drawn by `plot_scopus_comparison()` from illustrative counts, so
+that this page builds without an API key and without contacting Elsevier. The
 [Comparing topics over time](https://pablobernabeu.github.io/scopusflow/articles/comparing-topics.html)
 article builds the same table and explains every column.
 
@@ -155,10 +155,10 @@ retrievals.
 ## Code-free app
 
 `run_app()` opens a local Shiny app that drives the whole workflow without
-writing code, and mirrors every choice back as a runnable R script, so it works
-as an on-ramp to the package rather than a replacement. It runs on your own
-machine, so your API key never leaves it, and a demo mode lets you try the flow
-with no key, on the corpus of real articles bundled with the package.
+writing code, and mirrors every choice back as a runnable R script, so it
+doubles as a way into the package itself. It runs on your own machine, so your
+API key never leaves it, and a demo mode lets you try the flow with no key, on
+the corpus of real articles bundled with the package.
 
 ```{r eval = FALSE}
 run_app()
@@ -175,21 +175,21 @@ article walks through every panel.
 The Scopus API enforces a weekly quota and a short-term rate limit, and ordinary
 offset paging returns at most the first 5000 records of any query (use
 `scopus_fetch(cursor = TRUE)` to go beyond that). scopusflow works within these
-limits rather than around them. It requests the largest page each view allows,
-200 records for `STANDARD` and 25 for `COMPLETE`, so that a retrieval uses as few
-requests, and as little quota, as it can. This is the same approach `rscopus`
-takes. The quota and rate-limit headers are parsed by `scopus_quota()`, transient
-failures such as HTTP 429 and the 5xx range are retried with back-off that
-honours `Retry-After`, and an offset-paged query is capped at 5000 records with a
-warning that suggests cursor paging or partitioning by year. A failure arrives as
-a typed condition (every `scopus_error_*` condition inherits from
+limits and never tries to evade them. It requests the largest page each view
+allows, 200 records for `STANDARD` and 25 for `COMPLETE`, so that a retrieval
+uses as few requests, and as little quota, as it can. This is the same approach
+`rscopus` takes. The quota and rate-limit headers are parsed by `scopus_quota()`,
+transient failures such as HTTP 429 and the 5xx range are retried with back-off
+that honours `Retry-After`, and an offset-paged query is capped at 5000 records
+with a warning that suggests cursor paging or partitioning by year. A failure
+arrives as a typed condition (every `scopus_error_*` condition inherits from
 `scopus_error`), so a workflow can respond to it in code. The Get started
 vignette shows the `tryCatch()` pattern.
 
 ## How it compares
 
 Several R packages cover neighbouring ground, and scopusflow is meant to work
-alongside them rather than replace them.
+alongside them.
 
 | Package | Focus | Relationship to scopusflow |
 |---|---|---|

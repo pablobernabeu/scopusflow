@@ -195,8 +195,12 @@ app_server <- function(input, output, session) {
 
   output$key_status <- shiny::renderUI({
     if (isTRUE(input$demo)) {
+      # "Synthetic data" was true of the six invented rows the package shipped
+      # before 0.3.0. The demo harvest now replays `example_records`, which is
+      # 138 real published articles, and only the topic comparison is
+      # simulated, so the banner says which is which.
       shiny::span(class = "text-info", shiny::icon("flask"),
-                  " Demo mode: synthetic data, no key needed.")
+                  " Demo mode: real bundled records, simulated comparison, no key needed.")
     } else if (is.null(api_key())) {
       shiny::span(class = "text-warning", shiny::icon("circle"),
                   " Enter your key to fetch.")
@@ -303,7 +307,7 @@ app_server <- function(input, output, session) {
     }
     # Everything that shapes the harvest belongs in the key, the record cap
     # included: a cell cached under "25 per year" is not the answer to a later
-    # request for all of them. Hashed rather than truncated to a readable slug,
+    # request for all of them. Hashed, never truncated to a readable slug,
     # because two long queries sharing an opening 80 characters would otherwise
     # share a directory and so each other's checkpoints.
     key <- rlang::hash(list(input$query, input$field, input$view,
@@ -539,8 +543,8 @@ app_server <- function(input, output, session) {
         # (one per count step), so a long term x year grid is observable.
         step <- 0L
         withCallingHandlers(
-          # Catch any failure, not only a typed scopus_error, so a network or
-          # internal error surfaces as a notification rather than a red screen.
+          # Catch every failure, typed scopus_error or otherwise, so a network
+          # or internal error becomes a notification and never a red screen.
           tryCatch(
             scopus_compare_topics(input$query, terms, years = yrs,
                                   field = nzchar_or_null(input$field),
@@ -626,7 +630,7 @@ app_server <- function(input, output, session) {
 
   # The PRISMA-S search record. In demo mode the records are the bundled corpus
   # and carry no plan or retrieval time, so the record comes out saying so,
-  # which is the honest answer rather than a defect to paper over.
+  # which is the honest answer, and no defect to paper over.
   output$dl_report <- shiny::downloadHandler(
     filename = "scopus-search-record.md",
     content = function(file) {

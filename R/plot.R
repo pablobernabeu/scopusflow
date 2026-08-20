@@ -18,7 +18,8 @@
 #' @param legend_inside Logical. When `TRUE`, and a legend is drawn (that is,
 #'   when `highlight` is not set), the legend is placed inside the plotting
 #'   panel, in whichever corner has the most free space, on a small
-#'   semi-transparent background, rather than above the panel. Direct line
+#'   semi-transparent background, where the default places it above the
+#'   panel. Direct line
 #'   labelling is suppressed so the in-panel legend carries the topic key.
 #'   Defaults to `FALSE`, which keeps the legend above the panel, or the direct
 #'   line labels a few topics would otherwise receive.
@@ -207,8 +208,9 @@ plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
       )
   }
 
-  # Direct labels sit in the right margin (via clip = "off") rather than in a
-  # wide in-panel gutter, so the panel itself stays free of empty space.
+  # Direct labels sit in the right margin (via clip = "off"), which spares the
+  # panel the wide in-panel gutter they would otherwise need, so the panel
+  # itself stays free of empty space.
   labelled <- direct || !is.null(highlight)
   label_room <- if (labelled) {
     min(165, 8 + 4.4 * max(nchar(as.character(ends$label))))
@@ -350,7 +352,7 @@ scopus_spread_positions <- function(values, gap) {
 # Direct end-of-line labels that spread themselves apart at draw time. The label
 # block is handed to grid as a gTree whose `makeContent` method (below) runs when
 # the panel's physical size is finally known, so the minimum vertical gap is one
-# rendered line of text rather than a fixed fraction of the data range. That keeps
+# rendered line of text, never a fixed fraction of the data range. That keeps
 # converging labels from overlapping at any figure size, the grid analogue of the
 # Python plot's redraw-time de-collision. Built lazily because ggplot2 is a soft
 # dependency; this is only reached after the caller has confirmed ggplot2 is

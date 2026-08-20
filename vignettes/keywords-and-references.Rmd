@@ -15,7 +15,7 @@ knitr::opts_chunk$set(collapse = FALSE, comment = "")
 # alike. The fixed width keeps tibbles inside the documentation column.
 options(cli.num_colors = 1, cli.hyperlink = FALSE, crayon.enabled = FALSE,
         width = 80)
-# Render data frames and tibbles as tables rather than console text.
+# Print data frames and tibbles as formatted tables.
 local({
   kp <- function(x, ...) {
     if (any(vapply(x, is.list, logical(1)))) return(knitr::normal_print(x))
@@ -63,8 +63,8 @@ recs$authkeywords
 # Representative COMPLETE-view result, assembled offline. authkeywords is the
 # single string scopus_fetch() returns under view = "COMPLETE", one element
 # per record, in Scopus' own " | "-delimited form. The bibliographic fields are
-# the document's own. The 'Scopus' identifier and citation count are left NA
-# rather than guessed at, since nothing on the page prints them.
+# the document's own. The 'Scopus' identifier and citation count are left NA,
+# since nothing on the page prints them and a guess would be a fabrication.
 recs <- tibble::tibble(
   entry_number = 1L, scopus_id = NA_character_, doi = "10.1038/nature14539",
   title = "Deep learning", authors = "LeCun Y.; Bengio Y.; Hinton G.",
@@ -81,8 +81,8 @@ recs$authkeywords
 
 In development, this field came back `NA` even on a live, otherwise
 fully-entitled key, for documents that do carry author keywords in 'Scopus'
-itself, which points to an entitlement gap specific to this one field rather
-than the documents genuinely having none. If your own keywords come back all
+itself. Those documents do have keywords, so what this points to is an
+entitlement gap specific to this one field. If your own keywords come back all
 `NA`, it is worth raising with your Scopus/Elsevier account contact.
 
 ## References via Abstract Retrieval
@@ -109,7 +109,8 @@ ab$references[[1]][, c("title", "authors", "source", "year")]
 refs <- tibble::tibble(
   position = as.character(1:4),
   # The 'Scopus' identifier of each cited work is left NA, as it is whenever
-  # the API does not resolve one, rather than invented for the illustration.
+  # the API does not resolve one. Inventing one for the illustration would
+  # misrepresent what a real call returns.
   id = NA_character_,
   doi = c("10.1109/5.726791", "10.1038/nature14236", NA, NA),
   title = c(
@@ -157,7 +158,7 @@ complete, correctly counted reference list for every document tried, while
 `view = "REF"` returned an inconsistent, sometimes-truncated subset, on an
 otherwise identical request made moments apart. `scopus_abstract()` warns
 when the number of references returned does not match the document's own
-reported count, rather than returning a partial list silently.
+reported count, so a partial list never arrives unannounced.
 
 The number of requests spent and the remaining Abstract Retrieval quota are
 attached as attributes, since this endpoint draws on a separate, smaller quota
@@ -169,10 +170,10 @@ attr(ab, "quota")$remaining   # Abstract Retrieval quota left
 ```
 
 A key or subscription tier that does not cover the requested view raises a
-`scopus_error_forbidden` condition naming the view, rather than a generic HTTP
-failure, and stops the whole batch rather than repeating the same failure for
-every remaining identifier, since entitlement is an account-level property,
-not a per-document one.
+`scopus_error_forbidden` condition that names the view, where a generic HTTP
+failure would leave you guessing. It stops the whole batch too, since
+entitlement is a property of the account, so the same refusal would only recur
+on every remaining identifier.
 
 For more than a handful of identifiers, pass `cache_dir` so an interrupted or
 quota-limited batch resumes without re-spending quota already spent.
@@ -189,10 +190,10 @@ ab <- scopus_abstract(
 `scopus_corpus()` combines a search result with this Abstract Retrieval step,
 returning a minimal shape close to what OpenAlex's `works` API already
 returns: `id`, `title`, `year`, `keywords` (a list-column of character
-vectors) and `references` (a list-column of data frames), rather than
-bibliometrix's semicolon-joined citation strings. It does not replace
+vectors) and `references` (a list-column of data frames), where bibliometrix
+would give you semicolon-joined citation strings. It does not replace
 [`as_bibliometrix()`], which keeps its own field-mapping convention for users
-who want that instead.
+who want that.
 
 ```{r, eval = FALSE}
 recs <- scopus_fetch("DOI(10.1038/nature14539)", max_results = 1)

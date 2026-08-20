@@ -53,10 +53,10 @@ scopus_abort_status <- function(status, resp = NULL, call = rlang::caller_env())
   )
 }
 
-# Abort because no API key is available. Raised through cli_abort() (which
-# wraps rlang::abort(), so the condition classes are unchanged) rather than
-# rlang::abort() directly, because the message carries inline cli spans that
-# rlang alone would print as raw markup.
+# Abort because no API key is available. Raised through cli_abort(), which
+# wraps rlang::abort() and so leaves the condition classes unchanged. Calling
+# rlang::abort() directly would print the message's inline cli spans as raw
+# markup.
 scopus_abort_no_key <- function(call = rlang::caller_env()) {
   cli::cli_abort(
     message = c(

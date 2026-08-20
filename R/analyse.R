@@ -143,7 +143,11 @@ scopus_top <- function(x, by = c("source", "author"), n = 10L) {
     # Order by descending count, breaking ties by value in C-locale byte order
     # (method = "radix") so the truncated top-n is identical on every platform.
     out <- out[order(-out$n, out$value, method = "radix"), , drop = FALSE]
-    out <- utils::head(out, as.integer(n))
+    # `n` stays a double here. The validator above accepts any finite whole
+    # number, so as.integer() would turn anything past 2^31 into NA and leave
+    # head() raising an untyped base error about its own argument. head()
+    # accepts a double without complaint, and a cut above nrow() is a no-op.
+    out <- utils::head(out, n)
   }
   structure(
     tibble::new_tibble(as.list(out), nrow = nrow(out), class = "scopus_top"),

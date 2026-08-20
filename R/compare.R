@@ -97,7 +97,7 @@ scopus_compare_topics <- function(reference_query,
   }
 
   # Reference counts by year (denominator). Counts are doubles so that a missing
-  # total arrives as NA rather than triggering a type error.
+  # total arrives as NA, where a type error would stop the comparison.
   if (verbose) cli::cli_inform("Counting reference query across {length(years)} year{?s}.")
   ref_n <- vapply(years, function(y) count_for(ref_wrapped, y), numeric(1))
   names(ref_n) <- as.character(years)

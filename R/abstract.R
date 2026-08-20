@@ -34,10 +34,10 @@
 #'   identifier here costs its own request, so re-running an interrupted batch
 #'   without a cache re-spends quota already spent.
 #' @param resume Logical. When `TRUE` (the default) and `cache_dir` is set, an
-#'   identifier whose cache file already exists is loaded from disk rather than
-#'   requested again. A cache file that cannot be read back, for example one
-#'   left half-written by an interrupted run, is retrieved again with a warning
-#'   rather than aborting the batch.
+#'   identifier whose cache file already exists is loaded from disk, sparing a
+#'   second request for it. A cache file that cannot be read back, for example
+#'   one left half-written by an interrupted run, is retrieved again with a
+#'   warning, and the batch carries on.
 #' @param api_key,inst_token Optional credentials (see [scopus_has_key()]).
 #' @param verbose Logical. When `TRUE`, progress is reported.
 #' @return A tibble of class `scopus_abstracts`, one row per identifier, with
@@ -56,14 +56,15 @@
 #'   omits the field for a given key's entitlement (see *Details*).
 #'
 #'   When `include` names `"references"`, a `references` list-column is added:
-#'   one data frame per document, with one row per cited work, rather than a
-#'   single joined string. Its columns are `position` (the reference's place in
-#'   the bibliography), `id` (the 'Scopus' identifier of the cited work, when
+#'   one data frame per document, with one row per cited work, where a joined
+#'   string would have to be parsed apart again. Its columns are `position` (the
+#'   reference's place in the bibliography), `id` (the 'Scopus' identifier of
+#'   the cited work, when
 #'   resolved), `doi`, `title`, `authors`, `source` (the journal or other
 #'   venue), `year` and `citedbycount` (the cited work's own citation count;
 #'   populated only under `view = "REF"`, `NA` under `"FULL"`). A document with
-#'   no resolvable references yields a zero-row data frame, not `NA`, so the
-#'   column can always be unnested.
+#'   no resolvable references yields a zero-row data frame, so the column can
+#'   always be unnested.
 #' @details
 #' Retrieving references needs Abstract Retrieval's `FULL` or `REF` view, and
 #' keywords need `FULL`. In development, against a live key with full Abstract Retrieval
@@ -74,8 +75,8 @@
 #' recommended when your entitlement allows it. `"REF"` remains available for
 #' accounts entitled only to it; when the number of references returned does
 #' not match the document's own reported reference count, a warning is issued
-#' naming the identifier, since the list may be an incomplete page rather than
-#' the whole bibliography.
+#' naming the identifier, since the list may be an incomplete page of the
+#' bibliography.
 #'
 #' Author keywords were not populated by either 'Scopus' Search's `COMPLETE`
 #' view (see [scopus_records()]) or Abstract Retrieval's `FULL` view in this
@@ -83,17 +84,16 @@
 #' fully-entitled key, on documents that do carry author keywords in 'Scopus'
 #' itself. If your own keywords come back all `NA`, this is most likely an
 #' entitlement gap specific to that field, worth raising with your
-#' Scopus/Elsevier account contact, rather than the documents genuinely having
-#' none.
+#' Scopus/Elsevier account contact. The documents do carry keywords.
 #' @section API access:
 #' This performs one request per identifier and requires a valid API key and
 #' internet access; full-text abstract access, and the `FULL`/`REF` views in
 #' particular, can also depend on your entitlement. A view or field your key is
 #' not entitled to raises a `scopus_error_forbidden` condition with a message
-#' naming the view and suggesting who to contact, rather than a generic HTTP
-#' failure; because entitlement is an account-level property, not a
-#' per-document one, retrieval stops at the first such failure instead of
-#' repeating it for every remaining identifier. See the *API access* section of
+#' naming the view and suggesting who to contact, where a generic HTTP failure
+#' would leave you guessing. Because entitlement is a property of the account,
+#' retrieval stops at the first such failure, so the same refusal is not
+#' repeated for every remaining identifier. See the *API access* section of
 #' [scopus_count()] for the other conditions that may be raised.
 #' @seealso [scopus_fetch()], [scopus_extract_dois()], [scopus_corpus()] to
 #'   assemble a minimal keyword/reference corpus across many documents.
@@ -114,7 +114,7 @@
 #' # The offline companion, which needs no key. The identifiers, titles,
 #' # sources and citation counts are two records of the bundled corpus of real
 #' # articles; the abstract text is what a live call adds, so it is left unset
-#' # here rather than invented, as is the 'Scopus' identifier the corpus does
+#' # left as a placeholder here, as is the 'Scopus' identifier the corpus does
 #' # not carry.
 #' cited <- example_records[order(-example_records$citations), ][1:2, ]
 #' abstracts <- tibble::tibble(
@@ -194,7 +194,7 @@ scopus_abstract <- function(ids,
   }
 
   # Resolve the key once up front: a missing key is a configuration error and
-  # should abort clearly, rather than being caught per identifier below and
+  # should abort at once. Caught per identifier below, it would instead be
   # turned into a whole tibble of NA rows.
   scopus_key(api_key)
 
@@ -208,9 +208,8 @@ scopus_abstract <- function(ids,
 
   # The requested extras are part of the cache key (sorted, so the encoding is
   # stable however `include` was ordered): a resumed run that asks for
-  # different extras must refetch rather than be served a cached row missing
-  # the requested columns. The Python twin keys its abstract cache the same
-  # way.
+  # different extras must refetch, since the cached row would be missing the
+  # requested columns. The Python twin keys its abstract cache the same way.
   include_key <- if (length(include) == 0L) "none" else paste(sort(include), collapse = "-")
 
   rows <- vector("list", length(ids))
@@ -261,13 +260,13 @@ scopus_abstract <- function(ids,
     if (verbose) cli::cli_inform("Retrieving {i}/{length(ids)}: {ids[i]}.")
     failed <- FALSE
     row <- tryCatch({
-      # A plain `<-` here, not `<<-`: this block is evaluated directly in
+      # A plain `<-` here. This block is evaluated directly in
       # scopus_abstract()'s own frame (tryCatch()'s first argument is not a
       # closure), and `<<-` always skips the current frame even when it is
-      # the same one, so it would silently create/modify a same-named
-      # variable one scope further out instead (confirmed directly). The
-      # handler functions below, which are genuine closures, correctly need
-      # `<<-` to reach back into this frame.
+      # the same one, so it would silently create or modify a same-named
+      # variable one scope further out (confirmed directly). The handler
+      # functions below are real closures, and do need `<<-` to reach back
+      # into this frame.
       fetched <- scopus_abstract_one(
         ids[i], by, view = view, include = include,
         api_key = api_key, inst_token = inst_token
@@ -276,12 +275,12 @@ scopus_abstract <- function(ids,
       if (!is.null(fetched$quota)) quota <- fetched$quota
       fetched$row
     }, scopus_error_forbidden = function(e) {
-      # Recorded rather than raised here: a condition signalled from inside
+      # Recorded here and raised later: a condition signalled from inside
       # one handler of a tryCatch() can still be caught by a sibling handler
       # of that same call (verified directly; not just a theoretical
       # concern), which would route this straight into the generic
-      # scopus_error handler below instead of stopping the batch. Raising it
-      # after tryCatch() has returned, outside any handler, avoids that.
+      # scopus_error handler below and let the batch continue. Raising it after
+      # tryCatch() has returned, outside any handler, avoids that.
       n_requests <<- n_requests + 1L
       forbidden <<- e
       NULL
@@ -312,9 +311,10 @@ scopus_abstract <- function(ids,
       )
     }
     # Only a row parsed from a successful response is checkpointed. The NA row
-    # a failed retrieval (rate limit, server error, offline, not found) leaves
+    # a failed retrieval (a rate limit, a server error, an offline host, an
+    # identifier absent from 'Scopus') leaves
     # behind keeps the batch alive, but cached it would make the failure
-    # permanent: a resumed run would serve it as data instead of retrying.
+    # permanent: a resumed run would serve it as data and never retry.
     if (!is.null(cache_file) && !failed) scopus_write_checkpoint(row, cache_file)
     rows[[i]] <- row
   }
@@ -413,7 +413,7 @@ scopus_abstract_one <- function(id, by, view = NULL, include = character(),
   full <- body[["abstracts-retrieval-response"]]
   # Under view = "REF", the response carries only `references`, with no
   # `coredata`; the identifying/abstract columns are then NA, which is
-  # expected (REF view is for reference retrieval, not abstract metadata).
+  # expected, the REF view being for reference retrieval alone.
   if (is.null(full[["coredata"]]) && is.null(full[["references"]])) {
     rlang::abort(
       "The 'Scopus' abstract response did not contain a `coredata` element.",
@@ -479,7 +479,7 @@ scopus_parse_authkeywords <- function(full) {
 # Confirmed directly against a live key for both views. Under REF view,
 # `title` and `source` came back NA for every reference tried, even where
 # `doi`, `year` and `citedbycount` were populated on the same row, so REF
-# view is a genuinely leaner shape here, not an extraction gap; FULL view
+# view is a leaner shape here by design, and no extraction gap. FULL view
 # populated `title`/`authors`/`source` throughout.
 scopus_parse_references <- function(full, view) {
   empty <- data.frame(
@@ -527,9 +527,9 @@ scopus_parse_one_reference <- function(item, view) {
     }, character(1))
     doi <- info[["ce:doi"]]
     ref_id <- info[["scopus-id"]]
-    # `ref-title` appears to be a shared field name across REF and FULL views;
-    # left NA rather than guessed at (for example from `ref-sourcetitle`, the
-    # cited work's journal, which is not its title) if genuinely absent.
+    # `ref-title` appears to be a shared field name across REF and FULL views,
+    # and is left NA when genuinely absent. Filling it from `ref-sourcetitle`
+    # would put the cited work's journal into a column of titles.
     title <- chained_get(info, c("ref-title", "ref-titletext"))
     citedbycount <- suppressWarnings(as.integer(info[["citedby-count"]]))
     year <- scopus_parse_year(info[["ref-coverdate"]] %||% info[["prism:coverDate"]])
@@ -573,7 +573,7 @@ scopus_select_itemid <- function(ids, idtype) {
 }
 
 # Walk a chain of list indices, returning NULL as soon as any step is absent,
-# rather than erroring on a partially-missing nested path.
+# where indexing straight through a partially-missing nested path would error.
 chained_get <- function(x, path) {
   for (key in path) {
     if (is.null(x) || !is.list(x)) return(NULL)

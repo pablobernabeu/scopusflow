@@ -15,7 +15,7 @@
 #' set of records.
 #'
 #' Two properties are worth knowing when reading the examples. The harvest is
-#' complete rather than sampled, so the number of rows per year is the real
+#' complete, so the number of rows per year is the real
 #' number of publications per year for that query, and the trend figures show a
 #' real publication curve. The gaps are also genuine: eleven records carry no
 #' DOI and two no source title, exactly as they arrive. They are kept because a

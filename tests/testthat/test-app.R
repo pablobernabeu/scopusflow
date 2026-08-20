@@ -38,6 +38,29 @@ test_that("app_code_mirror omits absent options", {
   expect_silent(parse(text = code))
 })
 
+test_that("app_code_mirror writes a huge record cap as a literal, not as NA", {
+  # The record-cap box takes any number the user types. sprintf("%d") used to
+  # coerce it, so anything past 2^31 reached the panel as `max_results = NA`,
+  # which is not runnable R and is precisely what the mirror promises never to
+  # emit. Scientific notation would be legal but is unreadable in a script.
+  code <- app_code_mirror(query = "x", years = 2018:2020, max_results = 1e10)
+  expect_true(grepl("max_results = 10000000000", code, fixed = TRUE))
+  expect_false(grepl("max_results = NA", code, fixed = TRUE))
+  expect_false(grepl("1e+10", code, fixed = TRUE))
+  expect_silent(parse(text = code))
+})
+
+test_that("app_demo_records ignores a per-year cap past integer range", {
+  # A cap wider than any year of the corpus leaves every row in place. It used
+  # to reach NA through as.integer() and land on the same answer by accident.
+  span <- range(example_records$year)
+  all_rows <- app_demo_records(span[1L]:span[2L])
+  expect_equal(nrow(app_demo_records(span[1L]:span[2L], max_per_year = 1e10)),
+               nrow(all_rows))
+  expect_equal(nrow(app_demo_records(span[1L]:span[2L], max_per_year = 1)),
+               length(span[1L]:span[2L]))
+})
+
 test_that("app_parse_cell_progress reads the latest valid cell marker", {
   lines <- c("Cell 1/8: fetching 'x' (2018).", "  120/200 retrieved.",
              "Cell 2/8: fetching 'x' (2019).")

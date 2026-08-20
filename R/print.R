@@ -8,7 +8,7 @@
 #
 # `scopus_print_line()` formats the cli string first and writes the result to
 # standard output, so every print method emits one stream and knitr renders one
-# block. Formatting through cli rather than `sprintf()` keeps inline styling,
+# block. Formatting through cli, and never `sprintf()`, keeps inline styling,
 # pluralisation and the wrapping at the console width exactly as before.
 
 scopus_print_line <- function(..., .envir = parent.frame()) {

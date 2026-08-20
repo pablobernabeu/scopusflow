@@ -15,7 +15,7 @@ knitr::opts_chunk$set(collapse = FALSE, comment = "")
 # alike. The fixed width keeps tibbles inside the documentation column.
 options(cli.num_colors = 1, cli.hyperlink = FALSE, crayon.enabled = FALSE,
         width = 80)
-# Render data frames and tibbles as tables rather than console text.
+# Print data frames and tibbles as formatted tables.
 local({
   kp <- function(x, ...) {
     if (any(vapply(x, is.list, logical(1)))) return(knitr::normal_print(x))
@@ -32,10 +32,10 @@ library(scopusflow)
 ```
 
 A retrieval is only as good as its query. This article shows how to compose
-correct, field-tagged 'Scopus' queries with `scopus_query()` rather than pasting
-fragments by hand, where a missing bracket or a mistyped tag quietly returns the
-wrong records. Everything here is string construction, so it all runs offline,
-and each query is shown as the literal string it produces.
+correct, field-tagged 'Scopus' queries with `scopus_query()`, which spares you
+pasting fragments together by hand, where a missing bracket or a mistyped tag
+quietly returns the wrong records. Everything here is string construction, so it
+all runs offline, and each query is shown as the literal string it produces.
 
 ## Field tags decide where to look
 
@@ -83,7 +83,7 @@ scopus_query("behavioral economics", "behavioural economics", .op = "OR")
 # A family of related tools (molecular biology).
 scopus_query("CRISPR", "Cas9", "Cas12", .op = "OR")
 
-# Excluding a dominant homonym (programming, not herpetology).
+# Excluding a dominant homonym, so the snake stays out of the results.
 scopus_query("python", "snake", .op = "AND NOT", .field = "TITLE-ABS-KEY")
 ```
 
@@ -121,8 +121,8 @@ scopus_query("Max Planck", .field = "AFFILORG")
 
 ## When a term is empty
 
-The builder validates its input, so a stray empty term is caught early rather
-than producing a malformed query.
+The builder validates its input, so a stray empty term is caught at
+construction, well before it can produce a malformed query.
 
 ```{r}
 tryCatch(

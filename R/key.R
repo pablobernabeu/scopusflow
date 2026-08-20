@@ -13,7 +13,7 @@
 #' `SCOPUS_INST_TOKEN` environment variable.
 #'
 #' A key is a secret. The safest home for it is `~/.Renviron`, as in
-#' `SCOPUS_API_KEY=xxxx`, rather than a script, and it should stay out of version
+#' `SCOPUS_API_KEY=xxxx`, well away from any script, and it should stay out of version
 #' control.
 #'
 #' @return A length-one logical that is safe to print, `TRUE` when a non-empty

@@ -48,10 +48,10 @@ identifier here costs its own request, so re-running an interrupted batch
 without a cache re-spends quota already spent.}
 
 \item{resume}{Logical. When \code{TRUE} (the default) and \code{cache_dir} is set, an
-identifier whose cache file already exists is loaded from disk rather than
-requested again. A cache file that cannot be read back, for example one
-left half-written by an interrupted run, is retrieved again with a warning
-rather than aborting the batch.}
+identifier whose cache file already exists is loaded from disk, sparing a
+second request for it. A cache file that cannot be read back, for example
+one left half-written by an interrupted run, is retrieved again with a
+warning, and the batch carries on.}
 
 \item{api_key, inst_token}{Optional credentials (see \code{\link[=scopus_has_key]{scopus_has_key()}}).}
 
@@ -74,14 +74,15 @@ document's author-supplied keywords, joined the same way as \code{authors}
 omits the field for a given key's entitlement (see \emph{Details}).
 
 When \code{include} names \code{"references"}, a \code{references} list-column is added:
-one data frame per document, with one row per cited work, rather than a
-single joined string. Its columns are \code{position} (the reference's place in
-the bibliography), \code{id} (the 'Scopus' identifier of the cited work, when
+one data frame per document, with one row per cited work, where a joined
+string would have to be parsed apart again. Its columns are \code{position} (the
+reference's place in the bibliography), \code{id} (the 'Scopus' identifier of
+the cited work, when
 resolved), \code{doi}, \code{title}, \code{authors}, \code{source} (the journal or other
 venue), \code{year} and \code{citedbycount} (the cited work's own citation count;
 populated only under \code{view = "REF"}, \code{NA} under \code{"FULL"}). A document with
-no resolvable references yields a zero-row data frame, not \code{NA}, so the
-column can always be unnested.
+no resolvable references yields a zero-row data frame, so the column can
+always be unnested.
 }
 \description{
 Fetches the abstract text and core metadata for one or more records from the
@@ -101,8 +102,8 @@ an otherwise identical request made moments apart, so \code{"FULL"} is
 recommended when your entitlement allows it. \code{"REF"} remains available for
 accounts entitled only to it; when the number of references returned does
 not match the document's own reported reference count, a warning is issued
-naming the identifier, since the list may be an incomplete page rather than
-the whole bibliography.
+naming the identifier, since the list may be an incomplete page of the
+bibliography.
 
 Author keywords were not populated by either 'Scopus' Search's \code{COMPLETE}
 view (see \code{\link[=scopus_records]{scopus_records()}}) or Abstract Retrieval's \code{FULL} view in this
@@ -110,8 +111,7 @@ package's own development testing, against a live, otherwise
 fully-entitled key, on documents that do carry author keywords in 'Scopus'
 itself. If your own keywords come back all \code{NA}, this is most likely an
 entitlement gap specific to that field, worth raising with your
-Scopus/Elsevier account contact, rather than the documents genuinely having
-none.
+Scopus/Elsevier account contact. The documents do carry keywords.
 }
 \section{API access}{
 
@@ -119,10 +119,10 @@ This performs one request per identifier and requires a valid API key and
 internet access; full-text abstract access, and the \code{FULL}/\code{REF} views in
 particular, can also depend on your entitlement. A view or field your key is
 not entitled to raises a \code{scopus_error_forbidden} condition with a message
-naming the view and suggesting who to contact, rather than a generic HTTP
-failure; because entitlement is an account-level property, not a
-per-document one, retrieval stops at the first such failure instead of
-repeating it for every remaining identifier. See the \emph{API access} section of
+naming the view and suggesting who to contact, where a generic HTTP failure
+would leave you guessing. Because entitlement is a property of the account,
+retrieval stops at the first such failure, so the same refusal is not
+repeated for every remaining identifier. See the \emph{API access} section of
 \code{\link[=scopus_count]{scopus_count()}} for the other conditions that may be raised.
 }
 
@@ -144,7 +144,7 @@ rich$references[[1]]
 # The offline companion, which needs no key. The identifiers, titles,
 # sources and citation counts are two records of the bundled corpus of real
 # articles; the abstract text is what a live call adds, so it is left unset
-# here rather than invented, as is the 'Scopus' identifier the corpus does
+# left as a placeholder here, as is the 'Scopus' identifier the corpus does
 # not carry.
 cited <- example_records[order(-example_records$citations), ][1:2, ]
 abstracts <- tibble::tibble(

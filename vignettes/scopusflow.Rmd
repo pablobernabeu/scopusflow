@@ -15,7 +15,7 @@ knitr::opts_chunk$set(collapse = FALSE, comment = "")
 # alike. The fixed width keeps tibbles inside the documentation column.
 options(cli.num_colors = 1, cli.hyperlink = FALSE, crayon.enabled = FALSE,
         width = 80)
-# Render data frames and tibbles as tables rather than console text.
+# Print data frames and tibbles as formatted tables.
 local({
   kp <- function(x, ...) {
     if (any(vapply(x, is.list, logical(1)))) return(knitr::normal_print(x))
@@ -38,13 +38,13 @@ instead. `example_records` holds 138 real journal articles on graphene
 supercapacitors published between 2015 and 2024, with their real titles, DOIs,
 journals, first authors and citation counts. They come from OpenAlex, whose
 metadata is released under CC0, reshaped into the schema a retrieval returns.
-The harvest is complete rather than sampled, so its rows per year are the real
-number of publications per year for that query, and its gaps are genuine too.
+The harvest is complete, so its rows per year are the real number of
+publications per year for that query, and its gaps are real gaps too.
 Eleven records carry no DOI and two no source title, exactly as they arrive.
 Running the equivalent query against Scopus yields the same kind of object, with
 the same columns and the same handling, though not an identical set of records.
-The steps that genuinely need the API are shown but not run, each paired with
-the offline equivalent.
+The steps that need the API are shown but not run, each paired with the offline
+equivalent.
 
 ## Describing a search as a plan
 

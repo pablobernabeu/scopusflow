@@ -22,7 +22,7 @@ scopus_prisma_names <- function() {
   )
 }
 
-# English month names, spelled out rather than taken from the locale: the
+# English month names, spelled out here and never read from the locale: the
 # paragraph is compared byte for byte against the Python twin's, and
 # format(date, "%B") returns whatever the machine's locale says.
 scopus_report_months <- function() {
@@ -72,8 +72,8 @@ scopus_report_months <- function() {
 #' recorded removing. Where
 #' an attribute is absent, as it is for a set read back from a `.csv`, for the
 #' bundled corpus, and for a cell resumed from a checkpoint written before these
-#' attributes existed, the record says the field is unrecorded rather than
-#' filling it. This matters most for completeness: a harvest whose reported
+#' attributes existed, the record says the field is unrecorded and fills
+#' nothing in. This matters most for completeness: a harvest whose reported
 #' total is unknown is never described as exhaustive.
 #'
 #' The PRISMA-S map is decided the same way. Items the package holds evidence
@@ -161,7 +161,7 @@ format.scopus_search_report <- function(x, style = c("report", "paragraph", "mar
 #' @export
 print.scopus_search_report <- function(x, ...) {
   cat(scopus_report_render(x), "\n", sep = "")
-  # Named here rather than inside format(), so that the rendered record itself
+  # Named here, and never inside format(), so that the rendered record itself
   # stays free of language-specific instructions and can be compared with the
   # Python twin's line for line.
   cat("\nThe methods paragraph is format(x, style = \"paragraph\"); ",
@@ -407,7 +407,7 @@ scopus_report_prisma <- function(x) {
 # Rendering -----------------------------------------------------------------
 
 # Counts are grouped for readability in both engines, so a five-figure total
-# reads the same in the R report and the Python one. Rounded rather than coerced
+# reads the same in the R report and the Python one. Rounded, never coerced
 # with as.integer(), which returns NA above 2^31: the reported totals come back
 # from the API as doubles, and a report that printed NA for a very large search
 # would be worse than one that printed a long number.
@@ -749,8 +749,8 @@ scopus_report_paragraph <- function(x) {
                      how, through, x$view, scopus_report_count(x$page_size), x$paging)
     } else if (known) {
       # A plan has no paging mode to be missing: the mode is settled by the
-      # fetch, so an unrun plan is told what will decide it rather than
-      # accused of having lost it.
+      # fetch, so an unrun plan is told what will decide it, where the wording
+      # for a harvest would accuse it of having lost it.
       unpaged <- if (run) {
         "a paging mode this record does not carry"
       } else {
@@ -780,8 +780,8 @@ scopus_report_paragraph <- function(x) {
       sprintf("The search retrieved %s records. The API's own count of matching records was not recorded, so the harvest cannot be shown to be complete.",
               scopus_report_count(x$n_records))
     }
-    # Named rather than "of these", which in the branches above ends up next to
-    # the cells or the matching records and so points at the wrong noun.
+    # Named outright. "Of these" would, in the branches above, end up next to
+    # the cells or the matching records and so point at the wrong noun.
     sentences <- c(
       sentences, counts,
       sprintf("Of the records retrieved, %s carry a DOI.",

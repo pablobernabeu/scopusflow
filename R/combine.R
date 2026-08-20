@@ -13,7 +13,7 @@
 #'   The merge itself is recorded in the `combined` attribute, a list of `n_in`
 #'   (records supplied), `n_out` (records kept), `n_removed` and `deduplicated`,
 #'   which is what lets [scopus_search_report()] state how many duplicates were
-#'   removed instead of leaving the PRISMA-S item unanswered.
+#'   removed, so the PRISMA-S item is answered.
 #' @seealso [scopus_fetch_plan()], which combines plan cells the same way.
 #' @examples
 #' # A baseline retrieval and a later one, merged into a cumulative set. The

@@ -28,6 +28,18 @@ test_that("scopus_top requires a finite, whole, positive n", {
   expect_error(scopus_top(example_records, n = Inf), class = "scopus_error_bad_input")
 })
 
+test_that("scopus_top accepts an n beyond integer range and returns every row", {
+  # The validator accepts any finite whole n, so anything past 2^31 must not be
+  # coerced to a 32-bit integer on the way to head(): that yielded NA and an
+  # untyped base error from head.data.frame(). A cut wider than the tally is
+  # simply the whole tally, and the answer matches the Python twin's, whose
+  # pandas head() has never had a 32-bit ceiling.
+  all_sources <- scopus_top(example_records, by = "source", n = 1000L)
+  expect_no_error(wide <- scopus_top(example_records, by = "source", n = 1e10))
+  expect_identical(wide, all_sources)
+  expect_identical(scopus_top(example_records, by = "source", n = 2^40), all_sources)
+})
+
 test_that("scopus_top breaks count ties deterministically by value", {
   # Six contributors, five tied at count 1 differing only by case, so the
   # head(n) cut among ties must be reproducible (byte order), not locale-driven.

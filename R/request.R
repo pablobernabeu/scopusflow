@@ -1,7 +1,7 @@
 # HTTP layer ----------------------------------------------------------------
 #
 # scopusflow talks to the Elsevier Scopus Search API directly through httr2
-# rather than through rscopus. This gives request-level control over
+# and never through rscopus. This gives request-level control over
 # pagination, quota headers and retry with back-off, and, importantly, it makes
 # offline testing possible through httr2::local_mocked_responses().
 
@@ -36,7 +36,7 @@ scopus_request <- function(params,
     req <- httr2::req_headers(req, `X-ELS-Insttoken` = token, .redact = "X-ELS-Insttoken")
   }
   # Drop absent parameters (NULL or empty string) so they are omitted from the
-  # query string rather than sent as a bare, possibly malformed, parameter.
+  # query string, never sent as a bare, possibly malformed, parameter.
   absent <- vapply(params, function(v) {
     is.null(v) || (length(v) == 1L && !is.na(v) && identical(as.character(v), ""))
   }, logical(1))
@@ -189,8 +189,8 @@ scopus_search_page <- function(query,
   )
   req <- scopus_request(params, api_key = api_key, inst_token = inst_token, call = call)
   resp <- scopus_perform(req, call = call)
-  # Parse with jsonlite directly (rather than httr2::resp_body_json, which only
-  # suggests jsonlite) so the dependency is explicit and the structure is stable.
+  # Parse with jsonlite directly, since httr2::resp_body_json only suggests
+  # jsonlite, so the dependency is explicit and the structure is stable.
   body <- tryCatch(
     jsonlite::fromJSON(httr2::resp_body_string(resp), simplifyVector = FALSE),
     error = function(e) {

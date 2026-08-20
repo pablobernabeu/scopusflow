@@ -33,7 +33,7 @@ options or environment variables (see \code{\link[=scopus_has_key]{scopus_has_ke
 \value{
 A single number giving the total number of matching records, or \code{NA}
 when the API reports no total. It is returned as a double so that very large
-totals are represented exactly rather than overflowing, with the parsed
+totals are represented exactly, with no risk of overflow, and the parsed
 quota (see \code{\link[=scopus_quota]{scopus_quota()}}) attached as the \code{quota} attribute so a workflow
 can pace itself off a count.
 }

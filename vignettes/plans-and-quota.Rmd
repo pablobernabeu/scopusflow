@@ -15,7 +15,7 @@ knitr::opts_chunk$set(collapse = FALSE, comment = "")
 # alike. The fixed width keeps tibbles inside the documentation column.
 options(cli.num_colors = 1, cli.hyperlink = FALSE, crayon.enabled = FALSE,
         width = 80)
-# Render data frames and tibbles as tables rather than console text.
+# Print data frames and tibbles as formatted tables.
 local({
   kp <- function(x, ...) {
     if (any(vapply(x, is.list, logical(1)))) return(knitr::normal_print(x))
@@ -73,10 +73,10 @@ deserves a moment's attention, because it is where quota is won or lost.
 
 ## Why page size is a quota decision
 
-Scopus charges quota per request, not per record. A page may hold up to 200
-records under the `STANDARD` view, or 25 under `COMPLETE`. Retrieving a thousand
-records in pages of 200 therefore costs five requests, where pages of 25 would
-cost forty. For that reason `page_size` defaults to the largest the view allows,
+Scopus charges quota by the request, whatever a request brings back. A page may
+hold up to 200 records under the `STANDARD` view, or 25 under `COMPLETE`, so
+retrieving a thousand records in pages of 200 costs five requests where pages of
+25 would cost forty. For that reason `page_size` defaults to the largest the view allows,
 which is the same efficiency `rscopus` relies on, and is in no sense an evasion
 of the quota. Every request is counted, and the 5000-record ceiling still holds.
 
@@ -116,8 +116,8 @@ scopus_quota(resp)
 
 `scopus_fetch_plan()` runs each cell in turn. Given a cache directory it writes
 each cell to disk as it completes, so a run interrupted halfway, or stopped by
-the quota, resumes from where it left off rather than paying for the same cells
-again.
+the quota, resumes from where it left off and never pays twice for the same
+cell.
 
 ```{r eval = FALSE}
 records <- scopus_fetch_plan(
@@ -189,11 +189,11 @@ nrow(combined)
 ```
 
 The 138 distinct articles come back as 149 rows, which is worth understanding
-rather than working around. De-duplication needs something to match on. These
-records carry no Scopus identifier, not having come from Scopus, so it falls
-back to the DOI, and the eleven that arrived without one cannot be matched to
-their own copies. A live Scopus harvest carries an identifier on every record,
-so the same call would return 138.
+before reaching for a workaround. De-duplication needs something to match on.
+These records carry no Scopus identifier, never having come from Scopus, so it
+falls back to the DOI, and the eleven that arrived without one cannot be matched
+to their own copies. A live Scopus harvest carries an identifier on every
+record, so the same call would return 138.
 
 ## Writing the search up
 
@@ -201,7 +201,7 @@ A harvest is rarely the end of the work. A systematic review has to report the
 search itself, in enough detail that a reader can repeat it, and the reporting
 standard for that is PRISMA-S (Rethlefsen et al., 2021). `scopus_search_report()`
 assembles the record from what the plan and the harvest already carry, so the
-methods section is written from the objects rather than from memory.
+methods section is written from the objects and never from memory.
 
 A plan on its own can be reported before it is run, which is useful when a
 protocol has to be registered in advance. The plan below describes the search
@@ -215,9 +215,9 @@ report
 ```
 
 Notice how much of it says "unrecorded". Nothing has been retrieved yet, so
-there is nothing to state, and the report says so rather than leaving a blank
-that a reader might mistake for a zero. That is the governing rule here: the
-record states only what the objects hold. It never substitutes the current time
+there is nothing to state, and the report says so in words, since a blank there
+would be read as a zero. That is the governing rule throughout: the record
+states only what the objects hold. It never substitutes the current time
 for a retrieval that did not record one, never gives a completeness figure for a
 harvest whose reported total is unknown, and never counts duplicates unless a
 merge recorded removing them.
@@ -246,9 +246,9 @@ report
 ```
 
 The completeness lines are worth a moment. Each cell is shown against the number
-of records the API reported for it, so a cell that came back short is visible
-rather than buried in a total, and the overall figure is given only because every
-cell reported one. Drop any of those attributes and the corresponding line says
+of records the API reported for it, so a cell that came back short stays visible
+where a total would have hidden it, and the overall figure is given only because
+every cell reported one. Drop any of those attributes and the corresponding line says
 so instead.
 
 The methods paragraph is the same record as prose, ready to paste into a
@@ -278,16 +278,15 @@ in full from a single call. `scopus_fetch()` returns the first 5000 and warns.
 One remedy is to split the search by year, or by any other facet, so that each
 cell stays under the ceiling, and `scopus_count()` tells you in advance whether
 a split is needed. The other is `scopus_fetch(cursor = TRUE)`, which follows the
-API's cursor instead of an offset and retrieves the whole set in one call, at
-the price of deep-paging rather than relevance order. The *Analysing a
-literature* article weighs the two. A plan gives cached, resumable cells, the
-cursor a complete set in a single pass.
+API's cursor in place of an offset and retrieves the whole set in one call, with
+the records arriving in deep-paging order. The *Analysing a literature* article
+weighs the two. A plan gives cached, resumable cells, the cursor a complete set
+in a single pass.
 
 ## Handling interruptions
 
 Network and API problems are raised as typed conditions, all inheriting from
-`scopus_error`, so a long retrieval can respond to them rather than stopping
-dead.
+`scopus_error`, so a long retrieval can catch them and carry on.
 
 ```{r eval = FALSE}
 result <- tryCatch(
