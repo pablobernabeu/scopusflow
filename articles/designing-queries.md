@@ -7,11 +7,11 @@ library(scopusflow)
 
 A retrieval is only as good as its query. This article shows how to
 compose correct, field-tagged ‘Scopus’ queries with
-[`scopus_query()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_query.md)
-rather than pasting fragments by hand, where a missing bracket or a
-mistyped tag quietly returns the wrong records. Everything here is
-string construction, so it all runs offline, and each query is shown as
-the literal string it produces.
+[`scopus_query()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_query.md),
+which spares you pasting fragments together by hand, where a missing
+bracket or a mistyped tag quietly returns the wrong records. Everything
+here is string construction, so it all runs offline, and each query is
+shown as the literal string it produces.
 
 ## Field tags decide where to look
 
@@ -120,7 +120,7 @@ scopus_query("CRISPR", "Cas9", "Cas12", .op = "OR")
 
 ``` r
 
-# Excluding a dominant homonym (programming, not herpetology).
+# Excluding a dominant homonym, so the snake stays out of the results.
 scopus_query("python", "snake", .op = "AND NOT", .field = "TITLE-ABS-KEY")
 ```
 
@@ -185,8 +185,8 @@ scopus_query("Max Planck", .field = "AFFILORG")
 
 ## When a term is empty
 
-The builder validates its input, so a stray empty term is caught early
-rather than producing a malformed query.
+The builder validates its input, so a stray empty term is caught at
+construction, well before it can produce a malformed query.
 
 ``` r
 

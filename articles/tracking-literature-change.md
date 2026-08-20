@@ -74,10 +74,10 @@ The newly indexed papers come back as `added`, the records present both
 times as `unchanged`, and anything dropped from the later pull as
 `removed`. The counts work out at fourteen added, one removed and 112
 unchanged. Fourteen are added because that is how many of the 2024
-papers carry a DOI, and 112 rather than 113 remain unchanged because the
-re-indexed record is no longer among them. Records without a DOI cannot
-be tracked this way at all, which is one reason to prefer the ‘Scopus’
-identifier when there is one.
+papers carry a DOI, and the re-indexed record takes the unchanged count
+from 113 down to 112. Records without a DOI cannot be tracked this way
+at all, which is one reason to prefer the ‘Scopus’ identifier when there
+is one.
 
 To act on one category, filter the table, which is an ordinary tibble.
 
@@ -112,7 +112,7 @@ nrow(combined)
     [1] 149
 
 That is 149 rows for 138 distinct articles, and the gap is instructive.
-These records carry no ‘Scopus’ identifier, not having come from
+These records carry no ‘Scopus’ identifier, never having come from
 ‘Scopus’, so de-duplication falls back to the DOI. The eleven that
 arrived without one have no key to match on, and so survive in both
 copies. A live harvest carries an identifier on every record, so the
@@ -155,9 +155,9 @@ were. Both survive the `.rds` form and neither survives `.csv`, which is
 a table of columns. The bundled corpus used here carries neither, which
 is why it round-trips identically above.
 
-In a live setting the later retrieval would come from the API rather
-than from a slice of the bundled corpus, with everything else unchanged,
-and both pulls could then say when they were taken.
+In a live setting the later retrieval would come from the API, where
+here it is a slice of the bundled corpus, and everything else would be
+as above. Both pulls could then say when they were taken.
 
 ``` r
 

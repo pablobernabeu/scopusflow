@@ -12,14 +12,14 @@ licensed stand-in instead. `example_records` holds 138 real journal
 articles on graphene supercapacitors published between 2015 and 2024,
 with their real titles, DOIs, journals, first authors and citation
 counts. They come from OpenAlex, whose metadata is released under CC0,
-reshaped into the schema a retrieval returns. The harvest is complete
-rather than sampled, so its rows per year are the real number of
-publications per year for that query, and its gaps are genuine too.
-Eleven records carry no DOI and two no source title, exactly as they
-arrive. Running the equivalent query against Scopus yields the same kind
-of object, with the same columns and the same handling, though not an
-identical set of records. The steps that genuinely need the API are
-shown but not run, each paired with the offline equivalent.
+reshaped into the schema a retrieval returns. The harvest is complete,
+so its rows per year are the real number of publications per year for
+that query, and its gaps are real gaps too. Eleven records carry no DOI
+and two no source title, exactly as they arrive. Running the equivalent
+query against Scopus yields the same kind of object, with the same
+columns and the same handling, though not an identical set of records.
+The steps that need the API are shown but not run, each paired with the
+offline equivalent.
 
 ## Describing a search as a plan
 

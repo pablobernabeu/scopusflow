@@ -20,8 +20,8 @@ discovery](reference/figures/README-readme-hero-1.png)
 
 The figure is drawn by
 [`plot_scopus_comparison()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_comparison.md)
-from illustrative counts rather than a live retrieval, so that this page
-builds without an API key. The [Comparing topics over
+from illustrative counts, so that this page builds without an API key
+and without contacting Elsevier. The [Comparing topics over
 time](https://pablobernabeu.github.io/scopusflow/articles/comparing-topics.html)
 article builds the same table and explains every column.
 
@@ -112,11 +112,10 @@ how a literature changes between retrievals.
 
 [`run_app()`](https://pablobernabeu.github.io/scopusflow/reference/run_app.md)
 opens a local Shiny app that drives the whole workflow without writing
-code, and mirrors every choice back as a runnable R script, so it works
-as an on-ramp to the package rather than a replacement. It runs on your
-own machine, so your API key never leaves it, and a demo mode lets you
-try the flow with no key, on the corpus of real articles bundled with
-the package.
+code, and mirrors every choice back as a runnable R script, so it
+doubles as a way into the package itself. It runs on your own machine,
+so your API key never leaves it, and a demo mode lets you try the flow
+with no key, on the corpus of real articles bundled with the package.
 
 ``` r
 
@@ -135,7 +134,7 @@ article walks through every panel.
 The Scopus API enforces a weekly quota and a short-term rate limit, and
 ordinary offset paging returns at most the first 5000 records of any
 query (use `scopus_fetch(cursor = TRUE)` to go beyond that). scopusflow
-works within these limits rather than around them. It requests the
+works within these limits and never tries to evade them. It requests the
 largest page each view allows, 200 records for `STANDARD` and 25 for
 `COMPLETE`, so that a retrieval uses as few requests, and as little
 quota, as it can. This is the same approach `rscopus` takes. The quota
@@ -152,7 +151,7 @@ can respond to it in code. The Get started vignette shows the
 ## How it compares
 
 Several R packages cover neighbouring ground, and scopusflow is meant to
-work alongside them rather than replace them.
+work alongside them.
 
 | Package | Focus | Relationship to scopusflow |
 |----|----|----|

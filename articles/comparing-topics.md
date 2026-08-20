@@ -39,12 +39,11 @@ cmp <- scopus_compare_topics(
 ## The shape of the result
 
 The result is a tidy table with one row per topic and year. A comparison
-counts whole literatures rather than the records in hand, so unlike a
-trend it cannot be derived from the corpus the package bundles for its
-other examples. The table below is rebuilt in the same shape, with
-illustrative counts, so the rest of the article runs without a key. The
-reference set grows over the period, which the uncertainty band will
-reflect.
+counts whole literatures, so unlike a trend it cannot be derived from
+the corpus the package bundles for its other examples. The table below
+is rebuilt in the same shape, with illustrative counts, so the rest of
+the article runs without a key. The reference set grows over the period,
+which the uncertainty band will reflect.
 
 ``` r
 
@@ -97,8 +96,8 @@ this illustrative table carries a placeholder.
 The `comparison_percentage` column is the per-year share, and
 `average_comparison_percentage` is the same ratio computed over the
 whole period, which is what orders the topics. A year in which the
-reference has no records has no defined share and is recorded as `NA`
-rather than as a misleading zero.
+reference has no records has no defined share, so it is recorded as
+`NA`. A zero there would be read as a real observation.
 
 ## A first plot
 
@@ -114,16 +113,16 @@ plot_scopus_comparison(cmp, legend_inside = TRUE)
 legend](comparing-topics_files/figure-html/unnamed-chunk-4-1.png)
 
 Here `legend_inside = TRUE` places the topic key inside the panel, in
-whichever corner has the most free space, rather than labelling each
-line at its end. Left at its default the chart uses whole-number year
-breaks, a colour-blind-safe palette and, because there are only a few
-topics, labels the lines directly so the reader need not match colours
-to a legend. Each label carries the topic’s total record count. The
-shaded band around each line is a Wilson stability range. It is wide in
-the early years, when the reference set is small and the share would
-move easily, and narrows as the literature grows. Because ‘Scopus’
-returns exact counts rather than a sample, the band is illustrative
-rather than a confidence interval, a point the
+whichever corner has the most free space. Left at its default the chart
+labels each line at its end, and uses whole-number year breaks and a
+colour-blind-safe palette, so with only a few topics the reader never
+has to match colours to a legend at all. Each label carries the topic’s
+total record count. The shaded band around each line is a Wilson
+stability range. It is wide in the early years, when the reference set
+is small and the share would move easily, and narrows as the literature
+grows. ‘Scopus’ returns exact counts, so nothing here is a sample from
+which an interval could be estimated. The band is illustrative, a point
+the
 [`plot_scopus_comparison()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_comparison.md)
 help page sets out.
 
@@ -133,10 +132,9 @@ Direct labels are legible only if they do not overlap, and topics
 sometimes end the period at nearly the same share.
 [`plot_scopus_comparison()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_comparison.md)
 spreads converging labels apart automatically, at the point the figure
-is actually drawn, so they stay readable at any figure size rather than
-stacking into an unreadable pile. Here six sub-areas of
-materials-science research all end 2013–2021 within three points of one
-another.
+is actually drawn, so they stay readable at any figure size and never
+stack into an unreadable pile. Here six sub-areas of materials-science
+research all end 2013–2021 within three points of one another.
 
 ``` r
 
@@ -173,8 +171,8 @@ plot_scopus_comparison(cmp_converging)
 ```
 
 ![Six materials-science sub-areas converging to similar shares by 2021,
-with end labels automatically spread apart rather than
-overlapping](comparing-topics_files/figure-html/unnamed-chunk-6-1.png)
+with end labels automatically spread apart so that none
+overlaps](comparing-topics_files/figure-html/unnamed-chunk-6-1.png)
 
 Without this, six labels ending within three points of each other would
 print on top of one another. Here every one is still readable, each

@@ -87,8 +87,9 @@ key's entitlement; see *Details*).
 
 The 'Scopus' API signals an empty result set with a single sentinel
 entry that carries an `error` field and no identifier. This is detected
-and turned into a zero-row result rather than a spurious record, while a
-genuine record that also carries a per-entry `error` annotation is kept.
+and turned into a zero-row result, with no spurious record in it, while
+a genuine record that also carries a per-entry `error` annotation is
+kept.
 
 Author keywords are only ever present under `view = "COMPLETE"`; the
 `STANDARD` view (the default throughout the package) never includes

@@ -71,10 +71,10 @@ scopus_abstract(
 - resume:
 
   Logical. When `TRUE` (the default) and `cache_dir` is set, an
-  identifier whose cache file already exists is loaded from disk rather
-  than requested again. A cache file that cannot be read back, for
-  example one left half-written by an interrupted run, is retrieved
-  again with a warning rather than aborting the batch.
+  identifier whose cache file already exists is loaded from disk,
+  sparing a second request for it. A cache file that cannot be read
+  back, for example one left half-written by an interrupted run, is
+  retrieved again with a warning, and the batch carries on.
 
 - api_key, inst_token:
 
@@ -105,14 +105,15 @@ when the API omits the field for a given key's entitlement (see
 *Details*).
 
 When `include` names `"references"`, a `references` list-column is
-added: one data frame per document, with one row per cited work, rather
-than a single joined string. Its columns are `position` (the reference's
-place in the bibliography), `id` (the 'Scopus' identifier of the cited
-work, when resolved), `doi`, `title`, `authors`, `source` (the journal
-or other venue), `year` and `citedbycount` (the cited work's own
-citation count; populated only under `view = "REF"`, `NA` under
-`"FULL"`). A document with no resolvable references yields a zero-row
-data frame, not `NA`, so the column can always be unnested.
+added: one data frame per document, with one row per cited work, where a
+joined string would have to be parsed apart again. Its columns are
+`position` (the reference's place in the bibliography), `id` (the
+'Scopus' identifier of the cited work, when resolved), `doi`, `title`,
+`authors`, `source` (the journal or other venue), `year` and
+`citedbycount` (the cited work's own citation count; populated only
+under `view = "REF"`, `NA` under `"FULL"`). A document with no
+resolvable references yields a zero-row data frame, so the column can
+always be unnested.
 
 ## Details
 
@@ -126,8 +127,8 @@ request made moments apart, so `"FULL"` is recommended when your
 entitlement allows it. `"REF"` remains available for accounts entitled
 only to it; when the number of references returned does not match the
 document's own reported reference count, a warning is issued naming the
-identifier, since the list may be an incomplete page rather than the
-whole bibliography.
+identifier, since the list may be an incomplete page of the
+bibliography.
 
 Author keywords were not populated by either 'Scopus' Search's
 `COMPLETE` view (see
@@ -136,8 +137,8 @@ or Abstract Retrieval's `FULL` view in this package's own development
 testing, against a live, otherwise fully-entitled key, on documents that
 do carry author keywords in 'Scopus' itself. If your own keywords come
 back all `NA`, this is most likely an entitlement gap specific to that
-field, worth raising with your Scopus/Elsevier account contact, rather
-than the documents genuinely having none.
+field, worth raising with your Scopus/Elsevier account contact. The
+documents do carry keywords.
 
 ## API access
 
@@ -146,9 +147,9 @@ and internet access; full-text abstract access, and the `FULL`/`REF`
 views in particular, can also depend on your entitlement. A view or
 field your key is not entitled to raises a `scopus_error_forbidden`
 condition with a message naming the view and suggesting who to contact,
-rather than a generic HTTP failure; because entitlement is an
-account-level property, not a per-document one, retrieval stops at the
-first such failure instead of repeating it for every remaining
+where a generic HTTP failure would leave you guessing. Because
+entitlement is a property of the account, retrieval stops at the first
+such failure, so the same refusal is not repeated for every remaining
 identifier. See the *API access* section of
 [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md)
 for the other conditions that may be raised.
@@ -180,7 +181,7 @@ rich$references[[1]]
 # The offline companion, which needs no key. The identifiers, titles,
 # sources and citation counts are two records of the bundled corpus of real
 # articles; the abstract text is what a live call adds, so it is left unset
-# here rather than invented, as is the 'Scopus' identifier the corpus does
+# left as a placeholder here, as is the 'Scopus' identifier the corpus does
 # not carry.
 cited <- example_records[order(-example_records$citations), ][1:2, ]
 abstracts <- tibble::tibble(

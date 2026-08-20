@@ -112,11 +112,10 @@ plot_scopus_top(scopus_top(records, by = "author", n = 5))
 authors](analysing-a-literature_files/figure-html/unnamed-chunk-6-1.png)
 
 A record set also has an honest default view. `autoplot()` draws its
-records per year. Because this corpus is a complete harvest of one query
-rather than a sample, those bars are the real number of publications per
-year for that query. The same `autoplot()` generic dispatches on
-`scopus_trend` and `scopus_top` objects too, delegating to the plots
-above.
+records per year. Because this corpus is a complete harvest of one
+query, those bars are the real number of publications per year for that
+query. The same `autoplot()` generic dispatches on `scopus_trend` and
+`scopus_top` objects too, delegating to the plots above.
 
 ``` r
 
@@ -181,8 +180,9 @@ plot_scopus_trend(tr)
 peaking in
 2019](analysing-a-literature_files/figure-html/unnamed-chunk-10-1.png)
 
-The figure draws the same counts as the bar chart above, which is the
-point. A trend is something a record set already knows, and something
+The figure draws the same counts as the bar chart above, and the
+agreement is worth noticing. A trend is something a record set already
+knows, and something
 [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md)
 can find out for a query whose records you never download. The caption
 is the function’s own attribution, since a `scopus_trend` object
@@ -227,15 +227,15 @@ plot_scopus_intersections(
 ```
 
 Here `field` leaves the third value untouched, since it already reads as
-a complete field-tagged expression, so a concept can be a synonym set
-rather than a single term.
+a complete field-tagged expression, so a concept can be a whole synonym
+set.
 
 This one cannot be derived from a record set, because it counts whole
-literatures rather than the records in hand, so here the result is
-rebuilt in its own shape with illustrative counts, purely to show the
-plot. The lollipop chart uses a log-scale axis, so the small
-intersection stays legible beside its large parent fields, and the
-highlighted row draws the eye to the niche itself.
+literatures, where a record set holds only the records already in hand,
+so here the result is rebuilt in its own shape with illustrative counts,
+purely to show the plot. The lollipop chart uses a log-scale axis, so
+the small intersection stays legible beside its large parent fields, and
+the highlighted row draws the eye to the niche itself.
 
 ``` r
 
@@ -282,8 +282,8 @@ identifier. To show its shape without a key, here is a stand-in built
 from the two most-cited records of the corpus, which supplies every
 column but the abstract itself. The abstract is the one thing a live
 call adds and the corpus does not carry, so it is marked as a
-placeholder rather than invented, and the columns are listed by name
-because the prose is far too wide to typeset.
+placeholder, with nothing invented to fill it, and the columns are
+listed by name because the prose is far too wide to typeset.
 
 ``` r
 
@@ -331,10 +331,11 @@ nrow(recs)
 That query matched 38,374 records when this article was written (the
 literature keeps growing), several times the offset ceiling, and the
 cursor retrieves all of them in one call. The records then arrive in the
-API’s deep-paging order rather than sorted by relevance, which is the
-right trade for a complete harvest. This is the one-call alternative to
-the year-partitioned plan in the *Search plans and quota-aware
-retrieval* article. A plan keeps each cell under the ceiling and
-preserves relevance order, whereas `cursor = TRUE` harvests the whole
-set in a single pass. Reach for the plan when you want cached, resumable
-cells, and the cursor when you want the complete set at once.
+API’s deep-paging order, which is the right trade for a complete harvest
+and the wrong one when you want the most relevant few hundred. This is
+the one-call alternative to the year-partitioned plan in the *Search
+plans and quota-aware retrieval* article. A plan keeps each cell under
+the ceiling and preserves relevance order, whereas `cursor = TRUE`
+harvests the whole set in a single pass. Reach for the plan when you
+want cached, resumable cells and the cursor when you want the complete
+set at once.

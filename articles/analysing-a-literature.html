@@ -237,10 +237,10 @@ the semicolon-joined author lists a live harvest returns.</p>
 <p><img src="analysing-a-literature_files/figure-html/unnamed-chunk-6-1.png" class="r-plt" alt="A horizontal bar chart of the most frequent authors" width="672"></p>
 <p>A record set also has an honest default view. <code>autoplot()</code>
 draws its records per year. Because this corpus is a complete harvest of
-one query rather than a sample, those bars are the real number of
-publications per year for that query. The same <code>autoplot()</code>
-generic dispatches on <code>scopus_trend</code> and
-<code>scopus_top</code> objects too, delegating to the plots above.</p>
+one query, those bars are the real number of publications per year for
+that query. The same <code>autoplot()</code> generic dispatches on
+<code>scopus_trend</code> and <code>scopus_top</code> objects too,
+delegating to the plots above.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span></code></pre></div>
 <p><img src="analysing-a-literature_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" alt="A bar chart of publications per year from 2015 to 2024, fluctuating around fifteen a year" width="672"></p>
@@ -330,16 +330,16 @@ gives what a count per year would have returned, in the shape
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_scopus_trend.html">plot_scopus_trend</a></span><span class="op">(</span><span class="va">tr</span><span class="op">)</span></span></code></pre></div>
 <p><img src="analysing-a-literature_files/figure-html/unnamed-chunk-10-1.png" class="r-plt" alt="A line and area chart of publications per year from 2015 to 2024, peaking in 2019" width="720"></p>
-<p>The figure draws the same counts as the bar chart above, which is the
-point. A trend is something a record set already knows, and something
-<code><a href="../reference/scopus_trend.html">scopus_trend()</a></code> can find out for a query whose records you
-never download. The caption is the function’s own attribution, since a
-<code>scopus_trend</code> object ordinarily comes from the Search API,
-whereas this one was tallied from the bundled stand-in. The curve itself
-is flat because the query is a narrow phrase, some fifteen papers a year
-over a decade. A broader query, ‘graphene’ on its own, would show the
-steep growth the field is better known for, on a scale that runs into
-the offset ceiling discussed below.</p>
+<p>The figure draws the same counts as the bar chart above, and the
+agreement is worth noticing. A trend is something a record set already
+knows, and something <code><a href="../reference/scopus_trend.html">scopus_trend()</a></code> can find out for a
+query whose records you never download. The caption is the function’s
+own attribution, since a <code>scopus_trend</code> object ordinarily
+comes from the Search API, whereas this one was tallied from the bundled
+stand-in. The curve itself is flat because the query is a narrow phrase,
+some fifteen papers a year over a decade. A broader query, ‘graphene’ on
+its own, would show the steep growth the field is better known for, on a
+scale that runs into the offset ceiling discussed below.</p>
 </div>
 <div class="section level2">
 <h2 id="where-a-niche-sits">Where a niche sits<a class="anchor" aria-label="anchor" href="#where-a-niche-sits"></a>
@@ -371,13 +371,13 @@ expressions, used exactly as given.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Here <code>field</code> leaves the third value untouched, since it
 already reads as a complete field-tagged expression, so a concept can be
-a synonym set rather than a single term.</p>
+a whole synonym set.</p>
 <p>This one cannot be derived from a record set, because it counts whole
-literatures rather than the records in hand, so here the result is
-rebuilt in its own shape with illustrative counts, purely to show the
-plot. The lollipop chart uses a log-scale axis, so the small
-intersection stays legible beside its large parent fields, and the
-highlighted row draws the eye to the niche itself.</p>
+literatures, where a record set holds only the records already in hand,
+so here the result is rebuilt in its own shape with illustrative counts,
+purely to show the plot. The lollipop chart uses a log-scale axis, so
+the small intersection stays legible beside its large parent fields, and
+the highlighted row draws the eye to the niche itself.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sets</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
 <span>  label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"semantic priming"</span>, <span class="st">"mental simulation"</span>, <span class="st">"embodied simulation"</span>,</span>
@@ -415,8 +415,8 @@ row per identifier. To show its shape without a key, here is a stand-in
 built from the two most-cited records of the corpus, which supplies
 every column but the abstract itself. The abstract is the one thing a
 live call adds and the corpus does not carry, so it is marked as a
-placeholder rather than invented, and the columns are listed by name
-because the prose is far too wide to typeset.</p>
+placeholder, with nothing invented to fill it, and the columns are
+listed by name because the prose is far too wide to typeset.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">top2</span> <span class="op">&lt;-</span> <span class="va">records</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="op">-</span><span class="va">records</span><span class="op">$</span><span class="va">citations</span><span class="op">)</span>, <span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, <span class="op">]</span></span>
 <span><span class="va">ab</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
@@ -478,14 +478,14 @@ the API’s cursor instead, which has no such ceiling.</p>
 <p>That query matched 38,374 records when this article was written (the
 literature keeps growing), several times the offset ceiling, and the
 cursor retrieves all of them in one call. The records then arrive in the
-API’s deep-paging order rather than sorted by relevance, which is the
-right trade for a complete harvest. This is the one-call alternative to
-the year-partitioned plan in the <em>Search plans and quota-aware
-retrieval</em> article. A plan keeps each cell under the ceiling and
-preserves relevance order, whereas <code>cursor = TRUE</code> harvests
-the whole set in a single pass. Reach for the plan when you want cached,
-resumable cells, and the cursor when you want the complete set at
-once.</p>
+API’s deep-paging order, which is the right trade for a complete harvest
+and the wrong one when you want the most relevant few hundred. This is
+the one-call alternative to the year-partitioned plan in the <em>Search
+plans and quota-aware retrieval</em> article. A plan keeps each cell
+under the ceiling and preserves relevance order, whereas
+<code>cursor = TRUE</code> harvests the whole set in a single pass.
+Reach for the plan when you want cached, resumable cells and the cursor
+when you want the complete set at once.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

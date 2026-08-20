@@ -26,8 +26,8 @@ is resolved the same way from the `inst_token` argument, the
 variable.
 
 A key is a secret. The safest home for it is `~/.Renviron`, as in
-`SCOPUS_API_KEY=xxxx`, rather than a script, and it should stay out of
-version control.
+`SCOPUS_API_KEY=xxxx`, well away from any script, and it should stay out
+of version control.
 
 ## See also
 

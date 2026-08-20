@@ -6,13 +6,12 @@ opens a local Shiny app that drives the whole scopusflow workflow
 through a browser tab, from describing a search to exporting the
 records, without writing any R. It runs on your own machine, so your
 Scopus key never leaves it and requests come from your own network. The
-app is an on-ramp to the package rather than a replacement, because it
-mirrors every choice you make back as a runnable R script. Anything you
-can do in the app you can also do from code, and the script panel shows
-you how.
+app doubles as a way into the package itself, because it mirrors every
+choice you make back as a runnable R script. Anything you can do in the
+app you can also do from code, and the script panel shows you how.
 
-This article describes the app rather than running it, since it needs a
-live server, so the code chunks are shown but not evaluated. The
+This article describes the app without running it, since that would need
+a live server, so the code chunks are shown but not evaluated. The
 screenshots were taken from the running app with Demo mode left on,
 which needs no key and no network, so everything they show can be
 reproduced on your own machine in a minute.
@@ -44,13 +43,14 @@ quota. The records come from `example_records`, the corpus of 138 real
 journal articles the package bundles because Scopus records may not be
 redistributed, so every panel is exercised on real titles, DOIs,
 journals and citation counts, and the by-year chart shows a real
-publication curve rather than a flat row of bars. That corpus spans 2015
-to 2024, so a year range reaching outside it is drawn from the nearest
-year it holds. Only the topic comparison is synthesised, since it counts
-whole literatures rather than the records in hand. When you are ready
-for real results, paste your Scopus key into the field at the top of the
-sidebar and switch Demo mode off. The key stays in the running session
-and is never written into the generated script.
+publication curve with the shape the literature actually has. That
+corpus spans 2015 to 2024, so a year range reaching outside it is drawn
+from the nearest year it holds. Only the topic comparison is
+synthesised, since it counts whole literatures, which no set of records
+in hand can answer for. When you are ready for real results, paste your
+Scopus key into the field at the top of the sidebar and switch Demo mode
+off. The key stays in the running session and is never written into the
+generated script.
 
 ## Describing and sizing a search
 
@@ -63,8 +63,8 @@ reasoning behind a partitioned
 in code. Check size runs a cheap count first, the same one
 [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md)
 performs, so you can see how much a query would retrieve before
-committing to it. In demo mode it reports how many records it would draw
-from the bundled corpus instead.
+committing to it. In demo mode it reports instead how many records it
+would draw from the bundled corpus.
 
 ![The scopusflow sidebar as the app opens, with a Scopus API key field,
 a Demo mode checkbox switched on, the search terms “graphene
@@ -87,7 +87,11 @@ Fetch records starts the harvest in a background process, so the app
 stays responsive while it works. The Live terminal panel tails the
 worker’s output, streaming a line as each year-cell completes, and a
 progress bar tracks how far through the plan the run has reached. Cancel
-stops the run cleanly. Under the surface the app builds a
+ends the background process at once, which does abandon whatever cell
+was in flight. Every cell that had already finished was checkpointed as
+it completed, and a checkpoint is written to a temporary file and
+renamed into place, so a cancelled run leaves the cache whole and a
+later run resumes from it. Internally the app builds a
 [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md)
 from your choices and hands it to
 [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
@@ -167,16 +171,16 @@ below it are likewise real articles from the bundled corpus.
 
 ## Comparing topics
 
-The Compare topics tab asks a different question from a harvest. Rather
-than retrieving records, it measures how a set of sub-topics co-occur
-with your search over time, as a share of it, with your search terms
-acting as the reference topic. You enter comma-separated comparison
-terms, optionally pick one to highlight, and toggle the stability band
-and whether record counts appear on the labels. Because each term needs
-one count request per year, the tab shows how many requests a comparison
-will make and warns when the grid grows large. In demo mode the
-comparison is synthesised so you can see the figure offline. With a key
-it calls
+The Compare topics tab asks a different question from a harvest. It
+retrieves no records at all, and measures instead how a set of
+sub-topics co-occur with your search over time, as a share of it, with
+your search terms acting as the reference topic. You enter
+comma-separated comparison terms, optionally pick one to highlight, and
+toggle the stability band and whether record counts appear on the
+labels. Because each term needs one count request per year, the tab
+shows how many requests a comparison will make and warns when the grid
+grows large. In demo mode the comparison is synthesised so you can see
+the figure offline. With a key it calls
 [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
 and draws the result with
 [`plot_scopus_comparison()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_comparison.md),
@@ -194,11 +198,11 @@ and
 and as a PRISMA-S search record in Markdown, drawn from
 [`scopus_search_report()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_search_report.md).
 In demo mode that record carries no plan or retrieval time, and says so,
-since the records on screen were replayed rather than retrieved. The
-comparison can be saved as a CSV. None of this contacts the API again,
-because it works on results already in hand. Between the downloaded
-script and the exported records, a session in the app leaves you with
-both the data and the code that produced it.
+since the records on screen were replayed from the bundled corpus and
+never retrieved. The comparison can be saved as a CSV. None of this
+contacts the API again, because it works on results already in hand.
+Between the downloaded script and the exported records, a session in the
+app leaves you with both the data and the code that produced it.
 
 ## Beyond the app
 

@@ -125,10 +125,10 @@ quota, for the same number of records.</p>
 <pre><code>[1] "deep learning | neural networks | representation learning | backpropagation"</code></pre>
 <p>In development, this field came back <code>NA</code> even on a live,
 otherwise fully-entitled key, for documents that do carry author
-keywords in ‘Scopus’ itself, which points to an entitlement gap specific
-to this one field rather than the documents genuinely having none. If
-your own keywords come back all <code>NA</code>, it is worth raising
-with your Scopus/Elsevier account contact.</p>
+keywords in ‘Scopus’ itself. Those documents do have keywords, so what
+this points to is an entitlement gap specific to this one field. If your
+own keywords come back all <code>NA</code>, it is worth raising with
+your Scopus/Elsevier account contact.</p>
 </div>
 <div class="section level2">
 <h2 id="references-via-abstract-retrieval">References via Abstract Retrieval<a class="anchor" aria-label="anchor" href="#references-via-abstract-retrieval"></a>
@@ -199,7 +199,7 @@ for every document tried, while <code>view = "REF"</code> returned an
 inconsistent, sometimes-truncated subset, on an otherwise identical
 request made moments apart. <code><a href="../reference/scopus_abstract.html">scopus_abstract()</a></code> warns when
 the number of references returned does not match the document’s own
-reported count, rather than returning a partial list silently.</p>
+reported count, so a partial list never arrives unannounced.</p>
 <p>The number of requests spent and the remaining Abstract Retrieval
 quota are attached as attributes, since this endpoint draws on a
 separate, smaller quota that is easy to exhaust unnoticed.</p>
@@ -210,10 +210,10 @@ separate, smaller quota that is easy to exhaust unnoticed.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">ab</span>, <span class="st">"quota"</span><span class="op">)</span><span class="op">$</span><span class="va">remaining</span>   <span class="co"># Abstract Retrieval quota left</span></span></code></pre></div>
 <pre><code>[1] 24999</code></pre>
 <p>A key or subscription tier that does not cover the requested view
-raises a <code>scopus_error_forbidden</code> condition naming the view,
-rather than a generic HTTP failure, and stops the whole batch rather
-than repeating the same failure for every remaining identifier, since
-entitlement is an account-level property, not a per-document one.</p>
+raises a <code>scopus_error_forbidden</code> condition that names the
+view, where a generic HTTP failure would leave you guessing. It stops
+the whole batch too, since entitlement is a property of the account, so
+the same refusal would only recur on every remaining identifier.</p>
 <p>For more than a handful of identifiers, pass <code>cache_dir</code>
 so an interrupted or quota-limited batch resumes without re-spending
 quota already spent.</p>
@@ -231,10 +231,10 @@ Abstract Retrieval step, returning a minimal shape close to what
 OpenAlex’s <code>works</code> API already returns: <code>id</code>,
 <code>title</code>, <code>year</code>, <code>keywords</code> (a
 list-column of character vectors) and <code>references</code> (a
-list-column of data frames), rather than bibliometrix’s semicolon-joined
-citation strings. It does not replace [<code><a href="../reference/as_bibliometrix.html">as_bibliometrix()</a></code>],
-which keeps its own field-mapping convention for users who want that
-instead.</p>
+list-column of data frames), where bibliometrix would give you
+semicolon-joined citation strings. It does not replace
+[<code><a href="../reference/as_bibliometrix.html">as_bibliometrix()</a></code>], which keeps its own field-mapping
+convention for users who want that.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">recs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch.html">scopus_fetch</a></span><span class="op">(</span><span class="st">"DOI(10.1038/nature14539)"</span>, max_results <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">corpus</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_corpus.html">scopus_corpus</a></span><span class="op">(</span><span class="va">recs</span>, view <span class="op">=</span> <span class="st">"FULL"</span><span class="op">)</span></span>

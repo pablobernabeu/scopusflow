@@ -138,7 +138,7 @@ API omits the field for a given key's entitlement; see <em>Details</em>).</p>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The 'Scopus' API signals an empty result set with a single sentinel entry that
 carries an <code>error</code> field and no identifier. This is detected and turned into a
-zero-row result rather than a spurious record, while a genuine record that also
+zero-row result, with no spurious record in it, while a genuine record that also
 carries a per-entry <code>error</code> annotation is kept.</p>
 <p>Author keywords are only ever present under <code>view = "COMPLETE"</code>; the
 <code>STANDARD</code> view (the default throughout the package) never includes them,

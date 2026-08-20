@@ -104,13 +104,13 @@ asked for now; anything else is a cache miss, refetched and overwritten.
 A checkpoint holding more records than the current <code>max_results</code> asks for
 is served trimmed to that cap, the fuller set staying on disk. A
 checkpoint that cannot be read back, for example one left half-written by
-an interrupted run, is also treated as a miss rather than aborting the
+an interrupted run, is also treated as a miss, and never aborts the
 harvest.</p></dd>
 
 
 <dt id="arg-resume">resume<a class="anchor" aria-label="anchor" href="#arg-resume"></a></dt>
 <dd><p>Logical. When <code>TRUE</code> and <code>cache_dir</code> is set, a cell whose cache
-file already exists is loaded from disk rather than fetched again.</p></dd>
+file already exists is loaded from disk, sparing a second request.</p></dd>
 
 
 <dt id="arg-api-key-inst-token">api_key, inst_token<a class="anchor" aria-label="anchor" href="#arg-api-key-inst-token"></a></dt>
@@ -139,8 +139,8 @@ across from the cells: the time is the earliest of them, since a combined
 set is only as fresh as its oldest cell, and every version that
 contributed is listed, since resuming an older cache means more than one
 did. Both are omitted when any cell cannot supply them, as a checkpoint
-written before they existed cannot, rather than dating the whole from a
-part of it.</p>
+written before they existed cannot. Dating the whole from the part of it
+that can be dated would misreport the set.</p>
     </div>
     <div class="section level2">
     <h2 id="api-access">API access<a class="anchor" aria-label="anchor" href="#api-access"></a></h2>

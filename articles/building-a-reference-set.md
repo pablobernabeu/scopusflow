@@ -163,8 +163,8 @@ cat(substr(as_ris(example_records), 1, 470))
     ER  - 
 
 The first two entries of 138 are shown. The second has no DOI, so its
-`DO` line is simply absent rather than empty, and the entry still
-imports on its title, author and year.
+`DO` line is simply absent, with no empty field written in its place,
+and the entry still imports on its title, author and year.
 
 Pass a `file` to write the whole set. Nothing is written without one.
 

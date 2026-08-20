@@ -34,7 +34,7 @@
   `cell_totals` attribute, and sums it into `total_results` when (and
   only when) every cell reported a total. A cell that comes back shorter
   than the API said it should now warns, which the Python twin has done
-  since 0.3.0; the warning text is byte-identical between the two. A
+  since 0.3.0, and the warning text is byte-identical between the two. A
   cell stopped by `max_results` is short by request and does not warn.
 
 - [`scopus_combine()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md)
@@ -51,8 +51,8 @@
 
 All were silent, and all are fixed.
 
-- **A year-partitioned plan could be served another plan’s years.**
-  Checkpoints were keyed by the cell’s position alone, and every cell of
+- A year-partitioned plan could be served another plan’s years, because
+  checkpoints were keyed by the cell’s position alone and every cell of
   such a plan carries the same query (the year travels separately, as
   the API’s `date` parameter), so the guard meant to reject a foreign
   checkpoint could not tell 2015’s from 2016’s. A plan over 2016:2017
@@ -60,44 +60,44 @@ All were silent, and all are fixed.
   records and reported “loaded from cache”. Checkpoints are now named
   `cell-NNN-YYYY.rds` and carry a manifest (query, date, view, page size
   and record cap) that resume compares against. Existing caches become
-  invisible and refetch once, which costs quota rather than correctness.
-- **A cell cached under a `max_results` cap was served to a later
-  request asking for more.** The manifest now records the cap and
-  whether it actually bit, so a truncated checkpoint is a miss for a
-  wider request while an untruncated one stays usable for any request.
-  The Shiny app’s cache key gained the record cap and now hashes the
-  query instead of truncating it at 80 characters, so two long queries
-  sharing a prefix no longer share a directory.
-- **A zero-row checkpoint answered for any query.** The guard that
+  invisible and refetch once, which spends a little quota to buy back
+  correctness.
+- A cell cached under a `max_results` cap was served to a later request
+  asking for more. The manifest now records the cap and whether it
+  actually bit, so a truncated checkpoint is a miss for a wider request
+  while an untruncated one stays usable for any request. The Shiny app’s
+  cache key gained the record cap and now hashes the query, where it
+  used to truncate it at 80 characters, so two long queries sharing a
+  prefix no longer share a directory.
+- A zero-row checkpoint answered for any query. The guard that
   recognises a foreign checkpoint reads the cached rows’ `query` column,
   which an empty cell has no rows to carry, and the manifest comparison
-  never consulted its own copy of the query. So a plan that legitimately
+  never consulted its own copy of the query, so a plan that legitimately
   found nothing left a checkpoint that a different plan pointed at the
   same `cache_dir` would load as its own empty result. The manifest’s
   query must now match as well.
-- **A failed abstract retrieval was checkpointed as if it were data.** A
+- A failed abstract retrieval was checkpointed as if it were data. A
   rate-limited, server-error or offline attempt in
   [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
   degrades to an all-NA row so the batch survives, but that row was
-  written to the cache, so a resumed run served the failure from disk
-  rather than retrying it. Only rows parsed from successful responses
-  are checkpointed now.
-- **Two identifiers could share one abstract checkpoint.** The cache
+  written to the cache, so a resumed run read the failure back from disk
+  and never retried it. Only rows parsed from successful responses are
+  checkpointed now.
+- Two identifiers could share one abstract checkpoint, because the cache
   filename reduces every non-alphanumeric character to `_`, so distinct
   identifiers such as `10.1/a.b` and `10.1/a-b` collide on the same
   file, and resume never asked which identifier a cached row belonged
-  to. The cached row’s own id must now match; a collision warns and
+  to. The cached row’s own id must now match, and a collision warns and
   refetches.
 - A checkpoint holding more records than the current `max_results` asks
-  for is now served trimmed to that cap rather than whole, with the
-  fuller set left on disk for a later, wider request. The opposite
-  direction, a checkpoint truncated below what is asked for, already
-  refetched with a warning.
+  for is now served trimmed to that cap, with the fuller set left on
+  disk for a later, wider request. The opposite direction, a checkpoint
+  truncated below what is asked for, already refetched with a warning.
 
-A rejected or damaged checkpoint now warns rather than mentioning it
-only under `verbose`, and checkpoints are written to a sibling temporary
-file and renamed into place, so an interrupted run can no longer leave a
-half-written file that breaks every later resume.
+A rejected or damaged checkpoint now warns, where it used to be
+mentioned only under `verbose`, and checkpoints are written to a sibling
+temporary file and renamed into place, so an interrupted run can no
+longer leave a half-written file that breaks every later resume.
 
 ### Other fixes
 
@@ -119,19 +119,35 @@ half-written file that breaks every later resume.
   removed is not the 138 rows the set holds. Where a merge recorded how
   many records went into it, that is now the identification count.
 - A plan not yet run was described in the past tense, and its date line
-  said the set did not carry a retrieval time rather than that no
-  retrieval had happened.
+  said the set did not carry a retrieval time, when the truth was that
+  no retrieval had happened.
 - `average_comparison_percentage` summed the numerator over years the
   denominator excluded, so a year with a missing reference count
-  inflated it — a figure that contradicted the per-year shares printed
-  beside it, and that drives the topic ordering in
+  inflated it, giving a figure that contradicted the per-year shares
+  printed beside it and that drives the topic ordering in
   [`plot_scopus_comparison()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_comparison.md).
   It is now computed over the years where both counts are available.
 - `scopus_abstract(include = "references")` aborted the whole batch when
   one document’s response omitted its reference-count attribute. Because
-  that surfaced as a bare base error rather than a typed `scopus_error`,
-  the per-identifier handler could not catch it, defeating the
-  documented promise that one bad identifier does not lose a batch.
+  that arrived as a bare base error, untyped and so outside the
+  `scopus_error` hierarchy, the per-identifier handler could not catch
+  it, defeating the documented promise that one bad identifier does not
+  lose a batch.
+- The app’s demo banner still called the demo data synthetic, which was
+  true of the six invented rows that shipped before 0.3.0. Demo mode has
+  replayed 138 real published articles since then, and only the topic
+  comparison is simulated, so the banner now says which is which.
+- A record count past 2^31 was coerced to `NA` at three points, each of
+  which accepted any finite whole number and then reached for a 32-bit
+  integer. `scopus_top(n = )` left `head.data.frame()` raising an
+  untyped error about its own argument; `scopus_fetch(max_results = )`
+  and `scopus_fetch_plan(max_results = )` turned every later
+  `n >= max_results` into `NA`, so the retrieval died on a bare “missing
+  value where TRUE/FALSE needed”; and the app’s reproducible-code panel
+  wrote `max_results = NA` into a script it promises is runnable. All
+  three now carry the value as a double, so a cap wider than the result
+  set simply never bites, which is what the Python twin has always done.
+  A cap that fits stays an integer.
 - The 5000-record cap warning fired even when `max_results` had already
   asked for fewer records than the ceiling, advising a remedy for a
   problem the caller did not have.
@@ -146,9 +162,8 @@ half-written file that breaks every later resume.
   a session.
 - Retrievals record when they were taken and by which package version,
   as the `retrieved_at` and `scopusflow_version` attributes, preserved
-  through the `.rds` round trip. They are attributes rather than
-  columns, so the documented schema and the CSV round trip are
-  unchanged.
+  through the `.rds` round trip. Both are attributes, so the documented
+  schema and the CSV round trip are unchanged.
 - Every text file the package writes now carries LF line endings on all
   platforms: the BibTeX and RIS exports, the DOI and record CSVs, and
   the app’s script and comparison downloads previously arrived with CRLF
@@ -162,16 +177,16 @@ half-written file that breaks every later resume.
 
 ### Continuous integration and metadata
 
-- **The dependency canary finished green having exercised nothing** when
-  no development head was actually installed. It now says so, in a
+- The dependency canary could finish green having exercised nothing,
+  when no development head was actually installed. It now says so, in a
   warning and in the step summary, and it installs the ggplot2
   development head alongside the Imports.
 - The declared dependency floors are now installed and tested by a
   `min-deps` job, and the check matrix reaches back to roughly R 4.3.
-- `rlang`’s floor is corrected to 1.1.0. This is evidence, not
-  preference: httr2 1.0.0’s own DESCRIPTION requires `rlang (>= 1.1.0)`,
-  so the old floor described a combination no user could have installed.
-  It is CRAN-visible metadata.
+- `rlang`’s floor is corrected to 1.1.0. The evidence for it is httr2
+  1.0.0’s own DESCRIPTION, which requires `rlang (>= 1.1.0)`, so the old
+  floor described a combination no user could have installed. It is
+  CRAN-visible metadata.
 - The live API check’s documented request cost, the cache guard’s
   description in the documentation and vignette, and the path to the
   Python twin’s copy of the example records were all corrected.
@@ -196,10 +211,10 @@ The dataset the package ships for offline work was replaced outright.
   reshaped into the schema
   \[[`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)\]
   returns. The reasoning is recorded in the design notes.
-- The harvest is complete rather than sampled, so the rows per year are
-  the real publications per year for that query. Eleven records carry no
-  DOI and two no source title, kept as they arrive because a real
-  harvest has such gaps.
+- The harvest is complete, so the rows per year are the real
+  publications per year for that query. Eleven records carry no DOI and
+  two no source title, kept as they arrive because a real harvest has
+  such gaps.
 - `scopus_id` is empty throughout, these records not having come from
   ‘Scopus’, so de-duplication falls back to the DOI as it does for any
   record whose identifier is missing.
@@ -210,12 +225,12 @@ The material a reader meets was rebuilt on the new corpus, and one
 misleading fixture was replaced.
 
 - Every vignette and example runs on that corpus, paired with the
-  key-gated live call a reader would actually write, and the figures
-  quoted in the prose were recomputed against the new data.
+  key-gated live call a reader would write, and the figures quoted in
+  the prose were recomputed against the new data.
 - The demo mode of
   [`run_app()`](https://pablobernabeu.github.io/scopusflow/reference/run_app.md)
-  draws on the same corpus, so a first look at the app shows real
-  articles rather than invented rows.
+  draws on the same corpus, so a first look at the app opens on real
+  articles, where it used to show invented rows.
 - The parser fixture in `inst/extdata` moves onto the reserved 10.5555
   example prefix. It previously paired genuine, resolving DOIs with
   invented titles and authors, so a reader who checked one found a real
@@ -225,10 +240,10 @@ misleading fixture was replaced.
   the escape sequences were reaching the reader as literal text in the
   middle of the tables.
 - [`vignette("comparing-topics")`](https://pablobernabeu.github.io/scopusflow/articles/comparing-topics.md)
-  shows one year of its illustrative comparison across every topic
-  rather than the whole table, and leaves out the `query` column, which
-  in a real comparison holds the whole query string and so reads badly
-  in a table.
+  shows one year of its illustrative comparison across every topic, in
+  place of the whole table, and leaves out the `query` column, which in
+  a real comparison holds the whole query string and so reads badly in a
+  table.
 - The README no longer opens with a link to the documentation site,
   which on the site’s own home page pointed the reader at the page in
   front of them.
@@ -246,8 +261,7 @@ that 0.2.0 shipped but did not show.
   passes
   \[[`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md)\]
   a concept that is already a complete field-tagged expression and so is
-  used as given, letting a concept be a synonym set rather than a single
-  term.
+  used as given, letting a concept be a whole synonym set.
 - [`vignette("scopusflow")`](https://pablobernabeu.github.io/scopusflow/articles/scopusflow.md)
   introduces
   \[[`scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_top.md)\]
@@ -298,11 +312,11 @@ beyond the fields the Search endpoint returns.
   from the ‘Scopus’ Abstract Retrieval API, resilient to an identifier
   that cannot be found. Through `view` and
   `include = c("references", "keywords")` it also retrieves a document’s
-  own reference list (as a structured, per-citation data frame, not a
-  joined string) and author keywords, with per-identifier caching keyed
-  by the requested view and extras, an `n_requests`/`quota` attribute,
-  and a clear, actionable error on an entitlement 403 that stops the
-  batch rather than repeating the same failure for every identifier.
+  own reference list, as a structured, per-citation data frame, and
+  author keywords, with per-identifier caching keyed by the requested
+  view and extras, an `n_requests`/`quota` attribute, and a clear,
+  actionable error on an entitlement 403 that stops the batch, so the
+  same failure is not repeated for every identifier.
   `include = "keywords"` without `view = "FULL"` is rejected up front,
   since the `REF` response carries no author keywords.
 - \[[`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)\]
@@ -342,8 +356,8 @@ result.
   counts a named set of concepts and any requested intersections of
   them, sizing where a study or a niche sits within the surrounding
   literature at one count request per row. Concept values that are
-  already complete field-tagged expressions are used as given rather
-  than wrapped again.
+  already complete field-tagged expressions are used exactly as given,
+  with no second wrap.
   \[[`plot_scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_intersections.md)\]
   draws the result as a lollipop chart on a log-scale axis, with an
   `autoplot()` method and an optional highlight (for example the niche
@@ -353,8 +367,8 @@ result.
 - \[[`plot_scopus_comparison()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_comparison.md)\]
   gains `legend_inside`. When set, and a legend is drawn, it is placed
   inside the panel in whichever corner has the most free space, on a
-  small semi-transparent background, rather than above the panel. The
-  default keeps the previous behaviour.
+  small semi-transparent background, where the default places it above
+  the panel. That default is unchanged.
 - \[[`plot_scopus_comparison()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_comparison.md)\]
   now spreads the direct line labels vertically so topics that converge
   near the final year no longer overlap, and falls back to a legend when
@@ -393,18 +407,18 @@ The whole workflow is now available without writing any R.
   whole workflow can be explored with no key and no network. A new
   vignette, *Using the code-free app*, walks through every panel.
 - The app holds steady under stress. It refuses to start a comparison
-  while a harvest is running, surfaces any comparison failure as a
-  notification rather than a crash, floors a fractional maximum-records
-  entry, drops duplicate comparison terms, and tells you when there is
-  nothing to cancel.
+  while a harvest is running, turns any comparison failure into a
+  notification, floors a fractional maximum-records entry, drops
+  duplicate comparison terms, and tells you when there is nothing to
+  cancel.
 
 ### Other improvements
 
 One rough edge in the package’s messaging was smoothed.
 
 - The no-key error renders its guidance (the option name, the `api_key`
-  argument and the key-request URL) through cli instead of leaking raw
-  markup.
+  argument and the key-request URL) through cli, where it used to leak
+  raw markup.
 
 ## scopusflow 0.1.0
 
@@ -460,7 +474,6 @@ First release.
   `interval`).
 - The bundled `example_records` spans several disciplines, and the
   examples and five workflow vignettes draw on a wide range of fields.
-- Multiple authors are retained in the `authors` column rather than
-  truncated to the first. Very large result totals are handled without
-  overflow, and DOI cleaning copes with `www.doi.org` hosts and `DOI:`
-  labels.
+- The `authors` column retains every author a record lists. Very large
+  result totals are handled without overflow, and DOI cleaning copes
+  with `www.doi.org` hosts and `DOI:` labels.

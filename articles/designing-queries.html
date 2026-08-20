@@ -94,10 +94,10 @@
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pablobernabeu/scopusflow" class="external-link">scopusflow</a></span><span class="op">)</span></span></code></pre></div>
 <p>A retrieval is only as good as its query. This article shows how to
 compose correct, field-tagged ‘Scopus’ queries with
-<code><a href="../reference/scopus_query.html">scopus_query()</a></code> rather than pasting fragments by hand, where
-a missing bracket or a mistyped tag quietly returns the wrong records.
-Everything here is string construction, so it all runs offline, and each
-query is shown as the literal string it produces.</p>
+<code><a href="../reference/scopus_query.html">scopus_query()</a></code>, which spares you pasting fragments together
+by hand, where a missing bracket or a mistyped tag quietly returns the
+wrong records. Everything here is string construction, so it all runs
+offline, and each query is shown as the literal string it produces.</p>
 <div class="section level2">
 <h2 id="field-tags-decide-where-to-look">Field tags decide where to look<a class="anchor" aria-label="anchor" href="#field-tags-decide-where-to-look"></a>
 </h2>
@@ -210,7 +210,7 @@ available through <code>.op</code>.</p>
 <span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"CRISPR"</span>, <span class="st">"Cas9"</span>, <span class="st">"Cas12"</span>, .op <span class="op">=</span> <span class="st">"OR"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>[1] "CRISPR OR Cas9 OR Cas12"</code></pre>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Excluding a dominant homonym (programming, not herpetology).</span></span>
+<code class="sourceCode R"><span><span class="co"># Excluding a dominant homonym, so the snake stays out of the results.</span></span>
 <span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"python"</span>, <span class="st">"snake"</span>, .op <span class="op">=</span> <span class="st">"AND NOT"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>[1] "TITLE-ABS-KEY(python) AND NOT TITLE-ABS-KEY(snake)"</code></pre>
 </div>
@@ -341,8 +341,8 @@ output.</p>
 <div class="section level2">
 <h2 id="when-a-term-is-empty">When a term is empty<a class="anchor" aria-label="anchor" href="#when-a-term-is-empty"></a>
 </h2>
-<p>The builder validates its input, so a stray empty term is caught
-early rather than producing a malformed query.</p>
+<p>The builder validates its input, so a stray empty term is caught at
+construction, well before it can produce a malformed query.</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"graphene"</span>, <span class="st">""</span><span class="op">)</span>,</span>

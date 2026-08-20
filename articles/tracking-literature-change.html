@@ -150,10 +150,10 @@ in each category.</p>
 present both times as <code>unchanged</code>, and anything dropped from
 the later pull as <code>removed</code>. The counts work out at fourteen
 added, one removed and 112 unchanged. Fourteen are added because that is
-how many of the 2024 papers carry a DOI, and 112 rather than 113 remain
-unchanged because the re-indexed record is no longer among them. Records
-without a DOI cannot be tracked this way at all, which is one reason to
-prefer the ‘Scopus’ identifier when there is one.</p>
+how many of the 2024 papers carry a DOI, and the re-indexed record takes
+the unchanged count from 113 down to 112. Records without a DOI cannot
+be tracked this way at all, which is one reason to prefer the ‘Scopus’
+identifier when there is one.</p>
 <p>To act on one category, filter the table, which is an ordinary
 tibble.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
@@ -203,9 +203,9 @@ or DOI, so the records the two pulls share are not doubled.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">combined</span><span class="op">)</span></span></code></pre></div>
 <pre><code>[1] 149</code></pre>
 <p>That is 149 rows for 138 distinct articles, and the gap is
-instructive. These records carry no ‘Scopus’ identifier, not having come
-from ‘Scopus’, so de-duplication falls back to the DOI. The eleven that
-arrived without one have no key to match on, and so survive in both
+instructive. These records carry no ‘Scopus’ identifier, never having
+come from ‘Scopus’, so de-duplication falls back to the DOI. The eleven
+that arrived without one have no key to match on, and so survive in both
 copies. A live harvest carries an identifier on every record, so the
 same call on two real pulls returns each article once.</p>
 <p>The base <code><a href="https://rdrr.io/r/base/c.html" class="external-link">c()</a></code> method concatenates record sets directly,
@@ -235,9 +235,9 @@ something once you know how far apart they were. Both survive the
 <code>.rds</code> form and neither survives <code>.csv</code>, which is
 a table of columns. The bundled corpus used here carries neither, which
 is why it round-trips identically above.</p>
-<p>In a live setting the later retrieval would come from the API rather
-than from a slice of the bundled corpus, with everything else unchanged,
-and both pulls could then say when they were taken.</p>
+<p>In a live setting the later retrieval would come from the API, where
+here it is a slice of the bundled corpus, and everything else would be
+as above. Both pulls could then say when they were taken.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">later</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch.html">scopus_fetch</a></span><span class="op">(</span><span class="st">"graphene supercapacitor"</span>, field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">later</span>, <span class="st">"retrieved_at"</span><span class="op">)</span></span>

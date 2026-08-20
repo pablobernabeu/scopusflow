@@ -132,10 +132,10 @@ without a cache re-spends quota already spent.</p></dd>
 
 <dt id="arg-resume">resume<a class="anchor" aria-label="anchor" href="#arg-resume"></a></dt>
 <dd><p>Logical. When <code>TRUE</code> (the default) and <code>cache_dir</code> is set, an
-identifier whose cache file already exists is loaded from disk rather than
-requested again. A cache file that cannot be read back, for example one
-left half-written by an interrupted run, is retrieved again with a warning
-rather than aborting the batch.</p></dd>
+identifier whose cache file already exists is loaded from disk, sparing a
+second request for it. A cache file that cannot be read back, for example
+one left half-written by an interrupted run, is retrieved again with a
+warning, and the batch carries on.</p></dd>
 
 
 <dt id="arg-api-key-inst-token">api_key, inst_token<a class="anchor" aria-label="anchor" href="#arg-api-key-inst-token"></a></dt>
@@ -162,14 +162,15 @@ document's author-supplied keywords, joined the same way as <code>authors</code>
 (<code>"; "</code>-separated), or <code>NA</code> when the document has none, or when the API
 omits the field for a given key's entitlement (see <em>Details</em>).</p>
 <p>When <code>include</code> names <code>"references"</code>, a <code>references</code> list-column is added:
-one data frame per document, with one row per cited work, rather than a
-single joined string. Its columns are <code>position</code> (the reference's place in
-the bibliography), <code>id</code> (the 'Scopus' identifier of the cited work, when
+one data frame per document, with one row per cited work, where a joined
+string would have to be parsed apart again. Its columns are <code>position</code> (the
+reference's place in the bibliography), <code>id</code> (the 'Scopus' identifier of
+the cited work, when
 resolved), <code>doi</code>, <code>title</code>, <code>authors</code>, <code>source</code> (the journal or other
 venue), <code>year</code> and <code>citedbycount</code> (the cited work's own citation count;
 populated only under <code>view = "REF"</code>, <code>NA</code> under <code>"FULL"</code>). A document with
-no resolvable references yields a zero-row data frame, not <code>NA</code>, so the
-column can always be unnested.</p>
+no resolvable references yields a zero-row data frame, so the column can
+always be unnested.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -182,16 +183,15 @@ an otherwise identical request made moments apart, so <code>"FULL"</code> is
 recommended when your entitlement allows it. <code>"REF"</code> remains available for
 accounts entitled only to it; when the number of references returned does
 not match the document's own reported reference count, a warning is issued
-naming the identifier, since the list may be an incomplete page rather than
-the whole bibliography.</p>
+naming the identifier, since the list may be an incomplete page of the
+bibliography.</p>
 <p>Author keywords were not populated by either 'Scopus' Search's <code>COMPLETE</code>
 view (see <code><a href="scopus_records.html">scopus_records()</a></code>) or Abstract Retrieval's <code>FULL</code> view in this
 package's own development testing, against a live, otherwise
 fully-entitled key, on documents that do carry author keywords in 'Scopus'
 itself. If your own keywords come back all <code>NA</code>, this is most likely an
 entitlement gap specific to that field, worth raising with your
-Scopus/Elsevier account contact, rather than the documents genuinely having
-none.</p>
+Scopus/Elsevier account contact. The documents do carry keywords.</p>
     </div>
     <div class="section level2">
     <h2 id="api-access">API access<a class="anchor" aria-label="anchor" href="#api-access"></a></h2>
@@ -201,10 +201,10 @@ none.</p>
 internet access; full-text abstract access, and the <code>FULL</code>/<code>REF</code> views in
 particular, can also depend on your entitlement. A view or field your key is
 not entitled to raises a <code>scopus_error_forbidden</code> condition with a message
-naming the view and suggesting who to contact, rather than a generic HTTP
-failure; because entitlement is an account-level property, not a
-per-document one, retrieval stops at the first such failure instead of
-repeating it for every remaining identifier. See the <em>API access</em> section of
+naming the view and suggesting who to contact, where a generic HTTP failure
+would leave you guessing. Because entitlement is a property of the account,
+retrieval stops at the first such failure, so the same refusal is not
+repeated for every remaining identifier. See the <em>API access</em> section of
 <code><a href="scopus_count.html">scopus_count()</a></code> for the other conditions that may be raised.</p>
     </div>
     <div class="section level2">
@@ -232,7 +232,7 @@ assemble a minimal keyword/reference corpus across many documents.</p></div>
 <span class="r-in"><span><span class="co"># The offline companion, which needs no key. The identifiers, titles,</span></span></span>
 <span class="r-in"><span><span class="co"># sources and citation counts are two records of the bundled corpus of real</span></span></span>
 <span class="r-in"><span><span class="co"># articles; the abstract text is what a live call adds, so it is left unset</span></span></span>
-<span class="r-in"><span><span class="co"># here rather than invented, as is the 'Scopus' identifier the corpus does</span></span></span>
+<span class="r-in"><span><span class="co"># left as a placeholder here, as is the 'Scopus' identifier the corpus does</span></span></span>
 <span class="r-in"><span><span class="co"># not carry.</span></span></span>
 <span class="r-in"><span><span class="va">cited</span> <span class="op">&lt;-</span> <span class="va">example_records</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="op">-</span><span class="va">example_records</span><span class="op">$</span><span class="va">citations</span><span class="op">)</span>, <span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, <span class="op">]</span></span></span>
 <span class="r-in"><span><span class="va">abstracts</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span></span>

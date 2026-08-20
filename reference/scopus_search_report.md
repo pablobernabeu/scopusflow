@@ -93,7 +93,7 @@ every cell reported one; and the duplicates removed are those
 recorded removing. Where an attribute is absent, as it is for a set read
 back from a `.csv`, for the bundled corpus, and for a cell resumed from
 a checkpoint written before these attributes existed, the record says
-the field is unrecorded rather than filling it. This matters most for
+the field is unrecorded and fills nothing in. This matters most for
 completeness: a harvest whose reported total is unknown is never
 described as exhaustive.
 

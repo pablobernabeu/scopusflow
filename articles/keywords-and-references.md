@@ -46,8 +46,8 @@ recs$authkeywords
 
 In development, this field came back `NA` even on a live, otherwise
 fully-entitled key, for documents that do carry author keywords in
-‘Scopus’ itself, which points to an entitlement gap specific to this one
-field rather than the documents genuinely having none. If your own
+‘Scopus’ itself. Those documents do have keywords, so what this points
+to is an entitlement gap specific to this one field. If your own
 keywords come back all `NA`, it is worth raising with your
 Scopus/Elsevier account contact.
 
@@ -88,8 +88,8 @@ while `view = "REF"` returned an inconsistent, sometimes-truncated
 subset, on an otherwise identical request made moments apart.
 [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
 warns when the number of references returned does not match the
-document’s own reported count, rather than returning a partial list
-silently.
+document’s own reported count, so a partial list never arrives
+unannounced.
 
 The number of requests spent and the remaining Abstract Retrieval quota
 are attached as attributes, since this endpoint draws on a separate,
@@ -110,10 +110,10 @@ attr(ab, "quota")$remaining   # Abstract Retrieval quota left
     [1] 24999
 
 A key or subscription tier that does not cover the requested view raises
-a `scopus_error_forbidden` condition naming the view, rather than a
-generic HTTP failure, and stops the whole batch rather than repeating
-the same failure for every remaining identifier, since entitlement is an
-account-level property, not a per-document one.
+a `scopus_error_forbidden` condition that names the view, where a
+generic HTTP failure would leave you guessing. It stops the whole batch
+too, since entitlement is a property of the account, so the same refusal
+would only recur on every remaining identifier.
 
 For more than a handful of identifiers, pass `cache_dir` so an
 interrupted or quota-limited batch resumes without re-spending quota
@@ -133,11 +133,10 @@ ab <- scopus_abstract(
 combines a search result with this Abstract Retrieval step, returning a
 minimal shape close to what OpenAlex’s `works` API already returns:
 `id`, `title`, `year`, `keywords` (a list-column of character vectors)
-and `references` (a list-column of data frames), rather than
-bibliometrix’s semicolon-joined citation strings. It does not replace
+and `references` (a list-column of data frames), where bibliometrix
+would give you semicolon-joined citation strings. It does not replace
 \[[`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)\],
-which keeps its own field-mapping convention for users who want that
-instead.
+which keeps its own field-mapping convention for users who want that.
 
 ``` r
 

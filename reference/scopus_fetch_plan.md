@@ -51,13 +51,13 @@ scopus_fetch_plan(
   checkpoint holding more records than the current `max_results` asks
   for is served trimmed to that cap, the fuller set staying on disk. A
   checkpoint that cannot be read back, for example one left half-written
-  by an interrupted run, is also treated as a miss rather than aborting
-  the harvest.
+  by an interrupted run, is also treated as a miss, and never aborts the
+  harvest.
 
 - resume:
 
   Logical. When `TRUE` and `cache_dir` is set, a cell whose cache file
-  already exists is loaded from disk rather than fetched again.
+  already exists is loaded from disk, sparing a second request.
 
 - api_key, inst_token:
 
@@ -90,8 +90,8 @@ are carried across from the cells: the time is the earliest of them,
 since a combined set is only as fresh as its oldest cell, and every
 version that contributed is listed, since resuming an older cache means
 more than one did. Both are omitted when any cell cannot supply them, as
-a checkpoint written before they existed cannot, rather than dating the
-whole from a part of it.
+a checkpoint written before they existed cannot. Dating the whole from
+the part of it that can be dated would misreport the set.
 
 ## API access
 

@@ -46,8 +46,8 @@ in the `combined` attribute, a list of `n_in` (records supplied),
 `n_out` (records kept), `n_removed` and `deduplicated`, which is what
 lets
 [`scopus_search_report()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_search_report.md)
-state how many duplicates were removed instead of leaving the PRISMA-S
-item unanswered.
+state how many duplicates were removed, so the PRISMA-S item is
+answered.
 
 ## See also
 

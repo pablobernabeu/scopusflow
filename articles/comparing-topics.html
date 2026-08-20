@@ -123,12 +123,11 @@ is not drawn.</p>
 <h2 id="the-shape-of-the-result">The shape of the result<a class="anchor" aria-label="anchor" href="#the-shape-of-the-result"></a>
 </h2>
 <p>The result is a tidy table with one row per topic and year. A
-comparison counts whole literatures rather than the records in hand, so
-unlike a trend it cannot be derived from the corpus the package bundles
-for its other examples. The table below is rebuilt in the same shape,
-with illustrative counts, so the rest of the article runs without a key.
-The reference set grows over the period, which the uncertainty band will
-reflect.</p>
+comparison counts whole literatures, so unlike a trend it cannot be
+derived from the corpus the package bundles for its other examples. The
+table below is rebuilt in the same shape, with illustrative counts, so
+the rest of the article runs without a key. The reference set grows over
+the period, which the uncertainty band will reflect.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">years</span> <span class="op">&lt;-</span> <span class="fl">2013</span><span class="op">:</span><span class="fl">2021</span></span>
 <span><span class="va">ref_n</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">400</span>, <span class="fl">1600</span>, length.out <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">years</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -235,8 +234,9 @@ there, where this illustrative table carries a placeholder.</p>
 <p>The <code>comparison_percentage</code> column is the per-year share,
 and <code>average_comparison_percentage</code> is the same ratio
 computed over the whole period, which is what orders the topics. A year
-in which the reference has no records has no defined share and is
-recorded as <code>NA</code> rather than as a misleading zero.</p>
+in which the reference has no records has no defined share, so it is
+recorded as <code>NA</code>. A zero there would be read as a real
+observation.</p>
 </div>
 <div class="section level2">
 <h2 id="a-first-plot">A first plot<a class="anchor" aria-label="anchor" href="#a-first-plot"></a>
@@ -246,17 +246,17 @@ recorded as <code>NA</code> rather than as a misleading zero.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_scopus_comparison.html">plot_scopus_comparison</a></span><span class="op">(</span><span class="va">cmp</span>, legend_inside <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="comparing-topics_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="Four application areas' share of the deep-learning literature from 2013 to 2021, with shaded uncertainty bands and an in-panel legend" width="768"></p>
 <p>Here <code>legend_inside = TRUE</code> places the topic key inside
-the panel, in whichever corner has the most free space, rather than
-labelling each line at its end. Left at its default the chart uses
-whole-number year breaks, a colour-blind-safe palette and, because there
-are only a few topics, labels the lines directly so the reader need not
-match colours to a legend. Each label carries the topic’s total record
-count. The shaded band around each line is a Wilson stability range. It
-is wide in the early years, when the reference set is small and the
-share would move easily, and narrows as the literature grows. Because
-‘Scopus’ returns exact counts rather than a sample, the band is
-illustrative rather than a confidence interval, a point the
-<code><a href="../reference/plot_scopus_comparison.html">plot_scopus_comparison()</a></code> help page sets out.</p>
+the panel, in whichever corner has the most free space. Left at its
+default the chart labels each line at its end, and uses whole-number
+year breaks and a colour-blind-safe palette, so with only a few topics
+the reader never has to match colours to a legend at all. Each label
+carries the topic’s total record count. The shaded band around each line
+is a Wilson stability range. It is wide in the early years, when the
+reference set is small and the share would move easily, and narrows as
+the literature grows. ‘Scopus’ returns exact counts, so nothing here is
+a sample from which an interval could be estimated. The band is
+illustrative, a point the <code><a href="../reference/plot_scopus_comparison.html">plot_scopus_comparison()</a></code> help
+page sets out.</p>
 </div>
 <div class="section level2">
 <h2 id="when-lines-converge-at-the-right-end">When lines converge at the right end<a class="anchor" aria-label="anchor" href="#when-lines-converge-at-the-right-end"></a>
@@ -265,8 +265,8 @@ illustrative rather than a confidence interval, a point the
 sometimes end the period at nearly the same share.
 <code><a href="../reference/plot_scopus_comparison.html">plot_scopus_comparison()</a></code> spreads converging labels apart
 automatically, at the point the figure is actually drawn, so they stay
-readable at any figure size rather than stacking into an unreadable
-pile. Here six sub-areas of materials-science research all end 2013–2021
+readable at any figure size and never stack into an unreadable pile.
+Here six sub-areas of materials-science research all end 2013–2021
 within three points of one another.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">years</span> <span class="op">&lt;-</span> <span class="fl">2013</span><span class="op">:</span><span class="fl">2021</span></span>
@@ -296,7 +296,7 @@ within three points of one another.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">cmp_converging</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"scopus_comparison"</span>, <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">cmp_converging</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_scopus_comparison.html">plot_scopus_comparison</a></span><span class="op">(</span><span class="va">cmp_converging</span><span class="op">)</span></span></code></pre></div>
-<p><img src="comparing-topics_files/figure-html/unnamed-chunk-6-1.png" class="r-plt" alt="Six materials-science sub-areas converging to similar shares by 2021, with end labels automatically spread apart rather than overlapping" width="768"></p>
+<p><img src="comparing-topics_files/figure-html/unnamed-chunk-6-1.png" class="r-plt" alt="Six materials-science sub-areas converging to similar shares by 2021, with end labels automatically spread apart so that none overlaps" width="768"></p>
 <p>Without this, six labels ending within three points of each other
 would print on top of one another. Here every one is still readable,
 each colour-matched to its own line and spread in the same order as the
