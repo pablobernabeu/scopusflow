@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -52,9 +52,10 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="development version" id="scopusflow-development-version">scopusflow (development version)<a class="anchor" aria-label="anchor" href="#scopusflow-development-version"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.4.0" id="scopusflow-040">scopusflow 0.4.0<a class="anchor" aria-label="anchor" href="#scopusflow-040"></a></h2>
+<p>A release about reporting a search and about trusting the cache. The package now writes a search up as the reproducible record a systematic review has to publish, and a family of silent cache defects that served the wrong records is fixed.</p>
 <div class="section level3">
-<h3 id="writing-up-a-search-development-version">Writing up a search<a class="anchor" aria-label="anchor" href="#writing-up-a-search-development-version"></a></h3>
+<h3 id="writing-up-a-search-0-4-0">Writing up a search<a class="anchor" aria-label="anchor" href="#writing-up-a-search-0-4-0"></a></h3>
 <ul><li>
 <p><code><a href="../reference/scopus_search_report.html">scopus_search_report()</a></code> assembles the reproducible search-strategy record a systematic review has to report, from a harvest or from a plan not yet run. It prints as a readable report, formats as a methods paragraph fit to paste into a manuscript (<code>format(report, style = "paragraph")</code>), and writes as Markdown when <code>file</code> is supplied. It carries the database and platform, the field-wrapped query of every cell, the year limits, view, page size and paging mode, the date searched, the records retrieved against the number the API reported as matching, per-cell completeness, duplicates removed, the software versions, a runnable snippet that rebuilds the plan, and an explicit map of which PRISMA-S items the package can supply and which only you can. The reporting standard is PRISMA-S (Rethlefsen et al., 2021, Systematic Reviews, 10, 39), with the identification counts of the PRISMA 2020 flow diagram.</p>
 <p>Because the output is written for a published methods section, the report states only what the objects record. An absent retrieval time is never replaced by the current one, a completeness figure is never given for a harvest whose reported total is unknown, duplicates are counted only where a merge recorded removing them, and every unverifiable field says it is unrecorded, in words. Ten of the sixteen PRISMA-S items, among them peer review of the strategy, grey literature and any other database searched, are listed as yours to supply, since the package has no evidence for them.</p>
@@ -64,7 +65,7 @@
 <li><p>A retrieval also records how it was paged, as the <code>paging</code> attribute, since an offset-paged query stops at the API’s ceiling where a cursor-paged one does not.</p></li>
 </ul></div>
 <div class="section level3">
-<h3 id="cache-defects-that-returned-the-wrong-records-development-version">Cache defects that returned the wrong records<a class="anchor" aria-label="anchor" href="#cache-defects-that-returned-the-wrong-records-development-version"></a></h3>
+<h3 id="cache-defects-that-returned-the-wrong-records-0-4-0">Cache defects that returned the wrong records<a class="anchor" aria-label="anchor" href="#cache-defects-that-returned-the-wrong-records-0-4-0"></a></h3>
 <p>All were silent, and all are fixed.</p>
 <ul><li>A year-partitioned plan could be served another plan’s years, because checkpoints were keyed by the cell’s position alone and every cell of such a plan carries the same query (the year travels separately, as the API’s <code>date</code> parameter), so the guard meant to reject a foreign checkpoint could not tell 2015’s from 2016’s. A plan over 2016:2017 pointed at a cache written by a plan over 2015:2016 returned the 2015 records and reported “loaded from cache”. Checkpoints are now named <code>cell-NNN-YYYY.rds</code> and carry a manifest (query, date, view, page size and record cap) that resume compares against. Existing caches become invisible and refetch once, which spends a little quota to buy back correctness.</li>
 <li>A cell cached under a <code>max_results</code> cap was served to a later request asking for more. The manifest now records the cap and whether it actually bit, so a truncated checkpoint is a miss for a wider request while an untruncated one stays usable for any request. The Shiny app’s cache key gained the record cap and now hashes the query, where it used to truncate it at 80 characters, so two long queries sharing a prefix no longer share a directory.</li>
@@ -75,7 +76,7 @@
 </ul><p>A rejected or damaged checkpoint now warns, where it used to be mentioned only under <code>verbose</code>, and checkpoints are written to a sibling temporary file and renamed into place, so an interrupted run can no longer leave a half-written file that breaks every later resume.</p>
 </div>
 <div class="section level3">
-<h3 id="other-fixes-development-version">Other fixes<a class="anchor" aria-label="anchor" href="#other-fixes-development-version"></a></h3>
+<h3 id="other-fixes-0-4-0">Other fixes<a class="anchor" aria-label="anchor" href="#other-fixes-0-4-0"></a></h3>
 <ul><li>
 <code><a href="../reference/scopus_combine.html">scopus_combine()</a></code> handed the merged set one input’s own retrieval attributes. <code><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind()</a></code> keeps those of its first argument, so the result inherited that harvest’s <code>plan</code>, <code>cell_totals</code> and <code>total_results</code> even though it held the rows of several, contradicting the documented promise that per-retrieval attributes are not carried over. A search record read off the inherited total then called the union of two harvests complete against a figure belonging to one of them. Only what survives a merge is kept now: the earliest retrieval time, every contributing version, the paging mode where the inputs agree, and the merge counts themselves.</li>
 <li>The PRISMA 2020 identification block counted the records identified after de-duplication, so the two figures it gives could not both be right: the diagram subtracts the duplicates removed from the records identified to reach the records screened, and 138 identified less 11 removed is not the 138 rows the set holds. Where a merge recorded how many records went into it, that is now the identification count.</li>
@@ -95,7 +96,7 @@
 <li>Every <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> method now sends its whole output to standard output. The header line went through cli, which writes to the message stream, so <code><a href="https://rdrr.io/r/utils/capture.output.html" class="external-link">capture.output()</a></code> returned the table without its header, and a knitted document showed one printed object as two separate blocks.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="continuous-integration-and-metadata-development-version">Continuous integration and metadata<a class="anchor" aria-label="anchor" href="#continuous-integration-and-metadata-development-version"></a></h3>
+<h3 id="continuous-integration-and-metadata-0-4-0">Continuous integration and metadata<a class="anchor" aria-label="anchor" href="#continuous-integration-and-metadata-0-4-0"></a></h3>
 <ul><li>The dependency canary could finish green having exercised nothing, when no development head was actually installed. It now says so, in a warning and in the step summary, and it installs the ggplot2 development head alongside the Imports.</li>
 <li>The declared dependency floors are now installed and tested by a <code>min-deps</code> job, and the check matrix reaches back to roughly R 4.3.</li>
 <li>
