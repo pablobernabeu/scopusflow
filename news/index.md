@@ -2,6 +2,8 @@
 
 ## scopusflow 0.4.0
 
+CRAN release: 2026-08-21
+
 A release about reporting a search and about trusting the cache. The
 package now writes a search up as the reproducible record a systematic
 review has to publish, and a family of silent cache defects that served
