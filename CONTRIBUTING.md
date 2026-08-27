@@ -126,7 +126,9 @@ GitHub Actions to create and approve pull requests.
 
 Please base your work on `main`, keep the change focused, and add or
 update tests and documentation alongside the code. Running
-`devtools::document()`, `devtools::test()` and `devtools::check()`
+[`devtools::document()`](https://devtools.r-lib.org/reference/document.html),
+[`devtools::test()`](https://devtools.r-lib.org/reference/test.html) and
+[`devtools::check()`](https://devtools.r-lib.org/reference/check.html)
 locally before opening the pull request saves a round trip. Continuous
 integration then checks the package on Windows, macOS and several
 versions of R on Linux, and once more with only its declared

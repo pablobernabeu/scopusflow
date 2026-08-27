@@ -5,11 +5,14 @@ issue it addresses if there is one.
 
 **Checklist**
 
-`devtools::document()` has been run if the roxygen comments changed.
+[`devtools::document()`](https://devtools.r-lib.org/reference/document.html)
+has been run if the roxygen comments changed.
 
-`devtools::test()` passes, and new behaviour has tests.
+[`devtools::test()`](https://devtools.r-lib.org/reference/test.html)
+passes, and new behaviour has tests.
 
-`devtools::check()` is clean.
+[`devtools::check()`](https://devtools.r-lib.org/reference/check.html)
+is clean.
 
 Documentation and `NEWS.md` are updated where relevant.
 
