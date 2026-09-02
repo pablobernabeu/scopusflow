@@ -1,7 +1,9 @@
 # scopusflow (development version)
 
 A round of fixes to what the package retrieves, what it writes to disk, what it
-reads back and what a caller can catch, and one new function.
+reads back and what a caller can catch, one new function, and the same for the
+app: what it refuses, what it tells you a search will cost and what it hands to
+a screen reader.
 
 * `scopus_fetch()` no longer loses records when a page comes back shorter than
   it asked for. Offset paging advanced by the page size it had requested rather
@@ -128,6 +130,111 @@ reads back and what a caller can catch, and one new function.
   the character missing value the documented schema promises, not a logical one.
 * `?scopus_search_report` lists `cells_reported`, the number of plan cells that
   reported a total, among the elements of the object it returns.
+* Closing one browser tab of the app no longer deletes another tab's harvest
+  checkpoints. Every open tab of one app shares one temporary directory, and the
+  cleanup on disconnect removed the whole of it rather than the tab's own part,
+  so a retrieval still running in another tab lost the cells it had already paid
+  for and then died on its next checkpoint write. Each session now keeps its
+  checkpoints in a subdirectory of its own and removes only that, as the Python
+  twin does.
+* The app refuses a blank search box rather than sizing or retrieving it.
+  Check size and Fetch records both accepted an empty query, so a real key
+  spent a request that could only fail and the background retrieval started only
+  to die on it; both now ask for search terms first, as the topic comparison
+  already did. Check size also declines while a retrieval is running, since it
+  holds the single Shiny thread and would freeze the live terminal for the
+  length of the request.
+* A failure in the app's Check size that carries no `scopus_error` class is
+  shown as a notification. Only the typed family was caught, so a network or
+  internal error reached Shiny's own handler and ended the session with 'An
+  error has occurred'; the size note left over from an earlier check is now
+  cleared as well. The topic comparison already caught every failure.
+* Highlighting a comparison topic with no plottable share no longer replaces the
+  app's comparison plot with an error. `plot_scopus_comparison()` drops the
+  years with no percentage before it reads the highlight, so a term whose counts
+  all came back missing was offered in the highlight selector and then aborted
+  the plot. Such a term is now left unhighlighted, which is what the Python twin
+  does.
+* The app's topic comparison prices itself correctly. The note under the
+  comparison terms counted a request per term per year and left out the
+  reference topic, which `scopus_compare_topics()` also counts once a year, so
+  the figure understated the quota a comparison would spend and the advice to
+  use fewer terms or years arrived later than it should. The documentation of
+  `scopus_compare_topics()` said the same and now names the reference too.
+* The app's year slider opens on the span the bundled corpus covers, 2015 to
+  2024, rather than on the last six calendar years. Demo mode is on when the app
+  opens, and a year outside the corpus is clamped into it and then
+  de-duplicated, so the first demo run announced six year-cells and drew records
+  from four, and the gap widened with the calendar until, from 2030, every
+  default year would have fallen outside. The slider still reaches the current
+  year for a real search. The demo worker also names a cell that falls outside
+  the corpus, and an unpartitioned run is announced without the placeholder year
+  `0`.
+* The script the app's Reproducible code panel writes opens with the package
+  version that wrote it, and, in demo mode, with a note that the records on
+  screen were replayed from `example_records` and that what follows is the live
+  equivalent. A demo session was handed a script for a harvest it never ran,
+  with nothing to say so. The synthesised comparison figure carries a note of
+  its own now as well, since `plot_scopus_comparison()` captions every figure
+  with the Search API as its source. Both are what the Python twin already does.
+* The app's size note says what the record cap would leave behind. Max records
+  per cell is pre-filled with 200 and stops every cell of a harvest, and a cell
+  that stopped at a cap the caller set is short by request, so nothing warns
+  about it: a search the note had just priced at 48,000 records over six cells
+  returned 1,200. The note now names the cap and what it would retrieve, and the
+  field is labelled per cell rather than per year, which is what it caps when
+  Partition by year is off. The counts in it are written out in full, where a
+  six-figure one used to be shown as `2.5e+05`.
+* The app's Records tab says how many records the harvest returned. It renders
+  the first 25 rows of any run, and the only statement of the true count was a
+  notification that fades, so a harvest of thousands read as one of 25 while
+  every export below it carried the rest. The count now sits above the table,
+  with a line saying the table is a preview.
+* The app's size note is dropped when the search it describes changes. It was
+  written by Check size and never cleared, so a new query, field, year range or
+  record cap left the previous answer standing in its alert box as if it priced
+  the plan now on screen. Changing any of them, or starting a harvest, clears
+  it.
+* The app's export buttons arrive with the records they write. Every download's
+  content function opens with `shiny::req()`, which Shiny turns into a failed
+  download with nothing on screen to explain it, so a click on the Export tab
+  before a harvest looked like a broken browser. The records, DOI, BibTeX, RIS
+  and search-record buttons are now offered once there are records, and the
+  comparison CSV once there is a comparison, which is where the Python twin
+  builds them.
+* The app's Author field option searches the field the package documents. The
+  Search in selector sent `AUTHLASTNAME`, a tag `scopus_field_tags()` does not
+  list and which matches surnames alone, while the Python app sent `AUTH` under
+  the same label, so the same choice ran a different search in each app and the
+  tag in the generated script could not be looked up. It now sends `AUTH`.
+* The app's result panels say what they have none of. A harvest that matched
+  nothing passed the guard the panels shared, since it is a record set with no
+  rows rather than nothing at all, and each figure then showed the plotting
+  function's own abort text. By year now reads "No records to plot.", and Top
+  sources and Top authors say there is nothing to tally, which also covers a set
+  whose source titles or author names are all missing.
+* A comparison run with Partition by year off names the years it counted, and
+  reaches the generated script. Without a slider span the tab quietly fell back
+  to the last six years, a window shown nowhere, and the Reproducible code panel
+  appended its comparison block only when the plan carried years of its own, so
+  the figure on screen could not be reproduced from the downloaded script. The
+  request note now names the span and the script always carries the comparison
+  that was run.
+* The app's key status is legible. Its three states used Bootstrap's plain
+  `.text-info`, `.text-warning` and `.text-success`, which against the sidebar's
+  own ground sit at 1.81:1, 1.56:1 and 4.08:1, all under the 4.5:1 a line of
+  text needs, and the demo banner the app opens on is the worst of them. All
+  three now use the `-emphasis` variants the same stylesheet ships.
+* The app's progress bar reports itself to a screen reader. It carried
+  `role="progressbar"` with no name and no value, so the one control that says
+  how far a long harvest has come announced nothing. It now carries the cell it
+  is on as its label, together with `aria-valuenow`, `aria-valuemin` and
+  `aria-valuemax`, and leaves the value off while the bar is still animated.
+* Every figure the app draws carries a text alternative. By year, Top sources,
+  Top authors and the topic comparison all reached the browser as an image
+  described only as "Plot object". Each now names what it found: the record
+  count and the years covered, the leading source or author and its count, and
+  the reference topic, the terms compared and the span.
 
 # scopusflow 0.4.0
 

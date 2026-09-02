@@ -29,9 +29,10 @@
 #'   over the years where both counts are available). Comparison rows are sorted
 #'   by descending average percentage.
 #' @section API access:
-#' This performs one count request per term per year, so it requires a valid API
-#' key and internet access. The *API access* section of [scopus_count()] gives
-#' the details. A modest number of terms and years keeps the call within quota.
+#' This performs one count request per term per year, plus one per year for the
+#' reference topic, so it requires a valid API key and internet access. The
+#' *API access* section of [scopus_count()] gives the details. A modest number
+#' of terms and years keeps the call within quota.
 #' @seealso [plot_scopus_comparison()] to visualise the result.
 #' @examplesIf scopusflow::scopus_has_key()
 #' cmp <- scopus_compare_topics(

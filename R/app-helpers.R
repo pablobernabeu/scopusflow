@@ -2,6 +2,17 @@
 # reactive code so the script generation, progress parsing and log rendering can
 # be unit-tested without launching a server.
 
+# A checkpoint directory for one browser session, under the shared `base`.
+# Every open tab of one app runs in the same R process and so shares the base, so
+# a session may only ever remove its own subdirectory when it ends: removing the
+# base itself would delete another session's checkpoints mid-harvest. The
+# subdirectory is keyed by a hash of the process, the moment and a fresh
+# temporary name, so two tabs opened at once cannot collide and the user's own
+# random stream is left alone.
+app_session_dir <- function(base) {
+  file.path(base, rlang::hash(list(Sys.getpid(), Sys.time(), tempfile(""))))
+}
+
 # Quote a string for insertion into generated R code.
 app_quote <- function(x) {
   encodeString(x, quote = "\"")
@@ -29,6 +40,12 @@ app_years_code <- function(years) {
 # is the teaching artefact, so it is assembled by hand (not shinymeta) to stay
 # exactly runnable and to keep the key out of it: the generated fetch reads the
 # key from the environment, never from a literal.
+#
+# Every script opens with the version that wrote it, so a downloaded file records
+# which release its behaviour belongs to. With `demo` true it also says that the
+# records on screen were replayed from the bundled corpus and that what follows
+# is the live equivalent; without that, a panel headed "Reproducible code" hands
+# a demo session a script for a retrieval it never ran.
 app_code_mirror <- function(query,
                             years = NULL,
                             field = NULL,
@@ -37,9 +54,11 @@ app_code_mirror <- function(query,
                             max_results = Inf,
                             by = "source",
                             compare_terms = NULL,
+                            compare_years = NULL,
                             highlight = NULL,
                             interval = TRUE,
-                            pub_count_in_legend = TRUE) {
+                            pub_count_in_legend = TRUE,
+                            demo = FALSE) {
   query <- if (is.null(query) || !nzchar(trimws(query))) "your query" else trimws(query)
   years_code <- app_years_code(years)
   has_field <- !is.null(field) && nzchar(field)
@@ -68,7 +87,20 @@ app_code_mirror <- function(query,
   }
   fetch_args <- c(fetch_args, "cache_dir = scopus_cache_dir()", "resume = TRUE")
 
+  header <- sprintf("# scopusflow %s", utils::packageVersion("scopusflow"))
+  if (isTRUE(demo)) {
+    header <- c(
+      header,
+      "# Demo mode was on, so the records shown in the app were replayed from",
+      "# example_records, the bundled corpus of real published articles. Nothing",
+      "# was retrieved. What follows is the live equivalent: it harvests from",
+      "# Scopus and needs a key."
+    )
+  }
+
   lines <- c(
+    header,
+    "",
     "library(scopusflow)",
     "",
     "# Describe the search as an inspectable, reproducible plan.",
@@ -97,15 +129,21 @@ app_code_mirror <- function(query,
   )
 
   # When comparison terms are set (and a year span is available), append a
-  # runnable topic-comparison block reflecting the chosen terms and toggles.
+  # runnable topic-comparison block reflecting the chosen terms and toggles. A
+  # comparison always counts over some span, so `compare_years` carries the one
+  # the app resolved: with the year partition off the plan has no years of its
+  # own, and the block would otherwise be left out of the script for a
+  # comparison the user had just run.
   terms <- if (is.null(compare_terms)) character() else trimws(compare_terms)
   terms <- terms[nzchar(terms)]
-  if (length(terms) > 0L && !is.null(years_code)) {
+  cmp_years_code <- app_years_code(compare_years)
+  if (is.null(cmp_years_code)) cmp_years_code <- years_code
+  if (length(terms) > 0L && !is.null(cmp_years_code)) {
     cmp_args <- c(
       app_quote(query),
       sprintf("comparison_terms = c(%s)",
               paste(vapply(terms, app_quote, character(1)), collapse = ", ")),
-      sprintf("years = %s", years_code)
+      sprintf("years = %s", cmp_years_code)
     )
     if (has_field) cmp_args <- c(cmp_args, sprintf("field = %s", app_quote(field)))
     if (identical(view, "COMPLETE")) cmp_args <- c(cmp_args, "view = \"COMPLETE\"")
@@ -121,7 +159,8 @@ app_code_mirror <- function(query,
       lines,
       "",
       "# Compare how sub-topics co-occur with the search over time, as a share",
-      "# of it (one count request per term per year).",
+      "# of it (one count request per term per year, plus one per year for the",
+      "# reference topic).",
       sprintf("cmp <- scopus_compare_topics(%s)", app_args(cmp_args)),
       sprintf("plot_scopus_comparison(%s)", paste(plot_args, collapse = ", "))
     )
@@ -139,6 +178,14 @@ app_args <- function(args) {
   paste0("\n  ", paste(args, collapse = ",\n  "), "\n")
 }
 
+# First and last year the bundled example harvest covers, as the Python app's
+# _demo_year_span does. The app opens its year slider on this span, since demo
+# mode is on from the start and a year outside it has nothing of its own to
+# replay.
+app_demo_year_span <- function() {
+  range(example_records$year)
+}
+
 # Assemble the demo record set, so the whole app flow (table, plots, export)
 # works offline with no key. It draws on the bundled `example_records`, as the
 # Python app's _demo_rows does, so every panel is exercised on real titles,
@@ -154,7 +201,7 @@ app_args <- function(args) {
 # would cause, and each half's app article states its own rule. Keep the two
 # descriptions in step if either rule changes.
 app_demo_records <- function(years, max_per_year = Inf) {
-  span <- range(example_records$year)
+  span <- app_demo_year_span()
   years <- if (is.null(years) || length(years) == 0L) span[2L] else as.integer(years)
   years <- sort(unique(pmin(pmax(years, span[1L]), span[2L])))
   # Left as a double. head() takes one, and as.integer() would silently turn a

@@ -64,12 +64,15 @@ the corpus of 138 real journal articles the package bundles because Scopus
 records may not be redistributed, so every panel is exercised on real titles,
 DOIs, journals and citation counts, and the by-year chart shows a real
 publication curve with the shape the literature actually has. That corpus spans
-2015 to 2024, so a year range reaching outside it is drawn from the nearest year
-it holds. Only the topic comparison is synthesised, since it counts whole
-literatures, which no set of records in hand can answer for. When you are ready
-for real results, paste your Scopus key into the field at the top of the sidebar
-and switch Demo mode off. The key stays in the running session and is never
-written into the generated script.
+2015 to 2024, and the year slider opens on exactly that span, so the first run
+has records for every cell it announces. A year outside the span is drawn from
+the nearest year the corpus holds, and never twice, so a range of 2020 to 2026
+replays what 2020 to 2024 does; the live terminal names each cell that falls
+outside as it passes. Only the topic comparison is synthesised, since it counts
+whole literatures, which no set of records in hand can answer for. When you are
+ready for real results, paste your Scopus key into the field at the top of the
+sidebar and switch Demo mode off. The key stays in the running session and is
+never written into the generated script.
 
 ## Describing and sizing a search
 
@@ -80,9 +83,13 @@ under the API's offset ceiling, the same reasoning behind a partitioned
 `scopus_plan()` in code. Check size runs a cheap count first, the same one
 `scopus_count()` performs, so you can see how much a query would retrieve before
 committing to it. In demo mode it reports instead how many records it would draw
-from the bundled corpus.
+from the bundled corpus. Max records per cell caps what each cell brings back and
+is pre-filled with 200, so a search that counts in the thousands still returns at
+most 200 records a cell until you raise it or clear the field; the size note says
+what the cap would leave you with, since a cell stopped at a cap you set is
+short by request and passes without a warning.
 
-![The scopusflow sidebar as the app opens, with a Scopus API key field, a Demo mode checkbox switched on, the search terms "graphene supercapacitor", a Search in selector reading "Title, abstract, keywords", a Partition by year checkbox, a year-range slider set to 2021 to 2026, a STANDARD or COMPLETE detail choice, a maximum records per year field, and the Check size, Fetch records and Cancel buttons.](figures/app-sidebar.png)
+![The scopusflow sidebar, with a Scopus API key field, a Demo mode checkbox switched on, the search terms "graphene supercapacitor", a Search in selector reading "Title, abstract, keywords", a Partition by year checkbox, a year-range slider set to 2021 to 2026, a STANDARD or COMPLETE detail choice, a maximum records per year field, and the Check size, Fetch records and Cancel buttons.](figures/app-sidebar.png)
 
 ## Fetching, with a live terminal
 
@@ -108,19 +115,23 @@ year, and the Compare topics options, and rewrites a runnable R script as you go
 Change a control and the script updates at once, so you can see exactly which
 argument each choice sets. The key never appears in the script. The panel notes
 that it is read from the `SCOPUS_API_KEY` environment variable, so a script you
-share carries the method but not your credentials. Download script saves exactly
-what you see.
+share carries the method but not your credentials. Every script opens with the
+package version that wrote it, and one written in demo mode says so at the top,
+so a file downloaded from a session that retrieved nothing does not read as the
+provenance of a real harvest. Download script saves exactly what you see.
 
 ![The Reproducible code panel, holding the script the app has written from the choices in the sidebar: a library call, a scopus_plan() with the query, years, field and yearly partition, a scopus_count() to size the search, a scopus_fetch_plan() with a cache directory and resume set, and scopus_top() and autoplot() calls to inspect the result. A comment records that the key is read from the SCOPUS_API_KEY environment variable and never written into the script.](figures/app-code.png)
 
 ## Reading the results
 
 When the run finishes, the Results tabs come to life. Records shows a table of
-titles, years, sources and citations. By year draws the publications-per-year
-trend through `autoplot()`. Top sources and Top authors tally the most frequent
-of each with `scopus_top()` and `plot_scopus_top()`. Every figure is drawn by the
-same library functions you would call from a script, so the app shows you nothing
-you could not reproduce.
+titles, years, sources and citations. It says how many records the run returned
+and, above a harvest of more than twenty-five, that the table is a preview of
+them, since the exports below carry the whole set. By year draws the
+publications-per-year trend through `autoplot()`. Top sources and Top authors
+tally the most frequent of each with `scopus_top()` and `plot_scopus_top()`.
+Every figure is drawn by the same library functions you would call from a script,
+so the app shows you nothing you could not reproduce.
 
 ![The Results panel with tabs for Records, By year, Top sources, Top authors, Compare topics and Export. The Records tab is open, showing the first rows of a table of titles, years, journals and citation counts from the demo harvest. The first row reads "Recent trends in graphene supercapacitors: from large area to microsupercapacitors", published in Sustainable Energy & Fuels in 2021 with 211 citations, and the rows below it are likewise real articles from the bundled corpus.](figures/app-results.png)
 
@@ -131,12 +142,16 @@ records at all, and measures instead how a set of sub-topics co-occur with your
 search over time, as a share of it, with your search terms acting as the
 reference topic. You enter comma-separated comparison terms, optionally pick one
 to highlight, and toggle the stability band and whether record counts appear on
-the labels. Because each term needs one count request per year, the tab shows how
-many requests a comparison will make and warns when the grid grows large. In demo
-mode the comparison is synthesised so you can see the figure offline. With a key
-it calls `scopus_compare_topics()` and draws the result with
-`plot_scopus_comparison()`, the same figure the package produces, and a
-Comparison download saves the underlying numbers as a CSV.
+the labels. Because each term needs one count request per year, and the reference
+topic one more, the tab shows how many requests a comparison will make and warns
+when the grid grows large. A comparison always covers a span of years: the one
+on the slider, or the last six when Partition by year is off, and the request
+note names it, since the sidebar then shows no years at all. In demo mode the
+comparison is synthesised so you can see the figure offline, and a note beneath
+it says so, since the figure's own caption names the Search API as every real
+comparison's source. With a key it calls `scopus_compare_topics()` and draws the
+result with `plot_scopus_comparison()`, the same figure the package produces,
+and a Comparison download saves the underlying numbers as a CSV.
 
 ## Exporting
 

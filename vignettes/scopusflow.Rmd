@@ -192,7 +192,8 @@ writeLines(head(readLines(out), 5))
 
 `scopus_compare_topics()` measures how the internal emphasis of a literature
 shifts, expressed as each comparison topic's yearly share of the reference
-literature. It issues one count request per term per year, so it needs the API.
+literature. It issues one count request per term per year, plus one per year for
+the reference topic, so it needs the API.
 
 ```{r eval = FALSE}
 cmp <- scopus_compare_topics(

@@ -28,6 +28,7 @@ SCOPUS
 Scopus
 Scopus’
 Search's
+Shiny's
 Waffenschmidt
 Zenodo
 Zotero
@@ -39,6 +40,7 @@ bslib
 callr
 check's
 checkpointed
+cleanup
 clearable
 cli
 deduplicated
@@ -52,6 +54,7 @@ inspectable
 microsupercapacitors
 npc
 pkgdown
+plottable
 pybliometrics
 refetch
 refetched
@@ -62,11 +65,14 @@ resumable
 s13643
 saveable
 scopus
+stylesheet
 supercapacitor
 supercapacitors
 tibble
 tidyverse
 unclassed
+unhighlighted
 unnested
+unpartitioned
 untruncated
 zenodo
