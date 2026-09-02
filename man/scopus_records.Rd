@@ -26,7 +26,8 @@ is_scopus_records(x)
 \item{object}{A \link{scopus_records} object (for the \code{autoplot()} method).}
 
 \item{query}{Optional character scalar recording the query that produced the
-entries, kept in the \code{query} column for provenance.}
+entries, kept in the \code{query} column for provenance. \code{NULL} or \code{NA} records
+none.}
 
 \item{view}{Optional character scalar naming the Search API view the entries
 came from. Pass \code{"COMPLETE"} to add an \code{authkeywords} column (see below);
@@ -70,6 +71,14 @@ carries an \code{error} field and no identifier. This is detected and turned int
 zero-row result, with no spurious record in it, while a genuine record that also
 carries a per-entry \code{error} annotation is kept.
 
+A data frame already in this schema is coerced rather than read as a list of
+entries, so a set that has lost its class along the way, one read back with
+\code{read.csv()}, a tibble copy, a subset built elsewhere, can be handed
+straight to the functions that require the class. Such a frame keeps the
+columns it already carries, so \code{view} bears on entry lists only. A data
+frame carrying neither \code{doi} nor \code{title} is not a record set, and is
+refused.
+
 Author keywords are only ever present under \code{view = "COMPLETE"}; the
 \code{STANDARD} view (the default throughout the package) never includes them,
 and \code{authkeywords} is not added to the output at all in that case, so
@@ -111,6 +120,10 @@ raw_complete <- list(entry = list(
   )
 ))
 scopus_records(raw_complete, view = "COMPLETE")
+
+# A plain data frame in this schema is coerced, so a set that lost its class
+# on the way through another tool can be used with the rest of the package.
+scopus_records(as.data.frame(example_records)[1:2, c("doi", "title", "year")])
 
 # An object already in this schema is returned unchanged.
 identical(scopus_records(example_records), example_records)

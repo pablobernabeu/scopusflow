@@ -92,9 +92,79 @@ test_that("fetching stops when the server serves fewer records than its total", 
     # Report a total far larger than what is actually served.
     mock_search_results(entries, total = 100L)
   })
-  recs <- scopus_fetch("anything", page_size = 2L)
+  expect_warning(
+    recs <- scopus_fetch("anything", page_size = 2L),
+    class = "scopus_warning_shortfall"
+  )
   expect_equal(nrow(recs), 5L)
-  expect_lte(calls, 4L)  # 3 full pages then a short page; no run to the ceiling
+  expect_lte(calls, 4L)  # 2 full pages, a short one, then an empty one
+})
+
+test_that("paging advances by the records received, not by the page requested", {
+  # A key whose entitlement caps the page below `page_size` returns a short
+  # page in the middle of the set. Advancing by the request stepped over the
+  # records between the entries received and the next offset, and stopped at
+  # the first short page, so the harvest silently lost them.
+  local_scopus_test_env()
+  cap <- 10L
+  httr2::local_mocked_responses(function(req) {
+    q <- httr2::url_parse(req$url)$query
+    start <- as.integer(if (is.null(q$start)) 0L else q$start)
+    count <- as.integer(if (is.null(q$count)) 25L else q$count)
+    n <- min(count, cap, max(0L, 60L - start))
+    entries <- if (n > 0L) mock_entries(n, offset = start) else {
+      list(list(error = "Result set was empty"))
+    }
+    mock_search_results(entries, total = 60L)
+  })
+  recs <- expect_no_warning(scopus_fetch("anything", page_size = 25L))
+  expect_equal(nrow(recs), 60L)
+  expect_equal(recs$doi, sprintf("10.1000/mock.%04d", 1:60))
+})
+
+test_that("paging continues when the API omits the reported total", {
+  # Without a total there is nothing to page towards, so only an empty page can
+  # end the harvest. Treating the short first page of an entitlement-capped key
+  # as the end of the set stopped the retrieval after one request.
+  local_scopus_test_env()
+  cap <- 10L
+  httr2::local_mocked_responses(function(req) {
+    q <- httr2::url_parse(req$url)$query
+    start <- as.integer(if (is.null(q$start)) 0L else q$start)
+    count <- as.integer(if (is.null(q$count)) 25L else q$count)
+    n <- min(count, cap, max(0L, 60L - start))
+    entries <- if (n > 0L) mock_entries(n, offset = start) else {
+      list(list(error = "Result set was empty"))
+    }
+    mock_json_response(list(`search-results` = list(entry = entries)))
+  })
+  recs <- expect_no_warning(scopus_fetch("anything", page_size = 25L))
+  expect_equal(nrow(recs), 60L)
+  expect_equal(recs$doi, sprintf("10.1000/mock.%04d", 1:60))
+})
+
+test_that("a harvest short of the reported total warns", {
+  local_scopus_test_env()
+  # The server reports 40 records but serves 3 and then nothing.
+  httr2::local_mocked_responses(function(req) {
+    q <- httr2::url_parse(req$url)$query
+    start <- as.integer(if (is.null(q$start)) 0L else q$start)
+    entries <- if (start < 3L) mock_entries(3L - start, offset = start) else {
+      list(list(error = "Result set was empty"))
+    }
+    mock_search_results(entries, total = 40L)
+  })
+  expect_warning(
+    recs <- scopus_fetch("anything", page_size = 3L),
+    class = "scopus_warning_shortfall"
+  )
+  expect_equal(nrow(recs), 3L)
+})
+
+test_that("a retrieval the caller limited is not reported as a shortfall", {
+  local_scopus_test_env()
+  httr2::local_mocked_responses(mock_corpus(total = 100L))
+  expect_no_warning(scopus_fetch("anything", max_results = 6L, page_size = 3L))
 })
 
 test_that("an empty corpus yields zero rows", {

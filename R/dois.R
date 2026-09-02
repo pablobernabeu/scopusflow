@@ -40,6 +40,7 @@
 #' scopus_extract_dois(example_records, file = path)
 #' @export
 scopus_extract_dois <- function(x, dedupe = TRUE, file = NULL) {
+  scopus_check_flag(dedupe, "dedupe")
   dois <- scopus_as_doi_vector(x)
   dois <- scopus_clean_dois(dois)
   if (isTRUE(dedupe)) {
@@ -49,7 +50,7 @@ scopus_extract_dois <- function(x, dedupe = TRUE, file = NULL) {
     if (!is.character(file) || length(file) != 1L || is.na(file) || !nzchar(file)) {
       rlang::abort(
         "`file` must be `NULL` or a single non-empty path.",
-        class = "scopus_error_bad_input"
+        class = c("scopus_error_bad_input", "scopus_error")
       )
     }
     scopus_write_csv(data.frame(doi = dois), file)
@@ -96,10 +97,13 @@ scopus_diff_dois <- function(old, new) {
     c(rep("added", length(added)),
       rep("removed", length(removed)),
       rep("unchanged", length(unchanged))),
-    levels = c("added", "removed", "unchanged")
+    levels = c("added", "removed", "unchanged"),
+    ordered = TRUE
   )
   out <- tibble::tibble(doi = c(added, removed, unchanged), status = status)
-  out <- out[order(out$status, out$doi), , drop = FALSE]
+  # Sort the DOIs in byte order (method = "radix") so that the row order does
+  # not depend on the session's collation.
+  out <- out[order(out$status, out$doi, method = "radix"), , drop = FALSE]
   tibble::new_tibble(as.list(out), nrow = nrow(out), class = "scopus_doi_diff")
 }
 
@@ -127,7 +131,7 @@ scopus_as_doi_vector <- function(x) {
   }
   rlang::abort(
     "`x` must be a `scopus_records` object or a character vector of DOIs.",
-    class = "scopus_error_bad_input"
+    class = c("scopus_error_bad_input", "scopus_error")
   )
 }
 

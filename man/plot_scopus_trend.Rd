@@ -27,16 +27,11 @@ Draws annual record counts over time from the output of \code{\link[=scopus_tren
 # Drawn from the bundled corpus of real articles, which needs no key. That
 # corpus is a complete harvest, so its rows per year are the publications
 # per year its query returns.
-by_year <- table(example_records$year)
-tr <- tibble::tibble(
-  query = "TITLE-ABS-KEY(graphene supercapacitor)",
-  year = as.integer(names(by_year)),
-  n = as.numeric(by_year)
-)
-class(tr) <- c("scopus_trend", class(tr))
+tr <- scopus_year_counts(example_records,
+                         query = "TITLE-ABS-KEY(graphene supercapacitor)")
 plot_scopus_trend(tr)
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-\code{\link[=scopus_trend]{scopus_trend()}}
+\code{\link[=scopus_trend]{scopus_trend()}}, \code{\link[=scopus_year_counts]{scopus_year_counts()}}
 }

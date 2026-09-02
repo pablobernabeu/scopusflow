@@ -67,7 +67,8 @@ states plainly that it is an independent client. Live API access is kept out of
 the checks: every example is based on a fixture or a mock, or guarded with
 `@examplesIf scopus_has_key()`, the tests never touch the network, and the
 vignette runs on bundled fixtures, while the live tests are gated behind
-`skip_on_cran()` and a key. No key or other secret is stored anywhere. Keys are
+`skip_on_cran()`, a key and an opt-in `SCOPUSFLOW_LIVE_TESTS` variable that no
+test runner sets by itself. No key or other secret is stored anywhere. Keys are
 read only from environment variables, options or arguments, and are redacted in
 request output. Nothing is written to disk unless the user asks, the cache is
 opt-in under `tools::R_user_dir()` and can be cleared, and examples and tests
@@ -176,10 +177,15 @@ in `inst/extdata`. It covers plan construction and validation, pagination and th
 the comparison percentages including the zero-denominator case, the mapping of
 HTTP statuses 400, 401, 403, 404, 413, 414, 429 and the 5xx range onto
 conditions, transient classification, offline handling, caching and resume,
-plotting where ggplot2 is present, the I/O round-trips and key handling. An
-offline request-contract test pins the outbound URL, query parameters and auth
-header, so a change to the request shape is caught even though no real request is
-made. Spelling is enforced during `R CMD check` through `tests/spelling.R`, and a
+plotting where ggplot2 is present, the I/O round-trips and key handling. The
+app's synchronous paths are driven through `shiny::testServer()` in demo mode,
+leaving the background harvest, which runs in a `callr` process, to manual
+testing; that file is left out of the reported coverage figure through
+`.covrignore`, so the figure describes the code the suite can reach and the
+coverage workflow can hold it to a real floor. An offline request-contract test
+pins the outbound URL, query parameters and auth header, so a change to the
+request shape is caught even though no real request is made. Spelling is
+enforced during `R CMD check` through `tests/spelling.R`, and a
 `_R_CHECK_DEPENDS_ONLY_` CI run proves the Imports are declared correctly. The
 mocks cannot tell whether the live API has changed, so a weekly, key-gated live
 smoke test checks that a real query still returns the documented, populated

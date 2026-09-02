@@ -44,27 +44,27 @@ plot_scopus_intersections <- function(x, highlight = NULL,
   if (!inherits(x, "scopus_intersections")) {
     rlang::abort(
       "`x` must be a `scopus_intersections` object from scopus_intersections().",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
   rlang::check_installed("ggplot2", reason = "to plot concept intersections")
   if (!all(c("label", "n", "type") %in% names(x))) {
     rlang::abort(
       "`x` must have columns `label`, `n` and `type` (see scopus_intersections()).",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
   df <- as.data.frame(x)
   if (nrow(df) == 0L) {
     rlang::abort(
       "The `scopus_intersections` object has no rows to plot.",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
   if (anyDuplicated(df$label)) {
     rlang::abort(
       "The `label` column must be unique to place each row on its own line.",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
   if (!is.null(highlight)) {
@@ -75,7 +75,7 @@ plot_scopus_intersections <- function(x, highlight = NULL,
           "`highlight` must name rows to accent, among: %s.",
           paste(df$label, collapse = ", ")
         ),
-        class = "scopus_error_bad_input"
+        class = c("scopus_error_bad_input", "scopus_error")
       )
     }
   }
@@ -90,7 +90,7 @@ plot_scopus_intersections <- function(x, highlight = NULL,
   if (nrow(df) == 0L) {
     rlang::abort(
       "No row has a positive count to place on the log axis.",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
 

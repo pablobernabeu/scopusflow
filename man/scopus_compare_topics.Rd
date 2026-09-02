@@ -21,7 +21,8 @@ comparison (for example \code{"language learning"}).}
 
 \item{comparison_terms}{Character vector of topics to compare against the
 reference (for example \code{c("effect size", "Bayesian")}). Each is combined
-with the reference using a logical AND.}
+with the reference using a logical AND. A term repeated in the vector is
+counted once, with a warning.}
 
 \item{years}{Integer vector of publication years to span (for example
 \code{2015:2020}).}

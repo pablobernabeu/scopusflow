@@ -63,15 +63,10 @@ tr
 # redistributed, so the package bundles a corpus of real articles instead;
 # it is a complete harvest of its own query, so tallying its rows by year
 # reproduces the yearly counts that query returns.
-by_year <- table(example_records$year)
-tr <- tibble::tibble(
-  query = "TITLE-ABS-KEY(graphene supercapacitor)",
-  year = as.integer(names(by_year)),
-  n = as.numeric(by_year)
-)
-class(tr) <- c("scopus_trend", class(tr))
-tr
+scopus_year_counts(example_records,
+                   query = "TITLE-ABS-KEY(graphene supercapacitor)")
 }
 \seealso{
-\code{\link[=plot_scopus_trend]{plot_scopus_trend()}}, \code{\link[=scopus_compare_topics]{scopus_compare_topics()}}
+\code{\link[=plot_scopus_trend]{plot_scopus_trend()}}, \code{\link[=scopus_compare_topics]{scopus_compare_topics()}},
+\code{\link[=scopus_year_counts]{scopus_year_counts()}} for the same table tallied from records in hand
 }

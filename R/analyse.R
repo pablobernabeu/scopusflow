@@ -17,7 +17,8 @@
 #' @section API access:
 #' This performs one count request per year, so it requires a valid API key and
 #' internet access; see the *API access* section of [scopus_count()].
-#' @seealso [plot_scopus_trend()], [scopus_compare_topics()]
+#' @seealso [plot_scopus_trend()], [scopus_compare_topics()],
+#'   [scopus_year_counts()] for the same table tallied from records in hand
 #' @examplesIf scopusflow::scopus_has_key()
 #' tr <- scopus_trend("graphene supercapacitor", years = 2015:2024,
 #'                    field = "TITLE-ABS-KEY")
@@ -27,14 +28,8 @@
 #' # redistributed, so the package bundles a corpus of real articles instead;
 #' # it is a complete harvest of its own query, so tallying its rows by year
 #' # reproduces the yearly counts that query returns.
-#' by_year <- table(example_records$year)
-#' tr <- tibble::tibble(
-#'   query = "TITLE-ABS-KEY(graphene supercapacitor)",
-#'   year = as.integer(names(by_year)),
-#'   n = as.numeric(by_year)
-#' )
-#' class(tr) <- c("scopus_trend", class(tr))
-#' tr
+#' scopus_year_counts(example_records,
+#'                    query = "TITLE-ABS-KEY(graphene supercapacitor)")
 #' @export
 scopus_trend <- function(query,
                          years,
@@ -47,8 +42,9 @@ scopus_trend <- function(query,
   scopus_check_query(query)
   field <- scopus_check_field(field)
   years <- scopus_check_years(years)
+  scopus_check_flag(verbose, "verbose")
   if (is.null(years)) {
-    rlang::abort("`years` must be supplied.", class = "scopus_error_bad_input")
+    rlang::abort("`years` must be supplied.", class = c("scopus_error_bad_input", "scopus_error"))
   }
   years <- sort(unique(years))
   wrapped <- scopus_wrap_field(query, field)
@@ -92,8 +88,8 @@ print.scopus_trend <- function(x, ...) {
 #'
 #' @param x A [scopus_records] tibble.
 #' @param by What to tally: `"source"` (the publication titles) or `"author"`.
-#'   Author strings holding several names separated by `"; "` are split, so each
-#'   contributor is counted once per record.
+#'   Author strings holding several names are split on the semicolon, with or
+#'   without a following space, so each contributor is counted once per record.
 #' @param n The number of rows to return (the top `n`).
 #' @return A tibble of class `scopus_top` with columns `value` and `n`, sorted by
 #'   descending count, with ties broken by `value` in byte order so the result is
@@ -114,7 +110,7 @@ scopus_top <- function(x, by = c("source", "author"), n = 10L) {
   if (!is_scopus_records(x)) {
     rlang::abort(
       "`x` must be a `scopus_records` object.",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
   by <- rlang::arg_match(by)
@@ -122,14 +118,16 @@ scopus_top <- function(x, by = c("source", "author"), n = 10L) {
       n != floor(n)) {
     rlang::abort(
       "`n` must be a single positive whole number.",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
 
   values <- switch(
     by,
     source = x$publication[!is.na(x$publication)],
-    author = unlist(strsplit(x$authors[!is.na(x$authors)], "; ", fixed = TRUE),
+    # Split on the bare semicolon, not "; ": the Python twin joins author names
+    # without the space, and a set written there is read back here.
+    author = unlist(strsplit(x$authors[!is.na(x$authors)], ";", fixed = TRUE),
                     use.names = FALSE)
   )
   values <- trimws(values)
@@ -155,8 +153,11 @@ scopus_top <- function(x, by = c("source", "author"), n = 10L) {
   )
 }
 
-# Annual record counts within a held set (used by autoplot.scopus_records).
-scopus_year_counts <- function(x) {
+# Annual record counts over the whole span a held set covers, gap years
+# included as zero (used by autoplot.scopus_records, where a missing bar would
+# otherwise close the gap and shorten the axis). scopus_year_counts() reports
+# the years present, as scopus_trend() and the Python twin do.
+scopus_year_span <- function(x) {
   years <- x$year[!is.na(x$year)]
   if (length(years) == 0L) {
     return(tibble::tibble(year = integer(), n = integer()))
@@ -164,4 +165,48 @@ scopus_year_counts <- function(x) {
   span <- seq(min(years), max(years))
   counts <- tabulate(factor(years, levels = span))
   tibble::tibble(year = as.integer(span), n = as.integer(counts))
+}
+
+#' Tally the records of a harvest by year
+#'
+#' Counts the records of a set already in hand by publication year, in the
+#' shape [scopus_trend()] returns. A complete harvest holds its own annual
+#' counts, so this gives the trend of that query without spending a request.
+#'
+#' @param x A [scopus_records] object.
+#' @param query Optional string naming the query the records answer, recorded
+#'   in the `query` column. Records do not carry the query they came from, so
+#'   it is `NA` unless supplied.
+#' @return A tibble of class `scopus_trend` with the columns `query`, `year`
+#'   (integer) and `n` (the count that year, as a double, matching
+#'   [scopus_trend()]). Records with no year are dropped, and a year no record
+#'   falls in is absent rather than zero, since a harvest says nothing about a
+#'   year it does not cover.
+#' @seealso [scopus_trend()] for the same table counted through the API, and
+#'   [plot_scopus_trend()] to draw either.
+#' @examples
+#' # The bundled corpus of real articles is a complete harvest of its own
+#' # query, so its rows per year are the publications per year that query
+#' # returns.
+#' scopus_year_counts(example_records,
+#'                    query = "TITLE-ABS-KEY(graphene supercapacitor)")
+#' @export
+scopus_year_counts <- function(x, query = NA_character_) {
+  if (!is_scopus_records(x)) {
+    rlang::abort("`x` must be a `scopus_records` object.",
+                 class = c("scopus_error_bad_input", "scopus_error"))
+  }
+  if (!is.character(query) || length(query) != 1L) {
+    rlang::abort("`query` must be a single string, or `NA`.",
+                 class = c("scopus_error_bad_input", "scopus_error"))
+  }
+  counts <- table(x$year[!is.na(x$year)])
+  tibble::new_tibble(
+    list(
+      query = rep(as.character(query), length(counts)),
+      year = as.integer(names(counts)),
+      n = as.numeric(counts)
+    ),
+    nrow = length(counts), class = "scopus_trend"
+  )
 }

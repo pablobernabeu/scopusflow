@@ -96,7 +96,7 @@ There are no reverse dependencies.
   guarded with `@examplesIf scopus_has_key()`, and the test suite intercepts all
   HTTP with `httr2::local_mocked_responses()`. No example or test contacts the
   network or requires an API key. Live integration tests are skipped on CRAN and
-  require both `SCOPUS_API_KEY` and `NOT_CRAN`.
+  require both `SCOPUS_API_KEY` and `SCOPUSFLOW_LIVE_TESTS`.
 * No API keys or other secrets are stored in the package. Keys are read only
   from environment variables, options or explicit arguments, and are redacted in
   request output.

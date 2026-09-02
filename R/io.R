@@ -10,6 +10,12 @@
 #' columns and cannot hold them, so save as `.rds` when a set is a baseline to
 #' be compared against later.
 #'
+#' A `.csv` written by another tool reads back too. It is taken as UTF-8
+#' whatever the session's locale, and a blank field is read as missing, which is
+#' how pandas, 'Excel' and the Python twin write one. A file carrying none of
+#' `doi`, `title` and `year` is refused rather than read as a set of empty
+#' records, and one carrying only part of the schema warns.
+#'
 #' @param x A [scopus_records] tibble to write.
 #' @param path Explicit file path. The functions read from, or write to, exactly
 #'   this path and leave the working directory alone. Parent directories are
@@ -33,7 +39,7 @@ write_scopus_records <- function(x, path) {
   if (!is_scopus_records(x)) {
     rlang::abort(
       "`x` must be a `scopus_records` object.",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
   scopus_check_path(path)
@@ -45,13 +51,16 @@ write_scopus_records <- function(x, path) {
   invisible(x)
 }
 
-# Text artifacts carry LF line endings on every platform. Written through a
-# text-mode connection on Windows, each "\n" would be translated to CRLF, so
-# the connection is opened in binary mode, where no translation happens.
+# Text artifacts carry LF line endings and UTF-8 bytes on every platform.
+# Written through a text-mode connection on Windows, each "\n" would be
+# translated to CRLF, so the connection is opened in binary mode, where no
+# translation happens. `useBytes = TRUE` stops R translating the string to the
+# session's native encoding first, which in a C or single-byte locale replaces
+# every non-ASCII character with the literal text <U+00ED>.
 scopus_write_lines <- function(text, path) {
   con <- file(path, open = "wb")
   on.exit(close(con))
-  writeLines(text, con, sep = "\n")
+  writeLines(enc2utf8(text), con, sep = "\n", useBytes = TRUE)
   invisible(path)
 }
 
@@ -61,8 +70,23 @@ scopus_write_lines <- function(text, path) {
 scopus_write_csv <- function(x, path) {
   con <- file(path, open = "wb")
   on.exit(close(con))
-  utils::write.csv(x, file = con, row.names = FALSE)
+  utils::write.csv(scopus_utf8_bytes(x), file = con, row.names = FALSE)
   invisible(path)
+}
+
+# write.csv() has no `useBytes`, so the columns are converted to UTF-8 and then
+# declared native: R writes a native string's bytes out untouched, which is the
+# only way to keep accented and Cyrillic names intact in a C or single-byte
+# locale. The formatting write.csv() applies is unchanged.
+scopus_utf8_bytes <- function(x) {
+  for (nm in names(x)) {
+    if (is.character(x[[nm]])) {
+      col <- enc2utf8(x[[nm]])
+      Encoding(col) <- "unknown"
+      x[[nm]] <- col
+    }
+  }
+  x
 }
 
 #' @rdname write_scopus_records
@@ -72,7 +96,7 @@ read_scopus_records <- function(path) {
   if (!file.exists(path)) {
     rlang::abort(
       sprintf("File not found: %s", path),
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
   fmt <- scopus_path_format(path)
@@ -81,13 +105,60 @@ read_scopus_records <- function(path) {
     if (!is_scopus_records(obj)) {
       rlang::abort(
         "The .rds file does not contain a `scopus_records` object.",
-        class = "scopus_error_bad_input"
+        class = c("scopus_error_bad_input", "scopus_error")
       )
     }
     return(obj)
   }
-  raw <- utils::read.csv(path, stringsAsFactors = FALSE, colClasses = "character")
+  # A CSV written elsewhere (pandas, Excel, the Python twin) leaves a missing
+  # value as an empty field rather than the token NA, and carries UTF-8 whatever
+  # the session's locale says.
+  raw <- utils::read.csv(
+    path,
+    stringsAsFactors = FALSE,
+    colClasses = "character",
+    na.strings = c("NA", ""),
+    encoding = "UTF-8"
+  )
+  scopus_check_record_csv(raw, path)
   scopus_coerce_records(raw)
+}
+
+# A CSV is taken for a record set only when it carries at least one of the
+# columns a record is identified by. Without this, a DOI list, a spreadsheet or
+# any other foreign file reads back as a well-formed set of empty records,
+# since scopus_coerce_records() fills every absent column with NA.
+scopus_check_record_csv <- function(raw, path, call = rlang::caller_env()) {
+  if (!any(c("doi", "title", "year") %in% names(raw))) {
+    found <- if (length(names(raw)) > 0L) {
+      paste(names(raw), collapse = ", ")
+    } else {
+      "none"
+    }
+    rlang::abort(
+      sprintf(
+        paste0("%s does not hold a record set: none of `doi`, `title` or ",
+               "`year` is present. Columns found: %s."),
+        path, found
+      ),
+      class = c("scopus_error_bad_input", "scopus_error"),
+      call = call
+    )
+  }
+  cols <- scopus_records_columns()
+  absent <- setdiff(cols, names(raw))
+  if (length(absent) > 0L) {
+    rlang::warn(
+      sprintf(
+        paste0("%s carries %d of the %d record columns; the rest are read ",
+               "as missing: %s."),
+        path, length(cols) - length(absent), length(cols),
+        paste(absent, collapse = ", ")
+      ),
+      class = "scopus_warning_partial_schema"
+    )
+  }
+  invisible(raw)
 }
 
 # Coerce a read-in data frame back to the typed scopus_records schema. A
@@ -106,7 +177,11 @@ scopus_coerce_records <- function(raw) {
   }
   char_cols <- setdiff(cols, int_cols)
   for (nm in char_cols) {
-    raw[[nm]] <- as.character(raw[[nm]])
+    value <- as.character(raw[[nm]])
+    # A blank field is a missing field, whichever tool wrote it, so a frame that
+    # reaches here by another route is keyed the same way as one read from disk.
+    value[!is.na(value) & !nzchar(value)] <- NA_character_
+    raw[[nm]] <- value
   }
   tibble::new_tibble(as.list(raw[cols]), nrow = nrow(raw), class = "scopus_records")
 }
@@ -115,7 +190,7 @@ scopus_check_path <- function(path, call = rlang::caller_env()) {
   if (!is.character(path) || length(path) != 1L || is.na(path) || !nzchar(path)) {
     rlang::abort(
       "`path` must be a single non-empty file path.",
-      class = "scopus_error_bad_input",
+      class = c("scopus_error_bad_input", "scopus_error"),
       call = call
     )
   }
@@ -130,7 +205,7 @@ scopus_path_format <- function(path) {
     csv = "csv",
     rlang::abort(
       sprintf("Unsupported file extension '.%s'. Use '.rds' or '.csv'.", ext),
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   )
 }

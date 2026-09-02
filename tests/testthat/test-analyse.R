@@ -17,6 +17,18 @@ test_that("scopus_top splits multi-author strings and honours n", {
   expect_equal(nrow(scopus_top(example_records, by = "author", n = 3)), 3L)
 })
 
+test_that("scopus_top splits authors joined without a space after the semicolon", {
+  # The Python twin joins author names with a bare semicolon, and its CSV is
+  # read back here.
+  recs <- scopus_records(list(entry = list(
+    list(`dc:creator` = "Smith J.;Doe A.;Lee K."),
+    list(`dc:creator` = "Smith J.; Doe A.")
+  )))
+  top <- scopus_top(recs, by = "author")
+  expect_equal(top$value, c("Doe A.", "Smith J.", "Lee K."))
+  expect_equal(top$n, c(2L, 2L, 1L))
+})
+
 test_that("scopus_top rejects bad input", {
   expect_error(scopus_top(data.frame(a = 1)), class = "scopus_error_bad_input")
   expect_error(scopus_top(example_records, n = 0), class = "scopus_error_bad_input")
@@ -99,6 +111,49 @@ test_that("scopus_trend warns (not errors) when several years lack a total", {
   # Two missing years must still warn and return the tibble, not raise an error.
   expect_warning(tr <- scopus_trend("x", years = 2015:2017), "2 years")
   expect_equal(is.na(tr$n), c(TRUE, FALSE, TRUE))
+})
+
+test_that("scopus_year_counts tallies a held set as a trend", {
+  tally <- scopus_year_counts(example_records, query = "q")
+  expect_s3_class(tally, "scopus_trend")
+  expect_equal(names(tally), c("query", "year", "n"))
+  expect_type(tally$n, "double")
+  expect_type(tally$year, "integer")
+  expect_true(all(tally$query == "q"))
+
+  by_year <- table(example_records$year)
+  expect_equal(tally$year, as.integer(names(by_year)))
+  expect_equal(tally$n, as.numeric(by_year))
+  expect_equal(sum(tally$n), sum(!is.na(example_records$year)))
+
+  # No query recorded unless one is supplied, since records do not carry it.
+  expect_true(all(is.na(scopus_year_counts(example_records)$query)))
+
+  # A year no record falls in is absent, not zero, unlike the zero-filled span
+  # the bar chart draws.
+  gapped <- example_records[example_records$year != 2019L, ]
+  expect_false(2019L %in% scopus_year_counts(gapped)$year)
+  expect_true(2019L %in% scopusflow:::scopus_year_span(gapped)$year)
+
+  # Records with no year are dropped, and a set with none at all is empty.
+  undated <- example_records
+  undated$year[1:5] <- NA_integer_
+  expect_equal(sum(scopus_year_counts(undated)$n), nrow(example_records) - 5)
+  undated$year <- NA_integer_
+  expect_equal(nrow(scopus_year_counts(undated)), 0L)
+  expect_s3_class(scopus_year_counts(undated), "scopus_trend")
+
+  expect_error(scopus_year_counts(as.data.frame(example_records)),
+               class = "scopus_error_bad_input")
+  expect_error(scopus_year_counts(example_records, query = c("a", "b")),
+               class = "scopus_error_bad_input")
+})
+
+test_that("a tally of a held set plots like a counted trend", {
+  skip_if_not_installed("ggplot2")
+  tally <- scopus_year_counts(example_records, query = "q")
+  expect_s3_class(plot_scopus_trend(tally), "ggplot")
+  expect_output(print(tally), "scopus_trend")
 })
 
 test_that("the new plots return ggplot objects", {

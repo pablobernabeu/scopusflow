@@ -238,9 +238,29 @@ test_that("a checkpoint is written whole or not at all", {
   expect_setequal(list.files(cache), c("cell-001-2019.rds", "cell-002-2020.rds"))
 })
 
+test_that("a checkpoint the rename cannot place is still written", {
+  # The Windows case the write path guards against: file.rename() returns FALSE
+  # rather than erroring when the destination is locked by another process.
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  httr2::local_mocked_responses(mock_corpus(total = 1L))
+  testthat::with_mocked_bindings(
+    scopus_fetch_plan(scopus_plan("x", years = 2019, partition = "year"),
+                      cache_dir = cache, resume = TRUE),
+    file.rename = function(...) FALSE,
+    .package = "base"
+  )
+  expect_equal(list.files(cache), "cell-001-2019.rds")
+  expect_s3_class(readRDS(file.path(cache, "cell-001-2019.rds")), "scopus_records")
+})
+
 test_that("scopus_fetch_plan validates its inputs", {
   local_scopus_test_env()
   expect_error(scopus_fetch_plan(list()), class = "scopus_error_bad_input")
+  expect_error(scopus_fetch_plan(scopus_plan("x"), cache_dir = 1),
+               class = "scopus_error_bad_input")
+  expect_error(scopus_fetch_plan(scopus_plan("x"), cache_dir = c("a", "b")),
+               class = "scopus_error_bad_input")
 })
 
 test_that("scopus_fetch_plan(view = 'COMPLETE') carries authkeywords through", {
@@ -376,4 +396,25 @@ test_that("a cell shorter than the API reported warns", {
   expect_no_warning(
     scopus_fetch_plan(scopus_plan("x", years = 2019L), max_results = 2)
   )
+})
+
+test_that("a cell stopped at the offset ceiling warns only about the ceiling", {
+  local_scopus_test_env()
+  # The ceiling warning already names the cause and the remedy; the shortfall
+  # warning would blame the quota for a shortfall it can account for.
+  withr::local_options(scopusflow.hard_cap = 10L)
+  warnings <- character()
+  withCallingHandlers(
+    httr2::with_mocked_responses(mock_corpus(25L), {
+      recs <- scopus_fetch_plan(
+        scopus_plan("q", years = 2015L, partition = "year", page_size = 5L)
+      )
+      expect_equal(nrow(recs), 10L)
+    }),
+    warning = function(cnd) {
+      warnings <<- c(warnings, class(cnd)[1])
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_equal(warnings, "scopus_warning_capped")
 })

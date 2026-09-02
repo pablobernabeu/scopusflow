@@ -1,8 +1,15 @@
 # Live integration tests. These are skipped on CRAN and only run when a real key
-# is configured and the user has opted in via NOT_CRAN. They make genuine network
-# requests and consume a small amount of quota: about six 'Scopus' Search
-# requests and one Abstract Retrieval request, the latter drawing on its own
-# weekly quota, which is the smaller of the two.
+# is configured and SCOPUSFLOW_LIVE_TESTS is set to 'true'. They make genuine
+# network requests and consume a small amount of quota: about six 'Scopus'
+# Search requests and one Abstract Retrieval request, the latter drawing on its
+# own weekly quota, which is the smaller of the two.
+#
+# The opt-in is a variable of the package's own, since testthat::test_local(),
+# devtools::test() and devtools::check() all set NOT_CRAN themselves: gating on
+# that would spend live quota on every local run by a maintainer who keeps the
+# key in ~/.Renviron, as ?scopus_has_key recommends. It is checked before the
+# key and the connection, so an ordinary run neither reads the key nor probes
+# the network. .github/workflows/live-api-check.yaml sets it.
 #
 # Their job is the one thing the offline mocks cannot do: confirm the package
 # still works against the live, evolving 'Scopus' API, so that a renamed field or
@@ -10,10 +17,28 @@
 
 skip_live <- function() {
   skip_on_cran()
-  skip_if_offline()
+  skip_if(!identical(Sys.getenv("SCOPUSFLOW_LIVE_TESTS"), "true"),
+          "SCOPUSFLOW_LIVE_TESTS not enabled")
   skip_if(Sys.getenv("SCOPUS_API_KEY") == "", "SCOPUS_API_KEY not set")
-  skip_if(Sys.getenv("NOT_CRAN") != "true", "NOT_CRAN not enabled")
+  skip_if_offline()
 }
+
+test_that("the live tests stay dormant unless they are switched on", {
+  withr::local_envvar(
+    NOT_CRAN = "true",
+    SCOPUS_API_KEY = "not-a-real-key",
+    SCOPUSFLOW_LIVE_TESTS = ""
+  )
+  cnd <- tryCatch(
+    {
+      skip_live()
+      NULL
+    },
+    condition = function(cnd) cnd
+  )
+  expect_s3_class(cnd, "skip")
+  expect_equal(conditionMessage(cnd), "Reason: SCOPUSFLOW_LIVE_TESTS not enabled")
+})
 
 test_that("a live count succeeds", {
   skip_live()
@@ -57,6 +82,8 @@ test_that("a live abstract retrieval returns metadata", {
   # degrades a per-identifier failure to an NA row with a warning. On a
   # rate-limited run that NA row would read here as schema drift, so a 429 is
   # recorded and skipped rather than failed; any other warning still surfaces.
+  # .github/workflows/live-api-check.yaml matches the wording of this skip to
+  # tell it from a skip that means the check exercised nothing.
   msgs <- character()
   ab <- withCallingHandlers(
     scopus_abstract("10.1103/PhysRevLett.116.061102"),

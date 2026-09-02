@@ -48,6 +48,20 @@ test_that("bad input is rejected", {
   expect_error(scopus_records(42), class = "scopus_error_bad_input")
 })
 
+test_that("a query of several strings is refused, not spread over the records", {
+  raw <- list(entry = list(list(`prism:doi` = "10.1/a"), list(`prism:doi` = "10.1/b")))
+  expect_error(scopus_records(raw, query = c("q1", "q2")),
+               class = "scopus_error_bad_input")
+  expect_error(scopus_records(as.data.frame(example_records)[1:2, ],
+                              query = c("q1", "q2")),
+               class = "scopus_error_bad_input")
+  expect_equal(scopus_records(raw, query = "q")$query, c("q", "q"))
+  expect_true(all(is.na(scopus_records(raw, query = NULL)$query)))
+  expect_true(all(is.na(scopus_records(raw)$query)))
+  # A bare NA is accepted, and has to reach the schema as a character column.
+  expect_type(scopus_records(raw, query = NA)$query, "character")
+})
+
 test_that("multiple authors are kept, not truncated to the first", {
   recs <- scopus_records(list(entry = list(
     list(`dc:creator` = list("Smith J.", "Doe A.", "Lee K."))
@@ -123,4 +137,70 @@ test_that("an empty result under COMPLETE view still types the authkeywords colu
   expect_equal(nrow(recs), 0L)
   expect_true("authkeywords" %in% names(recs))
   expect_type(recs$authkeywords, "character")
+})
+
+test_that("a data frame in the schema is coerced, not read as a list of columns", {
+  # A data frame is a list of columns, so it used to be taken for a list of
+  # entries: one all-NA row per column, which looks like a result and is not.
+  frame <- tibble::as_tibble(example_records)
+  recs <- scopus_records(frame)
+  expect_s3_class(recs, "scopus_records")
+  expect_equal(nrow(recs), nrow(example_records))
+  expect_equal(recs$doi, example_records$doi)
+  expect_identical(names(recs), names(example_records))
+  # Coercing again changes nothing.
+  expect_identical(scopus_records(recs), recs)
+
+  # A frame holding only part of the schema is filled out to it.
+  partial <- data.frame(doi = c("10.1/x", "10.1/y"), title = c("T1", "T2"),
+                        year = 2020:2021, stringsAsFactors = FALSE)
+  recs <- scopus_records(partial, query = "graphene")
+  expect_equal(nrow(recs), 2L)
+  expect_equal(recs$title, c("T1", "T2"))
+  expect_type(recs$year, "integer")
+  expect_equal(recs$query, rep("graphene", 2L))
+  expect_true(all(is.na(recs$publication)))
+})
+
+test_that("a data frame that is not a record set is refused", {
+  expect_error(scopus_records(data.frame(a = 1, b = 2)),
+               class = "scopus_error_bad_input")
+  expect_error(scopus_records(data.frame(a = 1, b = 2)),
+               "Neither `doi` nor `title` is present.", fixed = TRUE)
+})
+
+test_that("a large entry list normalises to the same columns as one row at a time", {
+  # The columns are pulled across all entries at once rather than built as a
+  # data frame per entry; a harvest of tens of thousands of records used to
+  # spend the better part of a minute here.
+  n <- 2000L
+  entries <- lapply(seq_len(n), function(k) {
+    entry <- list(
+      `dc:identifier` = paste0("SCOPUS_ID:", 84000000000 + k),
+      `prism:doi` = sprintf("10.1000/x.%04d", k),
+      `dc:title` = sprintf("Article %d", k),
+      `dc:creator` = "Tester T.",
+      `prism:publicationName` = "Journal of Mocking",
+      `prism:coverDate` = sprintf("%d-01-01", 2000L + (k %% 20L)),
+      `citedby-count` = as.character(k)
+    )
+    # A fifth of the entries carry no date and no count, as real ones do not.
+    if (k %% 5L == 0L) entry[c("prism:coverDate", "citedby-count")] <- NULL
+    entry
+  })
+  recs <- scopus_records(list(entry = entries), query = "q")
+  expect_equal(nrow(recs), n)
+  expect_identical(names(recs), scopusflow:::scopus_records_columns())
+  expect_equal(recs$entry_number, seq_len(n))
+  expect_equal(recs$scopus_id, as.character(84000000000 + seq_len(n)))
+  expect_equal(recs$doi, sprintf("10.1000/x.%04d", seq_len(n)))
+  expect_equal(recs$authors, rep("Tester T.", n))
+  expect_equal(recs$query, rep("q", n))
+  expect_type(recs$year, "integer")
+  expect_type(recs$citations, "integer")
+  bare <- seq_len(n) %% 5L == 0L
+  expect_true(all(is.na(recs$year[bare])))
+  expect_true(all(is.na(recs$citations[bare])))
+  expect_equal(recs$year[!bare], 2000L + (seq_len(n)[!bare] %% 20L))
+  expect_equal(recs$citations[!bare], seq_len(n)[!bare])
 })

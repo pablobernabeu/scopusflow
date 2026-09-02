@@ -8,10 +8,14 @@
 #'
 #' @param x A parsed `search-results` list (the value of
 #'   `httr2::resp_body_json(resp)[["search-results"]]`), a bare list of entry
-#'   objects, or an existing `scopus_records` object, which is returned
-#'   unchanged.
+#'   objects, a data frame already in the schema below, which is coerced to it
+#'   (a set read back with [read_scopus_records()] or `read.csv()`, a tibble
+#'   copy, a subset built elsewhere), or an existing `scopus_records` object,
+#'   which is returned unchanged. A data frame carrying neither `doi` nor
+#'   `title` is not a record set, and is refused.
 #' @param query Optional character scalar recording the query that produced the
-#'   entries, kept in the `query` column for provenance.
+#'   entries, kept in the `query` column for provenance. `NULL` or `NA` records
+#'   none.
 #' @param view Optional character scalar naming the Search API view the entries
 #'   came from. Pass `"COMPLETE"` to add an `authkeywords` column (see below);
 #'   any other value, including the default `NULL`, reproduces the original
@@ -35,6 +39,14 @@
 #' carries an `error` field and no identifier. This is detected and turned into a
 #' zero-row result, with no spurious record in it, while a genuine record that also
 #' carries a per-entry `error` annotation is kept.
+#'
+#' A data frame already in this schema is coerced rather than read as a list of
+#' entries, so a set that has lost its class along the way, one read back with
+#' `read.csv()`, a tibble copy, a subset built elsewhere, can be handed
+#' straight to the functions that require the class. Such a frame keeps the
+#' columns it already carries, so `view` bears on entry lists only. A data
+#' frame carrying neither `doi` nor `title` is not a record set, and is
+#' refused.
 #'
 #' Author keywords are only ever present under `view = "COMPLETE"`; the
 #' `STANDARD` view (the default throughout the package) never includes them,
@@ -77,12 +89,20 @@
 #' ))
 #' scopus_records(raw_complete, view = "COMPLETE")
 #'
+#' # A plain data frame in this schema is coerced, so a set that lost its class
+#' # on the way through another tool can be used with the rest of the package.
+#' scopus_records(as.data.frame(example_records)[1:2, c("doi", "title", "year")])
+#'
 #' # An object already in this schema is returned unchanged.
 #' identical(scopus_records(example_records), example_records)
 #' @export
 scopus_records <- function(x, query = NA_character_, view = NULL) {
   if (is_scopus_records(x)) {
     return(x)
+  }
+  scopus_check_query_label(query)
+  if (is.data.frame(x)) {
+    return(scopus_records_from_frame(x, query))
   }
   entries <- scopus_entries(x)
   cols <- scopus_records_columns()
@@ -91,15 +111,13 @@ scopus_records <- function(x, query = NA_character_, view = NULL) {
     return(new_scopus_records(cols, view = view))
   }
 
-  rows <- lapply(
-    seq_along(entries),
-    function(i) scopus_entry_to_row(entries[[i]], i, query, view)
-  )
-  # Accumulate as a list and bind once (never rbind() inside the loop).
-  out <- do.call(rbind, c(rows, list(stringsAsFactors = FALSE)))
+  # Column by column, rather than a one-row data frame per entry bound
+  # together: a cursor-paged harvest normalises tens of thousands of entries,
+  # and building and binding that many data frames dominated the retrieval once
+  # the network was done.
   tibble::new_tibble(
-    as.list(out),
-    nrow = nrow(out),
+    scopus_entry_columns(entries, query, view),
+    nrow = length(entries),
     class = "scopus_records"
   )
 }
@@ -112,6 +130,27 @@ is_scopus_records <- function(x) {
   inherits(x, "scopus_records")
 }
 
+# A data frame already in the schema is a record set that has lost its class: a
+# frame read with read.csv(), an as_tibble() copy, a subset built with dplyr.
+# A data frame is also a list of columns, so scopus_entries() would take it for
+# a list of entries and return one all-NA row per column, which looks like a
+# result and is not one.
+scopus_records_from_frame <- function(x, query, call = rlang::caller_env()) {
+  if (!any(c("doi", "title") %in% names(x))) {
+    rlang::abort(
+      paste0("A data frame must already be in the record schema. Neither ",
+             "`doi` nor `title` is present."),
+      class = c("scopus_error_bad_input", "scopus_error"),
+      call = call
+    )
+  }
+  x <- as.data.frame(x, stringsAsFactors = FALSE)
+  if (is.null(x[["query"]])) {
+    x$query <- query %||% NA_character_
+  }
+  scopus_coerce_records(x)
+}
+
 # Extract the list of entries from any accepted input shape.
 scopus_entries <- function(x) {
   entries <- if (is.list(x) && !is.null(x[["entry"]])) x[["entry"]] else x
@@ -121,7 +160,7 @@ scopus_entries <- function(x) {
   if (!is.list(entries)) {
     rlang::abort(
       "Cannot extract 'Scopus' entries from `x`. Provide a list or a `search-results` object.",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
   # Detect the empty-result sentinel: a lone entry carrying an `error` field and
@@ -167,34 +206,31 @@ new_scopus_records <- function(cols, view = NULL) {
   tibble::new_tibble(proto[cols], nrow = 0L, class = "scopus_records")
 }
 
-# Convert a single entry to a one-row data frame. `authkeywords` is added only
-# for view = "COMPLETE" (see scopus_records()); other views, and the default
-# view = NULL, reproduce the original column set exactly.
-scopus_entry_to_row <- function(entry, i, query, view = NULL) {
-  id_raw <- scopus_field(entry, "dc:identifier")
-  scopus_id <- if (is.na(id_raw)) NA_character_ else sub("^SCOPUS_ID:", "", id_raw)
-  date <- scopus_field(entry, "prism:coverDate")
-  year <- scopus_parse_year(date)
-  citations <- scopus_field(entry, "citedby-count")
-  citations <- if (is.na(citations)) NA_integer_ else suppressWarnings(as.integer(citations))
-
-  row <- data.frame(
-    entry_number = as.integer(i),
-    scopus_id = scopus_id,
-    doi = scopus_field(entry, "prism:doi"),
-    title = scopus_field(entry, "dc:title"),
-    authors = scopus_field(entry, "dc:creator"),
-    year = year,
+# The columns of a normalised set, each pulled across every entry at once.
+# `authkeywords` is added only for view = "COMPLETE" (see scopus_records());
+# other views, and the default view = NULL, reproduce the original column set
+# exactly.
+scopus_entry_columns <- function(entries, query, view = NULL) {
+  column <- function(name) {
+    vapply(entries, scopus_field, character(1), name = name, USE.NAMES = FALSE)
+  }
+  date <- column("prism:coverDate")
+  out <- list(
+    entry_number = seq_along(entries),
+    scopus_id = sub("^SCOPUS_ID:", "", column("dc:identifier")),
+    doi = column("prism:doi"),
+    title = column("dc:title"),
+    authors = column("dc:creator"),
+    year = vapply(date, scopus_parse_year, integer(1), USE.NAMES = FALSE),
     date = date,
-    publication = scopus_field(entry, "prism:publicationName"),
-    citations = citations,
-    query = query %||% NA_character_,
-    stringsAsFactors = FALSE
+    publication = column("prism:publicationName"),
+    citations = suppressWarnings(as.integer(column("citedby-count"))),
+    query = rep_len(as.character(query %||% NA_character_), length(entries))
   )
   if (identical(view, "COMPLETE")) {
-    row$authkeywords <- scopus_field(entry, "authkeywords")
+    out$authkeywords <- column("authkeywords")
   }
-  row
+  out
 }
 
 # Pull a character field from an entry, returning NA when absent. A field that

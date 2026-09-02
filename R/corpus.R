@@ -94,6 +94,8 @@ scopus_corpus <- function(records,
                           verbose = FALSE) {
   by <- rlang::arg_match(by)
   view <- rlang::arg_match(view)
+  scopus_check_flag(resume, "resume")
+  scopus_check_flag(verbose, "verbose")
   required <- c(by, "title", "year")
   if (!is.data.frame(records) || !all(required %in% names(records))) {
     rlang::abort(
@@ -101,7 +103,7 @@ scopus_corpus <- function(records,
         "`records` must be a data frame with %s columns (as scopus_fetch()/scopus_fetch_plan() return).",
         paste(sprintf('"%s"', required), collapse = ", ")
       ),
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
 
@@ -118,7 +120,8 @@ scopus_corpus <- function(records,
     )
   }
   if (!any(keep)) {
-    rlang::abort("`records` has no usable identifiers to look up.", class = "scopus_error_bad_input")
+    rlang::abort("`records` has no usable identifiers to look up.",
+                 class = c("scopus_error_bad_input", "scopus_error"))
   }
   records <- records[keep, , drop = FALSE]
 

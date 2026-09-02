@@ -37,9 +37,32 @@ test_that("an explicit api_key argument wins", {
   expect_equal(as.numeric(scopus_count("x", api_key = "explicit")), 1)
 })
 
+# httr2 prints a request through cli, which writes to the message stream, so
+# the dump has to be captured from there. Captured from standard output it is
+# empty, and an unredacted key would pass unnoticed; the assertions on the
+# header name and on <REDACTED> keep that visible if the stream ever moves.
+capture_request_dump <- function(req) {
+  paste(utils::capture.output(print(req), type = "message"), collapse = "\n")
+}
+
 test_that("the key is never exposed in the request dump", {
-  withr::local_options(scopusflow.api_key = "super-secret-key")
-  req <- scopusflow:::scopus_request(list(query = "x"))
-  dump <- paste(utils::capture.output(print(req)), collapse = "\n")
-  expect_false(grepl("super-secret-key", dump))
+  withr::local_options(
+    scopusflow.api_key = "super-secret-key",
+    scopusflow.inst_token = "tok-secret"
+  )
+  dump <- capture_request_dump(scopusflow:::scopus_request(list(query = "x")))
+  expect_match(dump, "X-ELS-APIKey", fixed = TRUE)
+  expect_match(dump, "X-ELS-Insttoken", fixed = TRUE)
+  expect_match(dump, "<REDACTED>", fixed = TRUE)
+  expect_false(grepl("super-secret-key", dump, fixed = TRUE))
+  expect_false(grepl("tok-secret", dump, fixed = TRUE))
+
+  # The abstract endpoint builds its own request and sets its own redaction.
+  abstract <- scopusflow:::scopus_abstract_request("10.1000/x", by = "doi")
+  dump <- capture_request_dump(abstract)
+  expect_match(dump, "X-ELS-APIKey", fixed = TRUE)
+  expect_match(dump, "X-ELS-Insttoken", fixed = TRUE)
+  expect_match(dump, "<REDACTED>", fixed = TRUE)
+  expect_false(grepl("super-secret-key", dump, fixed = TRUE))
+  expect_false(grepl("tok-secret", dump, fixed = TRUE))
 })

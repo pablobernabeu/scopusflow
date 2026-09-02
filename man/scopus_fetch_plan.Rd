@@ -60,7 +60,11 @@ set is only as fresh as its oldest cell, and every version that
 contributed is listed, since resuming an older cache means more than one
 did. Both are omitted when any cell cannot supply them, as a checkpoint
 written before they existed cannot. Dating the whole from the part of it
-that can be dated would misreport the set.
+that can be dated would misreport the set. A checkpoint this package writes
+holds the cell's own retrieval time, version and reported total, so a
+harvest resumed from one is still dated and still states its completeness.
+The Python twin checkpoints the rows alone, so a harvest it resumes reports
+both as unrecorded.
 }
 \description{
 Runs every cell of a \code{\link[=scopus_plan]{scopus_plan()}} in turn, optionally caching each cell's

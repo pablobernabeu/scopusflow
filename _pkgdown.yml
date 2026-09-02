@@ -167,6 +167,7 @@ reference:
   desc: Summarise a literature over time and by source, compare topics within it, and plot the result.
   contents:
   - scopus_trend
+  - scopus_year_counts
   - scopus_top
   - scopus_compare_topics
   - scopus_intersections

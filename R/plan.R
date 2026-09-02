@@ -11,7 +11,7 @@
 #' @param years Optional integer vector of publication years to restrict to, for
 #'   example `2015:2020`. When `partition = "year"`, one plan cell is created for
 #'   each distinct year. Otherwise the minimum and maximum define a single date
-#'   range.
+#'   range. An empty vector places no year restriction, as `NULL` does.
 #' @param field Optional character scalar naming a 'Scopus' field tag to wrap the
 #'   query in, for example `"TITLE-ABS-KEY"`, `"TITLE"`, `"AUTH"` or `"AFFIL"`.
 #'   When `NULL`, the query is used verbatim. See [scopus_field_tags()] for the
@@ -60,7 +60,7 @@ scopus_plan <- function(query,
     if (is.null(years)) {
       rlang::abort(
         "`partition = \"year\"` requires `years` to be supplied.",
-        class = "scopus_error_bad_input"
+        class = c("scopus_error_bad_input", "scopus_error")
       )
     }
     yrs <- sort(unique(years))
@@ -119,11 +119,45 @@ scopus_check_query <- function(query, call = rlang::caller_env()) {
   if (!is.character(query) || length(query) != 1L || is.na(query) || !nzchar(trimws(query))) {
     rlang::abort(
       "`query` must be a single, non-empty character string.",
-      class = "scopus_error_bad_input",
+      class = c("scopus_error_bad_input", "scopus_error"),
       call = call
     )
   }
   invisible(query)
+}
+
+# The `query` a record set carries is provenance rather than a search to run, so
+# it may be absent where scopus_check_query()'s must not. A vector of several
+# would be spread one query per record, which is not what any caller means by
+# recording the query a harvest came from.
+scopus_check_query_label <- function(query, call = rlang::caller_env()) {
+  ok <- is.null(query) ||
+    (length(query) == 1L &&
+       (is.character(query) || (is.logical(query) && is.na(query))))
+  if (!ok) {
+    rlang::abort(
+      "`query` must be `NULL`, `NA` or a single character string.",
+      class = c("scopus_error_bad_input", "scopus_error"),
+      call = call
+    )
+  }
+  invisible(query)
+}
+
+# The logical flags. A flag that is not one changes what the call does without
+# saying so: isTRUE() reads "TRUE", 1 and NA alike as FALSE, so a caller who
+# believed they had lifted the offset ceiling, or asked for de-duplication, got
+# neither, and `&&` on a string died on a base error nothing could catch as a
+# `scopus_error`.
+scopus_check_flag <- function(x, arg, call = rlang::caller_env()) {
+  if (!is.logical(x) || length(x) != 1L || is.na(x)) {
+    rlang::abort(
+      sprintf("`%s` must be `TRUE` or `FALSE`.", arg),
+      class = c("scopus_error_bad_input", "scopus_error"),
+      call = call
+    )
+  }
+  x
 }
 
 scopus_check_field <- function(field, call = rlang::caller_env()) {
@@ -133,7 +167,7 @@ scopus_check_field <- function(field, call = rlang::caller_env()) {
   if (!is.character(field) || length(field) != 1L || is.na(field) || !nzchar(field)) {
     rlang::abort(
       "`field` must be `NULL` or a single character field tag (e.g. \"TITLE-ABS-KEY\").",
-      class = "scopus_error_bad_input",
+      class = c("scopus_error_bad_input", "scopus_error"),
       call = call
     )
   }
@@ -141,7 +175,7 @@ scopus_check_field <- function(field, call = rlang::caller_env()) {
   if (!grepl("^[A-Z-]+$", field)) {
     rlang::abort(
       "`field` must contain only letters and hyphens (e.g. \"TITLE-ABS-KEY\").",
-      class = "scopus_error_bad_input",
+      class = c("scopus_error_bad_input", "scopus_error"),
       call = call
     )
   }
@@ -155,15 +189,21 @@ scopus_check_years <- function(years, call = rlang::caller_env()) {
   if (!is.numeric(years) || anyNA(years) || any(years != floor(years))) {
     rlang::abort(
       "`years` must be `NULL` or a vector of whole numbers (e.g. 2015:2020).",
-      class = "scopus_error_bad_input",
+      class = c("scopus_error_bad_input", "scopus_error"),
       call = call
     )
+  }
+  # An empty vector places no year restriction, as `NULL` does: a caller that
+  # subsets a year vector down to nothing is asking for the whole range, not for
+  # a date range built from an empty minimum and maximum.
+  if (length(years) == 0L) {
+    return(NULL)
   }
   years <- as.integer(years)
   if (any(years < 1700L) || any(years > 2200L)) {
     rlang::abort(
       "`years` must lie within a plausible publication range (1700-2200).",
-      class = "scopus_error_bad_input",
+      class = c("scopus_error_bad_input", "scopus_error"),
       call = call
     )
   }
@@ -190,7 +230,7 @@ scopus_check_page_size <- function(page_size, view = "STANDARD",
       page_size != floor(page_size)) {
     rlang::abort(
       "`page_size` must be a single whole number or `NULL`.",
-      class = "scopus_error_bad_input",
+      class = c("scopus_error_bad_input", "scopus_error"),
       call = call
     )
   }
@@ -202,7 +242,7 @@ scopus_check_page_size <- function(page_size, view = "STANDARD",
         "`page_size` must be between 1 and %d for the %s view (the 'Scopus' Search API page limit).",
         max_size, view
       ),
-      class = "scopus_error_bad_input",
+      class = c("scopus_error_bad_input", "scopus_error"),
       call = call
     )
   }

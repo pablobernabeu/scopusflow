@@ -1,3 +1,134 @@
+# scopusflow (development version)
+
+A round of fixes to what the package retrieves, what it writes to disk, what it
+reads back and what a caller can catch, and one new function.
+
+* `scopus_fetch()` no longer loses records when a page comes back shorter than
+  it asked for. Offset paging advanced by the page size it had requested rather
+  than by the entries it received, and took any short page for the last one, so
+  a key whose entitlement caps the page below `page_size` skipped the records
+  between the two offsets and then stopped. A harvest that ends with fewer
+  records than the API reports for the query now warns as well, which
+  `scopus_fetch_plan()` already did for each of its cells.
+* `scopus_search_report()` lists PRISMA-S item 8, the full search strategy, as
+  the author's to supply when the record set carries no plan. The expression
+  such a set holds is only part of the strategy, since the field tag it was
+  wrapped in and the year limit sent beside it are unrecorded, which is what
+  the same report already said of item 9.
+* The `scopus_cache_clear()` example no longer deletes the reader's own managed
+  cache when the package's examples are run. It points the cache directory at
+  the session's temporary one for the call and puts the setting back.
+* `scopus_records()` takes a data frame already in the schema and coerces it,
+  so a set that lost its class on the way through another tool can be handed
+  straight to `scopus_top()`, `as_bibtex()` or `scopus_search_report()`. A data
+  frame is a list of columns, so it used to be read as a list of entries and
+  came back as one all-NA row per column. A frame carrying neither `doi` nor
+  `title` is refused rather than emptied.
+* The logical arguments are checked like every other one. `cursor`, `resume`,
+  `dedupe`, `verbose` and `create` were used raw, so `scopus_fetch(cursor =
+  "TRUE")` paged by offset under the 5000-record ceiling the caller believed
+  they had lifted, `scopus_combine(dedupe = "yes")` skipped de-duplication, and
+  `resume = "yes"` died on a base error no handler for `scopus_error` could
+  catch. Anything that is not `TRUE` or `FALSE` now raises a
+  `scopus_error_bad_input`.
+* Normalising a harvest is around fifteen times faster, and returns exactly
+  what it did before. `scopus_records()` built a one-row data frame per entry
+  and bound them together; it now fills each column across all the entries at
+  once, which a cursor-paged harvest of tens of thousands of records, or a plan
+  paying the cost per cell, feels directly.
+* Every file the package writes is now UTF-8 on every platform. `.csv`, `.bib`,
+  `.ris` and the search report were handed to the connection as text, so R first
+  translated them to the session's native encoding, and in a C or single-byte
+  locale each accented, Cyrillic or en-dashed character came out as the literal
+  text `<U+00ED>`. A record set did not round-trip through `.csv`, and a
+  reference manager was given misspelled names.
+* `read_scopus_records()` reads a blank CSV field as missing, where only the
+  token `NA` used to be. R writes `NA`, but pandas, 'Excel' and the Python twin
+  leave a missing value blank, so every record of such a file arrived with an
+  empty rather than absent identifier. `scopus_combine(dedupe = TRUE)` then
+  keyed every row alike and collapsed the set to one row, and a search report
+  counted every record as carrying a DOI. The file is also read as UTF-8
+  whatever the locale.
+* Bad input now raises a condition of the `scopus_error` family, as the README,
+  the help pages and the app's own handlers have always said it does. A
+  `scopus_error_bad_input` condition carried that class alone, so
+  `tryCatch(scopus_error = )` did not catch it, and an empty query box in the app
+  ended the session rather than showing the message.
+* `scopus_abstract(include = "references")` no longer loses a batch over a
+  reference whose single author arrives as a bare object rather than a one-item
+  list, which is how Elsevier's XML-to-JSON conversion sends it. Any other
+  unexpected shape in a reference list is now reported as a typed condition too,
+  so it costs that identifier a row of NAs and not the whole batch.
+* `scopus_top(by = "author")`, `as_bibtex()` and `as_ris()` split author strings
+  on the bare semicolon as well as on `"; "`. The Python twin joins names without
+  the space, so a set written there and read back here counted a whole author
+  list as one name, and wrote it into BibTeX and RIS as one author.
+* `scopus_search_report()` keeps the count the API reported when a plan is
+  supplied by hand, which is what the help page recommends for a set retrieved
+  with `scopus_fetch()`. The reported total was read from the per-cell counts
+  only, which such a set does not carry, so passing the plan turned a recorded
+  figure into 'unrecorded' and left completeness unknown. A single-cell plan now
+  falls back to the set's own `total_results`, and a partitioned one reports it
+  as the overall figure while its cells stay unrecorded.
+* `scopus_compare_topics()` counts a repeated comparison term once and warns
+  about it, as the app already did with the terms it passes in. A term given
+  twice spent a second full set of count requests against the weekly quota and
+  came back as a second identical block, which `plot_scopus_comparison()` drew
+  as overlapping lines under one legend entry.
+* New `scopus_year_counts()` tallies a harvest already in hand by year and
+  returns it as a `scopus_trend`, so a set can be printed and plotted as a
+  publication trend without spending a count request per year, and without the
+  classed tibble the offline examples used to build by hand. The Python twin
+  has offered `year_counts()` all along. A year no record falls in is absent
+  rather than zero, as it is there; the bar chart of a record set still fills
+  the gaps in its own span.
+* `?scopus_fetch_plan` says what a resumed harvest can still report. A
+  checkpoint this package writes carries the cell's own retrieval time, version
+  and reported total, so the search record of a resumed harvest is dated and
+  states its completeness, where the Python twin, which checkpoints the rows
+  alone, reports both as unrecorded.
+* `as_bibtex()` and `as_ris()` export a few thousand records in a fraction of
+  the time, and byte for byte what they exported before. Each field was cleaned
+  and escaped one character at a time, one record at a time, which the app's
+  download button and any sizeable bibliography waited on.
+* A plan cell that matched more records than offset paging can reach warns once
+  rather than twice. The second warning told the reader to check the key's
+  remaining quota, which had nothing to do with a shortfall the first warning
+  had already explained and told them how to lift. `scopus_fetch()` already made
+  that exception.
+* `read_scopus_records()` refuses a `.csv` that is not a record set at all. A
+  DOI list or a spreadsheet carrying none of `doi`, `title` and `year` used to
+  read back as a well-formed set of empty records, since every absent schema
+  column is filled in as missing, and the reader learned of the mistake only
+  from a downstream count of nothing. A file holding part of the schema still
+  reads, now with a warning naming what is absent.
+* `scopus_diff_dois()` returns the ordered factor its help page describes, so a
+  comparison such as `status < "unchanged"` now works rather than returning
+  `NA`. Its rows are also sorted in byte order, so two people comparing the same
+  two retrievals see the mixed-case DOIs in the same order whatever their
+  session's collation.
+* An empty `years` vector places no year restriction, as `NULL` does, which is
+  the rule the Python twin follows. `scopus_plan()`, `scopus_count()` and
+  `scopus_fetch()` used to build a date range from an empty minimum and maximum
+  and die on an unclassed formatting error, and `partition = "year"` returned a
+  plan with no cells at all; a caller whose year vector is built from a control
+  or subset now gets the whole range, or, where the years are required, the
+  typed error the missing argument already raised.
+* `plot_scopus_comparison()` prints each topic's record count on its own, so a
+  legend of `effect size (n = 1,204)` and `meta-analysis (n = 32)` no longer
+  pads the smaller count out to the width of the larger inside its brackets.
+* An HTTP-date `Retry-After` is read whatever the session's language. The
+  weekday and month names of the header are English by RFC 7231 but were parsed
+  in the session's own `LC_TIME`, so a rate-limited request in, say, a French
+  session ignored the delay the server asked for and retried early, inviting a
+  second refusal.
+* `scopus_records(query = )` refuses anything but a single string, `NA` or
+  `NULL`. A vector of several was spread one query per record, so a set carried
+  provenance no request had produced. A bare `NA` reaches the `query` column as
+  the character missing value the documented schema promises, not a logical one.
+* `?scopus_search_report` lists `cells_reported`, the number of plan cells that
+  reported a total, among the elements of the object it returns.
+
 # scopusflow 0.4.0
 
 A release about reporting a search and about trusting the cache. The package now

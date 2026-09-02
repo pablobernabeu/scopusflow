@@ -75,6 +75,20 @@ test_that("a malformed body is reported", {
   expect_error(scopus_count("x"), class = "scopus_error_malformed")
 })
 
+test_that("a body that is not JSON at all is reported, with the parse error", {
+  local_scopus_test_env()
+  httr2::local_mocked_responses(function(req) {
+    httr2::response(
+      status_code = 200L,
+      headers = list(`Content-Type` = "application/json"),
+      body = charToRaw("<not json>")
+    )
+  })
+  cnd <- tryCatch(scopus_count("x"), scopus_error = function(e) e)
+  expect_s3_class(cnd, "scopus_error_malformed")
+  expect_false(is.null(cnd$parent))
+})
+
 test_that("the condition carries the HTTP status and parsed quota", {
   local_scopus_test_env()
   httr2::local_mocked_responses(function(req) {
@@ -84,4 +98,16 @@ test_that("the condition carries the HTTP status and parsed quota", {
   cnd <- tryCatch(scopus_count("x"), scopus_error = function(e) e)
   expect_equal(cnd$status, 403L)
   expect_equal(cnd$quota$remaining, 0)
+})
+
+test_that("bad input raises a condition of the scopus_error family", {
+  # The README, the help pages and the app's handlers all promise that every
+  # scopus_error_* condition inherits from scopus_error, so a caller can catch
+  # the family in one place.
+  expect_error(scopus_count(""), class = "scopus_error")
+  expect_error(scopus_plan("x", partition = "year"), class = "scopus_error")
+  expect_error(scopus_quota(1), class = "scopus_error")
+  expect_error(as_bibtex(1), class = "scopus_error")
+  cnd <- tryCatch(scopus_count(""), scopus_error = function(e) e)
+  expect_s3_class(cnd, "scopus_error_bad_input")
 })

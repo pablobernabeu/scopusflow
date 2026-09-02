@@ -60,6 +60,8 @@ test_that("diff identifies added, removed and unchanged", {
   d <- scopus_diff_dois(c("10.1/a", "10.1/b"), c("10.1/b", "10.1/c"))
   expect_s3_class(d, "scopus_doi_diff")
   expect_s3_class(d$status, "factor")
+  expect_true(is.ordered(d$status))
+  expect_equal(levels(d$status), c("added", "removed", "unchanged"))
   expect_equal(as.character(d$status[d$doi == "10.1/c"]), "added")
   expect_equal(as.character(d$status[d$doi == "10.1/a"]), "removed")
   expect_equal(as.character(d$status[d$doi == "10.1/b"]), "unchanged")
@@ -86,4 +88,9 @@ test_that("diff accepts scopus_records on either side", {
   new <- scopus_records(list(entry = list(list(`prism:doi` = "10.1/b"))))
   d <- scopus_diff_dois(old, new)
   expect_setequal(d$doi, c("10.1/a", "10.1/b"))
+})
+
+test_that("diff sorts DOIs in byte order", {
+  d <- scopus_diff_dois(character(0), c("10.1/B", "10.1/a", "10.1/C"))
+  expect_equal(d$doi, c("10.1/B", "10.1/C", "10.1/a"))
 })

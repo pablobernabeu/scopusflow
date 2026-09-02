@@ -91,20 +91,20 @@ scopus_intersections <- function(concepts,
       !all(nzchar(trimws(concepts)))) {
     rlang::abort(
       "`concepts` must be a non-empty character vector of non-empty terms or queries.",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
   labels <- names(concepts)
   if (is.null(labels) || anyNA(labels) || !all(nzchar(trimws(labels)))) {
     rlang::abort(
       "`concepts` must be fully named: the names are display labels, the values terms or queries.",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
   if (anyDuplicated(labels)) {
     rlang::abort(
       "The names of `concepts` must be unique.",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
   if (!is.null(intersections)) {
@@ -115,14 +115,14 @@ scopus_intersections <- function(concepts,
         !all(vapply(intersections, is.character, logical(1)))) {
       rlang::abort(
         "`intersections` must be a list of character vectors of concept labels.",
-        class = "scopus_error_bad_input"
+        class = c("scopus_error_bad_input", "scopus_error")
       )
     }
     for (combo in intersections) {
       if (length(combo) < 2L || anyNA(combo) || anyDuplicated(combo)) {
         rlang::abort(
           "Each intersection must name two or more distinct concept labels.",
-          class = "scopus_error_bad_input"
+          class = c("scopus_error_bad_input", "scopus_error")
         )
       }
       unknown <- setdiff(combo, labels)
@@ -133,7 +133,7 @@ scopus_intersections <- function(concepts,
             if (length(unknown) == 1L) "" else "s",
             paste(unknown, collapse = ", ")
           ),
-          class = "scopus_error_bad_input"
+          class = c("scopus_error_bad_input", "scopus_error")
         )
       }
     }
@@ -145,7 +145,7 @@ scopus_intersections <- function(concepts,
         !all(nzchar(trimws(names(abbrev))))) {
       rlang::abort(
         "`abbrev` must be a named character vector of short labels, keyed by concept label.",
-        class = "scopus_error_bad_input"
+        class = c("scopus_error_bad_input", "scopus_error")
       )
     }
     unknown <- setdiff(names(abbrev), labels)
@@ -156,18 +156,19 @@ scopus_intersections <- function(concepts,
           if (length(unknown) == 1L) "" else "s",
           paste(unknown, collapse = ", ")
         ),
-        class = "scopus_error_bad_input"
+        class = c("scopus_error_bad_input", "scopus_error")
       )
     }
   }
   if (!is.character(sep) || length(sep) != 1L || is.na(sep) || !nzchar(sep)) {
     rlang::abort(
       "`sep` must be a single non-empty string.",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
   field <- scopus_check_field(field)
   years <- scopus_check_years(years)
+  scopus_check_flag(verbose, "verbose")
 
   queries <- vapply(unname(concepts), function(term) {
     scopus_wrap_concept(term, field)
@@ -203,7 +204,7 @@ scopus_intersections <- function(concepts,
   if (anyDuplicated(out$label)) {
     rlang::abort(
       "The concept and intersection labels must be distinct; adjust `abbrev` or `sep`.",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
 

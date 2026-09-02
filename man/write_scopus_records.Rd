@@ -31,6 +31,13 @@ live retrieval carries, including \code{retrieved_at} and \code{scopusflow_versi
 columns and cannot hold them, so save as \code{.rds} when a set is a baseline to
 be compared against later.
 }
+\details{
+A \code{.csv} written by another tool reads back too. It is taken as UTF-8
+whatever the session's locale, and a blank field is read as missing, which is
+how pandas, 'Excel' and the Python twin write one. A file carrying none of
+\code{doi}, \code{title} and \code{year} is refused rather than read as a set of empty
+records, and one carrying only part of the schema warns.
+}
 \examples{
 # A round trip on the bundled corpus of real articles, which stands in for
 # a retrieval of your own because 'Scopus' records may not be redistributed.

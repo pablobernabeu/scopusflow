@@ -36,6 +36,19 @@ test_that("partition by year requires years", {
   expect_error(scopus_plan("x", partition = "year"), class = "scopus_error_bad_input")
 })
 
+test_that("an empty years vector places no restriction, as NULL does", {
+  p <- expect_no_warning(scopus_plan("x", years = integer(0)))
+  expect_equal(nrow(p), 1L)
+  expect_true(is.na(p$date))
+  expect_equal(p, scopus_plan("x"))
+  expect_error(scopus_plan("x", years = integer(0), partition = "year"),
+               class = "scopus_error_bad_input")
+  expect_error(scopus_trend("q", years = integer(0)),
+               class = "scopus_error_bad_input")
+  expect_error(scopus_compare_topics("q", "term", years = integer(0)),
+               class = "scopus_error_bad_input")
+})
+
 test_that("invalid inputs are rejected", {
   expect_error(scopus_plan(""), class = "scopus_error_bad_input")
   expect_error(scopus_plan(c("a", "b")), class = "scopus_error_bad_input")
@@ -60,4 +73,31 @@ test_that("page_size is bounded by the view's API limit", {
 
 test_that("plan prints without error", {
   expect_output(print(scopus_plan("x", years = 2018:2019, partition = "year")), "cell")
+})
+
+test_that("a logical argument that is not a flag is refused, and refused typed", {
+  # A flag used raw changes what a call does without saying so: isTRUE() reads
+  # "TRUE", 1 and NA alike as FALSE, so a caller who believed they had lifted
+  # the offset ceiling or asked for de-duplication got neither, and `&&` on a
+  # string died on a base error no handler for `scopus_error` could catch.
+  calls <- list(
+    cursor = function(v) scopus_fetch("q", cursor = v),
+    verbose = function(v) scopus_fetch("q", verbose = v),
+    resume = function(v) scopus_fetch_plan(scopus_plan("q"), resume = v),
+    abstract_resume = function(v) scopus_abstract("10.1/x", resume = v),
+    dedupe = function(v) scopus_combine(example_records, dedupe = v),
+    dois_dedupe = function(v) scopus_extract_dois("10.1/a", dedupe = v),
+    create = function(v) scopus_cache_dir(create = v),
+    trend = function(v) scopus_trend("q", years = 2020L, verbose = v),
+    corpus = function(v) scopus_corpus(example_records, resume = v),
+    intersections = function(v) scopus_intersections(c(a = "x", b = "y"), verbose = v),
+    compare = function(v) scopus_compare_topics("q", "term", years = 2020L, verbose = v)
+  )
+  for (nm in names(calls)) {
+    expect_error(calls[[nm]]("yes"), class = "scopus_error_bad_input")
+    expect_error(calls[[nm]](NA), class = "scopus_error_bad_input")
+    expect_error(calls[[nm]](1), class = "scopus_error_bad_input")
+  }
+  expect_error(scopus_fetch("q", cursor = "yes"), "`cursor` must be `TRUE` or `FALSE`.",
+               fixed = TRUE)
 })

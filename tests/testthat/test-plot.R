@@ -90,6 +90,16 @@ test_that("legend/line labels can include counts", {
   expect_true(any(grepl("n =", levels(p$data$label))))
 })
 
+test_that("each count is formatted on its own, not padded to a common width", {
+  skip_if_not_installed("ggplot2")
+  cmp <- make_comparison()
+  cmp$n <- c(1000, 1000, 1000, 600, 690, 700, 10, 11, 11)
+  cmp$reference_n <- rep(1000, 9)
+  cmp$comparison_percentage <- 100 * cmp$n / cmp$reference_n
+  p <- plot_scopus_comparison(cmp, pub_count_in_legend = TRUE)
+  expect_setequal(levels(p$data$label), c("a (n = 1,990)", "b (n = 32)"))
+})
+
 test_that("highlight greys the others and accents one topic", {
   skip_if_not_installed("ggplot2")
   p <- plot_scopus_comparison(make_comparison(), highlight = "a")

@@ -105,3 +105,22 @@ test_that("invalid inputs are rejected before any request", {
   expect_error(scopus_compare_topics("", "t1", years = 2015),
                class = "scopus_error_bad_input")
 })
+
+test_that("a repeated comparison term is counted once and warned about", {
+  local_scopus_test_env()
+  calls <- 0L
+  httr2::local_mocked_responses(function(req) {
+    calls <<- calls + 1L
+    compare_mock()(req)
+  })
+  cmp <- NULL
+  expect_warning(
+    cmp <- scopus_compare_topics("ref", c("t1", "t2", "t1"), years = 2019:2020),
+    class = "scopus_warning_duplicate_terms"
+  )
+  # One count request per distinct term per year, plus the reference.
+  expect_equal(calls, (2L + 1L) * 2L)
+  expect_equal(sort(unique(cmp$abridged_query)), c("ref", "t1", "t2"))
+  expect_equal(nrow(cmp), 6L)
+  expect_equal(sum(cmp$abridged_query == "t1"), 2L)
+})

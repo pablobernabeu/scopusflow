@@ -1,6 +1,10 @@
 # Reports test coverage on each push and pull request, writing the percentage to
-# the run summary. It uses no external service (no Codecov), so it needs no token
-# and adds no badge that could rot.
+# the run summary, and fails the run below the floor. It uses no external service
+# (no Codecov), so it needs no token and adds no badge that could rot. The
+# reactive app in R/run-app.R is left out of the figure through .covrignore: its
+# retrieval runs in a background callr process, so most of the file is out of
+# reach of the offline suite and a percentage that includes it describes the
+# runner rather than the code the suite tests.
 on:
   push:
     branches: [main, master]
@@ -40,6 +44,9 @@ jobs:
             cat(sprintf("## Test coverage: **%s%%**\n", pct),
                 file = summary, append = TRUE)
           }
-          if (pct < 80) {
-            cat("::warning::Test coverage is below 80%\n")
+          min_pct <- 90
+          if (pct < min_pct) {
+            cat(sprintf("::error::Test coverage is %s%%, below the %s%% floor\n",
+                        pct, min_pct))
+            quit(status = 1L)
           }

@@ -26,7 +26,7 @@ scopus_query <- function(..., .op = c("AND", "OR", "AND NOT"), .field = NULL) {
       !all(nzchar(trimws(terms)))) {
     rlang::abort(
       "`...` must be one or more non-empty character terms.",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
   .field <- scopus_check_field(.field)

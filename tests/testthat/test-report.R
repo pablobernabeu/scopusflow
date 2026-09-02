@@ -223,9 +223,50 @@ test_that("a record set without a plan reports what it holds and no more", {
   expect_true(grepl("no reproduction snippet can be written",
                     format(report, style = "markdown"), fixed = TRUE))
 
+  # The strategy is not the whole strategy: the expression is there, but the
+  # field tag it was wrapped in and the year limit sent as the API's date
+  # parameter are unrecorded, which is what item 9 says two lines later.
+  expect_equal(report$prisma$source[8], "author")
+  expect_true(grepl("the field tag and year limit sent with it are unrecorded",
+                    report$prisma$note[8], fixed = TRUE))
+
   # A plan supplied by hand fills those fields in.
   plan <- scopus_plan("graphene supercapacitor", field = "TITLE-ABS-KEY")
-  expect_equal(scopus_search_report(recs, plan = plan)$view, "STANDARD")
+  with_plan <- scopus_search_report(recs, plan = plan)
+  expect_equal(with_plan$view, "STANDARD")
+  expect_equal(with_plan$prisma$source[8], "record")
+
+  # The set's own count is a whole-search figure, so supplying the plan the
+  # help page recommends must not turn it into an unrecorded one.
+  expect_equal(with_plan$reported_total, 200)
+  expect_equal(with_plan$cells$n_records, 138L)
+  expect_equal(with_plan$cells$reported_total, 200)
+})
+
+test_that("a supplied plan keeps the count the set carries", {
+  local_scopus_test_env()
+  httr2::local_mocked_responses(mock_corpus(7))
+  recs <- scopus_fetch("graphene", field = "TITLE-ABS-KEY", years = 2015:2016,
+                       max_results = 5)
+  expect_equal(attr(recs, "total_results"), 7)
+
+  plan <- scopus_plan("graphene", field = "TITLE-ABS-KEY", years = 2015:2016)
+  report <- scopus_search_report(recs, plan = plan)
+  expect_equal(report$reported_total, scopus_search_report(recs)$reported_total)
+  expect_equal(report$reported_total, 7)
+  text <- format(report, style = "report")
+  expect_true(grepl("Records reported as matching: 7", text, fixed = TRUE))
+  expect_true(grepl("5 of the 7 records reported as matching were retrieved",
+                    text, fixed = TRUE))
+
+  # A partitioned plan cannot say which cell the count belongs to, so the cells
+  # stay unrecorded while the overall figure survives.
+  by_year <- scopus_plan("graphene", field = "TITLE-ABS-KEY", years = 2015:2016,
+                         partition = "year")
+  split <- scopus_search_report(recs, plan = by_year)
+  expect_equal(nrow(split$cells), 2L)
+  expect_true(all(is.na(split$cells$reported_total)))
+  expect_equal(split$reported_total, 7)
 })
 
 test_that("the reproduction snippet rebuilds the plan it describes", {

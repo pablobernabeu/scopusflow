@@ -27,7 +27,7 @@ as_bibliometrix <- function(x) {
   if (!is_scopus_records(x)) {
     rlang::abort(
       "`x` must be a `scopus_records` object.",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
   up <- function(v) toupper(as.character(v))

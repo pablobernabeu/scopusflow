@@ -129,17 +129,12 @@ plot_scopus_trend(tr)
 ```
 
 The offline equivalent costs no requests at all. A complete harvest already
-contains its own yearly counts, so tallying the records by year gives what a
-count per year would have returned, in the shape `scopus_trend()` returns it.
+contains its own yearly counts, so `scopus_year_counts()` tallies the records by
+year and gives what a count per year would have returned, in the shape
+`scopus_trend()` returns it.
 
 ```{r}
-by_year <- table(records$year)
-tr <- tibble::tibble(
-  query = "TITLE-ABS-KEY(graphene supercapacitor)",
-  year  = as.integer(names(by_year)),
-  n     = as.numeric(by_year)
-)
-class(tr) <- c("scopus_trend", class(tr))
+tr <- scopus_year_counts(records, query = "TITLE-ABS-KEY(graphene supercapacitor)")
 tr
 ```
 

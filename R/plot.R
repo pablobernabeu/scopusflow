@@ -61,7 +61,7 @@ plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
   if (!inherits(x, "scopus_comparison")) {
     rlang::abort(
       "`x` must be a `scopus_comparison` object from scopus_compare_topics().",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
   rlang::check_installed("ggplot2", reason = "to plot a topic comparison")
@@ -70,7 +70,7 @@ plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
   if (nrow(df) == 0L) {
     rlang::abort(
       "The comparison contains no comparison topics to plot.",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
 
@@ -81,7 +81,7 @@ plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
   if (nrow(df) == 0L) {
     rlang::abort(
       "The comparison has no finite percentages to plot.",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
   df <- df[order(df$abridged_query, df$year), , drop = FALSE]
@@ -93,7 +93,7 @@ plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
       rlang::abort(
         sprintf("`highlight` must be one of the comparison topics: %s.",
                 paste(topics, collapse = ", ")),
-        class = "scopus_error_bad_input"
+        class = c("scopus_error_bad_input", "scopus_error")
       )
     }
   }
@@ -101,7 +101,7 @@ plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
   totals <- tapply(df$n, df$abridged_query, sum, na.rm = TRUE)
   df$label <- if (isTRUE(pub_count_in_legend)) {
     sprintf("%s (n = %s)", df$abridged_query,
-            format(totals[df$abridged_query], big.mark = ","))
+            format(totals[df$abridged_query], big.mark = ",", trim = TRUE))
   } else {
     df$abridged_query
   }

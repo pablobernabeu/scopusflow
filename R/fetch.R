@@ -64,14 +64,49 @@ scopus_fetch <- function(query,
   years <- scopus_check_years(years)
   page_size <- scopus_resolve_page_size(page_size, view)
   max_results <- scopus_check_max_results(max_results)
+  scopus_check_flag(cursor, "cursor")
+  scopus_check_flag(verbose, "verbose")
 
   wrapped <- scopus_wrap_field(query, field)
   date <- if (is.null(years)) NULL else scopus_year_range(years)
 
-  scopus_fetch_core(
+  records <- scopus_fetch_core(
     wrapped = wrapped, date = date, view = view, page_size = page_size,
     max_results = max_results, cursor = isTRUE(cursor),
     api_key = api_key, inst_token = inst_token, verbose = verbose
+  )
+  scopus_warn_fetch_shortfall(records, max_results = max_results)
+  records
+}
+
+# A harvest that came back with fewer records than the API said it had is the
+# one failure mode a caller cannot see for themselves, since a truncated or
+# refused download arrives as a merely small result set. `scopus_fetch_plan()`
+# raises the same warning per cell. A retrieval the caller deliberately limited
+# is exempt, and so is one that stopped at the API's offset ceiling, which
+# already warns for itself.
+scopus_warn_fetch_shortfall <- function(records, max_results) {
+  total <- scopus_reported_total(records)
+  n <- nrow(records)
+  if (is.na(total) || n >= total) {
+    return(invisible(NULL))
+  }
+  if (is.finite(max_results) && n >= max_results) {
+    return(invisible(NULL))
+  }
+  hard_cap <- as.integer(getOption("scopusflow.hard_cap", 5000L))
+  if (identical(attr(records, "paging"), "offset") && n >= hard_cap) {
+    return(invisible(NULL))
+  }
+  rlang::warn(
+    sprintf(
+      paste0("Retrieved %d record(s), but the Scopus API reports %s for this ",
+             "query, so the harvest may be incomplete. Check the key's ",
+             "remaining quota, and consider partitioning the search by year ",
+             "with scopus_plan()."),
+      n, format(total, big.mark = ",", scientific = FALSE)
+    ),
+    class = "scopus_warning_shortfall"
   )
 }
 
@@ -123,13 +158,10 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
     )
   }
 
-  # How many to aim for: the reported total when known, otherwise keep paging
-  # (up to the ceiling) until a short or empty page signals the end. A first page
-  # shorter than requested already means there is nothing more to fetch.
+  # How many to aim for: the reported total when known, otherwise page up to the
+  # ceiling and let the empty-page break below end the harvest.
   to_fetch <- if (known_total) {
     min(max_results, total, hard_cap)
-  } else if (fetched < first_count) {
-    fetched
   } else {
     min(max_results, hard_cap)
   }
@@ -137,7 +169,12 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
     cli::cli_inform("Fetching up to {to_fetch} record{?s}.")
   }
 
-  start <- page_size
+  # The next offset is what has actually been received, not what was asked for.
+  # A key whose entitlement caps the page below `page_size` returns fewer
+  # entries than requested without having reached the end of the set, and
+  # advancing by the request would step over the records in between; only an
+  # empty page means there is no more to come.
+  start <- fetched
   while (fetched < to_fetch && start < hard_cap) {
     count <- min(page_size, to_fetch - fetched)
     page <- fetch_page(start, count)
@@ -147,9 +184,7 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
     pages[[length(pages) + 1L]] <- entries
     fetched <- fetched + length(entries)
     if (verbose) cli::cli_inform("  {fetched}/{to_fetch} retrieved.")
-    start <- start + page_size
-    # A page shorter than requested is the last page; stop without a wasted call.
-    if (length(entries) < count) break
+    start <- start + length(entries)
   }
 
   # Concatenate entries once, then normalise a single time.
@@ -251,7 +286,7 @@ scopus_check_max_results <- function(max_results, call = rlang::caller_env()) {
       max_results < 1 || (is.finite(max_results) && max_results != floor(max_results))) {
     rlang::abort(
       "`max_results` must be a single positive whole number or `Inf`.",
-      class = "scopus_error_bad_input",
+      class = c("scopus_error_bad_input", "scopus_error"),
       call = call
     )
   }

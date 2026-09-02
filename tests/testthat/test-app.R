@@ -1,5 +1,8 @@
-# The reactive app is not exercised here (it needs a running server); these tests
-# pin the pure helpers behind it, which run fully offline.
+# These tests pin the pure helpers behind the app, and then drive the server
+# itself through shiny::testServer(). Only the synchronous paths are reachable
+# that way: the harvest runs in a background callr process, so it is left out,
+# and every server test stays in demo mode or without a key so that nothing here
+# reaches the network.
 
 test_that("app_years_code renders compact year expressions", {
   expect_equal(app_years_code(2015:2022), "2015:2022")
@@ -162,6 +165,94 @@ test_that("app_demo_comparison mirrors a real comparison object", {
   expect_s3_class(plot_scopus_comparison(cmp), "ggplot")
 })
 
-test_that("run_app is exported and guarded", {
-  expect_true(is.function(run_app))
+test_that("run_app stops on an absent suggested package", {
+  skip_if_not_installed("shiny")
+  # runApp() is mocked too, so that a guard which stopped firing would fail this
+  # test rather than start a real server in the middle of the suite.
+  local_mocked_bindings(runApp = function(...) "started", .package = "shiny")
+  local_mocked_bindings(
+    check_installed = function(pkg, reason = NULL, ...) {
+      cli::cli_abort("The package {.pkg {pkg[1]}} is required {reason}.",
+                     class = "rlib_error_package_not_found")
+    },
+    .package = "rlang"
+  )
+  expect_error(run_app(), class = "rlib_error_package_not_found")
+})
+
+test_that("the server reports the key status and mirrors the plan as code", {
+  skip_if_not_installed("shiny")
+  shiny::testServer(app_server, {
+    session$setInputs(
+      demo = TRUE, api_key = "", query = "graphene", field = "TITLE-ABS-KEY",
+      view = "STANDARD", use_years = TRUE, years = c(2015, 2017),
+      max_results = 5, cmp_terms = "", cmp_highlight = "",
+      cmp_interval = TRUE, cmp_counts = TRUE
+    )
+    expect_equal(years_value(), 2015:2017)
+    expect_equal(max_value(), 5)
+    expect_match(as.character(output$key_status$html), "Demo mode")
+    expect_match(output$code_mirror, "scopus_plan(", fixed = TRUE)
+    expect_match(output$code_mirror, "years = 2015:2017", fixed = TRUE)
+
+    # The demo size note comes from the same corpus the demo harvest draws on.
+    session$setInputs(count = 1)
+    expect_match(rv$size_note, "^Demo plan: 3 year-cells; would draw \\d+ records")
+
+    session$setInputs(demo = FALSE)
+    expect_match(as.character(output$key_status$html), "Enter your key")
+    session$setInputs(api_key = " k ")
+    expect_match(as.character(output$key_status$html), "Key set")
+    expect_equal(api_key(), "k")
+
+    session$setInputs(use_years = FALSE)
+    expect_null(years_value())
+    expect_false(grepl("years =", output$code_mirror, fixed = TRUE))
+  })
+})
+
+test_that("the server spends nothing without a key", {
+  skip_if_not_installed("shiny")
+  # Each of these handlers would otherwise issue live requests, so this is what
+  # keeps a keyless click off the network rather than on it.
+  shiny::testServer(app_server, {
+    session$setInputs(
+      demo = FALSE, api_key = "", query = "graphene", field = "TITLE-ABS-KEY",
+      view = "STANDARD", use_years = TRUE, years = c(2015, 2016),
+      max_results = 5, cmp_terms = "flexible", cmp_highlight = "",
+      cmp_interval = TRUE, cmp_counts = TRUE
+    )
+    session$setInputs(count = 1)
+    expect_null(rv$size_note)
+    session$setInputs(compare = 1)
+    expect_null(rv$comparison)
+    session$setInputs(fetch = 1)
+    expect_null(rv$proc)
+    expect_equal(rv$status, "idle")
+  })
+})
+
+test_that("the server compares topics in demo mode and prices a real comparison", {
+  skip_if_not_installed("shiny")
+  shiny::testServer(app_server, {
+    session$setInputs(
+      demo = FALSE, api_key = "", query = "graphene", field = "TITLE-ABS-KEY",
+      view = "STANDARD", use_years = TRUE, years = c(2015, 2016),
+      max_results = 5, cmp_terms = " flexible , energy storage , flexible ",
+      cmp_highlight = "", cmp_interval = TRUE, cmp_counts = TRUE
+    )
+    # A repeated term is dropped before it is priced, plotted or counted.
+    expect_equal(cmp_terms_value(), c("flexible", "energy storage"))
+    expect_match(as.character(output$cmp_note$html),
+                 "2 terms x 2 years = 4 count requests")
+
+    session$setInputs(demo = TRUE)
+    expect_null(output$cmp_note)
+    session$setInputs(compare = 1)
+    expect_s3_class(rv$comparison, "scopus_comparison")
+    expect_setequal(
+      unique(rv$comparison$abridged_query[rv$comparison$query_type == "comparison"]),
+      c("flexible", "energy storage")
+    )
+  })
 })

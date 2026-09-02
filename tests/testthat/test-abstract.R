@@ -68,6 +68,28 @@ test_that("a malformed 200 body yields an NA row, not a lost batch", {
   expect_true(is.na(ab$title))
 })
 
+test_that("a 200 body carrying neither coredata nor references yields an NA row", {
+  local_scopus_test_env()
+  httr2::local_mocked_responses(function(req) {
+    mock_json_response(list(`abstracts-retrieval-response` = list()))
+  })
+  expect_warning(ab <- scopus_abstract("10.1/x"))
+  expect_equal(nrow(ab), 1L)
+  expect_equal(ab$id, "10.1/x")
+  expect_true(is.na(ab$title))
+})
+
+test_that("an institutional token is sent on the abstract request too", {
+  withr::local_options(scopusflow.api_key = "k", scopusflow.inst_token = NULL)
+  withr::local_envvar(SCOPUS_INST_TOKEN = "")
+  req <- scopusflow:::scopus_abstract_request("10.1/x", by = "doi")
+  expect_false("X-ELS-Insttoken" %in% names(req$headers))
+
+  withr::local_options(scopusflow.inst_token = "tok")
+  req2 <- scopusflow:::scopus_abstract_request("10.1/x", by = "doi")
+  expect_true("X-ELS-Insttoken" %in% names(req2$headers))
+})
+
 test_that("scopus_abstract percent-encodes the identifier path", {
   local_scopus_test_env()
   seen <- NULL
@@ -224,6 +246,68 @@ test_that("include = 'references' under REF view uses that view's field names", 
   expect_equal(refs$id, "12345")
   expect_equal(refs$authors, "Doe, A.")
   expect_equal(refs$citedbycount, 42L)
+})
+
+test_that("a reference with one author, collapsed to a bare object, still parses", {
+  # Elsevier's XML-to-JSON conversion turns a single-item array into a bare
+  # object, which is why the author keywords and item identifiers are already
+  # guarded against the same collapse.
+  local_scopus_test_env()
+  httr2::local_mocked_responses(function(req) {
+    mock_abstract_full(
+      core = list(`prism:doi` = "10.1/x"),
+      refcount = 1,
+      references = list(list(
+        `@id` = "1",
+        `ref-info` = list(
+          `ref-title` = list(`ref-titletext` = "One author"),
+          `ref-authors` = list(author = list(`ce:surname` = "Doe", `ce:initials` = "A."))
+        )
+      ))
+    )
+  })
+  refs <- scopus_abstract("10.1/x", view = "FULL", include = "references")$references[[1]]
+  expect_equal(nrow(refs), 1L)
+  expect_equal(refs$authors, "Doe, A.")
+})
+
+test_that("a REF-view reference with one author, collapsed to a bare object, still parses", {
+  local_scopus_test_env()
+  httr2::local_mocked_responses(function(req) {
+    mock_abstract_ref(references = list(list(
+      `@id` = "1",
+      `ref-info` = list(
+        `ref-title` = list(`ref-titletext` = "One author"),
+        `author-list` = list(author = list(`ce:surname` = "Doe", `ce:given-name` = "A."))
+      )
+    )), total = 1)
+  })
+  refs <- scopus_abstract("10.1/x", view = "REF", include = "references")$references[[1]]
+  expect_equal(refs$authors, "Doe, A.")
+})
+
+test_that("a reference list in an unexpected shape loses its row, not the batch", {
+  local_scopus_test_env()
+  httr2::local_mocked_responses(function(req) {
+    if (grepl("10.1/bad", req$url, fixed = TRUE)) {
+      return(mock_abstract_full(
+        core = list(`prism:doi` = "10.1/bad"),
+        refcount = 1,
+        references = list(list(
+          `@id` = "1",
+          `ref-info` = list(`ref-authors` = list(author = "Doe"))
+        ))
+      ))
+    }
+    mock_abstract_full(core = list(`prism:doi` = "10.1/good"), refcount = 0)
+  })
+  expect_warning(
+    ab <- scopus_abstract(c("10.1/bad", "10.1/good"), view = "FULL", include = "references"),
+    "Could not retrieve"
+  )
+  expect_equal(nrow(ab), 2L)
+  expect_true(is.na(ab$doi[1]))
+  expect_equal(ab$doi[2], "10.1/good")
 })
 
 test_that("a document with no resolvable references yields a zero-row data frame", {

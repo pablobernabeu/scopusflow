@@ -43,7 +43,11 @@
 #'   contributed is listed, since resuming an older cache means more than one
 #'   did. Both are omitted when any cell cannot supply them, as a checkpoint
 #'   written before they existed cannot. Dating the whole from the part of it
-#'   that can be dated would misreport the set.
+#'   that can be dated would misreport the set. A checkpoint this package writes
+#'   holds the cell's own retrieval time, version and reported total, so a
+#'   harvest resumed from one is still dated and still states its completeness.
+#'   The Python twin checkpoints the rows alone, so a harvest it resumes reports
+#'   both as unrecorded.
 #' @section API access:
 #' Any cell not served from cache requires a valid API key and internet access.
 #' The *API access* section of [scopus_count()] gives the details.
@@ -77,15 +81,17 @@ scopus_fetch_plan <- function(plan,
   if (!is_scopus_plan(plan)) {
     rlang::abort(
       "`plan` must be a `scopus_plan` object from scopus_plan().",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
   max_results <- scopus_check_max_results(max_results)
+  scopus_check_flag(resume, "resume")
+  scopus_check_flag(verbose, "verbose")
   if (!is.null(cache_dir)) {
     if (!is.character(cache_dir) || length(cache_dir) != 1L || is.na(cache_dir)) {
       rlang::abort(
         "`cache_dir` must be `NULL` or a single directory path.",
-        class = "scopus_error_bad_input"
+        class = c("scopus_error_bad_input", "scopus_error")
       )
     }
     dir.create(cache_dir, recursive = TRUE, showWarnings = FALSE)
@@ -146,7 +152,7 @@ scopus_fetch_plan <- function(plan,
       scopus_write_checkpoint(recs, cache_file)
     }
     reported[i] <- scopus_reported_total(recs)
-    scopus_warn_shortfall(i, nrow(recs), reported[i], max_results)
+    scopus_warn_shortfall(i, recs, max_results)
     results[[i]] <- recs
   }
 
@@ -177,13 +183,21 @@ scopus_reported_total <- function(recs) {
 # A cell that came back shorter than the API said it should have is the one
 # failure mode a harvest cannot see for itself: a truncated or refused download
 # arrives as a merely small result set. `max_results` is exempt, since a cell
-# that stopped at a cap the caller set is short by request. The wording is
-# byte-identical to the Python twin's, which has warned on this since 0.3.0.
-scopus_warn_shortfall <- function(i, n, total, max_results) {
+# that stopped at a cap the caller set is short by request, and so is a cell
+# stopped at the API's offset ceiling, which has already warned for itself and
+# named the remedy. The wording is byte-identical to the Python twin's, which
+# has warned on this since 0.3.0.
+scopus_warn_shortfall <- function(i, recs, max_results) {
+  total <- scopus_reported_total(recs)
+  n <- nrow(recs)
   if (is.na(total) || n >= total) {
     return(invisible(NULL))
   }
   if (is.finite(max_results) && n >= max_results) {
+    return(invisible(NULL))
+  }
+  hard_cap <- as.integer(getOption("scopusflow.hard_cap", 5000L))
+  if (identical(attr(recs, "paging"), "offset") && n >= hard_cap) {
     return(invisible(NULL))
   }
   rlang::warn(
@@ -379,6 +393,7 @@ scopus_bind_provenance <- function(bound, records_list) {
 #' scopus_cache_dir(create = FALSE)
 #' @export
 scopus_cache_dir <- function(create = FALSE) {
+  scopus_check_flag(create, "create")
   path <- tools::R_user_dir("scopusflow", which = "cache")
   if (isTRUE(create)) {
     dir.create(path, recursive = TRUE, showWarnings = FALSE)
@@ -395,8 +410,18 @@ scopus_cache_dir <- function(create = FALSE) {
 #' @return Invisibly, `TRUE` once the managed cache directory is removed or found
 #'   to be absent.
 #' @examples
-#' # Safe to call even when nothing is cached.
+#' # The managed cache is a per-user directory, and this deletes it, so the
+#' # example points `tools::R_user_dir()` at the session's temporary directory
+#' # for the call and puts the setting back afterwards. Calling it for real is
+#' # safe even when nothing is cached.
+#' old <- Sys.getenv("R_USER_CACHE_DIR", unset = NA)
+#' Sys.setenv(R_USER_CACHE_DIR = tempdir())
 #' scopus_cache_clear()
+#' if (is.na(old)) {
+#'   Sys.unsetenv("R_USER_CACHE_DIR")
+#' } else {
+#'   Sys.setenv(R_USER_CACHE_DIR = old)
+#' }
 #' @export
 scopus_cache_clear <- function() {
   path <- scopus_cache_dir(create = FALSE)

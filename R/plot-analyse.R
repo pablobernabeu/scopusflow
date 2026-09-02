@@ -27,30 +27,25 @@ scopus_year_breaks <- function(years) {
 #' @param x A `scopus_trend` object from [scopus_trend()].
 #' @param ... Currently unused, present for S3 consistency.
 #' @return A [ggplot2::ggplot] object. Needs the suggested package \pkg{ggplot2}.
-#' @seealso [scopus_trend()]
+#' @seealso [scopus_trend()], [scopus_year_counts()]
 #' @examplesIf rlang::is_installed("ggplot2")
 #' # Drawn from the bundled corpus of real articles, which needs no key. That
 #' # corpus is a complete harvest, so its rows per year are the publications
 #' # per year its query returns.
-#' by_year <- table(example_records$year)
-#' tr <- tibble::tibble(
-#'   query = "TITLE-ABS-KEY(graphene supercapacitor)",
-#'   year = as.integer(names(by_year)),
-#'   n = as.numeric(by_year)
-#' )
-#' class(tr) <- c("scopus_trend", class(tr))
+#' tr <- scopus_year_counts(example_records,
+#'                          query = "TITLE-ABS-KEY(graphene supercapacitor)")
 #' plot_scopus_trend(tr)
 #' @export
 plot_scopus_trend <- function(x, ...) {
   if (!inherits(x, "scopus_trend")) {
     rlang::abort("`x` must be a `scopus_trend` object from scopus_trend().",
-                 class = "scopus_error_bad_input")
+                 class = c("scopus_error_bad_input", "scopus_error"))
   }
   rlang::check_installed("ggplot2", reason = "to plot a trend")
   yrs <- sort(unique(x$year))
   if (length(yrs) == 0L) {
     rlang::abort("The trend has no years to plot.",
-                 class = "scopus_error_bad_input")
+                 class = c("scopus_error_bad_input", "scopus_error"))
   }
   ggplot2::ggplot(x, ggplot2::aes(x = .data$year, y = .data$n)) +
     ggplot2::geom_area(fill = "#31688E", alpha = 0.16) +
@@ -83,12 +78,12 @@ plot_scopus_trend <- function(x, ...) {
 plot_scopus_top <- function(x, ...) {
   if (!inherits(x, "scopus_top")) {
     rlang::abort("`x` must be a `scopus_top` object from scopus_top().",
-                 class = "scopus_error_bad_input")
+                 class = c("scopus_error_bad_input", "scopus_error"))
   }
   rlang::check_installed("ggplot2", reason = "to plot top values")
   if (nrow(x) == 0L) {
     rlang::abort("The `scopus_top` object has no values to plot.",
-                 class = "scopus_error_bad_input")
+                 class = c("scopus_error_bad_input", "scopus_error"))
   }
   by <- attr(x, "by") %||% "value"
   df <- x
@@ -131,9 +126,10 @@ plot_scopus_top <- function(x, ...) {
 #' @exportS3Method ggplot2::autoplot
 autoplot.scopus_records <- function(object, ...) {
   rlang::check_installed("ggplot2", reason = "to plot records")
-  yc <- scopus_year_counts(object)
+  yc <- scopus_year_span(object)
   if (nrow(yc) == 0L) {
-    rlang::abort("The records have no years to plot.", class = "scopus_error_bad_input")
+    rlang::abort("The records have no years to plot.",
+                 class = c("scopus_error_bad_input", "scopus_error"))
   }
   ggplot2::ggplot(yc, ggplot2::aes(x = .data$year, y = .data$n)) +
     ggplot2::geom_col(fill = "#31688E", width = 0.8) +

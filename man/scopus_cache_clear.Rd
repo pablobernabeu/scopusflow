@@ -15,6 +15,16 @@ Deletes the cache files written under \code{\link[=scopus_cache_dir]{scopus_cach
 created in a directory of your own is left untouched.
 }
 \examples{
-# Safe to call even when nothing is cached.
+# The managed cache is a per-user directory, and this deletes it, so the
+# example points `tools::R_user_dir()` at the session's temporary directory
+# for the call and puts the setting back afterwards. Calling it for real is
+# safe even when nothing is cached.
+old <- Sys.getenv("R_USER_CACHE_DIR", unset = NA)
+Sys.setenv(R_USER_CACHE_DIR = tempdir())
 scopus_cache_clear()
+if (is.na(old)) {
+  Sys.unsetenv("R_USER_CACHE_DIR")
+} else {
+  Sys.setenv(R_USER_CACHE_DIR = old)
+}
 }

@@ -31,6 +31,30 @@ test_that("retry_after is parsed when present", {
   expect_equal(q$retry_after, 7)
 })
 
+test_that("an HTTP-date retry_after is read whatever the session's LC_TIME is", {
+  resp <- httr2::response(
+    status_code = 429L,
+    headers = list(`Retry-After` = "Tue, 15 Nov 2044 08:12:31 GMT")
+  )
+  target <- as.POSIXct("2044-11-15 08:12:31", tz = "GMT")
+  seconds_away <- function() {
+    as.numeric(difftime(target, Sys.time(), units = "secs"))
+  }
+  expect_equal(scopus_quota(resp)$retry_after, seconds_away(), tolerance = 1e-4)
+
+  # The header is English by RFC 7231, so a session whose LC_TIME is not English
+  # has to read it too. Only the C locales are installed on some machines.
+  withr::local_locale(c(LC_TIME = "C"))
+  candidates <- c("fr_FR.UTF-8", "de_DE.UTF-8", "es_ES.UTF-8")
+  installed <- Filter(
+    function(l) !identical(suppressWarnings(Sys.setlocale("LC_TIME", l)), ""),
+    candidates
+  )
+  skip_if(length(installed) == 0L, "no non-English LC_TIME locale is installed")
+  Sys.setlocale("LC_TIME", installed[[1]])
+  expect_equal(scopus_quota(resp)$retry_after, seconds_away(), tolerance = 1e-4)
+})
+
 test_that("non-response input is rejected", {
   expect_error(scopus_quota(list()), class = "scopus_error_bad_input")
 })

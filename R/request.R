@@ -105,6 +105,13 @@ scopus_retry_after <- function(resp) {
   if (!is.na(secs)) {
     return(secs)
   }
+  # %a and %b read the weekday and month names of the session's LC_TIME, while
+  # the header is English by RFC 7231, so the date is parsed in the C locale.
+  # Without this the header does not parse at all in, say, a French session and
+  # the retry falls back to a back-off shorter than the server asked for.
+  old_time <- Sys.getlocale("LC_TIME")
+  Sys.setlocale("LC_TIME", "C")
+  on.exit(Sys.setlocale("LC_TIME", old_time), add = TRUE)
   when <- suppressWarnings(
     as.POSIXct(ra, format = "%a, %d %b %Y %H:%M:%S", tz = "GMT")
   )
@@ -145,7 +152,7 @@ scopus_quota <- function(resp) {
   if (!inherits(resp, "httr2_response")) {
     rlang::abort(
       "`resp` must be an httr2 response object.",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
   get_num <- function(name) {

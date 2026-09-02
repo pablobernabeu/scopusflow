@@ -31,6 +31,7 @@
 #' sum(is.na(example_records$doi))
 #' @export
 scopus_combine <- function(..., dedupe = FALSE) {
+  scopus_check_flag(dedupe, "dedupe")
   sets <- list(...)
   if (length(sets) == 1L && is.list(sets[[1]]) && !is_scopus_records(sets[[1]])) {
     sets <- sets[[1]]
@@ -38,7 +39,7 @@ scopus_combine <- function(..., dedupe = FALSE) {
   if (length(sets) == 0L || !all(vapply(sets, is_scopus_records, logical(1)))) {
     rlang::abort(
       "All inputs to `scopus_combine()` must be `scopus_records` objects.",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
   out <- scopus_bind_records(sets)

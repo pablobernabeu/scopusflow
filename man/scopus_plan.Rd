@@ -23,7 +23,7 @@ or year filters (these are added through \code{field} and \code{years}).}
 \item{years}{Optional integer vector of publication years to restrict to, for
 example \code{2015:2020}. When \code{partition = "year"}, one plan cell is created for
 each distinct year. Otherwise the minimum and maximum define a single date
-range.}
+range. An empty vector places no year restriction, as \code{NULL} does.}
 
 \item{field}{Optional character scalar naming a 'Scopus' field tag to wrap the
 query in, for example \code{"TITLE-ABS-KEY"}, \code{"TITLE"}, \code{"AUTH"} or \code{"AFFIL"}.

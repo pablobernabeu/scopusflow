@@ -58,18 +58,19 @@ scopus_report_months <- function() {
 #'   (the field-wrapped query of each cell), `view`, `page_size`, `paging`,
 #'   `partition`, `n_cells`, `years`, `cells` (a tibble of `cell`, `limit`,
 #'   `n_records` and `reported_total`), `searched_at`, `version`, `n_records`,
-#'   `n_with_doi`, `reported_total`, `records_combined`, `duplicates_removed`,
+#'   `n_with_doi`, `reported_total`, `cells_reported` (how many cells reported a
+#'   total), `records_combined`, `duplicates_removed`,
 #'   `deduplicated`, `snippet` and `prisma` (a tibble of `item`, `name`,
 #'   `source` and `note`). A field the objects do not record is `NA`.
 #' @details
 #' Everything in the record comes from the objects handed to it. The date of the
 #' search is the `retrieved_at` attribute [scopus_fetch()] attaches, never the
 #' current time; the number of records the API reported as matching is what the
-#' cells recorded (the `cell_totals` attribute [scopus_fetch_plan()] attaches,
-#' or `total_results` for a set retrieved without a plan), never an inference
-#' from the number of rows, and it is given overall only when every cell
-#' reported one; and the duplicates removed are those [scopus_combine()]
-#' recorded removing. Where
+#' objects recorded (the `cell_totals` attribute [scopus_fetch_plan()] attaches,
+#' or, where no cell counts travelled with the set, its own `total_results`),
+#' never an inference from the number of rows, and where the cells carry counts
+#' it is given overall only when every cell reported one; and the duplicates
+#' removed are those [scopus_combine()] recorded removing. Where
 #' an attribute is absent, as it is for a set read back from a `.csv`, for the
 #' bundled corpus, and for a cell resumed from a checkpoint written before these
 #' attributes existed, the record says the field is unrecorded and fills
@@ -113,7 +114,7 @@ scopus_report_months <- function() {
 scopus_search_report <- function(x, plan = NULL, file = NULL) {
   if (!is.null(plan) && !is_scopus_plan(plan)) {
     rlang::abort("The plan must be a search plan.",
-                 class = "scopus_error_bad_input")
+                 class = c("scopus_error_bad_input", "scopus_error"))
   }
   if (is_scopus_plan(x)) {
     records <- NULL
@@ -124,7 +125,7 @@ scopus_search_report <- function(x, plan = NULL, file = NULL) {
     if (!is.null(plan) && !is_scopus_plan(plan)) plan <- NULL
   } else {
     rlang::abort("A search report needs a record set or a search plan.",
-                 class = "scopus_error_bad_input")
+                 class = c("scopus_error_bad_input", "scopus_error"))
   }
 
   report <- scopus_report_build(records, plan)
@@ -132,7 +133,7 @@ scopus_search_report <- function(x, plan = NULL, file = NULL) {
   if (!is.null(file)) {
     if (!is.character(file) || length(file) != 1L || is.na(file) || !nzchar(file)) {
       rlang::abort("The file must be a single non-empty path.",
-                   class = "scopus_error_bad_input")
+                   class = c("scopus_error_bad_input", "scopus_error"))
     }
     scopus_write_lines(format(report, style = "markdown"), file)
     return(invisible(report))
@@ -177,6 +178,10 @@ scopus_report_build <- function(records, plan) {
   n_cells_reported <- sum(!is.na(reported))
   total <- if (nrow(cells) > 0L && n_cells_reported == nrow(cells)) {
     sum(reported)
+  } else if (n_cells_reported == 0L && !is.null(records)) {
+    # No cell carried a count, but `total_results` is a figure for the whole
+    # search, so it still answers how many records the API reported.
+    scopus_report_total_results(records)
   } else {
     NA_real_
   }
@@ -216,8 +221,11 @@ scopus_report_build <- function(records, plan) {
 # The per-cell table. A plan supplies the cells and their year limits; the
 # counts come from the `cell_totals` attribute scopus_fetch_plan() records, and
 # stay NA when the set never carried one (a CSV round trip, the bundled corpus,
-# a set assembled by hand). Without a plan the whole retrieval is treated as one
-# cell, so the rest of the code has a single shape to render.
+# a set assembled by hand). A set retrieved by scopus_fetch() carries no cell
+# counts, so a single-cell plan supplied alongside it falls back to the whole
+# retrieval, which is what that one cell stands for. Without a plan the whole
+# retrieval is treated as one cell, so the rest of the code has a single shape
+# to render.
 scopus_report_cells <- function(records, plan) {
   counts <- if (is.null(records)) NULL else attr(records, "cell_totals")
   if (!is.null(plan)) {
@@ -231,20 +239,28 @@ scopus_report_cells <- function(records, plan) {
         identical(as.integer(counts$cell), out$cell)) {
       out$n_records <- as.integer(counts$n_records)
       out$reported_total <- as.numeric(counts$reported_total)
+    } else if (nrow(out) == 1L && !is.null(records)) {
+      out$n_records <- nrow(records)
+      out$reported_total <- scopus_report_total_results(records)
     }
     return(out)
   }
   if (!is.null(records)) {
-    total <- attr(records, "total_results")
     return(tibble::tibble(
       cell = 1L,
       limit = NA_character_,
       n_records = nrow(records),
-      reported_total = if (is.null(total)) NA_real_ else as.numeric(total)
+      reported_total = scopus_report_total_results(records)
     ))
   }
   tibble::tibble(cell = integer(), limit = character(),
                  n_records = integer(), reported_total = numeric())
+}
+
+# The API's own count of matching records, as the set carries it.
+scopus_report_total_results <- function(records) {
+  total <- attr(records, "total_results")
+  if (is.null(total)) NA_real_ else as.numeric(total)
 }
 
 # The field-wrapped query of each cell. The plan holds it; failing that the
@@ -334,11 +350,16 @@ scopus_report_prisma <- function(x) {
   notes[6] <- "Any authors or organisations contacted for studies."
   notes[7] <- "Any further method used to identify records."
 
-  if (!anyNA(x$expression)) {
+  if (anyNA(x$expression)) {
+    notes[8] <- "The exact strategy, which this set does not record."
+  } else if (is.na(x$partition)) {
+    # Without a plan the expression is the one the records carry, and the field
+    # tag it was wrapped in and the year limit sent beside it as the API's date
+    # parameter are recorded nowhere, so the strategy is not here in full.
+    notes[8] <- "The search expression as the records carry it; the field tag and year limit sent with it are unrecorded in this set."
+  } else {
     notes[8] <- "The search expression, field tag and year limit of every cell, as the plan sends them."
     supplied <- c(supplied, 8L)
-  } else {
-    notes[8] <- "The exact strategy, which this set does not record."
   }
 
   if (!is.na(x$partition)) {

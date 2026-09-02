@@ -113,9 +113,8 @@
 #' @examples
 #' # The offline companion, which needs no key. The identifiers, titles,
 #' # sources and citation counts are two records of the bundled corpus of real
-#' # articles; the abstract text is what a live call adds, so it is left unset
-#' # left as a placeholder here, as is the 'Scopus' identifier the corpus does
-#' # not carry.
+#' # articles; the abstract text is what a live call adds, so it is left as a
+#' # placeholder here, as is the 'Scopus' identifier the corpus does not carry.
 #' cited <- example_records[order(-example_records$citations), ][1:2, ]
 #' abstracts <- tibble::tibble(
 #'   id = cited$doi,
@@ -161,16 +160,18 @@ scopus_abstract <- function(ids,
                             verbose = FALSE) {
   by <- rlang::arg_match(by)
   include <- scopus_check_include(include)
+  scopus_check_flag(resume, "resume")
+  scopus_check_flag(verbose, "verbose")
   if (!is.null(view) && !view %in% c("META", "META_ABS", "REF", "FULL")) {
     rlang::abort(
       "`view` must be one of \"META\", \"META_ABS\", \"REF\", \"FULL\", or NULL.",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
   if ("references" %in% include && !identical(view, "FULL") && !identical(view, "REF")) {
     rlang::abort(
       "Retrieving `include = \"references\"` needs `view = \"FULL\"` or `view = \"REF\"`.",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
   # The REF response carries no author keywords, so accepting it (or the
@@ -178,14 +179,14 @@ scopus_abstract <- function(ids,
   if ("keywords" %in% include && !identical(view, "FULL")) {
     rlang::abort(
       "Retrieving `include = \"keywords\"` needs `view = \"FULL\"`.",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
   if (!is.character(ids) || length(ids) == 0L || anyNA(ids) ||
       !all(nzchar(trimws(ids)))) {
     rlang::abort(
       "`ids` must be a non-empty character vector of identifiers.",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
   ids <- trimws(ids)
@@ -347,7 +348,7 @@ scopus_check_include <- function(include, call = rlang::caller_env()) {
   if (!is.character(include) || anyNA(include) || !all(include %in% known)) {
     rlang::abort(
       "`include` must be a character vector made up of \"references\" and/or \"keywords\".",
-      class = "scopus_error_bad_input", call = call
+      class = c("scopus_error_bad_input", "scopus_error"), call = call
     )
   }
   unique(include)
@@ -443,7 +444,20 @@ scopus_abstract_row <- function(id, core, full = list(), view = NULL, include = 
     row$authkeywords <- scopus_parse_authkeywords(full)
   }
   if ("references" %in% include) {
-    row$references <- list(scopus_parse_references(full, view))
+    # A shape the reference parser does not recognise would otherwise raise a
+    # base error, which scopus_abstract()'s per-identifier handler cannot catch,
+    # so one odd document would lose the whole batch.
+    row$references <- list(tryCatch(
+      scopus_parse_references(full, view),
+      error = function(e) {
+        if (inherits(e, "scopus_error")) stop(e)
+        rlang::abort(
+          "The 'Scopus' abstract response carried a reference list in an unexpected shape.",
+          class = c("scopus_error_malformed", "scopus_error"),
+          parent = e
+        )
+      }
+    ))
   }
   row
 }
@@ -522,9 +536,7 @@ scopus_parse_one_reference <- function(item, view) {
   info <- item[["ref-info"]] %||% item
   if (identical(view, "REF")) {
     authors <- (info[["author-list"]] %||% list())[["author"]]
-    author_names <- vapply(authors %||% list(), function(a) {
-      paste(stats::na.omit(c(a[["ce:surname"]], a[["ce:given-name"]])), collapse = ", ")
-    }, character(1))
+    author_names <- scopus_reference_authors(authors, "ce:given-name")
     doi <- info[["ce:doi"]]
     ref_id <- info[["scopus-id"]]
     # `ref-title` appears to be a shared field name across REF and FULL views,
@@ -535,9 +547,7 @@ scopus_parse_one_reference <- function(item, view) {
     year <- scopus_parse_year(info[["ref-coverdate"]] %||% info[["prism:coverDate"]])
   } else {
     authors <- chained_get(info, c("ref-authors", "author"))
-    author_names <- vapply(authors %||% list(), function(a) {
-      paste(stats::na.omit(c(a[["ce:surname"]], a[["ce:initials"]])), collapse = ", ")
-    }, character(1))
+    author_names <- scopus_reference_authors(authors, "ce:initials")
     ids <- chained_get(info, c("refd-itemidlist", "itemid")) %||% list()
     doi <- scopus_select_itemid(ids, "DOI")
     ref_id <- scopus_select_itemid(ids, "SGR")
@@ -556,6 +566,21 @@ scopus_parse_one_reference <- function(item, view) {
     citedbycount = if (length(citedbycount) == 0L) NA_integer_ else citedbycount,
     stringsAsFactors = FALSE
   )
+}
+
+# Author names of one cited reference, each "Surname, Given". A single author
+# arrives as a bare object rather than a one-item list, the same Elsevier
+# XML-to-JSON collapse that author keywords and item identifiers are guarded
+# against, so a lone author is wrapped back into a list before iterating.
+scopus_reference_authors <- function(authors, given_field) {
+  authors <- authors %||% list()
+  if (!is.null(names(authors)) &&
+      any(c("ce:surname", "ce:initials", "ce:given-name") %in% names(authors))) {
+    authors <- list(authors)
+  }
+  vapply(authors, function(a) {
+    paste(stats::na.omit(c(a[["ce:surname"]], a[[given_field]])), collapse = ", ")
+  }, character(1))
 }
 
 # Pick the itemid entry of a given @idtype from a FULL-view refd-itemidlist,

@@ -41,7 +41,8 @@ A list of class \code{scopus_search_report}, returned invisibly when
 (the field-wrapped query of each cell), \code{view}, \code{page_size}, \code{paging},
 \code{partition}, \code{n_cells}, \code{years}, \code{cells} (a tibble of \code{cell}, \code{limit},
 \code{n_records} and \code{reported_total}), \code{searched_at}, \code{version}, \code{n_records},
-\code{n_with_doi}, \code{reported_total}, \code{records_combined}, \code{duplicates_removed},
+\code{n_with_doi}, \code{reported_total}, \code{cells_reported} (how many cells reported a
+total), \code{records_combined}, \code{duplicates_removed},
 \code{deduplicated}, \code{snippet} and \code{prisma} (a tibble of \code{item}, \code{name},
 \code{source} and \code{note}). A field the objects do not record is \code{NA}.
 
@@ -60,11 +61,11 @@ of the PRISMA 2020 flow diagram.
 Everything in the record comes from the objects handed to it. The date of the
 search is the \code{retrieved_at} attribute \code{\link[=scopus_fetch]{scopus_fetch()}} attaches, never the
 current time; the number of records the API reported as matching is what the
-cells recorded (the \code{cell_totals} attribute \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} attaches,
-or \code{total_results} for a set retrieved without a plan), never an inference
-from the number of rows, and it is given overall only when every cell
-reported one; and the duplicates removed are those \code{\link[=scopus_combine]{scopus_combine()}}
-recorded removing. Where
+objects recorded (the \code{cell_totals} attribute \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} attaches,
+or, where no cell counts travelled with the set, its own \code{total_results}),
+never an inference from the number of rows, and where the cells carry counts
+it is given overall only when every cell reported one; and the duplicates
+removed are those \code{\link[=scopus_combine]{scopus_combine()}} recorded removing. Where
 an attribute is absent, as it is for a set read back from a \code{.csv}, for the
 bundled corpus, and for a cell resumed from a checkpoint written before these
 attributes existed, the record says the field is unrecorded and fills

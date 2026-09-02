@@ -10,7 +10,8 @@
 #'   comparison (for example `"language learning"`).
 #' @param comparison_terms Character vector of topics to compare against the
 #'   reference (for example `c("effect size", "Bayesian")`). Each is combined
-#'   with the reference using a logical AND.
+#'   with the reference using a logical AND. A term repeated in the vector is
+#'   counted once, with a warning.
 #' @param years Integer vector of publication years to span (for example
 #'   `2015:2020`).
 #' @param field Optional 'Scopus' field tag applied to every component of every
@@ -77,15 +78,28 @@ scopus_compare_topics <- function(reference_query,
       anyNA(comparison_terms) || !all(nzchar(trimws(comparison_terms)))) {
     rlang::abort(
       "`comparison_terms` must be a non-empty character vector of non-empty terms.",
-      class = "scopus_error_bad_input"
+      class = c("scopus_error_bad_input", "scopus_error")
     )
   }
   field <- scopus_check_field(field)
   years <- scopus_check_years(years)
+  scopus_check_flag(verbose, "verbose")
   if (is.null(years)) {
-    rlang::abort("`years` must be supplied.", class = "scopus_error_bad_input")
+    rlang::abort("`years` must be supplied.", class = c("scopus_error_bad_input", "scopus_error"))
   }
   years <- sort(unique(years))
+
+  # A repeated term would spend a second full set of count requests against the
+  # weekly quota and come back as a second identical block, which the plot then
+  # draws as overlapping lines under one legend entry.
+  repeated <- unique(comparison_terms[duplicated(comparison_terms)])
+  if (length(repeated) > 0L) {
+    cli::cli_warn(
+      "Counting {length(repeated)} repeated comparison term{?s} once: {.val {repeated}}.",
+      class = "scopus_warning_duplicate_terms"
+    )
+    comparison_terms <- unique(comparison_terms)
+  }
 
   ref_wrapped <- scopus_wrap_field(reference_query, field)
 

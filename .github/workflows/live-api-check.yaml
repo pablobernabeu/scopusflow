@@ -1,12 +1,15 @@
 # Weekly live smoke test against the real Elsevier 'Scopus' Search API, so that a
 # change to the API's response schema or auth is caught early rather than by a
 # user's bug report. The offline test suite cannot cover this, since it mocks all
-# HTTP. The tests skip themselves unless a SCOPUS_API_KEY secret is configured.
+# HTTP. The tests are switched on by SCOPUSFLOW_LIVE_TESTS, set below and
+# nowhere else, and skip themselves unless a SCOPUS_API_KEY secret is
+# configured.
 # Until the maintainer opts in by adding the key, the run stays green but says
 # so plainly: it emits a warning and a step-summary line that the check is
 # dormant, so a green badge is never mistaken for live coverage. Once the key
-# is present, any skipped test fails the run, because a skip then means the
-# check silently exercised nothing. It uses about six 'Scopus' Search requests
+# is present, a skipped test fails the run, because a skip then means the check
+# silently exercised nothing, the one exception being the rate-limit skip
+# test-live.R takes on purpose. It uses about six 'Scopus' Search requests
 # and one Abstract Retrieval request per run. Abstract Retrieval draws on its
 # own weekly quota, the smaller of the two, so weigh any new test on that path
 # against a schedule that runs unattended.
@@ -27,6 +30,7 @@ jobs:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       SCOPUS_API_KEY: ${{ secrets.SCOPUS_API_KEY }}
       NOT_CRAN: "true"
+      SCOPUSFLOW_LIVE_TESTS: "true"
     steps:
       - uses: actions/checkout@v7
 
@@ -54,14 +58,30 @@ jobs:
           if (sum(df$failed) > 0L) {
             quit(status = 1L)
           }
-          # A green run must mean the live tests genuinely ran. With a key
-          # configured, a skipped test is a silent gap in coverage, so it fails
-          # the run; without one, the run is honest about being dormant.
-          key_present <- nzchar(Sys.getenv("SCOPUS_API_KEY"))
-          if (key_present && sum(df$skipped) > 0L) {
+          # A green run must mean the live tests genuinely ran, so with a key
+          # configured a skipped test is a silent gap in coverage and fails the
+          # run; without one, the run is honest about being dormant. The one
+          # skip that is not a gap is the rate-limit skip test-live.R takes on
+          # purpose: there the check did run and the API throttled it, so it is
+          # surfaced as a warning. Keep this in step with that file.
+          skips <- unlist(lapply(res, function(test) {
+            vapply(
+              Filter(function(r) inherits(r, "expectation_skip"), test$results),
+              conditionMessage, character(1)
+            )
+          }))
+          throttled <- grepl("rate-limited", skips, fixed = TRUE)
+          if (any(throttled)) {
             cat(sprintf(
-              "::error::%d live test(s) skipped although SCOPUS_API_KEY is configured, so the live check exercised less than it reports.\n",
-              sum(df$skipped)
+              "::warning::%d live test(s) skipped because the 'Scopus' API rate-limited this run, not because the check found nothing to exercise.\n",
+              sum(throttled)
+            ))
+          }
+          key_present <- nzchar(Sys.getenv("SCOPUS_API_KEY"))
+          if (key_present && any(!throttled)) {
+            cat(sprintf(
+              "::error::%d live test(s) skipped although SCOPUS_API_KEY is configured (%s), so the live check exercised less than it reports.\n",
+              sum(!throttled), paste(unique(skips[!throttled]), collapse = "; ")
             ))
             quit(status = 1L)
           }

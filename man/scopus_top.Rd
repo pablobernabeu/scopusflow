@@ -10,8 +10,8 @@ scopus_top(x, by = c("source", "author"), n = 10L)
 \item{x}{A \link{scopus_records} tibble.}
 
 \item{by}{What to tally: \code{"source"} (the publication titles) or \code{"author"}.
-Author strings holding several names separated by \code{"; "} are split, so each
-contributor is counted once per record.}
+Author strings holding several names are split on the semicolon, with or
+without a following space, so each contributor is counted once per record.}
 
 \item{n}{The number of rows to return (the top \code{n}).}
 }

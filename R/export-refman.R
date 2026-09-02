@@ -2,38 +2,64 @@
 # BibTeX, so a Scopus search can be carried straight into Zotero, EndNote,
 # Mendeley or a LaTeX bibliography. The formatting is pure and offline.
 
-# Split the "; "-joined authors string of one record into a character vector,
-# dropping empty pieces. Returns character(0) when the field is NA or blank.
+# Split the semicolon-joined authors string of one record into a character
+# vector, dropping empty pieces. Returns character(0) when the field is NA or
+# blank. The separator is the bare semicolon, since the Python twin joins author
+# names without the space this package puts after it.
 scopus_refman_authors <- function(authors) {
   if (length(authors) != 1L || is.na(authors)) {
     return(character())
   }
-  parts <- trimws(strsplit(authors, "; ", fixed = TRUE)[[1]])
+  parts <- trimws(strsplit(authors, ";", fixed = TRUE)[[1]])
   parts[nzchar(parts)]
 }
 
 # Fold internal whitespace (including embedded newlines, which would break RIS
-# line structure) to single spaces.
+# line structure) to single spaces. Vectorised over a whole column, since an
+# export of a few thousand records used to pay for one call per field.
 scopus_refman_clean <- function(x) {
-  if (length(x) != 1L || is.na(x)) {
-    return("")
-  }
-  trimws(gsub("[[:space:]]+", " ", as.character(x)))
+  x <- as.character(x)
+  out <- trimws(gsub("[[:space:]]+", " ", x))
+  out[is.na(out)] <- ""
+  out
 }
 
-# Escape the characters that are special in a BibTeX field value, in a SINGLE
-# pass so the braces introduced by the backslash replacement are not themselves
-# re-escaped.
+# Escape the characters that are special in a BibTeX field value, over a whole
+# column at once. The order stands in for the single character-by-character
+# pass this replaced: the backslash is parked on a control character first, the
+# braces are escaped before the replacements that introduce braces of their
+# own, and the parked backslashes are expanded last, so nothing a replacement
+# introduces is escaped a second time. A field already holding the control
+# character, which no 'Scopus' field does, is escaped one character at a time.
 scopus_bibtex_escape <- function(x) {
-  if (length(x) != 1L || is.na(x)) {
-    return("")
+  x <- as.character(x)
+  x[is.na(x)] <- ""
+  odd <- grepl("\001", x, fixed = TRUE)
+  if (any(odd)) {
+    x[odd] <- vapply(x[odd], scopus_bibtex_escape_one, character(1),
+                     USE.NAMES = FALSE)
   }
+  y <- x[!odd]
+  y <- gsub("\\", "\001", y, fixed = TRUE)
+  for (ch in c("{", "}", "&", "%", "$", "#", "_")) {
+    y <- gsub(ch, paste0("\\", ch), y, fixed = TRUE)
+  }
+  y <- gsub("~", "\\textasciitilde{}", y, fixed = TRUE)
+  y <- gsub("^", "\\textasciicircum{}", y, fixed = TRUE)
+  y <- gsub("\001", "\\textbackslash{}", y, fixed = TRUE)
+  x[!odd] <- y
+  x
+}
+
+# The character-by-character form, kept for the one input the vectorised pass
+# cannot park a backslash on.
+scopus_bibtex_escape_one <- function(x) {
   map <- c(
     "\\" = "\\textbackslash{}", "&" = "\\&", "%" = "\\%", "$" = "\\$",
     "#" = "\\#", "_" = "\\_", "{" = "\\{", "}" = "\\}",
     "~" = "\\textasciitilde{}", "^" = "\\textasciicircum{}"
   )
-  chars <- strsplit(as.character(x), "", fixed = TRUE)[[1]]
+  chars <- strsplit(x, "", fixed = TRUE)[[1]]
   hit <- chars %in% names(map)
   chars[hit] <- map[chars[hit]]
   paste(chars, collapse = "")
@@ -75,61 +101,77 @@ scopus_disambiguate <- function(keys) {
   }, character(1), USE.NAMES = FALSE)
 }
 
-# Build the BibTeX entry for one record (a one-row scopus_records), with a
-# pre-disambiguated `key`.
-scopus_bibtex_entry <- function(row, key) {
-  fields <- character()
-  add <- function(name, value) {
-    if (length(value) == 1L && !is.na(value) && nzchar(as.character(value))) {
-      fields[[name]] <<- scopus_bibtex_escape(scopus_refman_clean(value))
+# Split each record's authors, escape them once across the whole export and
+# join each record's own back together as a BibTeX `author` field line. Records
+# with no authors get NA, which drops the line.
+scopus_bibtex_author_lines <- function(authors) {
+  parts <- lapply(authors, scopus_refman_authors)
+  n <- lengths(parts)
+  flat <- unlist(parts, use.names = FALSE)
+  flat <- scopus_bibtex_escape(scopus_refman_clean(flat))
+  ends <- cumsum(n)
+  vapply(seq_along(parts), function(i) {
+    if (n[i] == 0L) {
+      return(NA_character_)
     }
-  }
-  auth <- scopus_refman_authors(row$authors)
-  if (length(auth) > 0L) {
-    fields[["author"]] <- paste(
-      vapply(auth, function(a) scopus_bibtex_escape(scopus_refman_clean(a)), character(1)),
-      collapse = " and "
-    )
-  }
-  add("title", row$title)
-  add("journal", row$publication)
-  add("year", row$year)
-  add("doi", row$doi)
-  if (!is.na(row$scopus_id)) {
-    fields[["note"]] <- scopus_bibtex_escape(paste0("Scopus ID: ", row$scopus_id))
-  }
-
-  body <- paste0("  ", names(fields), " = {", unlist(fields), "},", collapse = "\n")
-  paste0("@article{", key, ",\n", body, "\n}")
+    joined <- paste(flat[(ends[i] - n[i] + 1L):ends[i]], collapse = " and ")
+    paste0("  author = {", joined, "},")
+  }, character(1))
 }
 
-# Build the RIS entry for one record.
-scopus_ris_entry <- function(row) {
-  lines <- "TY  - JOUR"
-  ris_add <- function(tag, value) {
-    if (length(value) == 1L && !is.na(value) && nzchar(as.character(value))) {
-      lines <<- c(lines, paste0(tag, "  - ", scopus_refman_clean(value)))
+# One BibTeX field line per record, or NA where the record has nothing to put
+# in the field. Emptiness is judged on the value as it arrived, so a field of
+# whitespace alone is still written, as it was when each record was formatted
+# on its own.
+scopus_bibtex_lines <- function(name, value) {
+  out <- rep(NA_character_, length(value))
+  keep <- !is.na(value) & nzchar(as.character(value))
+  out[keep] <- paste0(
+    "  ", name, " = {",
+    scopus_bibtex_escape(scopus_refman_clean(value[keep])), "},"
+  )
+  out
+}
+
+# One RIS tag line per record, or NA where there is nothing to write.
+scopus_ris_lines <- function(tag, value) {
+  out <- rep(NA_character_, length(value))
+  keep <- !is.na(value) & nzchar(as.character(value))
+  out[keep] <- paste0(tag, "  - ", scopus_refman_clean(value[keep]))
+  out
+}
+
+# The AU lines of each record, already newline-joined, or NA for a record with
+# no authors.
+scopus_ris_author_lines <- function(authors) {
+  parts <- lapply(authors, scopus_refman_authors)
+  n <- lengths(parts)
+  flat <- scopus_refman_clean(unlist(parts, use.names = FALSE))
+  ends <- cumsum(n)
+  vapply(seq_along(parts), function(i) {
+    if (n[i] == 0L) {
+      return(NA_character_)
     }
-  }
-  ris_add("TI", row$title)
-  for (a in scopus_refman_authors(row$authors)) {
-    lines <- c(lines, paste0("AU  - ", scopus_refman_clean(a)))
-  }
-  ris_add("PY", row$year)
-  ris_add("JO", row$publication)
-  ris_add("DO", row$doi)
-  if (!is.na(row$scopus_id)) {
-    lines <- c(lines, paste0("N1  - Scopus ID: ", scopus_refman_clean(row$scopus_id)))
-  }
-  lines <- c(lines, "ER  - ")
-  paste(lines, collapse = "\n")
+    paste0("AU  - ", flat[(ends[i] - n[i] + 1L):ends[i]], collapse = "\n")
+  }, character(1))
+}
+
+# Assemble the per-record lines, dropping the fields a record does not carry.
+# `lines` is a list of character vectors, one per line of the entry, each as
+# long as the record set.
+scopus_refman_assemble <- function(lines) {
+  mat <- do.call(cbind, lines)
+  vapply(seq_len(nrow(mat)), function(i) {
+    row <- mat[i, ]
+    paste(row[!is.na(row)], collapse = "\n")
+  }, character(1))
 }
 
 scopus_refman_write <- function(out, file) {
   if (!is.null(file)) {
     if (!is.character(file) || length(file) != 1L || is.na(file)) {
       rlang::abort("`file` must be `NULL` or a single path.",
-                   class = "scopus_error_bad_input")
+                   class = c("scopus_error_bad_input", "scopus_error"))
     }
     scopus_write_lines(out, file)
     return(invisible(out))
@@ -163,15 +205,36 @@ scopus_refman_write <- function(out, file) {
 as_bibtex <- function(x, file = NULL) {
   if (!is_scopus_records(x)) {
     rlang::abort("`x` must be a `scopus_records` object.",
-                 class = "scopus_error_bad_input")
+                 class = c("scopus_error_bad_input", "scopus_error"))
   }
   base <- vapply(seq_len(nrow(x)), function(i) {
     scopus_bibtex_key(x$authors[i], x$year[i], x$scopus_id[i])
   }, character(1))
   keys <- scopus_disambiguate(base)
-  entries <- vapply(seq_len(nrow(x)), function(i) {
-    scopus_bibtex_entry(x[i, ], keys[i])
-  }, character(1))
+  # The fields are cleaned and escaped a column at a time rather than a record
+  # at a time: a reference set of a few thousand records is exported from a
+  # download handler, where the per-field work was what the reader waited on.
+  has_id <- !is.na(x$scopus_id)
+  note <- rep(NA_character_, nrow(x))
+  note[has_id] <- paste0(
+    "  note = {",
+    scopus_bibtex_escape(paste0("Scopus ID: ", x$scopus_id[has_id])), "},"
+  )
+  body <- scopus_refman_assemble(list(
+    scopus_bibtex_author_lines(x$authors),
+    scopus_bibtex_lines("title", x$title),
+    scopus_bibtex_lines("journal", x$publication),
+    scopus_bibtex_lines("year", x$year),
+    scopus_bibtex_lines("doi", x$doi),
+    note
+  ))
+  # paste0() recycles a zero-length vector to "", which would turn an empty
+  # record set into one empty entry.
+  entries <- if (nrow(x) == 0L) {
+    character()
+  } else {
+    paste0("@article{", keys, ",\n", body, "\n}")
+  }
   scopus_refman_write(paste(entries, collapse = "\n\n"), file)
 }
 
@@ -180,8 +243,22 @@ as_bibtex <- function(x, file = NULL) {
 as_ris <- function(x, file = NULL) {
   if (!is_scopus_records(x)) {
     rlang::abort("`x` must be a `scopus_records` object.",
-                 class = "scopus_error_bad_input")
+                 class = c("scopus_error_bad_input", "scopus_error"))
   }
-  entries <- vapply(seq_len(nrow(x)), function(i) scopus_ris_entry(x[i, ]), character(1))
+  has_id <- !is.na(x$scopus_id)
+  note <- rep(NA_character_, nrow(x))
+  note[has_id] <- paste0(
+    "N1  - Scopus ID: ", scopus_refman_clean(x$scopus_id[has_id])
+  )
+  entries <- scopus_refman_assemble(list(
+    rep("TY  - JOUR", nrow(x)),
+    scopus_ris_lines("TI", x$title),
+    scopus_ris_author_lines(x$authors),
+    scopus_ris_lines("PY", x$year),
+    scopus_ris_lines("JO", x$publication),
+    scopus_ris_lines("DO", x$doi),
+    note,
+    rep("ER  - ", nrow(x))
+  ))
   scopus_refman_write(paste(entries, collapse = "\n\n"), file)
 }
