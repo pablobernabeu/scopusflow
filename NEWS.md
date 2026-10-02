@@ -17,6 +17,22 @@
   ended the session. Check size and Fetch now refuse a blank query with a
   notification, as Compare and the Python app already did, and any other failure
   in Check size is shown as a notification.
+* `scopus_compare_topics()` joined the reference and each comparison term
+  without brackets, so a reference containing OR or AND NOT was regrouped by the
+  operator precedence of 'Scopus'. Under the documented order, which applies AND
+  NOT last, an AND NOT reference took the term into its negation, so the
+  comparison set could exceed the reference and shares passed 100%. The join is
+  now `(reference) AND (term)`, as `scopus_intersections()` already wrote it.
+  Re-run comparisons whose reference contains OR or AND NOT.
+* `scopus_query()` now brackets each term of several words when it joins two or
+  more terms without a field tag, since 'Scopus' joins the words of an unquoted
+  term with AND. `scopus_query("machine learning", "deep learning", .op = "OR")`
+  used to give `machine learning OR deep learning`, which reads as
+  `machine AND (learning OR deep) AND learning`. Quoted and braced phrases,
+  bracketed groups and single field-tagged groups are left as written, and
+  single words are never bracketed, so
+  `scopus_query("CRISPR", "Cas9", .op = "OR")` is unchanged. Terms are also
+  trimmed of the white space the Python twin trims, no-break spaces included.
 
 ## Documentation
 
@@ -28,6 +44,11 @@
   `devtools::check()` and on GitHub Actions, where an unknown word used to surface
   only as a NOTE that left the run green. CRAN and a plain `R CMD check` still skip
   the test. The word list gains the eleven names and terms that had slipped past it.
+* The designing-queries article explains loose and exact phrases, and replaces
+  its spelling-variant example, which 'Scopus' matches without help, with two
+  phrases naming one condition. It also shows why a query written by hand that
+  mixes operators needs brackets, under both the documented operator order and
+  the one Elsevier has announced.
 
 # scopusflow 0.4.0
 

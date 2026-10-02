@@ -138,12 +138,56 @@ object the function returns.
 
 `scopus_combine()` (with a `c()` method) fills a real gap, since plain `rbind()`
 leaves duplicate entry numbers. It renumbers and optionally de-duplicates by
-identifier or DOI. `scopus_query()` composes field-tagged boolean queries so the
-brackets and tags are correct by construction. `as_tibble()` and `as.data.frame()`
+identifier or DOI. `scopus_query()` composes field-tagged boolean queries and
+groups their operands (see the next section). `as_tibble()` and `as.data.frame()`
 methods make the class easy to shed. Two tempting ideas were rejected: aliasing
 the exports to a single `scopus_*` prefix (needless churn for established names),
 and warning when a field tag is not one of the common ones (Scopus has many valid
 tags beyond the common dozen, so the warning would fire on legitimate input).
+
+## Grouping composed queries
+
+'Scopus' reads an unbracketed query by operator precedence. Its search tips
+give the order OR, then AND, then AND NOT. Elsevier has announced that the
+order will become AND NOT, then AND, then OR (Feldner, Scopus blog, 24 March
+2025). A live check on 2 October 2026 found AND NOT still applied last, as the
+search tips document.
+`TITLE("working memory") AND NOT TITLE(children) AND PUBYEAR > 2020`
+returned 19,510 records, against 5,454 when the first two operands were
+bracketed, because the appended limit fell inside the negation. Each order
+breaks a different shape, a clause appended after a top-level AND NOT under the
+first and after a top-level OR under the second, and brackets fix both.
+
+Every place the package composes a string therefore groups its operands.
+`scopus_query()` trims each term and, when it joins two or more without a field
+tag, brackets each term of several words, since 'Scopus' joins the words of an
+unquoted term with AND. White space there means the 29 characters Python's
+`str.isspace()` accepts, the no-break space among them, so the twins trim and
+bracket the same terms. `trimws()` strips only four of them by default, and
+`[[:space:]]` misses the no-break space on Windows. A term that already binds
+as one operand is left as written: a quoted or braced phrase, a bracketed group
+or a single field-tagged group. Bracketing every term was rejected, because it
+would change correct joins such as `CRISPR OR Cas9` and every documented
+example.
+`scopus_compare_topics()` joins the reference and each term as
+`(reference) AND (term)`, the form `scopus_intersections()` already used.
+Joined bare, an AND NOT reference took the term into its negation, so the
+comparison set outgrew the reference and shares passed 100%. The expected
+strings are shared with the Python twin in
+`tests/testthat/fixtures/query-grouping.json`.
+
+The R package sends the year as the `date` request parameter, so its year
+limits never entered the query and were never at risk. The Python twin folds
+the year into the query string, because pybliometrics keys its download cache
+on the query alone. It brackets the query only when a scan that skips phrases
+and nested brackets finds a top-level OR, AND NOT or proximity operator.
+Unconditional brackets would have changed every folded string and forced every
+existing checkpoint and download cache to be fetched again. The conditional
+rule changes only the strings that were already wrong, and their checkpoints
+are refetched once under the existing different-plan warning. Two guards were
+proposed and dropped, since the grouping leaves them nothing to catch. One
+would have warned when a comparison count exceeded its reference count, the
+other when a record appeared in more than one year cell.
 
 ## Robustness
 

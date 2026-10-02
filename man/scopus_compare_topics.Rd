@@ -20,8 +20,10 @@ scopus_compare_topics(
 comparison (for example \code{"language learning"}).}
 
 \item{comparison_terms}{Character vector of topics to compare against the
-reference (for example \code{c("effect size", "Bayesian")}). Each is combined
-with the reference using a logical AND.}
+reference (for example \code{c("effect size", "Bayesian")}). Each is joined to
+the reference as \verb{(reference) AND (term)}, after \code{field} has wrapped each
+side. A reference containing OR or AND NOT therefore keeps its meaning, and
+every comparison set is a subset of the reference.}
 
 \item{years}{Integer vector of publication years to span (for example
 \code{2015:2020}).}

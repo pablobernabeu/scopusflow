@@ -9,8 +9,10 @@
 #' @param reference_query Character scalar. The reference topic that anchors the
 #'   comparison (for example `"language learning"`).
 #' @param comparison_terms Character vector of topics to compare against the
-#'   reference (for example `c("effect size", "Bayesian")`). Each is combined
-#'   with the reference using a logical AND.
+#'   reference (for example `c("effect size", "Bayesian")`). Each is joined to
+#'   the reference as `(reference) AND (term)`, after `field` has wrapped each
+#'   side. A reference containing OR or AND NOT therefore keeps its meaning, and
+#'   every comparison set is a subset of the reference.
 #' @param years Integer vector of publication years to span (for example
 #'   `2015:2020`).
 #' @param field Optional 'Scopus' field tag applied to every component of every
@@ -110,7 +112,10 @@ scopus_compare_topics <- function(reference_query,
   for (term in comparison_terms) {
     if (verbose) cli::cli_inform("Counting comparison term {.val {term}}.")
     term_wrapped <- scopus_wrap_field(term, field)
-    cmp_query <- paste(ref_wrapped, "AND", term_wrapped)
+    # Both sides are bracketed, as in scopus_intersections(). Joined bare, an
+    # AND NOT reference took the term into its negation, and the comparison set
+    # outgrew the reference.
+    cmp_query <- sprintf("(%s) AND (%s)", ref_wrapped, term_wrapped)
     cmp_n <- vapply(years, function(y) count_for(cmp_query, y), numeric(1))
     rows[[length(rows) + 1L]] <- scopus_comparison_block(
       query = cmp_query, query_type = "comparison",

@@ -163,6 +163,14 @@ test_that("app_demo_comparison mirrors a real comparison object", {
   expect_s3_class(plot_scopus_comparison(cmp), "ggplot")
 })
 
+test_that("app_demo_comparison joins its queries as scopus_compare_topics does", {
+  cmp <- app_demo_comparison("a OR b", "c d", 2019:2020)
+  expect_identical(
+    unique(cmp$query[cmp$query_type == "comparison"]),
+    "(a OR b) AND (c d)"
+  )
+})
+
 test_that("run_app is exported and guarded", {
   expect_true(is.function(run_app))
 })

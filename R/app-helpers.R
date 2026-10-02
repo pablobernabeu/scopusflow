@@ -204,7 +204,7 @@ app_demo_comparison <- function(reference, terms, years) {
     growth <- 0.03 * i
     cmp_n <- as.integer(ref_n * (base + growth * (years - y0) / span))
     rows[[length(rows) + 1L]] <- scopus_comparison_block(
-      query = paste(reference, "AND", terms[i]), query_type = "comparison",
+      query = sprintf("(%s) AND (%s)", reference, terms[i]), query_type = "comparison",
       abridged = terms[i], years = years, n = cmp_n, ref_n = ref_n
     )
   }

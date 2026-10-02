@@ -96,6 +96,40 @@ test_that("the reference baseline is included at 100%", {
   expect_true(all(ref$comparison_percentage == 100))
 })
 
+test_that("each comparison query brackets the reference and the term", {
+  # Joined bare, the reference's OR or AND NOT regrouped the term. Under the
+  # documented order (OR, AND, AND NOT), an AND NOT reference took the term into
+  # its negation, so the comparison set was no subset of the reference and the
+  # share passed 100%.
+  local_scopus_test_env()
+  sent <- character()
+  httr2::local_mocked_responses(function(req) {
+    sent <<- c(sent, httr2::url_parse(req$url)$query$query)
+    mock_search_results(list(), total = 10L)
+  })
+  cmp <- scopus_compare_topics(
+    "TITLE(graphene) OR TITLE(graphite)", "TITLE(supercapacitor)",
+    years = 2020
+  )
+  expect_identical(sent, c(
+    "TITLE(graphene) OR TITLE(graphite)",
+    "(TITLE(graphene) OR TITLE(graphite)) AND (TITLE(supercapacitor))"
+  ))
+  expect_identical(
+    cmp$query[cmp$query_type == "comparison"],
+    "(TITLE(graphene) OR TITLE(graphite)) AND (TITLE(supercapacitor))"
+  )
+
+  # With a field, each side is wrapped first and then bracketed.
+  sent <- character()
+  scopus_compare_topics("python AND NOT snake", "machine learning",
+                        years = 2020, field = "TITLE-ABS-KEY")
+  expect_identical(
+    sent[2],
+    "(TITLE-ABS-KEY(python AND NOT snake)) AND (TITLE-ABS-KEY(machine learning))"
+  )
+})
+
 test_that("invalid inputs are rejected before any request", {
   local_scopus_test_env()
   expect_error(scopus_compare_topics("ref", character(0), 2015:2016),
