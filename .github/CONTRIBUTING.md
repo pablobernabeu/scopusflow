@@ -45,7 +45,10 @@ they run only when `SCOPUS_API_KEY` is set.
 
 Errors are raised as typed conditions in the `scopus_error` family through
 `rlang::abort()`, never with a bare `stop()`, so that callers can handle them
-programmatically. User-facing messages use `cli`.
+programmatically. An invalid argument goes through `scopus_abort_bad_input()`,
+and a choice among fixed values is matched with `scopus_match_arg()` in place of
+`rlang::arg_match()`, so that input errors stay in the family too. User-facing
+messages use `cli`.
 
 An API key is a secret. It is read only from the `SCOPUS_API_KEY` environment
 variable, the `scopusflow.api_key` option or an `api_key` argument, and it is

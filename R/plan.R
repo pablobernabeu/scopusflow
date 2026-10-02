@@ -47,8 +47,8 @@ scopus_plan <- function(query,
                         view = c("STANDARD", "COMPLETE"),
                         page_size = NULL,
                         partition = c("none", "year")) {
-  view <- rlang::arg_match(view)
-  partition <- rlang::arg_match(partition)
+  view <- scopus_match_arg(view, c("STANDARD", "COMPLETE"))
+  partition <- scopus_match_arg(partition, c("none", "year"))
   scopus_check_query(query)
   field <- scopus_check_field(field)
   years <- scopus_check_years(years)
@@ -58,9 +58,8 @@ scopus_plan <- function(query,
 
   if (partition == "year") {
     if (is.null(years)) {
-      rlang::abort(
-        "`partition = \"year\"` requires `years` to be supplied.",
-        class = "scopus_error_bad_input"
+      scopus_abort_bad_input(
+        "`partition = \"year\"` requires `years` to be supplied."
       )
     }
     yrs <- sort(unique(years))
@@ -117,9 +116,8 @@ print.scopus_plan <- function(x, ...) {
 
 scopus_check_query <- function(query, call = rlang::caller_env()) {
   if (!is.character(query) || length(query) != 1L || is.na(query) || !nzchar(trimws(query))) {
-    rlang::abort(
+    scopus_abort_bad_input(
       "`query` must be a single, non-empty character string.",
-      class = "scopus_error_bad_input",
       call = call
     )
   }
@@ -131,17 +129,15 @@ scopus_check_field <- function(field, call = rlang::caller_env()) {
     return(NULL)
   }
   if (!is.character(field) || length(field) != 1L || is.na(field) || !nzchar(field)) {
-    rlang::abort(
+    scopus_abort_bad_input(
       "`field` must be `NULL` or a single character field tag (e.g. \"TITLE-ABS-KEY\").",
-      class = "scopus_error_bad_input",
       call = call
     )
   }
   field <- toupper(trimws(field))
   if (!grepl("^[A-Z-]+$", field)) {
-    rlang::abort(
+    scopus_abort_bad_input(
       "`field` must contain only letters and hyphens (e.g. \"TITLE-ABS-KEY\").",
-      class = "scopus_error_bad_input",
       call = call
     )
   }
@@ -153,17 +149,15 @@ scopus_check_years <- function(years, call = rlang::caller_env()) {
     return(NULL)
   }
   if (!is.numeric(years) || anyNA(years) || any(years != floor(years))) {
-    rlang::abort(
+    scopus_abort_bad_input(
       "`years` must be `NULL` or a vector of whole numbers (e.g. 2015:2020).",
-      class = "scopus_error_bad_input",
       call = call
     )
   }
   years <- as.integer(years)
   if (any(years < 1700L) || any(years > 2200L)) {
-    rlang::abort(
+    scopus_abort_bad_input(
       "`years` must lie within a plausible publication range (1700-2200).",
-      class = "scopus_error_bad_input",
       call = call
     )
   }
@@ -188,21 +182,19 @@ scopus_check_page_size <- function(page_size, view = "STANDARD",
                                    call = rlang::caller_env()) {
   if (!is.numeric(page_size) || length(page_size) != 1L || is.na(page_size) ||
       page_size != floor(page_size)) {
-    rlang::abort(
+    scopus_abort_bad_input(
       "`page_size` must be a single whole number or `NULL`.",
-      class = "scopus_error_bad_input",
       call = call
     )
   }
   page_size <- as.integer(page_size)
   max_size <- scopus_view_max(view)
   if (page_size < 1L || page_size > max_size) {
-    rlang::abort(
+    scopus_abort_bad_input(
       sprintf(
         "`page_size` must be between 1 and %d for the %s view (the 'Scopus' Search API page limit).",
         max_size, view
       ),
-      class = "scopus_error_bad_input",
       call = call
     )
   }

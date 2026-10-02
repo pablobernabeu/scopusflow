@@ -161,6 +161,21 @@ read from `getOption("scopusflow.timeout", 60)`: curl's own default is no timeou
 at all, so a connection that opens and then stalls hangs the session outright, and
 the retry policy never fires because no response arrives to be classified.
 
+Input errors carry `scopus_error_bad_input` beneath `scopus_error`, so the
+contract that every scopusflow error inherits `scopus_error` holds for them as
+well. Up to and including 0.4.0, 66 validation sites raised the
+subclass on its own and the argument matching raised bare rlang errors, so a
+handler for `scopus_error` saw neither, and the app's Check size handler let a
+blank query close the session. Two internal helpers in `R/conditions.R` now
+carry the classes: `scopus_abort_bad_input()` for the package's own checks and
+`scopus_match_arg()` around `rlang::arg_match()`. The second re-signals rlang's
+condition with the two classes prepended. Rebuilding it from its message would
+also have worked, but re-signalling keeps rlang's bullets, call and backtrace
+unchanged. The alternative of documenting that argument-matching errors come
+from rlang was rejected, since a caller cannot know which arguments are matched
+that way. An input error is not transient, so code that retries on
+`scopus_error` has to test the subclass.
+
 ## Naming
 
 The chosen name, `scopusflow`, is a valid package name with no underscore and no

@@ -1,5 +1,6 @@
-# The reactive app is not exercised here (it needs a running server); these tests
-# pin the pure helpers behind it, which run fully offline.
+# Most of these tests pin the pure helpers behind the app, which run fully
+# offline. The server tests at the end drive app_server() through
+# shiny::testServer(), synchronously and with every request mocked.
 
 test_that("app_years_code renders compact year expressions", {
   expect_equal(app_years_code(2015:2022), "2015:2022")
@@ -164,4 +165,100 @@ test_that("app_demo_comparison mirrors a real comparison object", {
 
 test_that("run_app is exported and guarded", {
   expect_true(is.function(run_app))
+})
+
+# Inputs for a server test: a key in the box, demo mode off unless asked.
+app_test_inputs <- function(session, query, demo = FALSE, ...) {
+  session$setInputs(
+    demo = demo, api_key = "test-key", query = query, field = "TITLE-ABS-KEY",
+    view = "STANDARD", use_years = TRUE, years = c(2019, 2020),
+    max_results = 5, cmp_terms = "", cmp_highlight = "",
+    cmp_interval = TRUE, cmp_counts = TRUE, ...
+  )
+}
+
+test_that("Check size on a blank query keeps the session open and sends nothing", {
+  skip_if_not_installed("shiny")
+  requested <- FALSE
+  httr2::local_mocked_responses(function(req) {
+    requested <<- TRUE
+    httr2::response(status_code = 500L)
+  })
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = "   ")
+    session$setInputs(count = 1)
+    # scopus_count() refused the blank query with an input error that the
+    # handler, which caught scopus_error alone, let through, and an error
+    # escaping an observer ends the Shiny session.
+    expect_false(session$isClosed())
+    expect_null(rv$size_note)
+    expect_false(identical(rv$status, "error"))
+  })
+  expect_false(requested)
+})
+
+test_that("Fetch on a blank query starts no retrieval", {
+  skip_if_not_installed("shiny")
+  skip_if_not_installed("callr")
+  # A regression here starts a background R process through callr, so the
+  # test stays off CRAN. Demo mode keeps even that process offline.
+  skip_on_cran()
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = "", demo = TRUE)
+    session$setInputs(fetch = 1)
+    proc <- rv$proc
+    if (!is.null(proc)) try(proc$kill(), silent = TRUE)
+    expect_false(session$isClosed())
+    expect_null(proc)
+    expect_false(identical(rv$status, "running"))
+  })
+})
+
+test_that("Check size turns an untyped failure into a notification", {
+  skip_if_not_installed("shiny")
+  # An error from the transport layer that carries no scopus_error class, as
+  # an internal fault would. It used to escape the observer and end the
+  # session.
+  httr2::local_mocked_responses(function(req) stop("connection reset in a test"))
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = "graphene")
+    session$setInputs(count = 1)
+    expect_false(session$isClosed())
+    expect_identical(rv$status, "error")
+    expect_null(rv$size_note)
+  })
+})
+
+test_that("Check size in demo mode prices the plan from the bundled corpus", {
+  skip_if_not_installed("shiny")
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = "graphene", demo = TRUE)
+    session$setInputs(count = 1)
+    expect_false(session$isClosed())
+    expect_match(rv$size_note, "^Demo plan: 2 year-cells")
+  })
+})
+
+test_that("Compare refuses a blank query and compares in demo mode", {
+  skip_if_not_installed("shiny")
+  requested <- FALSE
+  httr2::local_mocked_responses(function(req) {
+    requested <<- TRUE
+    httr2::response(status_code = 500L)
+  })
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = " ")
+    session$setInputs(cmp_terms = "flexible, energy storage", compare = 1)
+    expect_false(session$isClosed())
+    expect_null(rv$comparison)
+
+    session$setInputs(demo = TRUE, query = "graphene", compare = 2)
+    expect_false(session$isClosed())
+    expect_s3_class(rv$comparison, "scopus_comparison")
+    expect_setequal(
+      unique(rv$comparison$abridged_query[rv$comparison$query_type == "comparison"]),
+      c("flexible", "energy storage")
+    )
+  })
+  expect_false(requested)
 })

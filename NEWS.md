@@ -1,5 +1,23 @@
 # scopusflow (development version)
 
+## Changed behaviour
+
+* Input errors now inherit `scopus_error`, as the package has always documented.
+  `scopus_error_bad_input` was raised on its own, so `tryCatch(scopus_error = ...)`
+  let a blank query or an out-of-range year through. Invalid `view`, `partition`,
+  `by`, `.op` and `style` values now raise `scopus_error_bad_input` too, where they
+  were bare `rlang_error` conditions with the same message. A retry loop keyed on
+  `scopus_error` should test the subclass, since an input error will not succeed on
+  retry.
+
+## Bug fixes
+
+* The app's Check size button no longer closes the session on a blank query. The
+  handler caught `scopus_error` alone, so the input error escaped it and Shiny
+  ended the session. Check size and Fetch now refuse a blank query with a
+  notification, as Compare and the Python app already did, and any other failure
+  in Check size is shown as a notification.
+
 ## Documentation
 
 * The README no longer names the version CRAN carries. The README inside the 0.4.0

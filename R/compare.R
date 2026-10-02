@@ -71,19 +71,18 @@ scopus_compare_topics <- function(reference_query,
                                   api_key = NULL,
                                   inst_token = NULL,
                                   verbose = FALSE) {
-  view <- rlang::arg_match(view)
+  view <- scopus_match_arg(view, c("STANDARD", "COMPLETE"))
   scopus_check_query(reference_query)
   if (!is.character(comparison_terms) || length(comparison_terms) == 0L ||
       anyNA(comparison_terms) || !all(nzchar(trimws(comparison_terms)))) {
-    rlang::abort(
-      "`comparison_terms` must be a non-empty character vector of non-empty terms.",
-      class = "scopus_error_bad_input"
+    scopus_abort_bad_input(
+      "`comparison_terms` must be a non-empty character vector of non-empty terms."
     )
   }
   field <- scopus_check_field(field)
   years <- scopus_check_years(years)
   if (is.null(years)) {
-    rlang::abort("`years` must be supplied.", class = "scopus_error_bad_input")
+    scopus_abort_bad_input("`years` must be supplied.")
   }
   years <- sort(unique(years))
 

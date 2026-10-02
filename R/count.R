@@ -54,7 +54,7 @@ scopus_count <- function(query,
                          view = c("STANDARD", "COMPLETE"),
                          api_key = NULL,
                          inst_token = NULL) {
-  view <- rlang::arg_match(view)
+  view <- scopus_match_arg(view, c("STANDARD", "COMPLETE"))
   scopus_check_query(query)
   field <- scopus_check_field(field)
   years <- scopus_check_years(years)

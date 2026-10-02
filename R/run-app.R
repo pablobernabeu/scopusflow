@@ -247,6 +247,12 @@ app_server <- function(input, output, session) {
 
   # Cheap pre-flight sizing, run synchronously: one request per query/year.
   shiny::observeEvent(input$count, {
+    # Refused here, as the compare handler and the Python app do, so a blank
+    # box never reaches scopus_count().
+    if (!nzchar(trimws(input$query %||% ""))) {
+      shiny::showNotification("Enter search terms first.", type = "warning")
+      return()
+    }
     if (isTRUE(input$demo)) {
       ncells <- if (isTRUE(input$use_years)) length(years_value()) else 1L
       # Derived from the same function the demo harvest uses, since each year of
@@ -266,16 +272,22 @@ app_server <- function(input, output, session) {
       return()
     }
     shiny::withProgress(message = "Checking size", value = 0.5, {
+      # Catch every failure, typed scopus_error or otherwise: an error that
+      # escapes an observer ends the Shiny session.
       out <- tryCatch(
         scopus_count(input$query, years = years_value(), field = nzchar_or_null(input$field),
                      view = input$view, api_key = api_key()),
-        scopus_error = function(e) e
+        error = function(e) e
       )
     })
     if (inherits(out, "condition")) {
       rv$status <- "error"
-      shiny::showNotification(paste("Scopus:", conditionMessage(out)), type = "error",
-                              duration = NULL)
+      msg <- if (inherits(out, "scopus_error")) {
+        paste("Scopus:", conditionMessage(out))
+      } else {
+        paste("Could not size the search:", conditionMessage(out))
+      }
+      shiny::showNotification(msg, type = "error", duration = NULL)
       return()
     }
     n <- as.numeric(out)
@@ -296,6 +308,12 @@ app_server <- function(input, output, session) {
 
   # Launch the background harvest.
   shiny::observeEvent(input$fetch, {
+    # A blank query would only fail inside the background worker, after the
+    # user had waited for it to start.
+    if (!nzchar(trimws(input$query %||% ""))) {
+      shiny::showNotification("Enter search terms first.", type = "warning")
+      return()
+    }
     if (!isTRUE(input$demo) && is.null(api_key())) {
       shiny::showNotification("Enter your Scopus API key, or switch on Demo mode.",
                               type = "warning")

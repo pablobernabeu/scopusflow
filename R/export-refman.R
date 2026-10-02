@@ -128,8 +128,7 @@ scopus_ris_entry <- function(row) {
 scopus_refman_write <- function(out, file) {
   if (!is.null(file)) {
     if (!is.character(file) || length(file) != 1L || is.na(file)) {
-      rlang::abort("`file` must be `NULL` or a single path.",
-                   class = "scopus_error_bad_input")
+      scopus_abort_bad_input("`file` must be `NULL` or a single path.")
     }
     scopus_write_lines(out, file)
     return(invisible(out))
@@ -162,8 +161,7 @@ scopus_refman_write <- function(out, file) {
 #' @export
 as_bibtex <- function(x, file = NULL) {
   if (!is_scopus_records(x)) {
-    rlang::abort("`x` must be a `scopus_records` object.",
-                 class = "scopus_error_bad_input")
+    scopus_abort_bad_input("`x` must be a `scopus_records` object.")
   }
   base <- vapply(seq_len(nrow(x)), function(i) {
     scopus_bibtex_key(x$authors[i], x$year[i], x$scopus_id[i])
@@ -179,8 +177,7 @@ as_bibtex <- function(x, file = NULL) {
 #' @export
 as_ris <- function(x, file = NULL) {
   if (!is_scopus_records(x)) {
-    rlang::abort("`x` must be a `scopus_records` object.",
-                 class = "scopus_error_bad_input")
+    scopus_abort_bad_input("`x` must be a `scopus_records` object.")
   }
   entries <- vapply(seq_len(nrow(x)), function(i) scopus_ris_entry(x[i, ]), character(1))
   scopus_refman_write(paste(entries, collapse = "\n\n"), file)

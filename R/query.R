@@ -20,13 +20,12 @@
 #' scopus_query("CRISPR", "Cas9", "Cas12", .op = "OR")
 #' @export
 scopus_query <- function(..., .op = c("AND", "OR", "AND NOT"), .field = NULL) {
-  .op <- rlang::arg_match(.op)
+  .op <- scopus_match_arg(.op, c("AND", "OR", "AND NOT"))
   terms <- c(...)
   if (!is.character(terms) || length(terms) == 0L || anyNA(terms) ||
       !all(nzchar(trimws(terms)))) {
-    rlang::abort(
-      "`...` must be one or more non-empty character terms.",
-      class = "scopus_error_bad_input"
+    scopus_abort_bad_input(
+      "`...` must be one or more non-empty character terms."
     )
   }
   .field <- scopus_check_field(.field)

@@ -5,6 +5,45 @@
 # callers catch a whole family of problems (for example, with
 # `tryCatch(scopus_error = ...)`) or respond to a specific status. None of these
 # helpers are exported. They are documented here for maintainers.
+#
+# Invalid arguments are raised through scopus_abort_bad_input(), and choices
+# among fixed values are matched through scopus_match_arg(), so that no input
+# error can leave the hierarchy. Before both existed, 66 sites raised
+# `scopus_error_bad_input` on its own and the argument matching raised bare
+# rlang errors, so a `scopus_error` handler missed every input error.
+
+# Abort because an argument is invalid. `...` passes further fields to
+# rlang::abort(). An input error will not succeed on retry, which is why it
+# carries its own subclass beneath `scopus_error`.
+scopus_abort_bad_input <- function(message, ..., call = rlang::caller_env()) {
+  rlang::abort(
+    message = message,
+    class = c("scopus_error_bad_input", "scopus_error"),
+    ...,
+    call = call
+  )
+}
+
+# rlang::arg_match() with its failure moved into the hierarchy. `values` is
+# passed explicitly because arg_match() would otherwise read the choices from
+# this helper's own formals. Callers pass the same vector as the formal's
+# default, and a mismatch shows at once, because a call that leaves the
+# argument at its default then fails to match. The rlang error is re-signalled
+# whole, with the two classes prepended, so its message, bullets, call and
+# backtrace are unchanged.
+scopus_match_arg <- function(arg, values, error_arg = rlang::caller_arg(arg),
+                             error_call = rlang::caller_env()) {
+  # Forced first, so that an error raised while evaluating the caller's
+  # expression keeps its own class and is not relabelled as bad input.
+  force(arg)
+  tryCatch(
+    rlang::arg_match(arg, values, error_arg = error_arg, error_call = error_call),
+    rlang_error = function(e) {
+      class(e) <- c("scopus_error_bad_input", "scopus_error", class(e))
+      rlang::cnd_signal(e)
+    }
+  )
+}
 
 # Map an HTTP status code to a scopusflow condition subclass.
 scopus_status_class <- function(status) {

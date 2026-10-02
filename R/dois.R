@@ -47,9 +47,8 @@ scopus_extract_dois <- function(x, dedupe = TRUE, file = NULL) {
   }
   if (!is.null(file)) {
     if (!is.character(file) || length(file) != 1L || is.na(file) || !nzchar(file)) {
-      rlang::abort(
-        "`file` must be `NULL` or a single non-empty path.",
-        class = "scopus_error_bad_input"
+      scopus_abort_bad_input(
+        "`file` must be `NULL` or a single non-empty path."
       )
     }
     scopus_write_csv(data.frame(doi = dois), file)
@@ -125,9 +124,8 @@ scopus_as_doi_vector <- function(x) {
   if (is.character(x)) {
     return(x)
   }
-  rlang::abort(
-    "`x` must be a `scopus_records` object or a character vector of DOIs.",
-    class = "scopus_error_bad_input"
+  scopus_abort_bad_input(
+    "`x` must be a `scopus_records` object or a character vector of DOIs."
   )
 }
 

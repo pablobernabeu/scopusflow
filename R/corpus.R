@@ -92,16 +92,15 @@ scopus_corpus <- function(records,
                           api_key = NULL,
                           inst_token = NULL,
                           verbose = FALSE) {
-  by <- rlang::arg_match(by)
-  view <- rlang::arg_match(view)
+  by <- scopus_match_arg(by, c("doi", "scopus_id"))
+  view <- scopus_match_arg(view, c("FULL", "REF"))
   required <- c(by, "title", "year")
   if (!is.data.frame(records) || !all(required %in% names(records))) {
-    rlang::abort(
+    scopus_abort_bad_input(
       sprintf(
         "`records` must be a data frame with %s columns (as scopus_fetch()/scopus_fetch_plan() return).",
         paste(sprintf('"%s"', required), collapse = ", ")
-      ),
-      class = "scopus_error_bad_input"
+      )
     )
   }
 
@@ -118,7 +117,7 @@ scopus_corpus <- function(records,
     )
   }
   if (!any(keep)) {
-    rlang::abort("`records` has no usable identifiers to look up.", class = "scopus_error_bad_input")
+    scopus_abort_bad_input("`records` has no usable identifiers to look up.")
   }
   records <- records[keep, , drop = FALSE]
 

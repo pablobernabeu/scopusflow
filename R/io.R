@@ -31,9 +31,8 @@
 #' @export
 write_scopus_records <- function(x, path) {
   if (!is_scopus_records(x)) {
-    rlang::abort(
-      "`x` must be a `scopus_records` object.",
-      class = "scopus_error_bad_input"
+    scopus_abort_bad_input(
+      "`x` must be a `scopus_records` object."
     )
   }
   scopus_check_path(path)
@@ -70,18 +69,16 @@ scopus_write_csv <- function(x, path) {
 read_scopus_records <- function(path) {
   scopus_check_path(path)
   if (!file.exists(path)) {
-    rlang::abort(
-      sprintf("File not found: %s", path),
-      class = "scopus_error_bad_input"
+    scopus_abort_bad_input(
+      sprintf("File not found: %s", path)
     )
   }
   fmt <- scopus_path_format(path)
   if (fmt == "rds") {
     obj <- readRDS(path)
     if (!is_scopus_records(obj)) {
-      rlang::abort(
-        "The .rds file does not contain a `scopus_records` object.",
-        class = "scopus_error_bad_input"
+      scopus_abort_bad_input(
+        "The .rds file does not contain a `scopus_records` object."
       )
     }
     return(obj)
@@ -113,9 +110,8 @@ scopus_coerce_records <- function(raw) {
 
 scopus_check_path <- function(path, call = rlang::caller_env()) {
   if (!is.character(path) || length(path) != 1L || is.na(path) || !nzchar(path)) {
-    rlang::abort(
+    scopus_abort_bad_input(
       "`path` must be a single non-empty file path.",
-      class = "scopus_error_bad_input",
       call = call
     )
   }
@@ -128,9 +124,8 @@ scopus_path_format <- function(path) {
     ext,
     rds = "rds",
     csv = "csv",
-    rlang::abort(
-      sprintf("Unsupported file extension '.%s'. Use '.rds' or '.csv'.", ext),
-      class = "scopus_error_bad_input"
+    scopus_abort_bad_input(
+      sprintf("Unsupported file extension '.%s'. Use '.rds' or '.csv'.", ext)
     )
   )
 }

@@ -59,18 +59,16 @@ plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
                                    legend_inside = FALSE, ...) {
   legend_inside <- isTRUE(legend_inside)
   if (!inherits(x, "scopus_comparison")) {
-    rlang::abort(
-      "`x` must be a `scopus_comparison` object from scopus_compare_topics().",
-      class = "scopus_error_bad_input"
+    scopus_abort_bad_input(
+      "`x` must be a `scopus_comparison` object from scopus_compare_topics()."
     )
   }
   rlang::check_installed("ggplot2", reason = "to plot a topic comparison")
 
   df <- x[x$query_type == "comparison", , drop = FALSE]
   if (nrow(df) == 0L) {
-    rlang::abort(
-      "The comparison contains no comparison topics to plot.",
-      class = "scopus_error_bad_input"
+    scopus_abort_bad_input(
+      "The comparison contains no comparison topics to plot."
     )
   }
 
@@ -79,9 +77,8 @@ plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
   n_missing <- sum(is.na(df$comparison_percentage))
   df <- df[!is.na(df$comparison_percentage), , drop = FALSE]
   if (nrow(df) == 0L) {
-    rlang::abort(
-      "The comparison has no finite percentages to plot.",
-      class = "scopus_error_bad_input"
+    scopus_abort_bad_input(
+      "The comparison has no finite percentages to plot."
     )
   }
   df <- df[order(df$abridged_query, df$year), , drop = FALSE]
@@ -90,10 +87,9 @@ plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
   if (!is.null(highlight)) {
     if (!is.character(highlight) || length(highlight) != 1L ||
         !highlight %in% topics) {
-      rlang::abort(
+      scopus_abort_bad_input(
         sprintf("`highlight` must be one of the comparison topics: %s.",
-                paste(topics, collapse = ", ")),
-        class = "scopus_error_bad_input"
+                paste(topics, collapse = ", "))
       )
     }
   }

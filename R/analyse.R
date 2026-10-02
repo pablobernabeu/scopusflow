@@ -43,12 +43,12 @@ scopus_trend <- function(query,
                          api_key = NULL,
                          inst_token = NULL,
                          verbose = FALSE) {
-  view <- rlang::arg_match(view)
+  view <- scopus_match_arg(view, c("STANDARD", "COMPLETE"))
   scopus_check_query(query)
   field <- scopus_check_field(field)
   years <- scopus_check_years(years)
   if (is.null(years)) {
-    rlang::abort("`years` must be supplied.", class = "scopus_error_bad_input")
+    scopus_abort_bad_input("`years` must be supplied.")
   }
   years <- sort(unique(years))
   wrapped <- scopus_wrap_field(query, field)
@@ -112,17 +112,15 @@ print.scopus_trend <- function(x, ...) {
 #' @export
 scopus_top <- function(x, by = c("source", "author"), n = 10L) {
   if (!is_scopus_records(x)) {
-    rlang::abort(
-      "`x` must be a `scopus_records` object.",
-      class = "scopus_error_bad_input"
+    scopus_abort_bad_input(
+      "`x` must be a `scopus_records` object."
     )
   }
-  by <- rlang::arg_match(by)
+  by <- scopus_match_arg(by, c("source", "author"))
   if (!is.numeric(n) || length(n) != 1L || !is.finite(n) || n < 1L ||
       n != floor(n)) {
-    rlang::abort(
-      "`n` must be a single positive whole number.",
-      class = "scopus_error_bad_input"
+    scopus_abort_bad_input(
+      "`n` must be a single positive whole number."
     )
   }
 

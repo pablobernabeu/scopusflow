@@ -112,8 +112,7 @@ scopus_report_months <- function() {
 #' @export
 scopus_search_report <- function(x, plan = NULL, file = NULL) {
   if (!is.null(plan) && !is_scopus_plan(plan)) {
-    rlang::abort("The plan must be a search plan.",
-                 class = "scopus_error_bad_input")
+    scopus_abort_bad_input("The plan must be a search plan.")
   }
   if (is_scopus_plan(x)) {
     records <- NULL
@@ -123,16 +122,14 @@ scopus_search_report <- function(x, plan = NULL, file = NULL) {
     plan <- plan %||% attr(x, "plan")
     if (!is.null(plan) && !is_scopus_plan(plan)) plan <- NULL
   } else {
-    rlang::abort("A search report needs a record set or a search plan.",
-                 class = "scopus_error_bad_input")
+    scopus_abort_bad_input("A search report needs a record set or a search plan.")
   }
 
   report <- scopus_report_build(records, plan)
 
   if (!is.null(file)) {
     if (!is.character(file) || length(file) != 1L || is.na(file) || !nzchar(file)) {
-      rlang::abort("The file must be a single non-empty path.",
-                   class = "scopus_error_bad_input")
+      scopus_abort_bad_input("The file must be a single non-empty path.")
     }
     scopus_write_lines(format(report, style = "markdown"), file)
     return(invisible(report))
@@ -148,7 +145,7 @@ scopus_search_report <- function(x, plan = NULL, file = NULL) {
 #' @return `format()` returns a length-one character string.
 #' @export
 format.scopus_search_report <- function(x, style = c("report", "paragraph", "markdown"), ...) {
-  style <- rlang::arg_match(style)
+  style <- scopus_match_arg(style, c("report", "paragraph", "markdown"))
   switch(
     style,
     report = scopus_report_render(x),

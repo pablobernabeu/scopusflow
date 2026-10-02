@@ -42,40 +42,35 @@
 plot_scopus_intersections <- function(x, highlight = NULL,
                                       highlight_label = NULL, ...) {
   if (!inherits(x, "scopus_intersections")) {
-    rlang::abort(
-      "`x` must be a `scopus_intersections` object from scopus_intersections().",
-      class = "scopus_error_bad_input"
+    scopus_abort_bad_input(
+      "`x` must be a `scopus_intersections` object from scopus_intersections()."
     )
   }
   rlang::check_installed("ggplot2", reason = "to plot concept intersections")
   if (!all(c("label", "n", "type") %in% names(x))) {
-    rlang::abort(
-      "`x` must have columns `label`, `n` and `type` (see scopus_intersections()).",
-      class = "scopus_error_bad_input"
+    scopus_abort_bad_input(
+      "`x` must have columns `label`, `n` and `type` (see scopus_intersections())."
     )
   }
   df <- as.data.frame(x)
   if (nrow(df) == 0L) {
-    rlang::abort(
-      "The `scopus_intersections` object has no rows to plot.",
-      class = "scopus_error_bad_input"
+    scopus_abort_bad_input(
+      "The `scopus_intersections` object has no rows to plot."
     )
   }
   if (anyDuplicated(df$label)) {
-    rlang::abort(
-      "The `label` column must be unique to place each row on its own line.",
-      class = "scopus_error_bad_input"
+    scopus_abort_bad_input(
+      "The `label` column must be unique to place each row on its own line."
     )
   }
   if (!is.null(highlight)) {
     if (!is.character(highlight) || length(highlight) == 0L ||
         !all(highlight %in% df$label)) {
-      rlang::abort(
+      scopus_abort_bad_input(
         sprintf(
           "`highlight` must name rows to accent, among: %s.",
           paste(df$label, collapse = ", ")
-        ),
-        class = "scopus_error_bad_input"
+        )
       )
     }
   }
@@ -88,9 +83,8 @@ plot_scopus_intersections <- function(x, highlight = NULL,
     df <- df[!is.na(df$n) & df$n > 0, , drop = FALSE]
   }
   if (nrow(df) == 0L) {
-    rlang::abort(
-      "No row has a positive count to place on the log axis.",
-      class = "scopus_error_bad_input"
+    scopus_abort_bad_input(
+      "No row has a positive count to place on the log axis."
     )
   }
 

@@ -58,7 +58,7 @@ scopus_fetch <- function(query,
                          api_key = NULL,
                          inst_token = NULL,
                          verbose = FALSE) {
-  view <- rlang::arg_match(view)
+  view <- scopus_match_arg(view, c("STANDARD", "COMPLETE"))
   scopus_check_query(query)
   field <- scopus_check_field(field)
   years <- scopus_check_years(years)
@@ -249,9 +249,8 @@ scopus_fetch_cursor <- function(wrapped, date, view, page_size, max_results,
 scopus_check_max_results <- function(max_results, call = rlang::caller_env()) {
   if (length(max_results) != 1L || is.na(max_results) || !is.numeric(max_results) ||
       max_results < 1 || (is.finite(max_results) && max_results != floor(max_results))) {
-    rlang::abort(
+    scopus_abort_bad_input(
       "`max_results` must be a single positive whole number or `Inf`.",
-      class = "scopus_error_bad_input",
       call = call
     )
   }

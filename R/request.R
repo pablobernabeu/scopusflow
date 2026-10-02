@@ -143,9 +143,8 @@ scopus_retry_after <- function(resp) {
 #' @export
 scopus_quota <- function(resp) {
   if (!inherits(resp, "httr2_response")) {
-    rlang::abort(
-      "`resp` must be an httr2 response object.",
-      class = "scopus_error_bad_input"
+    scopus_abort_bad_input(
+      "`resp` must be an httr2 response object."
     )
   }
   get_num <- function(name) {

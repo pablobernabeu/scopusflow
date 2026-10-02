@@ -36,9 +36,8 @@ scopus_combine <- function(..., dedupe = FALSE) {
     sets <- sets[[1]]
   }
   if (length(sets) == 0L || !all(vapply(sets, is_scopus_records, logical(1)))) {
-    rlang::abort(
-      "All inputs to `scopus_combine()` must be `scopus_records` objects.",
-      class = "scopus_error_bad_input"
+    scopus_abort_bad_input(
+      "All inputs to `scopus_combine()` must be `scopus_records` objects."
     )
   }
   out <- scopus_bind_records(sets)

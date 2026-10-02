@@ -159,33 +159,29 @@ scopus_abstract <- function(ids,
                             api_key = NULL,
                             inst_token = NULL,
                             verbose = FALSE) {
-  by <- rlang::arg_match(by)
+  by <- scopus_match_arg(by, c("doi", "scopus_id"))
   include <- scopus_check_include(include)
   if (!is.null(view) && !view %in% c("META", "META_ABS", "REF", "FULL")) {
-    rlang::abort(
-      "`view` must be one of \"META\", \"META_ABS\", \"REF\", \"FULL\", or NULL.",
-      class = "scopus_error_bad_input"
+    scopus_abort_bad_input(
+      "`view` must be one of \"META\", \"META_ABS\", \"REF\", \"FULL\", or NULL."
     )
   }
   if ("references" %in% include && !identical(view, "FULL") && !identical(view, "REF")) {
-    rlang::abort(
-      "Retrieving `include = \"references\"` needs `view = \"FULL\"` or `view = \"REF\"`.",
-      class = "scopus_error_bad_input"
+    scopus_abort_bad_input(
+      "Retrieving `include = \"references\"` needs `view = \"FULL\"` or `view = \"REF\"`."
     )
   }
   # The REF response carries no author keywords, so accepting it (or the
   # default view) here would only yield a silent all-NA column.
   if ("keywords" %in% include && !identical(view, "FULL")) {
-    rlang::abort(
-      "Retrieving `include = \"keywords\"` needs `view = \"FULL\"`.",
-      class = "scopus_error_bad_input"
+    scopus_abort_bad_input(
+      "Retrieving `include = \"keywords\"` needs `view = \"FULL\"`."
     )
   }
   if (!is.character(ids) || length(ids) == 0L || anyNA(ids) ||
       !all(nzchar(trimws(ids)))) {
-    rlang::abort(
-      "`ids` must be a non-empty character vector of identifiers.",
-      class = "scopus_error_bad_input"
+    scopus_abort_bad_input(
+      "`ids` must be a non-empty character vector of identifiers."
     )
   }
   ids <- trimws(ids)
@@ -345,9 +341,9 @@ scopus_check_include <- function(include, call = rlang::caller_env()) {
   }
   known <- c("references", "keywords")
   if (!is.character(include) || anyNA(include) || !all(include %in% known)) {
-    rlang::abort(
+    scopus_abort_bad_input(
       "`include` must be a character vector made up of \"references\" and/or \"keywords\".",
-      class = "scopus_error_bad_input", call = call
+      call = call
     )
   }
   unique(include)

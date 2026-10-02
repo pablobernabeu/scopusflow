@@ -119,9 +119,8 @@ scopus_entries <- function(x) {
     return(list())
   }
   if (!is.list(entries)) {
-    rlang::abort(
-      "Cannot extract 'Scopus' entries from `x`. Provide a list or a `search-results` object.",
-      class = "scopus_error_bad_input"
+    scopus_abort_bad_input(
+      "Cannot extract 'Scopus' entries from `x`. Provide a list or a `search-results` object."
     )
   }
   # Detect the empty-result sentinel: a lone entry carrying an `error` field and

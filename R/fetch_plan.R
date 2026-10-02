@@ -75,17 +75,15 @@ scopus_fetch_plan <- function(plan,
                               inst_token = NULL,
                               verbose = FALSE) {
   if (!is_scopus_plan(plan)) {
-    rlang::abort(
-      "`plan` must be a `scopus_plan` object from scopus_plan().",
-      class = "scopus_error_bad_input"
+    scopus_abort_bad_input(
+      "`plan` must be a `scopus_plan` object from scopus_plan()."
     )
   }
   max_results <- scopus_check_max_results(max_results)
   if (!is.null(cache_dir)) {
     if (!is.character(cache_dir) || length(cache_dir) != 1L || is.na(cache_dir)) {
-      rlang::abort(
-        "`cache_dir` must be `NULL` or a single directory path.",
-        class = "scopus_error_bad_input"
+      scopus_abort_bad_input(
+        "`cache_dir` must be `NULL` or a single directory path."
       )
     }
     dir.create(cache_dir, recursive = TRUE, showWarnings = FALSE)
