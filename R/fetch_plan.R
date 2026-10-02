@@ -202,8 +202,11 @@ scopus_warn_shortfall <- function(i, n, total, max_results) {
 # name keyed on position alone would let one plan's 2015 checkpoint serve
 # another plan's 2016 cell, and the query comparison below could never tell the
 # two apart. The Python twin reaches the same end differently, by folding the
-# year into the query it records (`_cell_query()`), which is open to it because
-# pybliometrics takes the year as part of the search expression.
+# year into the query it records (`_cell_query()`). pybliometrics would accept
+# the year as a `date` parameter, but it keys its search cache on the query
+# string and view alone, so one year's cached response would then answer
+# another year's search. That twin now bypasses the cache by default, and
+# dev/design-notes.md gives the reasoning in full.
 scopus_cell_cache_name <- function(cell) {
   date <- if (is.na(cell$date)) "all" else cell$date
   sprintf("cell-%03d-%s.rds", cell$cell, date)

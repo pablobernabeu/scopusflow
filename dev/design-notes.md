@@ -587,12 +587,18 @@ The year is now part of the checkpoint's filename, and the rest of what shapes
 a cell (query, view, page size, and the `max_results` it was fetched under) is
 written as a manifest beside the records and compared on resume. Folding the
 year into the recorded query, which is how the Python twin solves the same
-problem in `_cell_query()`, was rejected here: pybliometrics takes the year as
-part of the search expression, whereas this package sends it as a separate
-`date` parameter, so folding it in would have changed the requests made and the
-`query` column every record carries, for no gain over naming the file properly.
-The two engines therefore reach the same guarantee by different routes, which is
-why the Python guide describes its checkpoint identity in its own terms.
+problem in `_cell_query()`, was rejected here: this package sends the year as a
+separate `date` parameter, so folding it in would have changed the requests made
+and the `query` column every record carries, for no gain over naming the file
+properly. The Python twin folds it for a reason of its own. pybliometrics
+accepts `date` as a request parameter, but it keys its search cache on the
+query string and view alone, an MD5 digest of the query filed under the view.
+With the year sent as a parameter, one year's cached response would answer
+another year's search. The Python twin now bypasses that cache by
+default, sending `refresh=True` unless the caller opts back in, and the folded
+year keeps that opt-in safe. The two engines therefore reach the same guarantee
+by different routes, which is why the Python guide describes its checkpoint
+identity in its own terms.
 
 `max_results` had to enter the identity for the same reason. A cell fetched
 under a cap was served unchanged to a later caller asking for everything, so a
