@@ -50,7 +50,7 @@ test_that("a live response carries quota headers", {
   expect_true(all(c("limit", "remaining", "reset") %in% names(quota)))
 })
 
-test_that("a live abstract retrieval returns metadata", {
+test_that("a live abstract retrieval returns metadata and the abstract", {
   skip_live()
   withr::local_options(scopusflow.api_key = NULL)
   # Abstract Retrieval draws on its own, smaller quota, and scopus_abstract()
@@ -68,6 +68,8 @@ test_that("a live abstract retrieval returns metadata", {
   expect_s3_class(ab, "scopus_abstracts")
   expect_equal(nrow(ab), 1L)
   expect_false(is.na(ab$title))
+  # The default view is META_ABS, so the same request carries the abstract.
+  expect_false(is.na(ab$abstract))
 })
 
 test_that("a live trend returns annual counts", {

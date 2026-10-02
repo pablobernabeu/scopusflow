@@ -80,6 +80,45 @@ test_that("scopus_abstract percent-encodes the identifier path", {
   expect_match(seen, "/doi/10.1002/", fixed = TRUE)   # structural slash preserved
 })
 
+test_that("the default request names view META_ABS, and view = NULL sends none", {
+  # Elsevier documents META, a view without the abstract, as the one it serves
+  # when a request names none, so the default names the view that carries it.
+  local_scopus_test_env()
+  seen <- character()
+  httr2::local_mocked_responses(function(req) {
+    seen <<- c(seen, req$url)
+    mock_abstract(list(`prism:doi` = "10.1/x", `dc:description` = "An abstract."))
+  })
+  ab <- scopus_abstract("10.1/x")
+  expect_equal(httr2::url_parse(seen[1])$query, list(view = "META_ABS"))
+  expect_equal(ab$abstract, "An abstract.")
+
+  scopus_abstract("10.1/x", view = NULL)
+  expect_null(httr2::url_parse(seen[2])$query)
+})
+
+test_that("default-view checkpoints are keyed META_ABS, and 0.4.0's still serve view = NULL", {
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  calls <- 0L
+  httr2::local_mocked_responses(function(req) {
+    calls <<- calls + 1L
+    mock_abstract(list(`prism:doi` = "10.1/a", `dc:title` = "Fetched"))
+  })
+  # A checkpoint as 0.4.0 wrote it for a call that named no view.
+  legacy <- scopusflow:::scopus_abstract_row("10.1/a", list(`dc:title` = "Cached by 0.4.0"))
+  saveRDS(legacy, file.path(cache, "id-default-none-10_1_a.rds"))
+
+  ab <- scopus_abstract("10.1/a", cache_dir = cache)
+  expect_equal(ab$title, "Fetched")
+  expect_equal(calls, 1L)
+  expect_true(file.exists(file.path(cache, "id-META_ABS-none-10_1_a.rds")))
+
+  old <- scopus_abstract("10.1/a", view = NULL, cache_dir = cache)
+  expect_equal(old$title, "Cached by 0.4.0")
+  expect_equal(calls, 1L)
+})
+
 test_that("without view or include, output columns are exactly as before", {
   local_scopus_test_env()
   httr2::local_mocked_responses(function(req) mock_abstract(list(`prism:doi` = "10.1/x")))
@@ -137,6 +176,25 @@ test_that("a single author-keyword (collapsed to a bare object) still parses", {
       authkeywords = list(`author-keyword` = list(`$` = "graphene"))
     )
   })
+  ab <- scopus_abstract("10.1/x", view = "FULL", include = "keywords")
+  expect_equal(ab$authkeywords, "graphene")
+})
+
+test_that("an author-keyword entry without text is not taken for a keyword", {
+  # pybliometrics issue #436: Elsevier can send an author-keyword object that
+  # carries only its attribute, {"@_fa": "true"}, which gave the keyword "true".
+  local_scopus_test_env()
+  keywords <- NULL
+  httr2::local_mocked_responses(function(req) {
+    mock_abstract_full(core = list(`prism:doi` = "10.1/x"), authkeywords = keywords)
+  })
+  keywords <- list(`author-keyword` = list(`@_fa` = "true"))
+  ab <- scopus_abstract("10.1/x", view = "FULL", include = "keywords")
+  expect_true(is.na(ab$authkeywords))
+
+  keywords <- list(`author-keyword` = list(
+    list(`@_fa` = "true", `$` = "graphene"), list(`@_fa` = "true")
+  ))
   ab <- scopus_abstract("10.1/x", view = "FULL", include = "keywords")
   expect_equal(ab$authkeywords, "graphene")
 })
@@ -226,6 +284,139 @@ test_that("include = 'references' under REF view uses that view's field names", 
   expect_equal(refs$citedbycount, 42L)
 })
 
+test_that("scopus_listify wraps a bare object and leaves an array alone", {
+  listify <- scopusflow:::scopus_listify
+  one <- list(`@id` = "1")
+  expect_identical(listify(NULL), list())
+  expect_identical(listify(one), list(one))
+  expect_identical(listify(list(one, one)), list(one, one))
+  expect_identical(listify(list()), list())
+  expect_identical(listify(stats::setNames(list(), character())), list())
+  expect_identical(listify("text"), "text")
+})
+
+test_that("an empty object adds no reference and no author", {
+  # An empty JSON object carries no item. Wrapped like a bare object, it would
+  # add a reference row of NAs, with a count-mismatch warning, or an author with
+  # an empty name.
+  local_scopus_test_env()
+  empty <- stats::setNames(list(), character())
+  references <- empty
+  httr2::local_mocked_responses(function(req) {
+    mock_abstract_full(
+      core = list(`prism:doi` = "10.1/x"), refcount = length(references),
+      references = references
+    )
+  })
+  ab <- expect_no_warning(scopus_abstract("10.1/x", view = "FULL", include = "references"))
+  expect_equal(nrow(ab$references[[1]]), 0L)
+
+  references <- list(list(`@id` = "1", `ref-info` = list(
+    `ref-title` = list(`ref-titletext` = "No authors"),
+    `ref-authors` = list(author = empty)
+  )))
+  ab <- scopus_abstract("10.1/x", view = "FULL", include = "references")
+  expect_equal(ab$references[[1]]$title, "No authors")
+  expect_true(is.na(ab$references[[1]]$authors))
+})
+
+# A lone reference, or a reference with a lone author, arrives as a bare object
+# (see mock_collapsed_lists()). Each used to abort the whole batch with an
+# untyped "subscript out of bounds" error. pybliometrics 4.2 fixed the lone
+# reference (its issue #326).
+test_that("FULL-view lists collapsed to a bare object parse inside a batch", {
+  local_scopus_test_env()
+  httr2::local_mocked_responses(mock_collapsed_lists("FULL"))
+  ids <- c("10.1/arrays", "10.1/lone-reference", "10.1/lone-author")
+  ab <- expect_no_warning(scopus_abstract(ids, view = "FULL", include = "references"))
+  expect_equal(ab$doi, ids)
+  expect_equal(vapply(ab$references, nrow, integer(1)), c(1L, 1L, 1L))
+  expect_equal(ab$references[[1]]$authors, "Doe, A.; Roe, B.")
+  expect_equal(ab$references[[2]]$title, "A lone reference")
+  expect_equal(ab$references[[2]]$authors, "Doe, A.")
+  expect_equal(ab$references[[3]]$title, "A lone author")
+  expect_equal(ab$references[[3]]$authors, "Doe, A.")
+})
+
+test_that("REF-view lists collapsed to a bare object parse inside a batch", {
+  local_scopus_test_env()
+  httr2::local_mocked_responses(mock_collapsed_lists("REF"))
+  ids <- c("10.1/arrays", "10.1/lone-reference", "10.1/lone-author")
+  ab <- expect_no_warning(scopus_abstract(ids, view = "REF", include = "references"))
+  expect_equal(ab$id, ids)
+  expect_equal(vapply(ab$references, nrow, integer(1)), c(1L, 1L, 1L))
+  expect_equal(ab$references[[1]]$authors, "Doe, A.; Roe, B.")
+  expect_equal(ab$references[[2]]$title, "A lone reference")
+  expect_equal(ab$references[[2]]$authors, "Doe, A.")
+  expect_equal(ab$references[[3]]$title, "A lone author")
+  expect_equal(ab$references[[3]]$authors, "Doe, A.")
+})
+
+test_that("a batch holding a collapsed list completes, and resumes from its checkpoints", {
+  # The abort recurred on every resume, spending the request again each time.
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  calls <- 0L
+  serve <- mock_collapsed_lists("FULL")
+  httr2::local_mocked_responses(function(req) {
+    calls <<- calls + 1L
+    serve(req)
+  })
+  ids <- c("10.1/arrays", "10.1/lone-reference", "10.1/lone-author")
+  first <- scopus_abstract(ids, view = "FULL", include = "references", cache_dir = cache)
+  expect_equal(calls, 3L)
+  expect_length(list.files(cache, pattern = "^id-FULL-references-"), 3L)
+
+  again <- scopus_abstract(ids, view = "FULL", include = "references", cache_dir = cache)
+  expect_equal(calls, 3L)
+  expect_equal(again$references, first$references)
+})
+
+test_that("a reference list the parser cannot read costs its own row, not the batch", {
+  # Any error while the keywords or references are parsed is raised as a typed
+  # condition, which the per-identifier handler turns into an NA row with a
+  # warning. Like any failed retrieval, the row is not checkpointed.
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  unreadable <- list(list(
+    `@id` = "1",
+    `ref-info` = list(`ref-authors` = list(author = "Doe"))
+  ))
+  httr2::local_mocked_responses(function(req) {
+    doi <- mock_request_doi(req)
+    if (doi == "10.1/bad") {
+      return(mock_abstract_full(
+        core = list(`prism:doi` = doi), refcount = 1, references = unreadable
+      ))
+    }
+    mock_abstract_full(core = list(`prism:doi` = doi), refcount = 0)
+  })
+  expect_warning(
+    ab <- scopus_abstract(
+      c("10.1/bad", "10.1/good"), view = "FULL", include = "references",
+      cache_dir = cache
+    ),
+    "reference list"
+  )
+  expect_equal(ab$id, c("10.1/bad", "10.1/good"))
+  expect_true(is.na(ab$doi[1]))
+  expect_equal(ab$doi[2], "10.1/good")
+  expect_equal(attr(ab, "n_requests"), 2L)
+  expect_length(list.files(cache, pattern = "^id-"), 1L)
+
+  full <- list(item = list(bibrecord = list(tail = list(bibliography = list(
+    reference = unreadable
+  )))))
+  err <- expect_error(
+    scopusflow:::scopus_abstract_row(
+      "10.1/bad", list(), full = full, view = "FULL", include = "references"
+    ),
+    class = "scopus_error_malformed"
+  )
+  expect_s3_class(err, "scopus_error")
+  expect_false(is.null(err$parent))
+})
+
 test_that("a document with no resolvable references yields a zero-row data frame", {
   local_scopus_test_env()
   httr2::local_mocked_responses(function(req) {
@@ -306,6 +497,34 @@ test_that("an entitlement 403 stops the batch with a clear, actionable message",
   expect_equal(calls, 1L)
 })
 
+test_that("a 403 suggests the fallback that suits the refused view", {
+  local_scopus_test_env()
+  httr2::local_mocked_responses(function(req) mock_json_response(list(), status = 403L))
+  refusal <- function(...) {
+    tryCatch(
+      scopus_abstract(c("10.1/a", "10.1/b"), ...),
+      scopus_error_forbidden = conditionMessage
+    )
+  }
+  # The default, META_ABS: the request 0.4.0 made still gives the metadata.
+  meta_abs <- refusal()
+  expect_match(meta_abs, "view = \"META_ABS\"", fixed = TRUE)
+  expect_match(meta_abs, "view = NULL", fixed = TRUE)
+  expect_no_match(meta_abs, "FULL", fixed = TRUE)
+  # FULL or REF: the other of the two.
+  expect_match(
+    refusal(view = "REF", include = "references"),
+    "the other of \"FULL\"/\"REF\"", fixed = TRUE
+  )
+  # No view sent: the message still names the view Elsevier documents as the
+  # default, since sprintf() would print nothing for NULL. It suggests neither
+  # a reference view nor the request just refused.
+  no_view <- refusal(view = NULL)
+  expect_match(no_view, "view = \"META\"", fixed = TRUE)
+  expect_no_match(no_view, "FULL", fixed = TRUE)
+  expect_no_match(no_view, "view = NULL", fixed = TRUE)
+})
+
 test_that("caching writes per-identifier files and resume avoids re-fetching", {
   local_scopus_test_env()
   cache <- withr::local_tempdir()
@@ -361,7 +580,7 @@ test_that("identifiers colliding on one cache filename are never served each oth
   calls <- 0L
   httr2::local_mocked_responses(function(req) {
     calls <<- calls + 1L
-    doi <- utils::URLdecode(sub("^.*/doi/", "", req$url))
+    doi <- mock_request_doi(req)
     mock_abstract(list(`prism:doi` = doi, `dc:title` = doi))
   })
 

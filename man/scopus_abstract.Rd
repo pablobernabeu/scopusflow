@@ -7,7 +7,7 @@
 scopus_abstract(
   ids,
   by = c("doi", "scopus_id"),
-  view = NULL,
+  view = "META_ABS",
   include = character(),
   cache_dir = NULL,
   resume = TRUE,
@@ -23,12 +23,15 @@ Identifiers or 'Scopus' record identifiers (with or without the
 
 \item{by}{Either \code{"doi"} or \code{"scopus_id"}, the kind of identifier in \code{ids}.}
 
-\item{view}{Optional character scalar naming the Abstract Retrieval view to
-request: one of \code{"META"}, \code{"META_ABS"}, \code{"REF"} or \code{"FULL"}. \code{NULL} (the
-default) omits the \code{view} parameter from the request entirely, exactly as
-scopusflow has always done, so existing calls that never mention \code{view}
-are unaffected. Retrieving \code{include = "references"} requires \code{view = "FULL"} or \code{view = "REF"}; see \emph{Details} for how the two differ and which
-to prefer.}
+\item{view}{The Abstract Retrieval view to request: \code{"META_ABS"} (the
+default), \code{"META"}, \code{"REF"} or \code{"FULL"}, or \code{NULL}. \code{"META_ABS"} is the
+view Elsevier documents as carrying the abstract with the core metadata.
+\code{NULL} sends no \code{view} parameter, as scopusflow 0.4.0 and earlier did,
+and leaves the choice to the API. Elsevier documents its default as
+\code{"META"}, a view without the abstract, but a live request in October 2026
+returned the abstract without a view. Retrieving \code{include = "references"}
+requires \code{view = "FULL"} or \code{view = "REF"}; see \emph{Details} for how the two
+differ and which to prefer.}
 
 \item{include}{Optional character vector naming extra fields to retrieve in
 the same request: \code{"references"} and/or \code{"keywords"}. \code{"references"}

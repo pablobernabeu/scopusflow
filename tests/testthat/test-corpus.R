@@ -51,6 +51,28 @@ test_that("under REF view only references are requested and keywords are empty",
   expect_equal(nrow(corpus$references[[1]]), 1L)
 })
 
+test_that("a lone reference or a keyword without text no longer aborts the corpus", {
+  # The lone reference arrives as a bare object, and the keyword object carries
+  # only its attribute (pybliometrics issue #436).
+  local_scopus_test_env()
+  records <- tibble::tibble(doi = c("10.1/a", "10.1/b"), title = c("A", "B"), year = 2020L)
+  httr2::local_mocked_responses(function(req) {
+    mock_abstract_full(
+      core = list(`prism:doi` = mock_request_doi(req)),
+      authkeywords = list(`author-keyword` = list(`@_fa` = "true")),
+      refcount = 1,
+      references = list(
+        `@id` = "1",
+        `ref-info` = list(`ref-title` = list(`ref-titletext` = "A lone reference"))
+      )
+    )
+  })
+  corpus <- expect_no_warning(scopus_corpus(records, view = "FULL"))
+  expect_equal(corpus$id, c("10.1/a", "10.1/b"))
+  expect_equal(corpus$keywords, list(character(), character()))
+  expect_equal(corpus$references[[2]]$title, "A lone reference")
+})
+
 test_that("records with a missing identifier are dropped with a warning", {
   local_scopus_test_env()
   records <- tibble::tibble(doi = c("10.1/a", NA), title = c("A", "B"), year = c(2020L, 2021L))

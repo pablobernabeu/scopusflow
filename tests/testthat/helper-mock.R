@@ -151,6 +151,47 @@ mock_abstract_ref <- function(references = list(), total = length(references), s
   )
 }
 
+# The DOI an Abstract Retrieval request asks for, read from the request path,
+# so the query string the request also carries does not leak into it.
+mock_request_doi <- function(req) {
+  utils::URLdecode(sub("^.*/doi/", "", httr2::url_parse(req$url)$path))
+}
+
+# Abstract Retrieval responses for a batch of three DOIs under view "FULL" or
+# "REF". Elsevier's XML-to-JSON conversion sends a one-item array as a bare
+# object. "10.1/lone-reference" carries its only reference that way,
+# "10.1/lone-author" a reference whose only author arrives that way, and
+# "10.1/arrays" keeps both lists as arrays.
+mock_collapsed_lists <- function(view) {
+  given <- if (identical(view, "REF")) "ce:given-name" else "ce:initials"
+  author <- function(surname, initials) {
+    stats::setNames(list(surname, initials), c("ce:surname", given))
+  }
+  reference <- function(title, authors) {
+    info <- list(`ref-title` = list(`ref-titletext` = title))
+    list_name <- if (identical(view, "REF")) "author-list" else "ref-authors"
+    info[[list_name]] <- list(author = authors)
+    list(`@id` = "1", `ref-info` = info)
+  }
+  doe <- author("Doe", "A.")
+  roe <- author("Roe", "B.")
+  references <- list(
+    `10.1/arrays` = list(reference("Two authors", list(doe, roe))),
+    `10.1/lone-reference` = reference("A lone reference", list(doe)),
+    `10.1/lone-author` = list(reference("A lone author", doe))
+  )
+  function(req) {
+    doi <- mock_request_doi(req)
+    if (identical(view, "REF")) {
+      mock_abstract_ref(references = references[[doi]], total = 1)
+    } else {
+      mock_abstract_full(
+        core = list(`prism:doi` = doi), refcount = 1, references = references[[doi]]
+      )
+    }
+  }
+}
+
 # Load the bundled static page fixture as a parsed list.
 load_page_fixture <- function() {
   path <- system.file("extdata", "scopus_page.json", package = "scopusflow")

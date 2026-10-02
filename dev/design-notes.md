@@ -493,6 +493,44 @@ convention for bibliometrix users. The two are complementary exports for
 different downstream tools, matching how `as_bibtex()`/`as_ris()` sit
 alongside `as_bibliometrix()` already.
 
+## Abstract Retrieval: the default view and collapsed lists
+
+`scopus_abstract()` names `view = "META_ABS"` by default. Up to 0.4.0 it sent
+no view. Elsevier documents the view served then as META (the Abstract
+Retrieval WADL and the Scopus API Guide), and its views table lists the
+abstract, `dc:description`, only under META_ABS and FULL. A live request on 2
+October 2026 nonetheless returned the abstract without a view, so the old
+default did not visibly fail for that key. The view is named all the same. The
+`abstract` column should not rest on a server choice that the documentation
+contradicts and that may differ by entitlement, and the Python twin has named
+META_ABS since its first release. Keeping `NULL` as the default and
+documenting the live finding was therefore rejected. `view = NULL` still sends
+no view, and its checkpoints keep the `default` key, so a cache written by
+0.4.0 still serves it.
+
+Elsevier's XML-to-JSON conversion sends a one-item array as a bare object,
+which `jsonlite` parses as a named list, so iterating over it walks the
+object's fields. A lone reference in either view, or a lone author of a
+reference, aborted the whole batch that way, and every resume of it, with an
+untyped "subscript out of bounds" error. pybliometrics issue #326 shows the
+API sending a lone reference like this. A lone author has no recorded
+instance yet and is guarded the same way. `scopus_listify()` wraps any named
+list that is not empty, and the parser passes it the references, their
+authors, their item identifiers and the author keywords, so each list has one
+shape to iterate. An empty object becomes an empty list, as an absent one
+does, since wrapping it would add a reference or an author whose every field
+is missing. The keyword parser used to wrap only an object carrying a known
+field, a rule rejected here because an author-keyword object can carry its
+attribute alone (`{"@_fa": "true"}`, pybliometrics issue #436). Left
+unwrapped, that object was read field by field, giving the keyword "true".
+
+Any other error while the keywords or references are parsed is re-raised as
+`scopus_error_malformed`, with the original as its parent. The per-identifier
+handler records an `NA` row with a warning and does not checkpoint it, as for
+any failed retrieval. A resumed run therefore spends one request to retry the
+identifier, which a corrected parser in a later release can then read, where a
+checkpointed `NA` row would have hidden the document for good.
+
 ## Concept and intersection sizing
 
 `scopus_intersections()` and `plot_scopus_intersections()` size a named set of

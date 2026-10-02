@@ -9,6 +9,16 @@
   were bare `rlang_error` conditions with the same message. A retry loop keyed on
   `scopus_error` should test the subclass, since an input error will not succeed on
   retry.
+* `scopus_abstract()` now requests `view = "META_ABS"` by default, the view
+  Elsevier documents as carrying the abstract, as the Python twin does. It used to
+  send no view and so took the API's default, which Elsevier documents as META, a
+  view without the abstract. A live request in October 2026 nonetheless returned
+  the abstract without a view, so earlier default calls may well have carried it.
+  The column no longer depends on behaviour the documentation contradicts. Pass
+  `view = NULL` to send the old request. A default call's checkpoints are now
+  keyed `META_ABS`. A cache written by 0.4.0 for a call without a view therefore
+  serves only `view = NULL`, and a default call spends a request on each of its
+  identifiers again.
 
 ## Bug fixes
 
@@ -33,6 +43,15 @@
   single words are never bracketed, so
   `scopus_query("CRISPR", "Cas9", .op = "OR")` is unchanged. Terms are also
   trimmed of the white space the Python twin trims, no-break spaces included.
+* A reference list that arrives as a single bare object, which is how
+  Elsevier's JSON sends a one-item array, no longer aborts the whole
+  `scopus_abstract()` or `scopus_corpus()` batch, and every resume of it, with an
+  untyped "subscript out of bounds" error. Neither does a cited work whose
+  author list arrives that way. Any other shape the keyword or reference parser
+  cannot read is now handled as a malformed response (`scopus_error_malformed`).
+  That identifier gets a row of `NA`s and a warning and is retried on resume,
+  while the rest of the batch completes. A lone author-keyword entry that carries
+  no text, such as `{"@_fa": "true"}`, no longer becomes the keyword "true".
 
 ## Documentation
 

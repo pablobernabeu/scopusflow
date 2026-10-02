@@ -11,13 +11,15 @@
 #'   Identifiers or 'Scopus' record identifiers (with or without the
 #'   `"SCOPUS_ID:"` prefix), according to `by`.
 #' @param by Either `"doi"` or `"scopus_id"`, the kind of identifier in `ids`.
-#' @param view Optional character scalar naming the Abstract Retrieval view to
-#'   request: one of `"META"`, `"META_ABS"`, `"REF"` or `"FULL"`. `NULL` (the
-#'   default) omits the `view` parameter from the request entirely, exactly as
-#'   scopusflow has always done, so existing calls that never mention `view`
-#'   are unaffected. Retrieving `include = "references"` requires `view =
-#'   "FULL"` or `view = "REF"`; see *Details* for how the two differ and which
-#'   to prefer.
+#' @param view The Abstract Retrieval view to request: `"META_ABS"` (the
+#'   default), `"META"`, `"REF"` or `"FULL"`, or `NULL`. `"META_ABS"` is the
+#'   view Elsevier documents as carrying the abstract with the core metadata.
+#'   `NULL` sends no `view` parameter, as scopusflow 0.4.0 and earlier did,
+#'   and leaves the choice to the API. Elsevier documents its default as
+#'   `"META"`, a view without the abstract, but a live request in October 2026
+#'   returned the abstract without a view. Retrieving `include = "references"`
+#'   requires `view = "FULL"` or `view = "REF"`; see *Details* for how the two
+#'   differ and which to prefer.
 #' @param include Optional character vector naming extra fields to retrieve in
 #'   the same request: `"references"` and/or `"keywords"`. `"references"`
 #'   requires `view = "FULL"` or `view = "REF"`, and `"keywords"` requires
@@ -152,7 +154,7 @@
 #' @export
 scopus_abstract <- function(ids,
                             by = c("doi", "scopus_id"),
-                            view = NULL,
+                            view = "META_ABS",
                             include = character(),
                             cache_dir = NULL,
                             resume = TRUE,
@@ -294,13 +296,15 @@ scopus_abstract <- function(ids,
             "Abstract Retrieval refused view = \"%s\" (HTTP 403) for %s. This ",
             "usually means your 'Scopus' API key's entitlement does not cover ",
             "the requested view or field; contact your Scopus/Elsevier account ",
-            "holder or institutional administrator to request access, or, if ",
-            "you have not already, try the other of \"FULL\"/\"REF\". Stopping ",
+            "holder or institutional administrator to request access%s. Stopping ",
             "rather than repeating the same failure for the remaining %d ",
             "identifier%s (this entitlement is an account-level property, not ",
             "a per-document one, so it will not succeed on retry)."
           ),
-          view %||% "META", ids[i], remaining, if (remaining == 1L) "" else "s"
+          # sprintf() prints nothing at all for a NULL argument, so a refusal
+          # of the request without a view names the default Elsevier documents.
+          view %||% "META", ids[i], scopus_forbidden_hint(view), remaining,
+          if (remaining == 1L) "" else "s"
         ),
         class = c("scopus_error_forbidden", "scopus_error"),
         call = rlang::caller_env()
@@ -347,6 +351,21 @@ scopus_check_include <- function(include, call = rlang::caller_env()) {
     )
   }
   unique(include)
+}
+
+# The fallback a 403 message suggests, which depends on the view refused, as
+# in the Python twin. Either reference view may be entitled where the other is
+# not. A key refused META_ABS can fall back on the request without a view that
+# 0.4.0 and earlier made. META, or no view at all, leaves nothing lighter to
+# suggest.
+scopus_forbidden_hint <- function(view) {
+  if (identical(view, "FULL") || identical(view, "REF")) {
+    ", or, if you have not already, try the other of \"FULL\"/\"REF\""
+  } else if (identical(view, "META_ABS")) {
+    ", or pass `view = NULL` to request the metadata without naming a view"
+  } else {
+    ""
+  }
 }
 
 # A filesystem-safe cache key for an identifier: non-alphanumerics become "_",
@@ -436,35 +455,72 @@ scopus_abstract_row <- function(id, core, full = list(), view = NULL, include = 
     stringsAsFactors = FALSE
   )
   if ("keywords" %in% include) {
-    row$authkeywords <- scopus_parse_authkeywords(full)
+    row$authkeywords <- scopus_parse_optional(
+      scopus_parse_authkeywords(full), "author keywords"
+    )
   }
   if ("references" %in% include) {
-    row$references <- list(scopus_parse_references(full, view))
+    row$references <- list(scopus_parse_optional(
+      scopus_parse_references(full, view), "reference list"
+    ))
   }
   row
 }
 
+# Evaluate the parse of an optional, nested part of a response (the keywords
+# or the references) and re-raise any error as a typed condition. The shape of
+# these parts varies with Elsevier's XML-to-JSON conversion. A base R error
+# from a shape not foreseen here escaped scopus_abstract()'s per-identifier
+# handler and aborted the whole batch, and every resume of it. As a
+# scopus_error it costs that identifier an NA row and a warning, and the row is
+# not checkpointed, so a resumed run retries it.
+scopus_parse_optional <- function(parse, what) {
+  tryCatch(parse, error = function(e) {
+    rlang::abort(
+      sprintf(
+        "The 'Scopus' abstract response carried its %s in a shape scopusflow cannot parse.",
+        what
+      ),
+      class = c("scopus_error_malformed", "scopus_error"),
+      parent = e
+    )
+  })
+}
+
 # Author keywords from an Abstract Retrieval response, joined "; " to match
 # the `authors` column's convention. `authkeywords` may be absent, a single
-# `author-keyword` object, or a list of them (a common Elsevier XML-to-JSON
-# quirk where a single-item array collapses to a bare object).
+# `author-keyword` object (a one-item array collapsed to a bare object, see
+# scopus_listify()) or a list of them. Only entries carrying text are kept. An
+# author-keyword object can arrive with its attribute alone, as
+# {"@_fa": "true"} (pybliometrics issue #436), and a lone one used to be read
+# field by field, giving the keyword "true".
 scopus_parse_authkeywords <- function(full) {
   ak <- full[["authkeywords"]]
-  if (is.null(ak)) {
-    return(NA_character_)
-  }
-  items <- ak[["author-keyword"]] %||% ak
-  if (is.null(items)) {
-    return(NA_character_)
-  }
-  if (!is.null(names(items)) && "$" %in% names(items)) {
-    items <- list(items)  # a single keyword collapsed to a bare object
-  }
+  items <- scopus_listify(if (is.list(ak)) ak[["author-keyword"]] %||% ak else ak)
   text <- vapply(items, function(x) {
-    if (is.list(x)) as.character(x[["$"]] %||% NA_character_) else as.character(x)
+    value <- if (is.list(x)) x[["$"]] else x
+    if (length(value) == 1L) as.character(value) else NA_character_
   }, character(1))
   text <- text[!is.na(text) & nzchar(text)]
   if (length(text) == 0L) NA_character_ else paste(text, collapse = "; ")
+}
+
+# Elsevier's XML-to-JSON conversion sends a one-item array as a bare object. A
+# list the API documents as an array can then arrive parsed as a named list
+# (one JSON object), and iterating over it walks the object's fields. This
+# gives each such list one shape to iterate. An absent or empty list becomes an
+# empty one, and so does an empty object, which carries no item and would
+# otherwise add a reference or an author whose every field is missing. A bare
+# object is wrapped as a one-item list, and anything else is returned
+# unchanged.
+scopus_listify <- function(x) {
+  if (length(x) == 0L) {
+    list()
+  } else if (is.list(x) && !is.null(names(x))) {
+    list(x)
+  } else {
+    x
+  }
 }
 
 # Structured references from an Abstract Retrieval response, as a data frame
@@ -486,13 +542,13 @@ scopus_parse_references <- function(full, view) {
   if (identical(view, "REF")) {
     bib <- full[["references"]]
     total <- suppressWarnings(as.integer(bib[["@total-references"]]))
-    items <- bib[["reference"]]
   } else {
     bib <- chained_get(full, c("item", "bibrecord", "tail", "bibliography"))
     total <- suppressWarnings(as.integer(bib[["@refcount"]]))
-    items <- bib[["reference"]]
   }
-  if (is.null(items) || length(items) == 0L) {
+  # A lone reference arrives as a bare object in either view.
+  items <- scopus_listify(bib[["reference"]])
+  if (length(items) == 0L) {
     return(empty)
   }
   rows <- lapply(items, scopus_parse_one_reference, view = view)
@@ -518,9 +574,7 @@ scopus_parse_one_reference <- function(item, view) {
   info <- item[["ref-info"]] %||% item
   if (identical(view, "REF")) {
     authors <- (info[["author-list"]] %||% list())[["author"]]
-    author_names <- vapply(authors %||% list(), function(a) {
-      paste(stats::na.omit(c(a[["ce:surname"]], a[["ce:given-name"]])), collapse = ", ")
-    }, character(1))
+    author_names <- scopus_reference_authors(authors, "ce:given-name")
     doi <- info[["ce:doi"]]
     ref_id <- info[["scopus-id"]]
     # `ref-title` appears to be a shared field name across REF and FULL views,
@@ -531,9 +585,7 @@ scopus_parse_one_reference <- function(item, view) {
     year <- scopus_parse_year(info[["ref-coverdate"]] %||% info[["prism:coverDate"]])
   } else {
     authors <- chained_get(info, c("ref-authors", "author"))
-    author_names <- vapply(authors %||% list(), function(a) {
-      paste(stats::na.omit(c(a[["ce:surname"]], a[["ce:initials"]])), collapse = ", ")
-    }, character(1))
+    author_names <- scopus_reference_authors(authors, "ce:initials")
     ids <- chained_get(info, c("refd-itemidlist", "itemid")) %||% list()
     doi <- scopus_select_itemid(ids, "DOI")
     ref_id <- scopus_select_itemid(ids, "SGR")
@@ -554,14 +606,20 @@ scopus_parse_one_reference <- function(item, view) {
   )
 }
 
+# "Surname, Given" for each author of one cited reference. The given names sit
+# in `ce:given-name` under REF and in `ce:initials` under FULL, and a lone
+# author arrives as a bare object.
+scopus_reference_authors <- function(authors, given_field) {
+  vapply(scopus_listify(authors), function(a) {
+    paste(stats::na.omit(c(a[["ce:surname"]], a[[given_field]])), collapse = ", ")
+  }, character(1))
+}
+
 # Pick the itemid entry of a given @idtype from a FULL-view refd-itemidlist,
 # which may be a single object or a list of them.
 scopus_select_itemid <- function(ids, idtype) {
-  if (!is.null(names(ids)) && "@idtype" %in% names(ids)) {
-    ids <- list(ids)
-  }
-  for (item in ids) {
-    if (identical(item[["@idtype"]], idtype)) {
+  for (item in scopus_listify(ids)) {
+    if (is.list(item) && identical(item[["@idtype"]], idtype)) {
       return(item[["$"]])
     }
   }
