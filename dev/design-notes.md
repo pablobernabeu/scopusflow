@@ -179,9 +179,14 @@ conditions, transient classification, offline handling, caching and resume,
 plotting where ggplot2 is present, the I/O round-trips and key handling. An
 offline request-contract test pins the outbound URL, query parameters and auth
 header, so a change to the request shape is caught even though no real request is
-made. Spelling is enforced during `R CMD check` through `tests/spelling.R`, and a
-`_R_CHECK_DEPENDS_ONLY_` CI run proves the Imports are declared correctly. The
-mocks cannot tell whether the live API has changed, so a weekly, key-gated live
+made. Spelling is checked by `tests/spelling.R`, which fails `R CMD check`
+wherever `NOT_CRAN` is true: under `devtools::check()` and across the GitHub
+Actions matrix, where setup-r sets it. The test is skipped on CRAN, in a plain
+`R CMD check` and by `devtools::test()`, which runs only `tests/testthat`. It
+raises an error because the NOTE it used to produce left CI green and let
+unlisted words reach the 0.4.0 release. A `_R_CHECK_DEPENDS_ONLY_` CI run
+proves the Imports are declared correctly. The mocks cannot tell whether the
+live API has changed, so a weekly, key-gated live
 smoke test checks that a real query still returns the documented, populated
 schema. It skips itself, staying green, until a `SCOPUS_API_KEY` secret is added.
 
@@ -190,6 +195,13 @@ schema. It skips itself, staying green, until a `SCOPUS_API_KEY` secret is added
 Every export carries roxygen2 documentation with fast, fixture-based examples.
 The package also ships a README, ten vignettes driven by the bundled corpus and
 by fixtures, an `inst/CITATION` file, a `NEWS.md` and a `cran-comments.md`.
+
+The README names no version number. It is knitted into the tarball before CRAN
+accepts a submission, so a version typed into it is wrong on CRAN from the day
+of release: the README inside 0.4.0 said CRAN carried 0.1.0. The CRAN badge
+shows the live version, and NEWS lists what each release added. A typed version
+kept in step by a CI check was considered and rejected, since the README on
+GitHub and on the site would then name a version CRAN had not yet accepted.
 
 ### How chunk output is presented
 

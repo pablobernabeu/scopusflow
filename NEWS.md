@@ -1,3 +1,16 @@
+# scopusflow (development version)
+
+## Documentation
+
+* The README no longer names the version CRAN carries. The README inside the 0.4.0
+  tarball said CRAN carried 0.1.0, because the figure was typed by hand and a README
+  is built before CRAN accepts a submission. The installation section now points to
+  NEWS for what each release added.
+* The spelling test now fails a check run with `NOT_CRAN` set, as in
+  `devtools::check()` and on GitHub Actions, where an unknown word used to surface
+  only as a NOTE that left the run green. CRAN and a plain `R CMD check` still skip
+  the test. The word list gains the eleven names and terms that had slipped past it.
+
 # scopusflow 0.4.0
 
 A release about reporting a search and about trusting the cache. The package now
@@ -156,8 +169,8 @@ later resume.
 * `rlang`'s floor is corrected to 1.1.0. The evidence for it is httr2 1.0.0's own
   DESCRIPTION, which requires `rlang (>= 1.1.0)`, so the old floor described a
   combination no user could have installed. It is CRAN-visible metadata.
-* The live API check's documented request cost, the cache guard's description in the
-  documentation and vignette, and the path to the Python twin's copy of the example
+* The documented request cost of the live API check, the cache guard's description in
+  the documentation and vignette, and the path to the Python twin's copy of the example
   records were all corrected.
 
 # scopusflow 0.3.0

@@ -71,27 +71,15 @@ article builds the same table and explains every column.
 
 ## Installation
 
-```{r cran-version, include = FALSE}
-# The version that is currently on CRAN, named once here and used in the prose
-# below so that the page never states it twice. Nothing in the build can work
-# this out for itself: querying CRAN while the README knits would make the page
-# depend on the network and on a service that may be slow or unreachable, and
-# would also break an offline check. BUMP cran_version WHENEVER A RELEASE
-# REACHES CRAN. It lags DESCRIPTION's Version field, which moves as soon as
-# development starts on the next version, so the two are not interchangeable.
-cran_version <- "0.1.0"
-```
-
 The released version is on CRAN.
 
 ```r
 install.packages("scopusflow")
 ```
 
-CRAN carries version `r cran_version`. Much of what this page describes arrived
-after that release, among it cursor paging, abstract and reference retrieval,
-the trend, top-source and intersection plots, and the code-free app. Until the
-next CRAN release those live on GitHub.
+The development version, which may be ahead of CRAN, installs from GitHub.
+[NEWS](https://pablobernabeu.github.io/scopusflow/news/index.html) lists what
+each release added.
 
 ```r
 # install.packages("pak")

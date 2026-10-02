@@ -48,10 +48,10 @@ The released version is on CRAN.
 install.packages("scopusflow")
 ```
 
-CRAN carries version 0.1.0. Much of what this page describes arrived
-after that release, among it cursor paging, abstract and reference
-retrieval, the trend, top-source and intersection plots, and the
-code-free app. Until the next CRAN release those live on GitHub.
+The development version, which may be ahead of CRAN, installs from
+GitHub.
+[NEWS](https://pablobernabeu.github.io/scopusflow/news/index.html) lists
+what each release added.
 
 ``` r
 # install.packages("pak")

@@ -1,10 +1,15 @@
 ACS
 API's
+Ayala
 CMD
 CR
+CSVs
 DOIs
 EndNote
 ISI
+Kirtley
+Koffel
+LF
 Lifecycle
 Mendeley
 ORCID
@@ -17,6 +22,7 @@ SCOPUS
 Scopus
 Scopus’
 Search's
+Waffenschmidt
 Zenodo
 Zotero
 autoplot
@@ -30,12 +36,16 @@ clearable
 cli
 deduplicated
 deduplication
+doi
 gTree
 ggplot
+httr
 inspectable
 microsupercapacitors
 npc
+pkgdown
 pybliometrics
+refetch
 refetched
 refetches
 refetching
@@ -48,4 +58,5 @@ supercapacitors
 tibble
 tidyverse
 unnested
+untruncated
 zenodo
