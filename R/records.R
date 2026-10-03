@@ -13,18 +13,20 @@
 #' @param query Optional character scalar recording the query that produced the
 #'   entries, kept in the `query` column for provenance.
 #' @param view Optional character scalar naming the Search API view the entries
-#'   came from. Pass `"COMPLETE"` to add an `authkeywords` column (see below);
-#'   any other value, including the default `NULL`, reproduces the original
-#'   columns exactly, so existing callers that never mention `view` see no
-#'   change at all. [scopus_fetch()] and [scopus_fetch_plan()] pass this through
-#'   automatically.
+#'   came from. Pass `"COMPLETE"` to read `authors` from the author list that
+#'   view carries and to add an `authkeywords` column (see below). Any other
+#'   value, including the default `NULL`, reads the first author and reproduces
+#'   the original columns exactly, so existing callers that never mention
+#'   `view` see no change at all. [scopus_fetch()] and [scopus_fetch_plan()]
+#'   pass this through automatically.
 #' @return A tibble of class `scopus_records` with the columns
 #'   `entry_number` (integer), `scopus_id` (character), `doi` (character),
-#'   `title` (character), `authors` (character, the creator names joined with
-#'   `"; "` when several are listed), `year` (integer, the leading four digits of
-#'   the cover date), `date` (character, the ISO cover date), `publication`
-#'   (character, the source title), `citations` (integer) and `query`
-#'   (character). A missing field becomes `NA`, and an empty result set yields a
+#'   `title` (character), `authors` (character, the author list under
+#'   `view = "COMPLETE"` and the first author otherwise, as *Details* explains),
+#'   `year` (integer, the leading four digits of the cover date), `date`
+#'   (character, the ISO cover date), `publication` (character, the source
+#'   title), `citations` (integer) and `query` (character). A missing field
+#'   becomes `NA`, and an empty result set yields a
 #'   zero-row tibble with the same columns. When `view = "COMPLETE"`, an
 #'   `authkeywords` column is added: the author-supplied keywords the 'Scopus'
 #'   Search API returns under that view, as a single string in 'Scopus'
@@ -35,6 +37,27 @@
 #' carries an `error` field and no identifier. This is detected and turned into a
 #' zero-row result, with no spurious record in it, while a genuine record that also
 #' carries a per-entry `error` annotation is kept.
+#'
+#' What `authors` holds depends on the view. The Search API's `dc:creator`
+#' field is the first author alone under either view, in the indexed form
+#' 'Scopus' uses (`"Zhang F."`). The author list arrives only under
+#' `view = "COMPLETE"`, as the `author` objects Elsevier's views table lists
+#' for that view alone. A `STANDARD` record therefore names its first author,
+#' and a tally of `STANDARD` authors counts first authorships. A harvest
+#' records its view in the `view` attribute (see [scopus_fetch()]), and
+#' [scopus_top()] and [as_bibliometrix()] say once per session that a set
+#' retrieved under `STANDARD` names first authors only. Under `COMPLETE`, each
+#' author is written as `"Surname, Given"`, as the surname alone when the given
+#' name is missing or empty, or as the indexed name when the surname is
+#' missing. Exact duplicates are dropped. The API lists at most 100 authors per
+#' record, and its `author-count` field gives the total. A record whose list
+#' names nobody falls back to `dc:creator`. The Python twin builds the same
+#' string from pybliometrics' `author_names` in the common case, and parts
+#' company at two edges. Where an author object lacks a `surname` or
+#' `given-name` key, pybliometrics builds no list, so that twin keeps the first
+#' author while this one lists every author. Where a surname is null or empty,
+#' pybliometrics writes the given name after a bare comma, and this package uses
+#' the indexed name.
 #'
 #' Author keywords are only ever present under `view = "COMPLETE"`; the
 #' `STANDARD` view (the default throughout the package) never includes them,
@@ -177,12 +200,21 @@ scopus_entry_to_row <- function(entry, i, query, view = NULL) {
   citations <- scopus_field(entry, "citedby-count")
   citations <- if (is.na(citations)) NA_integer_ else suppressWarnings(as.integer(citations))
 
+  # dc:creator is the first author under either view. The author list is the
+  # `author` array, which only the COMPLETE view carries.
+  authors <- if (identical(view, "COMPLETE") && is.list(entry)) {
+    scopus_complete_authors(entry[["author"]])
+  } else {
+    NA_character_
+  }
+  if (is.na(authors)) authors <- scopus_field(entry, "dc:creator")
+
   row <- data.frame(
     entry_number = as.integer(i),
     scopus_id = scopus_id,
     doi = scopus_field(entry, "prism:doi"),
     title = scopus_field(entry, "dc:title"),
-    authors = scopus_field(entry, "dc:creator"),
+    authors = authors,
     year = year,
     date = date,
     publication = scopus_field(entry, "prism:publicationName"),
@@ -196,12 +228,73 @@ scopus_entry_to_row <- function(entry, i, query, view = NULL) {
   row
 }
 
+# The author list of one COMPLETE-view entry, as "Surname, Given" names joined
+# by "; ", or NA when no author can be named. Exact copies are dropped, as
+# pybliometrics' deduplicate() drops them, so the Python twin builds the same
+# string from the same entry. A lone author sent as a bare object, which is how
+# Elsevier's JSON sends a one-item array, is wrapped by scopus_listify().
+scopus_complete_authors <- function(authors) {
+  authors <- scopus_listify(authors)
+  authors <- authors[!duplicated(authors)]
+  listed <- vapply(authors, scopus_complete_author_name, character(1),
+                   USE.NAMES = FALSE)
+  listed <- listed[!is.na(listed)]
+  if (length(listed) == 0L) NA_character_ else paste(listed, collapse = "; ")
+}
+
+# One author's name: the surname alone when the given name is missing or
+# blank, and the indexed form (`authname`, "Zhang F.") when the surname is. The
+# joined name is trimmed as a whole, as the Python twin trims the
+# "Surname, Given" string pybliometrics writes, so the twins agree byte for byte
+# even on a name padded with white space.
+scopus_complete_author_name <- function(author) {
+  part <- function(name) {
+    value <- if (is.list(author)) author[[name]] else NULL
+    if (length(value) != 1L || !is.atomic(value) || is.na(value)) {
+      return(NA_character_)
+    }
+    value <- as.character(value)
+    if (nzchar(scopus_trim(value))) value else NA_character_
+  }
+  surname <- part("surname")
+  if (is.na(surname)) {
+    authname <- part("authname")
+    return(if (is.na(authname)) NA_character_ else scopus_trim(authname))
+  }
+  given <- part("given-name")
+  if (is.na(given)) scopus_trim(surname) else scopus_trim(paste0(surname, ", ", given))
+}
+
+# Say, once per session, that a set retrieved under STANDARD names first
+# authors only. It is raised where those names would otherwise be read as every
+# author: scopus_top(by = "author") and as_bibliometrix(). A set that records
+# no view, such as the bundled corpus or a set read back from CSV, cannot be
+# judged and passes in silence. The text is shared with the Python twin through
+# tests/testthat/fixtures/complete-authors.json.
+scopus_warn_first_author_only <- function(x) {
+  if (!identical(attr(x, "view"), "STANDARD")) {
+    return(invisible(NULL))
+  }
+  rlang::warn(
+    paste0(
+      "These records were retrieved under the STANDARD view, whose dc:creator ",
+      "field holds the first author only, so each record names one author and ",
+      "an author tally counts first authorships. Retrieve with view = ",
+      "\"COMPLETE\" for the author list (up to 100 authors per record)."
+    ),
+    class = "scopus_warning_first_author_only",
+    .frequency = "once",
+    .frequency_id = "scopusflow_first_author_only"
+  )
+}
+
 # Pull a character field from an entry, returning NA when absent. A field that
-# arrives as an array of scalars (for example several authors under `dc:creator`,
-# which jsonlite keeps as a list because the response is parsed with
-# simplifyVector = FALSE) is collapsed into one semicolon-separated string rather
-# than silently reduced to its first element. A field that is a list of objects
-# is not a simple value and is reported as missing.
+# arrives as an array of scalars, which jsonlite keeps as a list because the
+# response is parsed with simplifyVector = FALSE, is collapsed into one
+# semicolon-separated string rather than silently reduced to its first
+# element. None of the fields read here is sent that way. A field that is a list
+# of objects, such as the COMPLETE view's `author` array, is not a simple value
+# and is reported as missing.
 scopus_field <- function(entry, name) {
   if (!is.list(entry) || is.null(entry[[name]])) {
     return(NA_character_)

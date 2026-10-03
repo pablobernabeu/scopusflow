@@ -175,6 +175,20 @@ test_that("run_app is exported and guarded", {
   expect_true(is.function(run_app))
 })
 
+test_that("the authors tab says when a STANDARD harvest names first authors only", {
+  standard <- complete <- example_records
+  attr(standard, "view") <- "STANDARD"
+  attr(complete, "view") <- "COMPLETE"
+  expect_identical(
+    app_authors_note(standard),
+    "STANDARD view: first authors only. Choose COMPLETE under Detail to tally every author."
+  )
+  expect_null(app_authors_note(complete))
+  # The demo replays the bundled corpus, which records no view.
+  expect_null(app_authors_note(app_demo_records(2019:2020)))
+  expect_null(app_authors_note(NULL))
+})
+
 # Inputs for a server test: a key in the box, demo mode off unless asked.
 app_test_inputs <- function(session, query, demo = FALSE, ...) {
   session$setInputs(
@@ -269,4 +283,27 @@ test_that("Compare refuses a blank query and compares in demo mode", {
     )
   })
   expect_false(requested)
+})
+
+test_that("the authors tab notes a STANDARD harvest, and leaves the session's warning", {
+  skip_if_not_installed("shiny")
+  skip_if_not_installed("ggplot2")
+  rlang::reset_warning_verbosity("scopusflow_first_author_only")
+  withr::defer(rlang::reset_warning_verbosity("scopusflow_first_author_only"))
+  standard <- example_records
+  attr(standard, "view") <- "STANDARD"
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = "graphene")
+    rv$records <- standard
+    session$flushReact()
+    expect_match(output$authors_note$html, "first authors only", fixed = TRUE)
+    # Drawing the tally must not spend the once-per-session warning, which the
+    # note has already given in the app.
+    expect_no_warning(output$plot_authors)
+    rv$records <- example_records
+    session$flushReact()
+    expect_false(grepl("first authors only", output$authors_note$html %||% "", fixed = TRUE))
+  })
+  expect_warning(scopus_top(standard, by = "author"),
+                 class = "scopus_warning_first_author_only")
 })

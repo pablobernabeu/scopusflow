@@ -124,7 +124,11 @@ app_ui <- function() {
       bslib::nav_panel("Records", shiny::tableOutput("records_table")),
       bslib::nav_panel("By year", shiny::plotOutput("plot_year", height = "320px")),
       bslib::nav_panel("Top sources", shiny::plotOutput("plot_sources", height = "320px")),
-      bslib::nav_panel("Top authors", shiny::plotOutput("plot_authors", height = "320px")),
+      bslib::nav_panel(
+        "Top authors",
+        shiny::uiOutput("authors_note"),
+        shiny::plotOutput("plot_authors", height = "320px")
+      ),
       bslib::nav_panel(
         "Compare topics",
         # fillable = FALSE so the content flows normally and the plot keeps its
@@ -475,11 +479,23 @@ app_server <- function(input, output, session) {
     plot_scopus_top(scopus_top(recs, by = "source"))
   })
 
+  output$authors_note <- shiny::renderUI({
+    note <- app_authors_note(records_r())
+    if (is.null(note)) NULL else shiny::p(shiny::tags$small(note))
+  })
+
   output$plot_authors <- shiny::renderPlot({
     recs <- records_r()
     shiny::validate(shiny::need(!is.null(recs), "Fetch records to plot them."),
                     shiny::need(rlang::is_installed("ggplot2"), "Install ggplot2 to see plots."))
-    plot_scopus_top(scopus_top(recs, by = "author"))
+    # The note above the plot says what a STANDARD tally counts. Quiet
+    # verbosity keeps scopus_top() from spending its once-per-session warning
+    # here, so the warning still reaches the user's own code once the app closes.
+    top <- rlang::with_options(
+      scopus_top(recs, by = "author"),
+      rlib_warning_verbosity = "quiet"
+    )
+    plot_scopus_top(top)
   })
 
   output$dl_script <- shiny::downloadHandler(

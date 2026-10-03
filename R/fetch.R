@@ -29,7 +29,9 @@
 #'   offset or by cursor. The date and version matter because `citations` is a
 #'   snapshot value that keeps moving, so two saved sets are only comparable if
 #'   each records when it was taken, and [scopus_search_report()] reads all of
-#'   them back. They survive a `.rds` round trip through
+#'   them back. `view` records the view, which decides what `authors` holds: the
+#'   first author under `STANDARD` and the author list under `COMPLETE` (see
+#'   [scopus_records()]). These attributes survive a `.rds` round trip through
 #'   [write_scopus_records()] but not a `.csv` one, which carries columns only.
 #' @section API access:
 #' Requires a valid API key and internet access. The *API access* section of
@@ -156,7 +158,8 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
   all_entries <- unlist(pages, recursive = FALSE)
   if (is.null(all_entries)) all_entries <- list()
   records <- scopus_records(list(entry = all_entries), query = wrapped, view = view)
-  scopus_attach_provenance(records, total = total, quota = quota, paging = "offset")
+  scopus_attach_provenance(records, total = total, quota = quota, paging = "offset",
+                           view = view)
 }
 
 # When a retrieval was taken, by which version of the package, and how it was
@@ -165,15 +168,19 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
 # cannot say when it was taken cannot honestly be compared with another. The
 # paging mode belongs with them because it decides what the set can contain: an
 # offset-paged query stops at the API's ceiling where a cursor-paged one does
-# not, and a search report has to state which was used. Attributes, never
-# columns, so the documented schema and the CSV round-trip are untouched.
-scopus_attach_provenance <- function(records, total, quota, paging) {
+# not, and a search report has to state which was used. The view belongs with
+# them for the same reason. It decides whether `authors` holds the first author
+# or the author list, and an author tally of a STANDARD set has to say that it
+# counts first authorships. Attributes, never columns, so the documented schema
+# and the CSV round-trip are untouched.
+scopus_attach_provenance <- function(records, total, quota, paging, view) {
   attr(records, "total_results") <- total
   attr(records, "quota") <- quota
   attr(records, "retrieved_at") <- Sys.time()
   attr(records, "scopusflow_version") <-
     as.character(utils::packageVersion("scopusflow"))
   attr(records, "paging") <- paging
+  attr(records, "view") <- view
   records
 }
 
@@ -243,7 +250,8 @@ scopus_fetch_cursor <- function(wrapped, date, view, page_size, max_results,
   all_entries <- unlist(pages, recursive = FALSE)
   if (is.null(all_entries)) all_entries <- list()
   records <- scopus_records(list(entry = all_entries), query = wrapped, view = view)
-  scopus_attach_provenance(records, total = total, quota = quota, paging = "cursor")
+  scopus_attach_provenance(records, total = total, quota = quota, paging = "cursor",
+                           view = view)
 }
 
 scopus_check_max_results <- function(max_results, call = rlang::caller_env()) {

@@ -21,7 +21,10 @@
 #'   is served trimmed to that cap, the fuller set staying on disk. A
 #'   checkpoint that cannot be read back, for example one left half-written by
 #'   an interrupted run, is also treated as a miss, and never aborts the
-#'   harvest.
+#'   harvest. A `COMPLETE` checkpoint written by a release that read `authors`
+#'   from the first author alone (0.4.0 and earlier) is a miss as well, and is
+#'   refetched once with a warning. `STANDARD` checkpoints from those releases
+#'   are served as before, since their authors were read correctly.
 #' @param resume Logical. When `TRUE` and `cache_dir` is set, a cell whose cache
 #'   file already exists is loaded from disk, sparing a second request.
 #' @param api_key,inst_token Optional credentials (see [scopus_has_key()]).
@@ -43,7 +46,8 @@
 #'   contributed is listed, since resuming an older cache means more than one
 #'   did. Both are omitted when any cell cannot supply them, as a checkpoint
 #'   written before they existed cannot. Dating the whole from the part of it
-#'   that can be dated would misreport the set.
+#'   that can be dated would misreport the set. `paging` and `view` are kept
+#'   where every cell records the same one.
 #' @section API access:
 #' Any cell not served from cache requires a valid API key and internet access.
 #' The *API access* section of [scopus_count()] gives the details.
@@ -117,16 +121,21 @@ scopus_fetch_plan <- function(plan,
         reported[i] <- scopus_reported_total(results[[i]])
         next
       } else {
-        rlang::warn(
-          sprintf(
-            paste0("The checkpoint %s was written under a different request ",
-                   "(query, view, page size or max_results), so it was ",
-                   "discarded and the cell refetched. Give each plan its own ",
-                   "cache_dir."),
-            cache_file
-          ),
-          class = "scopus_warning_cache_mismatch"
-        )
+        # A checkpoint that fits the request in every other respect failed on
+        # the way its records were built, which no choice of cache_dir avoids,
+        # so the usual advice would mislead.
+        text <- if (scopus_cell_cache_fits(cached, cell, max_results)) {
+          paste0("The checkpoint %s was written before COMPLETE-view records ",
+                 "carried the author list, so it was discarded and the cell ",
+                 "refetched.")
+        } else {
+          paste0("The checkpoint %s was written under a different request ",
+                 "(query, view, page size or max_results), so it was ",
+                 "discarded and the cell refetched. Give each plan its own ",
+                 "cache_dir.")
+        }
+        rlang::warn(sprintf(text, cache_file),
+                    class = "scopus_warning_cache_mismatch")
       }
     }
 
@@ -217,7 +226,8 @@ scopus_cell_cache_name <- function(cell) {
 # `complete` records whether the cell ran to the end of its result set rather
 # than stopping at `max_results`: a cap that never bit leaves the checkpoint
 # usable however large a later request, while one that did truncate must be
-# refetched when more is asked for.
+# refetched when more is asked for. `records_schema` records how the records
+# were built (see scopus_records_schema()).
 scopus_cell_cache_meta <- function(cell, max_results, recs) {
   total <- attr(recs, "total_results")
   complete <- is.infinite(max_results) || nrow(recs) < max_results ||
@@ -228,21 +238,53 @@ scopus_cell_cache_meta <- function(cell, max_results, recs) {
     view = cell$view,
     page_size = cell$page_size,
     max_results = max_results,
-    complete = complete
+    complete = complete,
+    records_schema = scopus_records_schema()
   )
 }
 
-# Whether a cached checkpoint can serve a plan cell. Records written by
-# scopus_fetch_core() carry the wrapped query in their `query` column, so a
-# checkpoint left behind by a different plan sharing the same cache_dir is
-# recognised and treated as a cache miss: the cell is refetched and the
-# checkpoint overwritten. The manifest written beside the records is compared
-# as well, including its own copy of the query: a zero-row checkpoint has no
-# query column values, so the record-column guard passes it vacuously, and
-# without the manifest's copy an empty cell written under one query would
-# serve any other. A checkpoint carrying neither query nor manifest (one
-# written by an older scopusflow) is loaded as before.
+# The version of the way records are built from a response. Version 2 reads
+# `authors` from the COMPLETE view's author list, where every earlier release
+# read dc:creator, the first author, under either view. Raise it when a change
+# to the parsing makes earlier checkpoints wrong. scopus_cell_cache_current()
+# then needs the views that change touches, since it judges COMPLETE
+# checkpoints alone, and the warning in scopus_fetch_plan() needs its reason,
+# since it names the author list.
+scopus_records_schema <- function() 2L
+
+# Whether a cached checkpoint can serve a plan cell: it must fit the request
+# and hold records built the way this release builds them.
 scopus_cell_cache_matches <- function(cached, cell, max_results) {
+  scopus_cell_cache_fits(cached, cell, max_results) &&
+    scopus_cell_cache_current(cached, cell)
+}
+
+# Whether a checkpoint's records were built the way this release builds them.
+# A COMPLETE checkpoint from before schema 2 holds first authors where the
+# author list belongs, so it is refetched once, and one with no manifest at all
+# is older still. A STANDARD checkpoint of any age was read correctly, since
+# dc:creator is all that view carries, so it costs no quota.
+scopus_cell_cache_current <- function(cached, cell) {
+  if (!identical(cell$view, "COMPLETE")) {
+    return(TRUE)
+  }
+  schema <- attr(cached, "cache_meta")$records_schema
+  is.numeric(schema) && length(schema) == 1L && !is.na(schema) &&
+    schema >= scopus_records_schema()
+}
+
+# Whether a cached checkpoint answers the request a plan cell makes. Records
+# written by scopus_fetch_core() carry the wrapped query in their `query`
+# column, so a checkpoint left behind by a different plan sharing the same
+# cache_dir is recognised and treated as a cache miss: the cell is refetched
+# and the checkpoint overwritten. The manifest written beside the records is
+# compared as well, including its own copy of the query: a zero-row checkpoint
+# has no query column values, so the record-column guard passes it vacuously,
+# and without the manifest's copy an empty cell written under one query would
+# serve any other. A checkpoint carrying neither query nor manifest (one
+# written by an older scopusflow) fits as before, and
+# scopus_cell_cache_current() then decides whether its records can be used.
+scopus_cell_cache_fits <- function(cached, cell, max_results) {
   q <- if (is.data.frame(cached)) cached[["query"]] else NULL
   if (!is.null(q)) {
     q <- unique(q[!is.na(q)])
@@ -265,13 +307,20 @@ scopus_cell_cache_matches <- function(cached, cell, max_results) {
 # matches any max_results, so it can hold more rows than are being asked for
 # now; the surplus is trimmed from the served copy only, leaving the fuller
 # set on disk for a later, wider request. The provenance attributes are
-# restated explicitly, since subsetting cannot be trusted to keep them.
+# restated explicitly, since subsetting cannot be trusted to keep them. A
+# checkpoint written before records carried their view still names it in its
+# manifest, which scopus_cell_cache_fits() has checked against the cell, so the
+# view is restored from there.
 scopus_serve_checkpoint <- function(cached, max_results) {
+  if (is.null(attr(cached, "view"))) {
+    attr(cached, "view") <- attr(cached, "cache_meta")$view
+  }
   if (!is.finite(max_results) || nrow(cached) <= max_results) {
     return(cached)
   }
   out <- utils::head(cached, max_results)
-  for (a in c("total_results", "quota", "retrieved_at", "scopusflow_version", "paging")) {
+  for (a in c("total_results", "quota", "retrieved_at", "scopusflow_version",
+              "paging", "view")) {
     attr(out, a) <- attr(cached, a)
   }
   out
@@ -359,10 +408,14 @@ scopus_bind_provenance <- function(bound, records_list) {
   # The paging mode is claimed only when every cell agrees on it, for the same
   # reason as the time: one mode standing for a set that mixes two would be a
   # provenance field stating something untrue of part of what it describes.
-  paging <- unique(unlist(lapply(records_list, attr, "paging")))
-  if (length(paging) == 1L && length(records_list) ==
-      sum(!vapply(lapply(records_list, attr, "paging"), is.null, logical(1)))) {
-    attr(bound, "paging") <- paging
+  # The view follows the same rule, since a STANDARD part bound to a COMPLETE
+  # one makes a set whose authors are neither all first authors nor all lists.
+  for (a in c("paging", "view")) {
+    values <- lapply(records_list, attr, a)
+    if (!any(vapply(values, is.null, logical(1))) &&
+        length(unique(unlist(values))) == 1L) {
+      attr(bound, a) <- unique(unlist(values))
+    }
   }
   bound
 }

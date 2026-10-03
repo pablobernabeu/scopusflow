@@ -52,6 +52,18 @@
   That identifier gets a row of `NA`s and a warning and is retried on resume,
   while the rest of the batch completes. A lone author-keyword entry that carries
   no text, such as `{"@_fa": "true"}`, no longer becomes the keyword "true".
+* The `authors` column held only the first author. The Search API's
+  `dc:creator` field is the first author alone, and the author list exists only
+  under `view = "COMPLETE"`, where scopusflow ignored it. Under `COMPLETE` the
+  column now lists the authors as `"Surname, Given"`, joined by `"; "` (up to the
+  API's 100 per record), so author tallies, `as_bibliometrix()` and the BibTeX
+  and RIS exports see every author. Under `STANDARD` it still holds the first
+  author, and `scopus_top(by = "author")` and `as_bibliometrix()` now say so once
+  per session, as a note on the app's Top authors tab does. Retrievals record
+  their view as the `view` attribute, which a combined set keeps where its parts
+  agree. `COMPLETE`-view checkpoints written by earlier versions are refetched
+  once, and `STANDARD` ones are served as before. This corrects the 0.1.0 entry,
+  which said the column retained every author a record lists.
 
 ## Documentation
 

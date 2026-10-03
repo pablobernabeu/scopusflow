@@ -197,3 +197,15 @@ load_page_fixture <- function() {
   path <- system.file("extdata", "scopus_page.json", package = "scopusflow")
   jsonlite::fromJSON(path, simplifyVector = FALSE)
 }
+
+# The COMPLETE-view entry the Python suite reads too, byte for byte, with the
+# authors string and the first-author warning both twins must produce.
+complete_authors_fixture <- function() {
+  jsonlite::fromJSON(test_path("fixtures", "complete-authors.json"),
+                     simplifyVector = FALSE)
+}
+
+# Parse one Search API entry from JSON, as a response body is parsed.
+parse_entry <- function(json) {
+  jsonlite::fromJSON(json, simplifyVector = FALSE)
+}

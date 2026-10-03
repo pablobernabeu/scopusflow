@@ -7,14 +7,53 @@ test_that("scopus_top tallies sources, counting the modal one highest", {
 })
 
 test_that("scopus_top splits multi-author strings and honours n", {
+  # Several names reach the column only from the COMPLETE view's author array,
+  # since dc:creator is the first author alone.
   recs <- scopus_records(list(entry = list(
-    list(`dc:creator` = list("Smith J.", "Doe A.")),
-    list(`dc:creator` = "Smith J.")
-  )))
+    parse_entry(paste0('{"dc:creator": "Smith J.", "author": [',
+                       '{"surname": "Smith", "given-name": "J."}, ',
+                       '{"surname": "Doe", "given-name": "A."}]}')),
+    parse_entry('{"dc:creator": "Smith J.", "author": [{"surname": "Smith", "given-name": "J."}]}')
+  )), view = "COMPLETE")
   top <- scopus_top(recs, by = "author")
-  expect_equal(top$value[1], "Smith J.")
-  expect_equal(top$n[1], 2L)
+  expect_equal(top$value, c("Smith, J.", "Doe, A."))
+  expect_equal(top$n, c(2L, 1L))
   expect_equal(nrow(scopus_top(example_records, by = "author", n = 3)), 3L)
+})
+
+test_that("an author tally of a STANDARD harvest says once that it counts first authors", {
+  # The sentinel lives for the whole session, so it is cleared on both sides
+  # of the test, which would otherwise depend on the order the tests run in.
+  rlang::reset_warning_verbosity("scopusflow_first_author_only")
+  withr::defer(rlang::reset_warning_verbosity("scopusflow_first_author_only"))
+  standard <- example_records
+  attr(standard, "view") <- "STANDARD"
+  w <- expect_warning(scopus_top(standard, by = "author"),
+                      class = "scopus_warning_first_author_only")
+  # The wording is shared with the Python twin through the fixture.
+  expect_identical(w$message, complete_authors_fixture()$first_author_warning)
+  # Once per session, and one warning covers as_bibliometrix() as well.
+  expect_no_warning(scopus_top(standard, by = "author"))
+  expect_no_warning(as_bibliometrix(standard))
+})
+
+test_that("the first-author warning is reserved for author tallies of STANDARD sets", {
+  # With verbosity forced, every call that should warn does, so each silence
+  # below is the function declining to warn.
+  withr::local_options(rlib_warning_verbosity = "verbose")
+  standard <- complete <- example_records
+  attr(standard, "view") <- "STANDARD"
+  attr(complete, "view") <- "COMPLETE"
+  expect_warning(scopus_top(standard, by = "author"),
+                 class = "scopus_warning_first_author_only")
+  # A set that records no view, as the bundled corpus records none, cannot be
+  # judged, and a COMPLETE set lists its authors.
+  expect_no_warning(scopus_top(example_records, by = "author"))
+  expect_no_warning(scopus_top(complete, by = "author"))
+  # A source tally and the reference-manager exports are not author tallies.
+  expect_no_warning(scopus_top(standard, by = "source"))
+  expect_no_warning(as_bibtex(standard))
+  expect_no_warning(as_ris(standard))
 })
 
 test_that("scopus_top rejects bad input", {

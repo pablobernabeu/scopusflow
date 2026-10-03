@@ -133,6 +133,7 @@ test_that("a checkpoint holding more than the request is served trimmed to the c
   expect_equal(nrow(recs), 2L)
   # Provenance survives the trim.
   expect_s3_class(attr(recs, "retrieved_at"), "POSIXct")
+  expect_identical(attr(recs, "view"), "STANDARD")
 
   # The checkpoint on disk keeps all five rows for a later, wider request.
   expect_equal(nrow(scopus_fetch_plan(plan, cache_dir = cache, resume = TRUE)), 5L)
@@ -255,7 +256,9 @@ test_that("scopus_fetch_plan(view = 'COMPLETE') carries authkeywords through", {
 
 test_that("resuming a cache written without authkeywords does not error", {
   # Simulates upgrading scopusflow mid-harvest: an older cached cell lacks the
-  # authkeywords column entirely, while a newly fetched cell has it.
+  # authkeywords column and the manifest, while a newly fetched cell has both.
+  # That older cell also predates the COMPLETE author list, so it is fetched
+  # again, where it used to be bound in as it stood.
   local_scopus_test_env()
   cache <- withr::local_tempdir()
   old_cell <- scopus_records(list(entry = list(list(`prism:doi` = "10.1/old"))))
@@ -265,11 +268,120 @@ test_that("resuming a cache written without authkeywords does not error", {
   httr2::local_mocked_responses(function(req) mock_search_results(entries, total = 1L))
   plan <- scopus_plan("x", years = 2019:2020, partition = "year", view = "COMPLETE")
 
-  recs <- scopus_fetch_plan(plan, cache_dir = cache, resume = TRUE)
+  expect_warning(
+    recs <- scopus_fetch_plan(plan, cache_dir = cache, resume = TRUE),
+    class = "scopus_warning_cache_mismatch"
+  )
   expect_equal(nrow(recs), 2L)
-  expect_true("authkeywords" %in% names(recs))
-  expect_true(is.na(recs$authkeywords[recs$doi == "10.1/old"]))
-  expect_equal(recs$authkeywords[recs$doi == "10.1/new"], "graphene")
+  expect_equal(recs$authkeywords, c("graphene", "graphene"))
+
+  # Sets whose columns differ still bind, the missing column filled with NA.
+  mixed <- scopus_combine(old_cell, recs)
+  expect_true(is.na(mixed$authkeywords[mixed$doi == "10.1/old"]))
+  expect_equal(mixed$authkeywords[mixed$doi == "10.1/new"], c("graphene", "graphene"))
+})
+
+test_that("a COMPLETE checkpoint from before the author list was read is refetched once", {
+  # Such a checkpoint holds first authors under COMPLETE, the defect the author
+  # list fixes, and serving it would carry the defect into every resumed
+  # harvest. Its manifest lacks records_schema, or it has no manifest at all.
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  fx <- complete_authors_fixture()
+  calls <- 0L
+  httr2::local_mocked_responses(function(req) {
+    calls <<- calls + 1L
+    mock_search_results(list(fx$entry), total = 1L)
+  })
+  plan <- scopus_plan("x", years = 2020, view = "COMPLETE")
+  scopus_fetch_plan(plan, cache_dir = cache, resume = TRUE)
+  file <- list.files(cache, pattern = "^cell-", full.names = TRUE)
+
+  # What 0.4.0 wrote for the same cell: the first author alone, and a manifest
+  # without the schema.
+  old <- readRDS(file)
+  old$authors <- "Cong L."
+  meta <- attr(old, "cache_meta")
+  meta$records_schema <- NULL
+  attr(old, "cache_meta") <- meta
+  saveRDS(old, file)
+
+  expect_warning(
+    recs <- scopus_fetch_plan(plan, cache_dir = cache, resume = TRUE),
+    "before COMPLETE-view records carried the author list", fixed = TRUE,
+    class = "scopus_warning_cache_mismatch"
+  )
+  expect_equal(calls, 2L)
+  expect_identical(recs$authors, fx$expected_authors)
+
+  # The checkpoint written in its place is served from then on.
+  expect_no_warning(again <- scopus_fetch_plan(plan, cache_dir = cache, resume = TRUE))
+  expect_equal(calls, 2L)
+  expect_identical(again$authors, fx$expected_authors)
+
+  # A checkpoint without a manifest, as releases before 0.4.0 wrote, is
+  # refetched too.
+  bare <- readRDS(file)
+  attr(bare, "cache_meta") <- NULL
+  saveRDS(bare, file)
+  expect_warning(scopus_fetch_plan(plan, cache_dir = cache, resume = TRUE),
+                 class = "scopus_warning_cache_mismatch")
+  expect_equal(calls, 3L)
+})
+
+test_that("a STANDARD checkpoint from before the schema was recorded is still served", {
+  # dc:creator was always the right reading of a STANDARD record, so these
+  # checkpoints cost no quota.
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  calls <- 0L
+  httr2::local_mocked_responses(function(req) {
+    calls <<- calls + 1L
+    mock_corpus(total = 2L)(req)
+  })
+  plan <- scopus_plan("x", years = 2020)
+  scopus_fetch_plan(plan, cache_dir = cache, resume = TRUE)
+  file <- list.files(cache, pattern = "^cell-", full.names = TRUE)
+  old <- readRDS(file)
+  meta <- attr(old, "cache_meta")
+  meta$records_schema <- NULL
+  attr(old, "cache_meta") <- meta
+  attr(old, "view") <- NULL
+  saveRDS(old, file)
+
+  expect_no_warning(recs <- scopus_fetch_plan(plan, cache_dir = cache, resume = TRUE))
+  expect_equal(calls, 1L)
+  expect_equal(nrow(recs), 2L)
+  # The records predate the view attribute, and the manifest, checked against
+  # the cell, still names the view they were fetched under.
+  expect_identical(attr(recs, "view"), "STANDARD")
+})
+
+test_that("a retrieval records the view it was fetched under", {
+  local_scopus_test_env()
+  httr2::local_mocked_responses(mock_corpus(total = 2L))
+  expect_identical(attr(scopus_fetch("x"), "view"), "STANDARD")
+  expect_identical(attr(scopus_fetch("x", view = "COMPLETE"), "view"), "COMPLETE")
+  plan <- scopus_plan("x", years = 2019:2020, partition = "year", view = "COMPLETE")
+  expect_identical(attr(scopus_fetch_plan(plan), "view"), "COMPLETE")
+
+  httr2::local_mocked_responses(mock_cursor_corpus(total = 2L))
+  expect_identical(attr(scopus_fetch("x", cursor = TRUE), "view"), "STANDARD")
+})
+
+test_that("a combined set keeps its view only where every part records the same one", {
+  local_scopus_test_env()
+  httr2::local_mocked_responses(mock_corpus(total = 1L))
+  standard <- scopus_fetch("x")
+  complete <- scopus_fetch("x", view = "COMPLETE")
+  expect_identical(attr(scopus_combine(standard, standard, dedupe = TRUE), "view"),
+                   "STANDARD")
+  expect_null(attr(scopus_combine(standard, complete), "view"))
+  # A part that records no view leaves the whole without one, as a part that
+  # cannot be dated leaves it undated.
+  unrecorded <- standard
+  attr(unrecorded, "view") <- NULL
+  expect_null(attr(scopus_combine(standard, unrecorded), "view"))
 })
 
 test_that("a combined harvest is dated by its oldest cell", {

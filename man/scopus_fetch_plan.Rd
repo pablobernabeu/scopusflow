@@ -33,7 +33,10 @@ A checkpoint holding more records than the current \code{max_results} asks for
 is served trimmed to that cap, the fuller set staying on disk. A
 checkpoint that cannot be read back, for example one left half-written by
 an interrupted run, is also treated as a miss, and never aborts the
-harvest.}
+harvest. A \code{COMPLETE} checkpoint written by a release that read \code{authors}
+from the first author alone (0.4.0 and earlier) is a miss as well, and is
+refetched once with a warning. \code{STANDARD} checkpoints from those releases
+are served as before, since their authors were read correctly.}
 
 \item{resume}{Logical. When \code{TRUE} and \code{cache_dir} is set, a cell whose cache
 file already exists is loaded from disk, sparing a second request.}
@@ -60,7 +63,8 @@ set is only as fresh as its oldest cell, and every version that
 contributed is listed, since resuming an older cache means more than one
 did. Both are omitted when any cell cannot supply them, as a checkpoint
 written before they existed cannot. Dating the whole from the part of it
-that can be dated would misreport the set.
+that can be dated would misreport the set. \code{paging} and \code{view} are kept
+where every cell records the same one.
 }
 \description{
 Runs every cell of a \code{\link[=scopus_plan]{scopus_plan()}} in turn, optionally caching each cell's

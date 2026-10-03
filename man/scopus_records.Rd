@@ -29,11 +29,12 @@ is_scopus_records(x)
 entries, kept in the \code{query} column for provenance.}
 
 \item{view}{Optional character scalar naming the Search API view the entries
-came from. Pass \code{"COMPLETE"} to add an \code{authkeywords} column (see below);
-any other value, including the default \code{NULL}, reproduces the original
-columns exactly, so existing callers that never mention \code{view} see no
-change at all. \code{\link[=scopus_fetch]{scopus_fetch()}} and \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} pass this through
-automatically.}
+came from. Pass \code{"COMPLETE"} to read \code{authors} from the author list that
+view carries and to add an \code{authkeywords} column (see below). Any other
+value, including the default \code{NULL}, reads the first author and reproduces
+the original columns exactly, so existing callers that never mention
+\code{view} see no change at all. \code{\link[=scopus_fetch]{scopus_fetch()}} and \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}
+pass this through automatically.}
 }
 \value{
 The coercion methods return a plain \link[tibble:tibble]{tibble} or data
@@ -44,11 +45,12 @@ year.
 
 A tibble of class \code{scopus_records} with the columns
 \code{entry_number} (integer), \code{scopus_id} (character), \code{doi} (character),
-\code{title} (character), \code{authors} (character, the creator names joined with
-\code{"; "} when several are listed), \code{year} (integer, the leading four digits of
-the cover date), \code{date} (character, the ISO cover date), \code{publication}
-(character, the source title), \code{citations} (integer) and \code{query}
-(character). A missing field becomes \code{NA}, and an empty result set yields a
+\code{title} (character), \code{authors} (character, the author list under
+\code{view = "COMPLETE"} and the first author otherwise, as \emph{Details} explains),
+\code{year} (integer, the leading four digits of the cover date), \code{date}
+(character, the ISO cover date), \code{publication} (character, the source
+title), \code{citations} (integer) and \code{query} (character). A missing field
+becomes \code{NA}, and an empty result set yields a
 zero-row tibble with the same columns. When \code{view = "COMPLETE"}, an
 \code{authkeywords} column is added: the author-supplied keywords the 'Scopus'
 Search API returns under that view, as a single string in 'Scopus'
@@ -69,6 +71,27 @@ The 'Scopus' API signals an empty result set with a single sentinel entry that
 carries an \code{error} field and no identifier. This is detected and turned into a
 zero-row result, with no spurious record in it, while a genuine record that also
 carries a per-entry \code{error} annotation is kept.
+
+What \code{authors} holds depends on the view. The Search API's \code{dc:creator}
+field is the first author alone under either view, in the indexed form
+'Scopus' uses (\code{"Zhang F."}). The author list arrives only under
+\code{view = "COMPLETE"}, as the \code{author} objects Elsevier's views table lists
+for that view alone. A \code{STANDARD} record therefore names its first author,
+and a tally of \code{STANDARD} authors counts first authorships. A harvest
+records its view in the \code{view} attribute (see \code{\link[=scopus_fetch]{scopus_fetch()}}), and
+\code{\link[=scopus_top]{scopus_top()}} and \code{\link[=as_bibliometrix]{as_bibliometrix()}} say once per session that a set
+retrieved under \code{STANDARD} names first authors only. Under \code{COMPLETE}, each
+author is written as \code{"Surname, Given"}, as the surname alone when the given
+name is missing or empty, or as the indexed name when the surname is
+missing. Exact duplicates are dropped. The API lists at most 100 authors per
+record, and its \code{author-count} field gives the total. A record whose list
+names nobody falls back to \code{dc:creator}. The Python twin builds the same
+string from pybliometrics' \code{author_names} in the common case, and parts
+company at two edges. Where an author object lacks a \code{surname} or
+\code{given-name} key, pybliometrics builds no list, so that twin keeps the first
+author while this one lists every author. Where a surname is null or empty,
+pybliometrics writes the given name after a bare comma, and this package uses
+the indexed name.
 
 Author keywords are only ever present under \code{view = "COMPLETE"}; the
 \code{STANDARD} view (the default throughout the package) never includes them,

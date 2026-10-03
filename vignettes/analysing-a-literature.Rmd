@@ -82,17 +82,24 @@ spread across 90 journals, and only *ACS Applied Materials & Interfaces*, with
 eight, appears more than five times. The author tally is flatter still, with 119
 distinct authors, the most prolific of whom contributed three papers.
 
-An author string that holds several names is split, so each contributor is
-counted once per record. The bundled corpus names only the first author of each
-paper, so it cannot show that happening. Two records with placeholder names can,
-and the same splitting applies to the semicolon-joined author lists a live
-harvest returns.
+Which authors a record names depends on the view it was retrieved under. The
+`STANDARD` view, the default, carries the first author alone, so a tally by
+author of a `STANDARD` harvest counts first authorships, and `scopus_top()` says
+so once per session. The `COMPLETE` view carries the author list, up to 100
+names per record, which `scopus_records()` writes as `"Surname, Given"` names
+joined by `"; "`. The tally splits that list, so each contributor is counted
+once per record. The bundled corpus names only the first author of each paper
+and cannot show the split, but two entries in the shape the `COMPLETE` view
+returns, with placeholder names, can.
 
 ```{r}
 multi <- scopus_records(list(entry = list(
-  list(`dc:creator` = "Author A.; Author B."),
-  list(`dc:creator` = "Author B.")
-)))
+  list(`dc:creator` = "Author A.",
+       author = list(list(surname = "Author", `given-name` = "A."),
+                     list(surname = "Author", `given-name` = "B."))),
+  list(`dc:creator` = "Author B.",
+       author = list(list(surname = "Author", `given-name` = "B.")))
+)), view = "COMPLETE")
 scopus_top(multi, by = "author")
 ```
 

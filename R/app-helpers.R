@@ -176,6 +176,18 @@ app_demo_records <- function(years, max_per_year = Inf) {
   tibble::new_tibble(as.list(df[cols]), nrow = nrow(df), class = "scopus_records")
 }
 
+# The note shown above the authors plot, or NULL when none is needed. A
+# STANDARD harvest names the first author of each record alone, so its tally
+# counts first authorships and would otherwise be read as a tally of every
+# author. The demo replays the bundled corpus, which records no view, so it
+# shows no note.
+app_authors_note <- function(records) {
+  if (!identical(attr(records, "view"), "STANDARD")) {
+    return(NULL)
+  }
+  "STANDARD view: first authors only. Choose COMPLETE under Detail to tally every author."
+}
+
 # Synthesise a plausible topic comparison so the compare flow works offline,
 # mirroring the Python app's _demo_comparison. Each term is given a different base
 # share and growth rate; the rows are built and sorted exactly as

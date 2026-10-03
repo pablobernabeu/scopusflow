@@ -93,7 +93,11 @@ print.scopus_trend <- function(x, ...) {
 #' @param x A [scopus_records] tibble.
 #' @param by What to tally: `"source"` (the publication titles) or `"author"`.
 #'   Author strings holding several names separated by `"; "` are split, so each
-#'   contributor is counted once per record.
+#'   contributor is counted once per record. Only a `view = "COMPLETE"`
+#'   retrieval holds several names, since `STANDARD` records carry the first
+#'   author alone (see [scopus_records()]). A tally by author of a set retrieved
+#'   under `STANDARD` therefore counts first authorships, and says so with a
+#'   warning of class `scopus_warning_first_author_only`, once per session.
 #' @param n The number of rows to return (the top `n`).
 #' @return A tibble of class `scopus_top` with columns `value` and `n`, sorted by
 #'   descending count, with ties broken by `value` in byte order so the result is
@@ -107,7 +111,8 @@ print.scopus_trend <- function(x, ...) {
 #' scopus_top(example_records, by = "source")
 #'
 #' # That corpus names one author per article, so the author tally counts
-#' # first authors; a live harvest lists every author and splits them.
+#' # first authors. A harvest retrieved with view = "COMPLETE" lists every
+#' # author, and the tally splits them.
 #' scopus_top(example_records, by = "author", n = 5)
 #' @export
 scopus_top <- function(x, by = c("source", "author"), n = 10L) {
@@ -122,6 +127,9 @@ scopus_top <- function(x, by = c("source", "author"), n = 10L) {
     scopus_abort_bad_input(
       "`n` must be a single positive whole number."
     )
+  }
+  if (identical(by, "author")) {
+    scopus_warn_first_author_only(x)
   }
 
   values <- switch(

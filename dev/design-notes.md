@@ -191,9 +191,13 @@ other when a record appeared in more than one year cell.
 
 ## Robustness
 
-Responses are parsed with `simplifyVector = FALSE`, so an array-valued field such
-as several authors under `dc:creator` arrives as a list, and `scopus_field()`
-collapses it to a semicolon-separated string, so no co-author is silently dropped.
+Responses are parsed with `simplifyVector = FALSE`, so a field that arrives as
+an array is kept as a list. `scopus_field()` collapses an array of scalars to a
+semicolon-separated string, where keeping its first element would lose the
+rest. None of the fields the records read is sent that way. `dc:creator` in
+particular is one name, the first author, under either view, and the author
+list exists only under `COMPLETE` (see *Authors: the first author or the author
+list* below).
 The empty-result sentinel is recognised only when an entry carries an `error` field
 *and* no identifier, so a real record with a per-entry error annotation is not
 dropped. Totals are carried as doubles, since broad queries can report billions of
@@ -219,6 +223,52 @@ unchanged. The alternative of documenting that argument-matching errors come
 from rlang was rejected, since a caller cannot know which arguments are matched
 that way. An input error is not transient, so code that retries on
 `scopus_error` has to test the subclass.
+
+## Authors: the first author or the author list
+
+Elsevier's Search views table lists `dc:creator` as the first author in both
+views, and the `author` objects (`authid`, `authname`, `surname`, `given-name`
+and the rest) as the complete author list under `COMPLETE` alone. A live check
+on 2 October 2026 agreed, finding only `dc:creator` under `STANDARD` and the
+whole array under `COMPLETE`. Up to 0.4.0 the `authors` column read
+`dc:creator` in every view, so it held the first author everywhere while the
+documentation promised every author. The tests mocked an array-valued
+`dc:creator` the API never sends. Author tallies, bibliometrix collaboration
+measures and exports were built on first authors.
+
+The column now follows the API. Under `COMPLETE` it is built from the `author`
+array, each name written `"Surname, Given"` and joined by `"; "`, the separator
+the tally and the exporters already split on. The API lists at most 100 authors
+per record, and `author-count` gives the total. The Python twin joins
+pybliometrics' `author_names`, which uses a bare `";"`, the same way, so the
+twins build byte-identical strings, held to one shared fixture
+(`tests/testthat/fixtures/complete-authors.json`). Exact duplicate author
+objects are dropped, as pybliometrics' `deduplicate()` drops them.
+De-duplicating by `authid` was considered and rejected, since the twins would
+then disagree wherever the array lists one author in two positions. Two edges
+remain where pybliometrics parses differently, and both twins document them. An
+author object without a `surname` or `given-name` key leaves pybliometrics
+building no list, and a null or empty surname is written after a bare comma.
+Under `STANDARD` the column keeps the first author, the only name that view
+carries.
+
+A set's view travels as the `view` attribute. An author tally (`scopus_top()`)
+or a bibliometrix conversion of a `STANDARD` set warns that its authors are
+first authors. The two share one `rlang::warn()` frequency id, so a session
+sees the warning once, whichever function meets the set first. The
+reference-manager exports stay silent, since a BibTeX or RIS entry with one
+author is a correct export of what the record holds, and a warning there would
+fire on every routine export. The app's Top authors tab says the same in a note
+above the plot and draws its tally under quiet verbosity, which leaves the
+session's one warning for the user's own code.
+
+Checkpoints written before the change are handled by view. A `COMPLETE`
+checkpoint holds first authors where the list belongs, so a manifest without
+`records_schema`, or no manifest at all, makes it a cache miss, refetched once
+with a warning that names the reason. A `STANDARD` checkpoint was always read
+correctly and is served as before, at no cost. The Python twin needs no refetch,
+since its old `COMPLETE` checkpoints already held the list, joined with `";"`,
+and are joined again as they are served.
 
 ## Naming
 

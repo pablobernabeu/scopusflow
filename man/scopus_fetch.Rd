@@ -63,7 +63,9 @@ the harvest is dated by \code{retrieved_at} (a \code{POSIXct}) and
 offset or by cursor. The date and version matter because \code{citations} is a
 snapshot value that keeps moving, so two saved sets are only comparable if
 each records when it was taken, and \code{\link[=scopus_search_report]{scopus_search_report()}} reads all of
-them back. They survive a \code{.rds} round trip through
+them back. \code{view} records the view, which decides what \code{authors} holds: the
+first author under \code{STANDARD} and the author list under \code{COMPLETE} (see
+\code{\link[=scopus_records]{scopus_records()}}). These attributes survive a \code{.rds} round trip through
 \code{\link[=write_scopus_records]{write_scopus_records()}} but not a \code{.csv} one, which carries columns only.
 }
 \description{

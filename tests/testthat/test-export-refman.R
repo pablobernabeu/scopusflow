@@ -24,16 +24,28 @@ test_that("as_ris emits a JOUR record per row, terminated with ER", {
 })
 
 test_that("BibTeX escapes special characters and splits authors", {
+  # dc:creator is the first author alone. The list comes from the COMPLETE
+  # view's author array.
   recs <- scopus_records(list(entry = list(
     list(`dc:title` = "Cost & benefit: 50% of $x",
-         `dc:creator` = list("Smith J.", "Doe A."),
+         `dc:creator` = "Smith J.",
+         author = list(list(surname = "Smith", `given-name` = "J."),
+                       list(surname = "Doe", `given-name` = "A.")),
          `prism:coverDate` = "2021-01-01")
-  )))
+  )), view = "COMPLETE")
   bib <- as_bibtex(recs)
   expect_true(grepl("Cost \\& benefit: 50\\% of \\$x", bib, fixed = TRUE))
-  expect_true(grepl("Smith J. and Doe A.", bib, fixed = TRUE))
+  expect_true(grepl("Smith, J. and Doe, A.", bib, fixed = TRUE))
   # Key is derived from first-author surname + year.
   expect_true(grepl("@article{smith2021,", bib, fixed = TRUE))
+})
+
+test_that("RIS gives each author of a COMPLETE record a line of its own", {
+  fx <- complete_authors_fixture()
+  ris <- as_ris(scopus_records(list(entry = list(fx$entry)), view = "COMPLETE"))
+  expect_true(grepl(
+    "AU  - Cong, Le\nAU  - Zhang, Feng\nAU  - Doudna, Jennifer A.\n", ris, fixed = TRUE
+  ))
 })
 
 test_that("missing fields are skipped, not emitted as NA", {

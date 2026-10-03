@@ -48,11 +48,93 @@ test_that("bad input is rejected", {
   expect_error(scopus_records(42), class = "scopus_error_bad_input")
 })
 
-test_that("multiple authors are kept, not truncated to the first", {
+test_that("COMPLETE records list every author, as the Python twin does", {
+  # dc:creator is the first author under either view, and the author list is
+  # the `author` array, which only the COMPLETE view carries. The column was
+  # read from dc:creator alone, so this record gave "Cong L.". The Python suite
+  # reads the same fixture and must return the same string.
+  fx <- complete_authors_fixture()
+  recs <- scopus_records(list(entry = list(fx$entry)), view = "COMPLETE")
+  expect_identical(recs$authors, fx$expected_authors)
+
+  # A null or empty given name, which pybliometrics writes as the surname and
+  # a bare comma, leaves the surname alone in both twins.
+  blank <- fx$entry
+  blank$author <- fx$blank_given_names$author
+  recs <- scopus_records(list(entry = list(blank)), view = "COMPLETE")
+  expect_identical(recs$authors, fx$blank_given_names$expected_authors)
+})
+
+test_that("STANDARD records hold the first author, as dc:creator gives it", {
+  fx <- complete_authors_fixture()
+  standard <- fx$entry[setdiff(names(fx$entry), c("author", "author-count"))]
+  recs <- scopus_records(list(entry = list(standard)), view = "STANDARD")
+  expect_identical(recs$authors, "Cong L.")
+  # Only the COMPLETE view reads the author array, so the view-less default
+  # keeps the original column even for an entry that carries one.
+  expect_identical(scopus_records(list(entry = list(fx$entry)))$authors, "Cong L.")
+})
+
+test_that("an author's name falls back as far as the entry allows", {
+  complete_authors <- function(authors) {
+    entry <- parse_entry(sprintf('{"dc:creator": "First F.", "author": %s}', authors))
+    scopus_records(list(entry = list(entry)), view = "COMPLETE")$authors
+  }
+  # A missing or blank given name leaves the surname alone.
+  expect_identical(
+    complete_authors('[{"surname": "Cong"}, {"surname": "Zhang", "given-name": " "}]'),
+    "Cong; Zhang"
+  )
+  # A missing or null surname falls back to authname, the indexed form.
+  expect_identical(
+    complete_authors(paste0('[{"authname": "Cong L.", "given-name": "Le"}, ',
+                            '{"authname": "Zhang F.", "surname": null, "given-name": "Feng"}]')),
+    "Cong L.; Zhang F."
+  )
+  # A lone author sent as a bare object, as Elsevier's JSON sends a one-item
+  # array, is still read.
+  expect_identical(complete_authors('{"surname": "Cong", "given-name": "Le"}'), "Cong, Le")
+  # Only exact copies are dropped, as pybliometrics drops them, so the twins
+  # agree on an author the array lists in two positions.
+  expect_identical(
+    complete_authors(paste0('[{"@seq": "1", "surname": "Cong", "given-name": "Le"}, ',
+                            '{"@seq": "2", "surname": "Cong", "given-name": "Le"}]')),
+    "Cong, Le; Cong, Le"
+  )
+  # With no author left to name, the column falls back to dc:creator.
+  expect_identical(complete_authors("[]"), "First F.")
+  expect_identical(complete_authors('[{"authid": "1"}]'), "First F.")
+})
+
+test_that("R names every author at the edges where pybliometrics builds no list", {
+  # The Python twin reads pybliometrics' author_names, which is not built when
+  # an author object lacks a surname or given-name key, and which writes a null
+  # surname after a bare comma. R reads the author array itself. Both twins
+  # document the difference, and test_pyb.py holds the Python side of it on
+  # the same entry.
+  fx <- complete_authors_fixture()
+  with_last_author <- function(edit) {
+    entry <- fx$entry
+    entry$author[[4]] <- edit(entry$author[[4]])
+    scopus_records(list(entry = list(entry)), view = "COMPLETE")$authors
+  }
+  expect_identical(with_last_author(function(a) a[names(a) != "given-name"]),
+                   "Cong, Le; Zhang, Feng; Doudna")
+  expect_identical(with_last_author(function(a) a[names(a) != "surname"]),
+                   "Cong, Le; Zhang, Feng; Doudna J.A.")
+  expect_identical(with_last_author(function(a) {
+    a["surname"] <- list(NULL)
+    a
+  }), "Cong, Le; Zhang, Feng; Doudna J.A.")
+})
+
+test_that("an array of scalars is collapsed, not cut to its first element", {
+  # None of the fields the records read is sent this way, but should one be,
+  # every value is kept.
   recs <- scopus_records(list(entry = list(
-    list(`dc:creator` = list("Smith J.", "Doe A.", "Lee K."))
+    list(`dc:title` = list("Part one", "part two"), `prism:doi` = "10.1/x")
   )))
-  expect_equal(recs$authors, "Smith J.; Doe A.; Lee K.")
+  expect_identical(recs$title, "Part one; part two")
 })
 
 test_that("a list-of-objects field becomes NA rather than garbage", {

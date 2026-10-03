@@ -28,6 +28,14 @@ fields that some bibliometrix analyses use, such as full author affiliations
 or cited references, are left out. To obtain those, export a full 'Scopus'
 CSV or BibTeX file from the web interface and read it with
 \code{bibliometrix::convert2df()}.
+
+\code{AU} holds every author only for a retrieval made with
+\code{view = "COMPLETE"}. Under \code{STANDARD} the API sends the first author alone,
+so each document would look single-authored to the collaboration measures
+and co-authorship networks bibliometrix builds from \code{AU}. Converting a set
+retrieved under \code{STANDARD} therefore raises a warning of class
+\code{scopus_warning_first_author_only}, once per session (see
+\code{\link[=scopus_records]{scopus_records()}}).
 }
 \examples{
 # On the bundled corpus of real articles, which stands in for a retrieval
