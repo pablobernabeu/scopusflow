@@ -308,6 +308,40 @@ correctly and is served as before, at no cost. The Python twin needs no refetch,
 since its old `COMPLETE` checkpoints already held the list, joined with `";"`,
 and are joined again as they are served.
 
+## Exported names, titles and the RIS source tag
+
+`dc:creator` writes a name as `"Zhang F."`, with no comma. BibTeX reads a
+comma-free name as given name first (Patashnik, 1988), so BibTeX and biber
+took `F.` for the family name and plain.bst sorted a bibliography by initials,
+while Zotero's RIS import kept the whole string as a single field. The
+exporters therefore put a comma before a final run of initials, using one strict
+rule in both twins: an initial is an upper-case letter, optionally followed by
+one lower-case letter, then a full stop. The Unicode classes catch `Ö.` and
+`Д.`, which an ASCII class misses, and the two-letter form catches `Yu.`. The
+looser patterns the audit first proposed all turned the bundled `Fisher D. J.`
+into `Fisher D., J.`. Names with a comma and names given first are written as
+they stand. A given-first name ending in an initial (`John A.`) would be
+inverted, a risk accepted because `dc:creator` does not send that form. The rule
+applies at export only, so the `authors` column keeps what 'Scopus' sent and the
+citation keys do not move. BibTeX also takes run-together initials (`J.R.`) for
+one given name, so the BibTeX form spaces them, and RIS keeps the spelling
+'Scopus' uses. The Python twin has no `\p{Lu}` in `re`, so it matches the same
+pattern against each name's letter-case shape, which keeps the two twins'
+backtracking identical. Both are held to `fixtures/author-names.json`.
+
+BibTeX styles lower-case unbraced title letters, so a title word with a capital
+after its first letter is braced whole (`{DNA}`, `{CRISPR-Cas9}`). A word
+capitalised only at its start is left to the style, which is what sentence
+case expects. A word that opens with an escape (`\#MeToo`) is braced twice,
+because BibTeX reads a brace group opening with a backslash as a special
+character and changes the case of the letters inside it. RIS gives the source under `T2`, as Elsevier's own RIS export
+does. Zotero reads `JO` as the journal abbreviation and copies it to the
+publication title only when nothing else fills that field. Keeping `JO` behind
+a flag was rejected, since no reader that depends on it was found. The exports'
+expected output is pinned by a hand-written golden for a six-record fixture,
+shared by both suites. `example_records` could not serve, since all its names
+but one are given first and hide the defect.
+
 ## Naming
 
 The chosen name, `scopusflow`, is a valid package name with no underscore and no

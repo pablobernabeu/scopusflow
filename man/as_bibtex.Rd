@@ -28,6 +28,23 @@ out and the 'Scopus' identifier kept as a note. Records are treated as journal
 articles, the dominant 'Scopus' content type. BibTeX citation keys are made
 unique within the export, and special characters are escaped.
 }
+\details{
+Names are written family name first, with a comma. Under the \code{STANDARD}
+view, the \code{authors} column holds 'Scopus' names in the form \verb{Zhang F.},
+which BibTeX would read as given name "Zhang" and family name "F.", so a
+name ending in initials is exported as \verb{Zhang, F.}. BibTeX entries also
+space run-together initials (\verb{Kitchin, J. R.}), which BibTeX otherwise
+takes for a single given name. Names that already carry a comma, as under
+\code{COMPLETE}, and names given first are written as they stand. The \code{authors}
+column itself and the citation keys are unchanged. In a BibTeX title, every
+word with a capital after its first letter is braced (\code{{DNA}},
+\code{{CRISPR-Cas9}}), so bibliography styles cannot lower-case it.
+
+An RIS entry gives the source title under \code{T2}, the tag 'Scopus' itself
+uses and reference managers read as the publication title, records the
+database as \code{DB  - Scopus} and, when the record has an identifier, gives the
+EID as the accession number (\verb{AN  - 2-s2.0-<scopus_id>}).
+}
 \examples{
 # On the bundled corpus of real articles, which stands in for a retrieval
 # of your own because 'Scopus' records may not be redistributed. Only the

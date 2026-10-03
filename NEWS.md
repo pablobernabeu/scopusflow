@@ -35,6 +35,9 @@
   `scopus_intersections()` uses a concept written as the web interface writes a
   tag, `TITLE-ABS-KEY ( x )`, as given, where it used to wrap it in `field` a
   second time.
+* RIS records put the source title under `T2`, which reference managers read as
+  the publication title, instead of `JO`, which Zotero reads as the journal
+  abbreviation, and now carry `DB  - Scopus` and the EID as `AN`.
 
 ## Bug fixes
 
@@ -87,6 +90,14 @@
   REF reference's title and source are now read, where both were always `NA`.
   REF cache files are keyed `REF-paged`, so truncated ones written by 0.4.0 are
   refetched once. This reaches `scopus_corpus(view = "REF")` too.
+* BibTeX and RIS exports wrote names in the 'Scopus' form "Surname I.", with no
+  comma, so BibTeX and biber took the initials for the family name and sorted
+  bibliographies by them, and Zotero kept each RIS author as a single field.
+  This touched every export of records retrieved outside `COMPLETE`. A name
+  ending in initials is now written "Surname, I.", and BibTeX titles protect
+  words such as CRISPR-Cas9 and DNA from lower-casing. BibTeX also spaces
+  run-together initials ("J. R."), which it would otherwise read as one given
+  name. The `authors` column and the citation keys are unchanged.
 
 ## Documentation
 

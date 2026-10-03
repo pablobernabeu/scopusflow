@@ -21,6 +21,75 @@ scopus_refman_clean <- function(x) {
   trimws(gsub("[[:space:]]+", " ", as.character(x)))
 }
 
+# TRUE when a field carries a usable value. A record set read back from CSV
+# holds "" where a live one holds NA, and neither is an identifier.
+scopus_refman_present <- function(x) {
+  length(x) == 1L && !is.na(x) && nzchar(trimws(as.character(x)))
+}
+
+# The STANDARD view's dc:creator, and so the authors column of every R record
+# outside COMPLETE, gives a name as "Surname I." with no comma. BibTeX reads a
+# comma-free name as given name first (Patashnik, 1988), so "Zhang F." became
+# family name "F.", and RIS readers keep it as a single field. A comma-free name
+# whose final run is initials therefore gains a comma before them. An initial
+# is one upper-case letter, optionally followed by one lower-case letter (Yu.,
+# Ch.), then a full stop, and initials may be joined by a hyphen or a space.
+# Unicode classes extend the rule to accented and Cyrillic initials, which an
+# ASCII class would miss. Names with a comma (the COMPLETE view's "Surname,
+# Given") and names given first are left alone. The Python twin applies the
+# same rule, and both are held to tests/testthat/fixtures/author-names.json.
+# Input is already cleaned, so its only whitespace is single spaces.
+scopus_refman_name <- function(name) {
+  if (grepl(",", name, fixed = TRUE)) {
+    return(name)
+  }
+  sub(
+    "^(.+?) +(\\p{Lu}\\p{Ll}?\\.(?:[- ]?\\p{Lu}\\p{Ll}?\\.)*)$",
+    "\\1, \\2", name, perl = TRUE
+  )
+}
+
+# BibTeX reads run-together initials ("J.R.") as one given name and abbreviates
+# them to "J.", so the BibTeX form spaces them ("J. R.") after the comma. A
+# hyphen is kept ("J.-P."). RIS keeps Scopus's spelling.
+scopus_bibtex_name <- function(name) {
+  name <- scopus_refman_name(name)
+  pos <- regexpr(",", name, fixed = TRUE)
+  if (pos < 0L) {
+    return(name)
+  }
+  paste0(
+    substr(name, 1L, pos),
+    gsub("\\.(?=\\p{Lu})", ". ", substring(name, pos + 1L), perl = TRUE)
+  )
+}
+
+# BibTeX styles lower-case a title's letters unless they are braced, so plain.bst
+# printed "crispr-cas9" and "dna". Each word with an upper-case letter after its
+# first character is braced whole, leaving an opening bracket before it and
+# closing punctuation after it outside the braces ("({DNA})", "{mRNA}:"). A word
+# capitalised only at its start ("Bayesian") is left to the style. The input is
+# already escaped. The brackets and punctuation peeled off include no backslash
+# or brace, so an escape such as \& is never split. A word that opens with an
+# escape (\#MeToo) is braced twice, because BibTeX takes a brace group opening
+# with a backslash for a special character and changes the case of the letters
+# inside it, so plain.bst printed "{\#metoo}".
+scopus_bibtex_protect <- function(title) {
+  words <- strsplit(title, " ", fixed = TRUE)[[1]]
+  parts <- regmatches(words, regexec("^([(\\[]*)(.*?)([.,:;!?)\\]]*)$", words, perl = TRUE))
+  out <- vapply(seq_along(words), function(i) {
+    p <- parts[[i]]
+    core <- p[3]
+    if (nchar(core) > 1L && grepl("\\p{Lu}", substring(core, 2L), perl = TRUE)) {
+      if (startsWith(core, "\\")) core <- paste0("{", core, "}")
+      paste0(p[2], "{", core, "}", p[4])
+    } else {
+      words[i]
+    }
+  }, character(1))
+  paste(out, collapse = " ")
+}
+
 # Escape the characters that are special in a BibTeX field value, in a SINGLE
 # pass so the braces introduced by the backslash replacement are not themselves
 # re-escaped.
@@ -87,15 +156,20 @@ scopus_bibtex_entry <- function(row, key) {
   auth <- scopus_refman_authors(row$authors)
   if (length(auth) > 0L) {
     fields[["author"]] <- paste(
-      vapply(auth, function(a) scopus_bibtex_escape(scopus_refman_clean(a)), character(1)),
+      vapply(auth, function(a) {
+        scopus_bibtex_escape(scopus_bibtex_name(scopus_refman_clean(a)))
+      }, character(1)),
       collapse = " and "
     )
   }
   add("title", row$title)
+  if ("title" %in% names(fields)) {
+    fields[["title"]] <- scopus_bibtex_protect(fields[["title"]])
+  }
   add("journal", row$publication)
   add("year", row$year)
   add("doi", row$doi)
-  if (!is.na(row$scopus_id)) {
+  if (scopus_refman_present(row$scopus_id)) {
     fields[["note"]] <- scopus_bibtex_escape(paste0("Scopus ID: ", row$scopus_id))
   }
 
@@ -113,13 +187,21 @@ scopus_ris_entry <- function(row) {
   }
   ris_add("TI", row$title)
   for (a in scopus_refman_authors(row$authors)) {
-    lines <- c(lines, paste0("AU  - ", scopus_refman_clean(a)))
+    lines <- c(lines, paste0("AU  - ", scopus_refman_name(scopus_refman_clean(a))))
   }
   ris_add("PY", row$year)
-  ris_add("JO", row$publication)
+  # T2 is the tag Scopus's own RIS export uses for the source title, and the one
+  # reference managers read as the publication title. Zotero reads JO, which
+  # this function wrote before, as the journal abbreviation.
+  ris_add("T2", row$publication)
   ris_add("DO", row$doi)
-  if (!is.na(row$scopus_id)) {
-    lines <- c(lines, paste0("N1  - Scopus ID: ", scopus_refman_clean(row$scopus_id)))
+  id <- if (scopus_refman_present(row$scopus_id)) scopus_refman_clean(row$scopus_id) else NA
+  if (!is.na(id)) {
+    lines <- c(lines, paste0("AN  - 2-s2.0-", id))
+  }
+  lines <- c(lines, "DB  - Scopus")
+  if (!is.na(id)) {
+    lines <- c(lines, paste0("N1  - Scopus ID: ", id))
   }
   lines <- c(lines, "ER  - ")
   paste(lines, collapse = "\n")
@@ -144,6 +226,22 @@ scopus_refman_write <- function(out, file) {
 #' out and the 'Scopus' identifier kept as a note. Records are treated as journal
 #' articles, the dominant 'Scopus' content type. BibTeX citation keys are made
 #' unique within the export, and special characters are escaped.
+#'
+#' Names are written family name first, with a comma. Under the `STANDARD`
+#' view, the `authors` column holds 'Scopus' names in the form `Zhang F.`,
+#' which BibTeX would read as given name "Zhang" and family name "F.", so a
+#' name ending in initials is exported as `Zhang, F.`. BibTeX entries also
+#' space run-together initials (`Kitchin, J. R.`), which BibTeX otherwise
+#' takes for a single given name. Names that already carry a comma, as under
+#' `COMPLETE`, and names given first are written as they stand. The `authors`
+#' column itself and the citation keys are unchanged. In a BibTeX title, every
+#' word with a capital after its first letter is braced (`{DNA}`,
+#' `{CRISPR-Cas9}`), so bibliography styles cannot lower-case it.
+#'
+#' An RIS entry gives the source title under `T2`, the tag 'Scopus' itself
+#' uses and reference managers read as the publication title, records the
+#' database as `DB  - Scopus` and, when the record has an identifier, gives the
+#' EID as the accession number (`AN  - 2-s2.0-<scopus_id>`).
 #'
 #' @param x A [scopus_records] tibble.
 #' @param file Optional path to write to. With the default `NULL` the formatted
