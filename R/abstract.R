@@ -33,7 +33,7 @@
 #'   [scopus_fetch_plan()]. `NULL` (the default) performs no caching. Worth
 #'   setting whenever `include` is used: Abstract Retrieval draws on its own
 #'   weekly quota, smaller than and separate from Search's, and every
-#'   identifier here costs its own request, so re-running an interrupted batch
+#'   identifier here costs at least one request of its own, so re-running an interrupted batch
 #'   without a cache re-spends quota already spent.
 #' @param resume Logical. When `TRUE` (the default) and `cache_dir` is set, an
 #'   identifier whose cache file already exists is loaded from disk, sparing a
@@ -69,16 +69,21 @@
 #'   always be unnested.
 #' @details
 #' Retrieving references needs Abstract Retrieval's `FULL` or `REF` view, and
-#' keywords need `FULL`. In development, against a live key with full Abstract Retrieval
-#' access, `view = "FULL"` returned a complete, correctly counted reference
-#' list for every document tried. `view = "REF"` returned the identical,
-#' complete list in one case but a truncated (paginated) subset in another, on
-#' an otherwise identical request made moments apart, so `"FULL"` is
-#' recommended when your entitlement allows it. `"REF"` remains available for
-#' accounts entitled only to it; when the number of references returned does
-#' not match the document's own reported reference count, a warning is issued
-#' naming the identifier, since the list may be an incomplete page of the
-#' bibliography.
+#' keywords need `FULL`. `FULL` returns the whole bibliography in one request.
+#' `REF` serves it a page at a time, about 40 references per request, so
+#' `scopus_abstract()` follows the view's `startref` parameter until it holds
+#' as many references as the document reports, as pybliometrics does. A `REF`
+#' document with *N* references therefore costs `ceiling(N / 40)` requests,
+#' each counted in `n_requests`, which makes `"FULL"` the cheaper view when
+#' your entitlement allows it. Elsevier's guide numbers `startref` from 0 and
+#' pybliometrics from 1, and which of the two the API follows has not been
+#' confirmed. Paging stops on an empty page, on a page that adds no new
+#' reference, or after as many pages as the first page's length implies, so
+#' neither numbering can make it loop or repeat references. When the number
+#' of references held still differs from the document's reported count, a
+#' `scopus_warning_incomplete_references` warning says so. An
+#' identifier whose later page fails is a failed retrieval: it gets a row of
+#' `NA`s with a warning and is not checkpointed.
 #'
 #' Author keywords were not populated by either 'Scopus' Search's `COMPLETE`
 #' view (see [scopus_records()]) or Abstract Retrieval's `FULL` view in this
@@ -88,8 +93,9 @@
 #' entitlement gap specific to that field, worth raising with your
 #' Scopus/Elsevier account contact. The documents do carry keywords.
 #' @section API access:
-#' This performs one request per identifier and requires a valid API key and
-#' internet access; full-text abstract access, and the `FULL`/`REF` views in
+#' This performs one request per identifier, or one per page of references
+#' under `view = "REF"` with `include = "references"`, and requires a valid
+#' API key and internet access; full-text abstract access, and the `FULL`/`REF` views in
 #' particular, can also depend on your entitlement. A view or field your key is
 #' not entitled to raises a `scopus_error_forbidden` condition with a message
 #' naming the view and suggesting who to contact, where a generic HTTP failure
@@ -209,6 +215,11 @@ scopus_abstract <- function(ids,
   # different extras must refetch, since the cached row would be missing the
   # requested columns. The Python twin keys its abstract cache the same way.
   include_key <- if (length(include) == 0L) "none" else paste(sort(include), collapse = "-")
+  # 0.4.0 requested only the first page of a REF bibliography, so a REF
+  # checkpoint it wrote may hold a truncated list that a resume would serve as
+  # complete. Keying REF checkpoints afresh refetches each of them once, as
+  # 0.4.0 itself did for the checkpoints it could no longer trust.
+  view_key <- if (identical(view, "REF")) "REF-paged" else view %||% "default"
 
   rows <- vector("list", length(ids))
   for (i in seq_along(ids)) {
@@ -219,7 +230,7 @@ scopus_abstract <- function(ids,
         cache_dir,
         sprintf(
           "id-%s-%s-%s.rds",
-          view %||% "default", include_key, scopus_safe_filename(ids[i])
+          view_key, include_key, scopus_safe_filename(ids[i])
         )
       )
     }
@@ -257,6 +268,10 @@ scopus_abstract <- function(ids,
 
     if (verbose) cli::cli_inform("Retrieving {i}/{length(ids)}: {ids[i]}.")
     failed <- FALSE
+    # Counts every request made for this identifier, one per REF page,
+    # including those made before a later one failed.
+    requests <- new.env()
+    requests$n <- 0L
     row <- tryCatch({
       # A plain `<-` here. This block is evaluated directly in
       # scopus_abstract()'s own frame (tryCatch()'s first argument is not a
@@ -267,9 +282,8 @@ scopus_abstract <- function(ids,
       # into this frame.
       fetched <- scopus_abstract_one(
         ids[i], by, view = view, include = include,
-        api_key = api_key, inst_token = inst_token
+        api_key = api_key, inst_token = inst_token, requests = requests
       )
-      n_requests <- n_requests + 1L
       if (!is.null(fetched$quota)) quota <- fetched$quota
       fetched$row
     }, scopus_error_forbidden = function(e) {
@@ -279,15 +293,14 @@ scopus_abstract <- function(ids,
       # concern), which would route this straight into the generic
       # scopus_error handler below and let the batch continue. Raising it after
       # tryCatch() has returned, outside any handler, avoids that.
-      n_requests <<- n_requests + 1L
       forbidden <<- e
       NULL
     }, scopus_error = function(e) {
-      n_requests <<- n_requests + 1L
       failed <<- TRUE
       cli::cli_warn("Could not retrieve {.val {ids[i]}}: {conditionMessage(e)}")
       scopus_abstract_row(ids[i], list(), include = include)
     })
+    n_requests <- n_requests + requests$n
     if (!is.null(forbidden)) {
       remaining <- length(ids) - i
       rlang::abort(
@@ -378,8 +391,9 @@ scopus_safe_filename <- function(id) {
 }
 
 # Build (but do not perform) an Abstract Retrieval request for one identifier.
+# `startref` asks the REF view for the page of references that starts there.
 scopus_abstract_request <- function(id, by, view = NULL, api_key = NULL, inst_token = NULL,
-                                    call = rlang::caller_env()) {
+                                    startref = NULL, call = rlang::caller_env()) {
   key <- scopus_key(api_key, call = call)
   token <- scopus_inst_token(inst_token)
   base <- getOption("scopusflow.abstract_url",
@@ -408,24 +422,39 @@ scopus_abstract_request <- function(id, by, view = NULL, api_key = NULL, inst_to
   if (!is.null(view)) {
     req <- httr2::req_url_query(req, view = view)
   }
+  if (!is.null(startref)) {
+    req <- httr2::req_url_query(req, startref = startref)
+  }
   scopus_req_timeout(req)
 }
 
+# Retrieve one identifier. `requests` is an environment whose `n` counts every
+# request made, one per REF page, so the caller can account for the pages
+# spent on an identifier whose later page fails.
 scopus_abstract_one <- function(id, by, view = NULL, include = character(),
-                                api_key = NULL, inst_token = NULL) {
-  req <- scopus_abstract_request(id, by, view = view, api_key = api_key, inst_token = inst_token)
-  resp <- scopus_perform(req)
-  body <- tryCatch(
-    jsonlite::fromJSON(httr2::resp_body_string(resp), simplifyVector = FALSE),
-    error = function(e) {
-      rlang::abort(
-        "The 'Scopus' abstract response was not valid JSON.",
-        class = c("scopus_error_malformed", "scopus_error"),
-        parent = e
-      )
-    }
-  )
-  full <- body[["abstracts-retrieval-response"]]
+                                api_key = NULL, inst_token = NULL,
+                                requests = new.env()) {
+  get_page <- function(startref = NULL) {
+    req <- scopus_abstract_request(
+      id, by, view = view, api_key = api_key, inst_token = inst_token,
+      startref = startref
+    )
+    requests$n <- (requests$n %||% 0L) + 1L
+    resp <- scopus_perform(req)
+    body <- tryCatch(
+      jsonlite::fromJSON(httr2::resp_body_string(resp), simplifyVector = FALSE),
+      error = function(e) {
+        rlang::abort(
+          "The 'Scopus' abstract response was not valid JSON.",
+          class = c("scopus_error_malformed", "scopus_error"),
+          parent = e
+        )
+      }
+    )
+    list(full = body[["abstracts-retrieval-response"]], resp = resp)
+  }
+  page <- get_page()
+  full <- page$full
   # Under view = "REF", the response carries only `references`, with no
   # `coredata`; the identifying/abstract columns are then NA, which is
   # expected, the REF view being for reference retrieval alone.
@@ -435,10 +464,65 @@ scopus_abstract_one <- function(id, by, view = NULL, include = character(),
       class = c("scopus_error_malformed", "scopus_error")
     )
   }
+  if (identical(view, "REF") && "references" %in% include) {
+    paged <- scopus_page_references(full, get_page)
+    full <- paged$full
+    page$resp <- paged$resp %||% page$resp
+  }
   list(
     row = scopus_abstract_row(id, full[["coredata"]] %||% list(), full = full, view = view, include = include),
-    quota = tryCatch(scopus_quota(resp), error = function(e) NULL)
+    quota = tryCatch(scopus_quota(page$resp), error = function(e) NULL)
   )
+}
+
+# The REF view serves a bibliography a page at a time, about 40 references per
+# request, and documents `startref` as the position a page starts from.
+# As in pybliometrics, which has paged REF since its version 3.6, each later
+# page starts one past the references held (startref = held + 1, read as
+# one-based) and names no `refcount`: pybliometrics found that refcount leads
+# to errors, and a live request with refcount = 200 was refused in October
+# 2026. Elsevier's own guide gives startref a zero base. A zero-based server or
+# one that ignores startref must not loop or duplicate, so paging stops on an
+# empty page, on a page that adds no new reference, or after ceiling(n / k)
+# pages, k being the first page's length. A list still short of its total is
+# then warned about by scopus_parse_references(). `get_page(startref)` performs
+# one request and returns the parsed response with the httr2 response.
+scopus_page_references <- function(full, get_page) {
+  bib <- full[["references"]]
+  total <- suppressWarnings(as.integer(bib[["@total-references"]]))
+  items <- scopus_listify(bib[["reference"]])
+  k <- length(items)
+  if (length(total) != 1L || is.na(total) || k == 0L || k >= total) {
+    return(list(full = full, resp = NULL))
+  }
+  # A reference is matched on its `@id`, its position in the bibliography. One
+  # without a usable `@id` is matched on its whole content, so a server that
+  # ignores startref cannot slip the same references in twice, which would
+  # also bring the count up to the total and silence the warning.
+  reference_key <- function(x) {
+    id <- if (is.list(x)) x[["@id"]] else NULL
+    if (length(id) == 1L && is.atomic(id) && !is.na(id)) {
+      return(paste0("@id:", id))
+    }
+    paste0("content:", paste(deparse(x), collapse = "\n"))
+  }
+  seen <- vapply(items, reference_key, character(1))
+  resp <- NULL
+  pages <- 1L
+  while (length(items) < total && pages < ceiling(total / k)) {
+    page <- get_page(startref = length(items) + 1L)
+    pages <- pages + 1L
+    resp <- page$resp
+    new <- scopus_listify(chained_get(page$full, c("references", "reference")))
+    if (length(new) == 0L) break
+    new_keys <- vapply(new, reference_key, character(1))
+    fresh <- !(new_keys %in% seen | duplicated(new_keys))
+    if (!any(fresh)) break
+    items <- c(items, new[fresh])
+    seen <- c(seen, new_keys[fresh])
+  }
+  full[["references"]][["reference"]] <- items
+  list(full = full, resp = resp)
 }
 
 scopus_abstract_row <- function(id, core, full = list(), view = NULL, include = character()) {
@@ -528,11 +612,11 @@ scopus_listify <- function(x) {
 # differs by view: REF view nests them under `references$reference`, FULL
 # view under `item$bibrecord$tail$bibliography$reference`, and per-reference
 # field names differ between the two (see scopus_abstract()'s documentation).
-# Confirmed directly against a live key for both views. Under REF view,
-# `title` and `source` came back NA for every reference tried, even where
-# `doi`, `year` and `citedbycount` were populated on the same row, so REF
-# view is a leaner shape here by design, and no extraction gap. FULL view
-# populated `title`/`authors`/`source` throughout.
+# REF names a cited work's title and source `title` and `sourcetitle`, where
+# FULL uses `ref-title` and `ref-sourcetitle`, and pybliometrics reads either
+# (abstract_retrieval.py in its 4.4.1 release). Only the FULL names used to be
+# read here, which most likely accounts for the NA `title` and `source` of
+# every REF reference seen in development testing against a live key.
 scopus_parse_references <- function(full, view) {
   empty <- data.frame(
     position = character(), id = character(), doi = character(),
@@ -577,10 +661,11 @@ scopus_parse_one_reference <- function(item, view) {
     author_names <- scopus_reference_authors(authors, "ce:given-name")
     doi <- info[["ce:doi"]]
     ref_id <- info[["scopus-id"]]
-    # `ref-title` appears to be a shared field name across REF and FULL views,
-    # and is left NA when genuinely absent. Filling it from `ref-sourcetitle`
-    # would put the cited work's journal into a column of titles.
-    title <- chained_get(info, c("ref-title", "ref-titletext"))
+    # REF names a cited work's title and source `title` and `sourcetitle`.
+    # The FULL names are tried first, as pybliometrics tries them, and neither
+    # column is filled from the other.
+    title <- chained_get(info, c("ref-title", "ref-titletext")) %||% chained_get(info, "title")
+    source <- chained_get(info, "ref-sourcetitle") %||% chained_get(info, "sourcetitle")
     citedbycount <- suppressWarnings(as.integer(info[["citedby-count"]]))
     year <- scopus_parse_year(info[["ref-coverdate"]] %||% info[["prism:coverDate"]])
   } else {
@@ -590,6 +675,7 @@ scopus_parse_one_reference <- function(item, view) {
     doi <- scopus_select_itemid(ids, "DOI")
     ref_id <- scopus_select_itemid(ids, "SGR")
     title <- chained_get(info, c("ref-title", "ref-titletext"))
+    source <- chained_get(info, "ref-sourcetitle")
     citedbycount <- NA_integer_
     year <- suppressWarnings(as.integer(chained_get(info, c("ref-publicationyear", "@first"))))
   }
@@ -599,7 +685,7 @@ scopus_parse_one_reference <- function(item, view) {
     doi = as.character(doi %||% NA_character_),
     title = as.character(title %||% NA_character_),
     authors = if (length(author_names) == 0L) NA_character_ else paste(author_names, collapse = "; "),
-    source = as.character(chained_get(info, c("ref-sourcetitle")) %||% NA_character_),
+    source = as.character(source %||% NA_character_),
     year = if (length(year) == 0L) NA_integer_ else year,
     citedbycount = if (length(citedbycount) == 0L) NA_integer_ else citedbycount,
     stringsAsFactors = FALSE

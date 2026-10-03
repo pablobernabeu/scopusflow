@@ -80,6 +80,13 @@
   agree. `COMPLETE`-view checkpoints written by earlier versions are refetched
   once, and `STANDARD` ones are served as before. This corrects the 0.1.0 entry,
   which said the column retained every author a record lists.
+* Under `view = "REF"`, `scopus_abstract()` returned only the first page of a
+  reference list, about 40 references, which the documentation blamed on the API.
+  It now follows `startref` until the list is complete, as pybliometrics does, at a
+  cost of one request per 40 references, and `n_requests` counts each page. A
+  REF reference's title and source are now read, where both were always `NA`.
+  REF cache files are keyed `REF-paged`, so truncated ones written by 0.4.0 are
+  refetched once. This reaches `scopus_corpus(view = "REF")` too.
 
 ## Documentation
 

@@ -23,13 +23,13 @@ scopus_corpus(
 \code{records} to look records up by (see \code{\link[=scopus_abstract]{scopus_abstract()}}).}
 
 \item{view}{Either \code{"FULL"} (the default) or \code{"REF"}, passed to
-\code{\link[=scopus_abstract]{scopus_abstract()}}. \code{"FULL"} is recommended: in development, it
-returned a complete, correctly counted reference list for every document
-tried, while \code{"REF"} returned an inconsistent, sometimes-truncated
-subset (see \code{\link[=scopus_abstract]{scopus_abstract()}}'s documentation for the details and for
-the entitlement each view needs). The \code{REF} response also carries no
-author keywords, so under that view only the references are requested
-and \code{keywords} is empty for every record.}
+\code{\link[=scopus_abstract]{scopus_abstract()}}. \code{"FULL"} returns a document's whole bibliography in
+one request. \code{"REF"} serves it about 40 references per request, which
+\code{\link[=scopus_abstract]{scopus_abstract()}} follows page by page, so a document with \emph{N}
+references costs \code{ceiling(N / 40)} requests (see its documentation for
+the details and for the entitlement each view needs). The \code{REF} response
+also carries no author keywords, so under that view only the references
+are requested and \code{keywords} is empty for every record.}
 
 \item{cache_dir, resume}{As in \code{\link[=scopus_abstract]{scopus_abstract()}}: an optional directory
 for per-identifier cache files, and whether an existing one is reused.
@@ -65,8 +65,9 @@ convention for users who want bibliometrix's tag names instead.
 }
 \section{API access}{
 
-This performs one Abstract Retrieval request per usable record, on top of
-whatever retrieved \code{records} in the first place; see \code{\link[=scopus_abstract]{scopus_abstract()}}'s
+This performs one Abstract Retrieval request per usable record, or one per
+page of references under \code{view = "REF"}, on top of whatever retrieved
+\code{records} in the first place; see \code{\link[=scopus_abstract]{scopus_abstract()}}'s
 \emph{API access} section for the entitlement \code{view = "FULL"}/\code{"REF"} needs and
 how a 403 is handled.
 }

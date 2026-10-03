@@ -151,6 +151,34 @@ mock_abstract_ref <- function(references = list(), total = length(references), s
   )
 }
 
+# A REF-view server that pages a bibliography of `total` references, numbered
+# "1" to `total` in `@id`, `page_size` at a time. `startref` is read as
+# one-based, as pybliometrics reads it (its live test fetches 48 of 48 with
+# startref = 41 after a page of 40). `base = 0L` reads it as zero-based, as the
+# Scopus API Guide states, and `ignore_startref = TRUE` serves the first page
+# whatever is asked. Every request URL is appended to `log$urls`, so a test can
+# check which pages were asked for.
+mock_ref_pages <- function(total, page_size = 40L, base = 1L,
+                           ignore_startref = FALSE, log = new.env()) {
+  log$urls <- character()
+  function(req) {
+    log$urls <- c(log$urls, req$url)
+    startref <- httr2::url_parse(req$url)$query$startref
+    first <- if (is.null(startref) || ignore_startref) {
+      1L
+    } else {
+      as.integer(startref) + (1L - base)
+    }
+    positions <- seq.int(first, length.out = max(0L, min(page_size, total - first + 1L)))
+    references <- lapply(positions, function(i) {
+      list(`@id` = as.character(i), `ref-info` = list(
+        `ref-title` = list(`ref-titletext` = paste("Reference", i))
+      ))
+    })
+    mock_abstract_ref(references = references, total = total)
+  }
+}
+
 # The DOI an Abstract Retrieval request asks for, read from the request path,
 # so the query string the request also carries does not leak into it.
 mock_request_doi <- function(req) {

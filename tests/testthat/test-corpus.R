@@ -51,6 +51,14 @@ test_that("under REF view only references are requested and keywords are empty",
   expect_equal(nrow(corpus$references[[1]]), 1L)
 })
 
+test_that("under REF view a paged reference list reaches the corpus whole", {
+  local_scopus_test_env()
+  records <- tibble::tibble(doi = "10.1/a", title = "A study", year = 2020L)
+  httr2::local_mocked_responses(mock_ref_pages(103L))
+  corpus <- expect_no_warning(scopus_corpus(records, view = "REF"))
+  expect_equal(nrow(corpus$references[[1]]), 103L)
+})
+
 test_that("a lone reference or a keyword without text no longer aborts the corpus", {
   # The lone reference arrives as a bare object, and the keyword object carries
   # only its attribute (pybliometrics issue #436).

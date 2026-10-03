@@ -47,7 +47,7 @@ itself is otherwise accessible. See \emph{Details}.}
 \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}. \code{NULL} (the default) performs no caching. Worth
 setting whenever \code{include} is used: Abstract Retrieval draws on its own
 weekly quota, smaller than and separate from Search's, and every
-identifier here costs its own request, so re-running an interrupted batch
+identifier here costs at least one request of its own, so re-running an interrupted batch
 without a cache re-spends quota already spent.}
 
 \item{resume}{Logical. When \code{TRUE} (the default) and \code{cache_dir} is set, an
@@ -97,16 +97,21 @@ reference list to the same request.
 }
 \details{
 Retrieving references needs Abstract Retrieval's \code{FULL} or \code{REF} view, and
-keywords need \code{FULL}. In development, against a live key with full Abstract Retrieval
-access, \code{view = "FULL"} returned a complete, correctly counted reference
-list for every document tried. \code{view = "REF"} returned the identical,
-complete list in one case but a truncated (paginated) subset in another, on
-an otherwise identical request made moments apart, so \code{"FULL"} is
-recommended when your entitlement allows it. \code{"REF"} remains available for
-accounts entitled only to it; when the number of references returned does
-not match the document's own reported reference count, a warning is issued
-naming the identifier, since the list may be an incomplete page of the
-bibliography.
+keywords need \code{FULL}. \code{FULL} returns the whole bibliography in one request.
+\code{REF} serves it a page at a time, about 40 references per request, so
+\code{scopus_abstract()} follows the view's \code{startref} parameter until it holds
+as many references as the document reports, as pybliometrics does. A \code{REF}
+document with \emph{N} references therefore costs \code{ceiling(N / 40)} requests,
+each counted in \code{n_requests}, which makes \code{"FULL"} the cheaper view when
+your entitlement allows it. Elsevier's guide numbers \code{startref} from 0 and
+pybliometrics from 1, and which of the two the API follows has not been
+confirmed. Paging stops on an empty page, on a page that adds no new
+reference, or after as many pages as the first page's length implies, so
+neither numbering can make it loop or repeat references. When the number
+of references held still differs from the document's reported count, a
+\code{scopus_warning_incomplete_references} warning says so. An
+identifier whose later page fails is a failed retrieval: it gets a row of
+\code{NA}s with a warning and is not checkpointed.
 
 Author keywords were not populated by either 'Scopus' Search's \code{COMPLETE}
 view (see \code{\link[=scopus_records]{scopus_records()}}) or Abstract Retrieval's \code{FULL} view in this
@@ -118,8 +123,9 @@ Scopus/Elsevier account contact. The documents do carry keywords.
 }
 \section{API access}{
 
-This performs one request per identifier and requires a valid API key and
-internet access; full-text abstract access, and the \code{FULL}/\code{REF} views in
+This performs one request per identifier, or one per page of references
+under \code{view = "REF"} with \code{include = "references"}, and requires a valid
+API key and internet access; full-text abstract access, and the \code{FULL}/\code{REF} views in
 particular, can also depend on your entitlement. A view or field your key is
 not entitled to raises a \code{scopus_error_forbidden} condition with a message
 naming the view and suggesting who to contact, where a generic HTTP failure

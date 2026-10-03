@@ -281,7 +281,28 @@ test_that("include = 'references' under REF view uses that view's field names", 
   expect_equal(refs$doi, "10.1000/refview")
   expect_equal(refs$id, "12345")
   expect_equal(refs$authors, "Doe, A.")
+  expect_equal(refs$source, "Proc. Something")
   expect_equal(refs$citedbycount, 42L)
+})
+
+test_that("a REF reference's title and source are read from REF's own field names", {
+  # The REF view names them `title` and `sourcetitle`, where FULL uses
+  # `ref-title` and `ref-sourcetitle`, which pybliometrics falls back from.
+  # Only the FULL names were read, so both columns were always NA under REF.
+  local_scopus_test_env()
+  httr2::local_mocked_responses(function(req) {
+    mock_abstract_ref(references = list(
+      list(`@id` = "1", `ref-info` = list(
+        title = "Gradient-based learning applied to document recognition",
+        sourcetitle = "Proceedings of the IEEE",
+        `ce:doi` = "10.1109/5.726791"
+      ))
+    ), total = 1)
+  })
+  refs <- scopus_abstract("10.1/x", view = "REF", include = "references")$references[[1]]
+  expect_equal(refs$title, "Gradient-based learning applied to document recognition")
+  expect_equal(refs$source, "Proceedings of the IEEE")
+  expect_equal(refs$doi, "10.1109/5.726791")
 })
 
 test_that("scopus_listify wraps a bare object and leaves an array alone", {
@@ -428,18 +449,152 @@ test_that("a document with no resolvable references yields a zero-row data frame
   expect_equal(nrow(refs), 0L)
 })
 
-test_that("a reference-count mismatch warns rather than silently truncating", {
+test_that("a REF reference list is paged with startref until it is whole", {
+  # The API serves REF about 40 references at a time. Only the first page used
+  # to be requested, so 103 references came back as 40, with a warning.
   local_scopus_test_env()
+  log <- new.env()
+  httr2::local_mocked_responses(mock_ref_pages(103L, log = log))
+  ab <- expect_no_warning(
+    scopus_abstract("10.1/x", view = "REF", include = "references")
+  )
+  refs <- ab$references[[1]]
+  expect_equal(nrow(refs), 103L)
+  expect_equal(refs$position, as.character(1:103))
+  expect_equal(refs$title[103], "Reference 103")
+  expect_equal(attr(ab, "n_requests"), 3L)
+  queries <- lapply(log$urls, function(u) httr2::url_parse(u)$query)
+  expect_equal(queries[[1]], list(view = "REF"))
+  expect_equal(vapply(queries[-1], `[[`, character(1), "startref"), c("41", "81"))
+  # pybliometrics found that refcount leads to errors, and the live API
+  # rejected refcount = 200, so no page asks for a page size.
+  expect_false(any(vapply(queries, function(q) "refcount" %in% names(q), logical(1))))
+})
+
+test_that("a list that fits on one REF page costs one request", {
+  local_scopus_test_env()
+  log <- new.env()
+  httr2::local_mocked_responses(mock_ref_pages(40L, log = log))
+  ab <- expect_no_warning(
+    scopus_abstract("10.1/x", view = "REF", include = "references")
+  )
+  expect_equal(nrow(ab$references[[1]]), 40L)
+  expect_equal(attr(ab, "n_requests"), 1L)
+  expect_length(log$urls, 1L)
+})
+
+test_that("a server that ignores startref stops after the page that adds nothing", {
+  # The count-mismatch warning stays as the backstop: the list is incomplete,
+  # and the duplicate page is not appended.
+  local_scopus_test_env()
+  log <- new.env()
+  httr2::local_mocked_responses(mock_ref_pages(103L, ignore_startref = TRUE, log = log))
+  expect_warning(
+    ab <- scopus_abstract("10.1/x", view = "REF", include = "references"),
+    class = "scopus_warning_incomplete_references"
+  )
+  expect_equal(nrow(ab$references[[1]]), 40L)
+  expect_equal(anyDuplicated(ab$references[[1]]$position), 0L)
+  expect_equal(attr(ab, "n_requests"), 2L)
+})
+
+test_that("references without an @id are not taken twice from a server that ignores startref", {
+  # Matched on @id alone, the repeated page would be appended whole, which
+  # brings the count up to the reported total and silences the warning.
+  local_scopus_test_env()
+  calls <- 0L
   httr2::local_mocked_responses(function(req) {
-    mock_abstract_ref(references = list(
-      list(`@id` = "1", `ref-info` = list(`ref-title` = list(`ref-titletext` = "Only one")))
-    ), total = 103)  # claims 103 but only 1 is returned
+    calls <<- calls + 1L
+    mock_abstract_ref(references = lapply(1:40, function(i) {
+      list(`ref-info` = list(`ref-title` = list(`ref-titletext` = paste("Reference", i))))
+    }), total = 80)
   })
   expect_warning(
     ab <- scopus_abstract("10.1/x", view = "REF", include = "references"),
     class = "scopus_warning_incomplete_references"
   )
-  expect_equal(nrow(ab$references[[1]]), 1L)
+  refs <- ab$references[[1]]
+  expect_equal(nrow(refs), 40L)
+  expect_equal(anyDuplicated(refs$title), 0L)
+  expect_equal(calls, 2L)
+})
+
+test_that("a zero-based startref cannot loop, and the gap it leaves is warned about", {
+  # The Scopus API Guide says startref numbering starts at 0, pybliometrics
+  # that it starts at 1. Read as zero-based, startref = 41 skips one reference.
+  # Paging stops after ceiling(103 / 40) = 3 pages either way.
+  local_scopus_test_env()
+  log <- new.env()
+  httr2::local_mocked_responses(mock_ref_pages(103L, base = 0L, log = log))
+  expect_warning(
+    ab <- scopus_abstract("10.1/x", view = "REF", include = "references"),
+    class = "scopus_warning_incomplete_references"
+  )
+  expect_equal(nrow(ab$references[[1]]), 102L)
+  expect_equal(attr(ab, "n_requests"), 3L)
+})
+
+test_that("an empty REF page ends the paging", {
+  local_scopus_test_env()
+  calls <- 0L
+  httr2::local_mocked_responses(function(req) {
+    calls <<- calls + 1L
+    if (calls == 1L) {
+      return(mock_ref_pages(103L)(req))
+    }
+    mock_abstract_ref(references = list(), total = 103)
+  })
+  expect_warning(
+    ab <- scopus_abstract("10.1/x", view = "REF", include = "references"),
+    class = "scopus_warning_incomplete_references"
+  )
+  expect_equal(nrow(ab$references[[1]]), 40L)
+  expect_equal(calls, 2L)
+})
+
+test_that("a failed later REF page fails the identifier, and its pages are counted", {
+  # A partial bibliography is not a result: the identifier gets an NA row and
+  # a warning, is not checkpointed, and every page already requested counts.
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  serve <- mock_ref_pages(103L)
+  httr2::local_mocked_responses(function(req) {
+    if (identical(httr2::url_parse(req$url)$query$startref, "81")) {
+      return(mock_json_response(list(), status = 404L))
+    }
+    serve(req)
+  })
+  expect_warning(
+    ab <- scopus_abstract("10.1/x", view = "REF", include = "references", cache_dir = cache),
+    "Could not retrieve"
+  )
+  expect_equal(nrow(ab$references[[1]]), 0L)
+  expect_equal(attr(ab, "n_requests"), 3L)
+  expect_length(list.files(cache), 0L)
+})
+
+test_that("REF checkpoints are keyed REF-paged, so a truncated 0.4.0 one is refetched", {
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  calls <- 0L
+  serve <- mock_ref_pages(103L)
+  httr2::local_mocked_responses(function(req) {
+    calls <<- calls + 1L
+    serve(req)
+  })
+  # A checkpoint as 0.4.0 wrote it, holding the first page alone.
+  legacy <- scopusflow:::scopus_abstract_row("10.1/x", list(), include = "references")
+  legacy$references <- list(data.frame(position = "1", title = "Truncated"))
+  saveRDS(legacy, file.path(cache, "id-REF-references-10_1_x.rds"))
+
+  ab <- scopus_abstract("10.1/x", view = "REF", include = "references", cache_dir = cache)
+  expect_equal(nrow(ab$references[[1]]), 103L)
+  expect_equal(calls, 3L)
+  expect_true(file.exists(file.path(cache, "id-REF-paged-references-10_1_x.rds")))
+
+  again <- scopus_abstract("10.1/x", view = "REF", include = "references", cache_dir = cache)
+  expect_equal(calls, 3L)
+  expect_equal(nrow(again$references[[1]]), 103L)
 })
 
 test_that("a response omitting its reference count is parsed, not fatal", {

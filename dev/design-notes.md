@@ -534,15 +534,43 @@ bibliography) correctly. This is documented as a likely entitlement gap
 specific to that one field. Nothing in the parsing accounts for it, and the
 root cause cannot be confirmed without a second, differently-entitled key.
 
-`view = "FULL"` is the recommended default for references over `view =
-"REF"`, the opposite of what an older pybliometrics issue (`pybliometrics#81`)
-would suggest. In this package's own live testing, `"FULL"` returned a
-complete, correctly counted reference list for two different documents,
-consistently, while `"REF"` returned an inconsistent, sometimes paginated
-subset (40 of 103 references on one call, all 103 on another, for the
-identical request made moments apart). `scopus_abstract()` therefore compares
-the returned count against the document's own reported total and warns on a
-mismatch under either view, so neither is trusted unconditionally.
+`view = "FULL"` is the default for references over `view = "REF"`, the
+opposite of what an older pybliometrics issue (`pybliometrics#81`) would
+suggest. `"FULL"` returned a complete, correctly counted reference list in one
+request for every document tried in live testing. `"REF"` is paged: the 40 of
+103 references first seen on one call were the first page, which 0.4.0 took
+for an inconsistency of the API because it never asked for a second. The
+Abstract Retrieval WADL documents `startref` for the REF view, and
+pybliometrics has paged REF since 3.6 (`_get_all_refs()` in its
+`superclasses/base.py`), moving `startref` on by one page each time (41 after
+a first page of 40) and naming no `refcount`, which its source says leads to
+errors. Its live test retrieves 48 of 48 references that way.
+`scopus_abstract()` now does the same, asking for startref = held + 1,
+at a cost of `ceiling(N / 40)` requests for a document with *N* references,
+each counted in `n_requests`. A request with `refcount = 200` was refused in a
+live check on 2 October 2026.
+
+The base of `startref` is not settled. The Scopus API Guide (V1, p. 52) says it
+counts from 0, pybliometrics from 1, and the live check accepted both 0 and 1
+without the follow-up that would tell them apart. The paging loop is therefore
+built so that either reading, and a server that ignores `startref`
+altogether, ends without looping or repeating references. It de-duplicates on
+each reference's `@id`, or on its whole content when it carries none, and stops
+on an empty page, on a page that adds no new reference, or after `ceiling(n / k)`
+pages, k being the first page's length. A zero-based server would then leave
+one reference out per later page, and the count check that compares the
+references held with the document's reported total, kept as a backstop under
+either view, warns about it. The base should be checked once against the live
+API before release. A page that fails fails its identifier as a whole: a partial
+bibliography is not checkpointed, and every page already requested counts.
+
+REF checkpoints are keyed `REF-paged`, so the possibly truncated ones 0.4.0
+wrote are refetched once and never served as complete, following 0.4.0's own
+refetch of checkpoints it could no longer trust. REF also names a cited work's
+title and source `title` and `sourcetitle`, where FULL uses `ref-title` and
+`ref-sourcetitle`. pybliometrics reads either, and the R parser read only the
+FULL names until the paging change, so both columns were always `NA` under
+REF.
 
 The `references` list-column carries a leaner, hand-picked field set
 (`position`, `id`, `doi`, `title`, `authors`, `source`, `year`,
