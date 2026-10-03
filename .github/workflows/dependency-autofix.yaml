@@ -8,9 +8,13 @@
 # is inert until the maintainer opts in by adding a CLAUDE_CODE_OAUTH_TOKEN or
 # ANTHROPIC_API_KEY secret, runs only after a failed check rather than on every
 # schedule, and produces a reviewable pull request rather than an unattended
-# push to main. Opening pull requests also requires enabling "Allow GitHub
-# Actions to create and approve pull requests" under Settings > Actions >
-# General.
+# push to main. The action works with this run's GITHUB_TOKEN, which needs the
+# repository setting "Allow GitHub Actions to create and approve pull requests"
+# (Settings > Actions > General) before it can open a pull request. Workflows do
+# not start on their own for a pull request opened with that token. The
+# maintainer therefore runs R-CMD-check on its branch before merging, from the
+# Actions tab or by closing and reopening the pull request. If the attempt
+# fails, the run says so on the open dependency issue and finishes red.
 on:
   workflow_run:
     workflows: ["dependency-check.yaml"]
@@ -41,6 +45,10 @@ jobs:
       # every step below skips and the dependency-check issue remains the sole
       # means of flagging the maintainer.
       HAS_CLAUDE: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' || secrets.ANTHROPIC_API_KEY != '' }}
+      # The canary's check step runs with CRAN's incoming checks off (see
+      # dependency-check.yaml), so the check that the prompt asks Claude to run
+      # reaches the same verdict as the canary.
+      _R_CHECK_CRAN_INCOMING_: "false"
 
     steps:
       - uses: actions/checkout@v7
@@ -79,11 +87,14 @@ jobs:
         run: |
           pak::pak(c(
             "r-lib/httr2", "r-lib/cli", "r-lib/rlang",
-            "tidyverse/tibble", "jeroen/jsonlite"
+            "tidyverse/tibble", "jeroen/jsonlite", "tidyverse/ggplot2"
           ), ask = FALSE)
 
       - name: Attempt an automatic fix (Claude)
+        id: claude
         if: env.HAS_CLAUDE == 'true'
+        # Kept so that the report step below still runs after a failure. The
+        # report step decides the run's conclusion.
         continue-on-error: true
         # Pinned to a full commit SHA because anthropics/ is outside the small
         # set of publishers this family trusts to float on a major tag.
@@ -91,12 +102,18 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Without a token here, the action exchanges an OIDC token for the
+          # Claude GitHub App's token, which needs id-token: write and the app
+          # installed. Without this line, every run from 2026-08-23 failed at
+          # that exchange. GITHUB_TOKEN carries the permissions declared above
+          # and needs the repository setting named in the header comment.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: |
             The scheduled dependency check for this R package (scopusflow) is
             failing, most likely because an updated dependency introduced a
             breaking change. The development versions of the key dependencies
-            (httr2, cli, rlang, tibble, jsonlite) are already installed in this
-            environment.
+            (httr2, cli, rlang, tibble, jsonlite, ggplot2) are already installed
+            in this environment.
 
             Please:
               1. Reproduce the failure by running
@@ -121,3 +138,19 @@ jobs:
           claude_args: >-
             --max-turns 25
             --allowedTools "Bash(git:*),Bash(gh:*),Bash(Rscript:*),Bash(R:*),Edit,Read,Write"
+
+      - name: Report a failed fix attempt
+        # continue-on-error above turns a failed action into a green run, which
+        # hid 21 consecutive failures. This step comments on the open
+        # dependency issue if there is one and ends the run red.
+        if: env.HAS_CLAUDE == 'true' && steps.claude.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Scheduled dependency check is failing"
+          existing=$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "The automatic fix attempt failed before it produced a pull request: $RUN_URL"
+          fi
+          exit 1

@@ -120,6 +120,16 @@ jobs:
       - name: Check the package
         id: check
         shell: Rscript {0}
+        env:
+          # --as-cran also runs CRAN's incoming checks, which compare the
+          # version in DESCRIPTION with the one CRAN holds. Between releases the
+          # two are equal, so from the day 0.4.0 reached CRAN every run failed
+          # on "Insufficient package version", and a real upstream break would
+          # have looked the same. The canary asks only whether the package
+          # still works with its dependencies, so those checks are off here, as
+          # check-r-package turns them off in R-CMD-check.yaml. NOTEs still do
+          # not fail this step.
+          _R_CHECK_CRAN_INCOMING_: "false"
         run: |
           res <- rcmdcheck::rcmdcheck(
             args = c("--no-manual", "--as-cran"),

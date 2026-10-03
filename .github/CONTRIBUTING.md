@@ -107,7 +107,10 @@ packages, which is why the dependency canary watches those at runtime instead.
 Each workflow declares the permissions it needs, so the repository's default
 workflow permissions can stay read-only. The auto-fix pull request additionally
 requires *Settings → Actions → General* to allow GitHub Actions to create and
-approve pull requests.
+approve pull requests. Because the auto-fix job opens it with the workflow's own
+token, continuous integration does not start on that pull request by itself, so
+run R-CMD-check on its branch before merging. A fix attempt that fails is
+reported on the open dependency issue, and the run finishes red.
 
 ## Submitting a pull request
 
