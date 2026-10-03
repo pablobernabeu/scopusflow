@@ -756,6 +756,19 @@ capped exploratory run poisoned the full harvest that followed. The manifest
 records whether the cap actually bit. One that never did leaves the checkpoint
 usable for any later request, so the common case costs no extra quota.
 
+A checkpoint without a manifest is served as before when the query in its
+records matches the cell. An empty one is served too, since it has no query
+values to contradict the cell. That branch is kept for files this package did
+not write. The manifest is an attribute of the same `.rds` as the records, so
+no interruption can separate the two. The 0.3.x checkpoints that predate it are
+named `cell-NNN.rds`, without the year, so a resume never finds them. The
+Python twin is in a different position. Its manifest is a separate file,
+`cell-NNN.json` beside each checkpoint. Earlier releases had written
+checkpoints under the same names without one, and their row-based guard served
+an empty cell to any plan sharing the directory. That twin therefore refetches
+a manifest-less empty checkpoint, at one request per cell and with one warning
+for the harvest. R has no such checkpoints to refetch.
+
 Checkpoints are written to a sibling temp file and renamed, since a rename
 within one directory is atomic on POSIX and NTFS alike, and read through
 `tryCatch()`. The interruptions this cache exists to survive are exactly what

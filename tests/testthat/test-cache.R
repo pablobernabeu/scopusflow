@@ -447,6 +447,30 @@ test_that("a plan carries its per-cell accounting onto the result", {
   expect_equal(attr(recs, "paging"), "offset")
 })
 
+test_that("a resumed harvest keeps each cell's total, time and version", {
+  # The checkpoint holds the cell's attributes, so a resumed harvest is dated
+  # and its completeness stated as if it had run at once. The Python twin
+  # restores the same three from its checkpoint manifests.
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  calls <- 0L
+  httr2::local_mocked_responses(function(req) {
+    calls <<- calls + 1L
+    mock_corpus(total = 2L)(req)
+  })
+  plan <- scopus_plan("x", years = 2019:2020, partition = "year")
+  first <- scopus_fetch_plan(plan, cache_dir = cache, resume = TRUE)
+  after_first <- calls
+
+  resumed <- scopus_fetch_plan(plan, cache_dir = cache, resume = TRUE)
+  expect_equal(calls, after_first)
+  expect_equal(attr(resumed, "cell_totals")$reported_total, c(2, 2))
+  expect_equal(attr(resumed, "total_results"), 4)
+  expect_equal(attr(resumed, "retrieved_at"), attr(first, "retrieved_at"))
+  expect_identical(attr(resumed, "scopusflow_version"),
+                   attr(first, "scopusflow_version"))
+})
+
 test_that("an overall total is claimed only when every cell reported one", {
   local_scopus_test_env()
   # The second cell's response omits the total, as a non-conforming or partial
