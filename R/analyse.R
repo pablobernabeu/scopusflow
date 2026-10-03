@@ -44,8 +44,8 @@ scopus_trend <- function(query,
                          inst_token = NULL,
                          verbose = FALSE) {
   view <- scopus_match_arg(view, c("STANDARD", "COMPLETE"))
-  scopus_check_query(query)
   field <- scopus_check_field(field)
+  scopus_check_query(query, field)
   years <- scopus_check_years(years)
   if (is.null(years)) {
     scopus_abort_bad_input("`years` must be supplied.")

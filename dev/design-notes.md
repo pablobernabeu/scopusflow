@@ -189,6 +189,44 @@ proposed and dropped, since the grouping leaves them nothing to catch. One
 would have warned when a comparison count exceeded its reference count, the
 other when a record appeared in more than one year cell.
 
+## Offline query checks
+
+`scopus_check_query()` refuses, before any request, a query that cannot do what
+it appears to ask, and checks nothing less certain, since a warning that fires
+on legitimate input is the noise the field-tag decision above rejected. The
+first of its three errors is refinement syntax. `LIMIT-TO()` and `EXCLUDE()`
+come from the web interface's refinement panel, and the Search API ignores them
+without an error: rscopus issue #50 found 55 records with
+`LIMIT-TO(SUBJAREA, ...)`, the unfiltered count, against 36 with `SUBJAREA()`,
+and pybliometrics documents `LIMIT-TO()` as affecting the display only. The
+second is a field given for a query that already opens with a tag, so that one
+tag nests inside the other and the API answers with HTTP 400, as a live request
+showed. Unbalanced brackets, quotation marks or braces are the third.
+`INDEXTERMS()` only warns, because pybliometrics documents it as not working but
+its behaviour has not been observed. The scan treats a quoted or braced phrase as
+text, as the grouping code does, and the messages are shared word for word
+with the Python twin through `tests/testthat/fixtures/query-checks.json`.
+
+A query counts as opening with a tag when a capitalised word meets its bracket,
+as in `TITLE(x)`, or when one of the common tags of `scopus_field_tags()` is
+followed by white space and a bracket, the form the web interface writes,
+`TITLE-ABS-KEY ( x )`. The audit proposed allowing white space after any
+capitalised word. That would have refused `HIV (prevention OR treatment)` given
+a field, a valid search for a term and a bracketed group, so the spaced form is
+limited to the tags the package lists. `scopus_wrap_concept()` uses the same
+test, so a concept pasted in the spaced form is used as written.
+
+Several further checks were proposed and dropped. A fully bracketed reading of
+the query under Scopus precedence would depend on the operator order, and
+Elsevier is changing it. Warnings for a bare NOT or a clause after a top-level
+AND NOT overlap the grouping above. A PUBYEAR in the query beside `years` is
+visible in the search record, since the record prints the expression. A
+separate exported validator was rejected in favour of the check every entry
+point already calls. A relative-recall helper, counting a chain of known DOIs
+alone and joined to the strategy, waits for a live check of how the API treats
+long DOI chains and the case of the DOIs it returns. The designing-queries
+article gives the recipe meanwhile.
+
 ## Robustness
 
 Responses are parsed with `simplifyVector = FALSE`, so a field that arrives as

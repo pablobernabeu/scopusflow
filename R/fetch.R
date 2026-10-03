@@ -61,8 +61,8 @@ scopus_fetch <- function(query,
                          inst_token = NULL,
                          verbose = FALSE) {
   view <- scopus_match_arg(view, c("STANDARD", "COMPLETE"))
-  scopus_check_query(query)
   field <- scopus_check_field(field)
+  scopus_check_query(query, field)
   years <- scopus_check_years(years)
   page_size <- scopus_resolve_page_size(page_size, view)
   max_results <- scopus_check_max_results(max_results)

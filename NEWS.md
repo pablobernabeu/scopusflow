@@ -19,6 +19,22 @@
   keyed `META_ABS`. A cache written by 0.4.0 for a call without a view therefore
   serves only `view = NULL`, and a default call spends a request on each of its
   identifiers again.
+* Queries are checked offline before any request. `LIMIT-TO()` and `EXCLUDE()`
+  refinement syntax pasted from the web interface, a field tag wrapped around a
+  query that already opens with one, and unbalanced brackets, quotation marks or
+  braces now raise `scopus_error_bad_input` in `scopus_plan()`, `scopus_count()`,
+  `scopus_fetch()`, `scopus_trend()`, `scopus_compare_topics()` and
+  `scopus_intersections()`. The Search API ignores a refinement without an error,
+  so such a search ran unfiltered. A nested field tag failed with HTTP 400 after
+  spending a request, and unbalanced brackets reached the API unchecked.
+  `INDEXTERMS()`, which pybliometrics documents as not working through the Search
+  API, raises a `scopus_warning_query_syntax` warning. The messages match the
+  Python twin's word for word. Given `.field`, `scopus_query()` now refuses a
+  term that already opens with a field tag, where
+  `scopus_query("TITLE(x)", .field = "ABS")` used to give `ABS(TITLE(x))`.
+  `scopus_intersections()` uses a concept written as the web interface writes a
+  tag, `TITLE-ABS-KEY ( x )`, as given, where it used to wrap it in `field` a
+  second time.
 
 ## Bug fixes
 
@@ -80,6 +96,10 @@
   phrases naming one condition. It also shows why a query written by hand that
   mixes operators needs brackets, under both the documented operator order and
   the one Elsevier has announced.
+* The designing-queries article describes the offline query checks and gives a
+  recipe for testing a strategy's relative recall against records known to be
+  relevant, with two searches per chain of DOIs (Sampson et al., 2006; Bramer et
+  al., 2018). The recipe contacts the API and is not run in the article.
 
 # scopusflow 0.4.0
 

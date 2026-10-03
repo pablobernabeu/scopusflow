@@ -58,6 +58,65 @@ test_that("page_size is bounded by the view's API limit", {
   expect_equal(scopus_plan("x", view = "COMPLETE", page_size = 25)$page_size[1], 25L)
 })
 
+test_that("a query the API cannot run as written is refused before any request", {
+  local_scopus_test_env()
+  sent <- 0L
+  httr2::local_mocked_responses(function(req) {
+    sent <<- sent + 1L
+    mock_search_results(list(), total = 0)
+  })
+  # Pasted from the web interface's refinement panel, which the Search API
+  # ignores, so the search would run unfiltered.
+  refined <- 'x AND (LIMIT-TO (DOCTYPE, "ar"))'
+  # The refusal is the offline check's own, not some other input error.
+  refused <- function(expr, problem) {
+    err <- expect_error(expr, class = "scopus_error_bad_input")
+    expect_identical(err$problem, problem)
+  }
+  refused(scopus_plan(refined), "refinement")
+  refused(scopus_count(refined), "refinement")
+  refused(scopus_fetch(refined), "refinement")
+  refused(scopus_trend(refined, years = 2020), "refinement")
+  refused(scopus_compare_topics(refined, "y", years = 2020), "refinement")
+  refused(scopus_compare_topics("x", refined, years = 2020), "refinement")
+  refused(scopus_intersections(c(a = "x", b = refined)), "refinement")
+  # A tagged query wrapped in another tag, which the API rejects with HTTP 400.
+  refused(scopus_plan("TITLE(x)", field = "TITLE-ABS-KEY"), "double_field")
+  refused(scopus_count("TITLE(x)", field = "title-abs-key"), "double_field")
+  refused(
+    scopus_compare_topics("x", c("y", "TITLE(z)"), years = 2020, field = "ABS"),
+    "double_field"
+  )
+  refused(scopus_plan("(a OR b", field = "TITLE"), "unbalanced")
+  expect_identical(sent, 0L)
+})
+
+test_that("a tagged concept is checked as written, without the field", {
+  local_scopus_test_env()
+  sent <- 0L
+  httr2::local_mocked_responses(function(req) {
+    sent <<- sent + 1L
+    mock_search_results(list(), total = 3)
+  })
+  out <- scopus_intersections(
+    c(a = "graphene", b = 'TITLE-ABS-KEY ( "working memory" )'),
+    field = "TITLE-ABS-KEY"
+  )
+  expect_identical(
+    out$query,
+    c("TITLE-ABS-KEY(graphene)", 'TITLE-ABS-KEY ( "working memory" )')
+  )
+  expect_identical(sent, 2L)
+})
+
+test_that("INDEXTERMS() warns and the plan is still built", {
+  expect_warning(
+    p <- scopus_plan("INDEXTERMS(memory)"),
+    class = "scopus_warning_query_syntax"
+  )
+  expect_identical(p$query, "INDEXTERMS(memory)")
+})
+
 test_that("plan prints without error", {
   expect_output(print(scopus_plan("x", years = 2018:2019, partition = "year")), "cell")
 })

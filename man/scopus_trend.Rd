@@ -15,7 +15,8 @@ scopus_trend(
 )
 }
 \arguments{
-\item{query}{Character scalar. The base search expression.}
+\item{query}{Character scalar. The base search expression, checked offline
+before any request (see the \emph{Query checks} section of \code{\link[=scopus_plan]{scopus_plan()}}).}
 
 \item{years}{Integer vector of publication years to count over, for example
 \code{2010:2020}.}

@@ -16,6 +16,8 @@
 #' `TITLE(deep learning)`. Single words are never bracketed, so
 #' `scopus_query("CRISPR", "Cas9", .op = "OR")` stays `CRISPR OR Cas9`, and a
 #' query composed by an earlier call keeps its meaning when it is joined again.
+#' A term that already opens with a field tag is refused when `.field` is
+#' given, because the API rejects one tag nested inside another.
 #'
 #' @param ... Character terms to combine, for example `"language learning"` and
 #'   `"effect size"`.
@@ -48,7 +50,9 @@ scopus_query <- function(..., .op = c("AND", "OR", "AND NOT"), .field = NULL) {
   if (is.null(.field) && length(terms) > 1L) {
     terms <- vapply(terms, scopus_group_term, character(1), USE.NAMES = FALSE)
   }
-  wrapped <- vapply(terms, function(t) scopus_wrap_field(t, .field), character(1))
+  call <- rlang::current_env()
+  wrapped <- vapply(terms, function(t) scopus_wrap_field(t, .field, call = call),
+                    character(1))
   paste(wrapped, collapse = paste0(" ", .op, " "))
 }
 
@@ -122,4 +126,128 @@ scopus_first_group_end <- function(chars) {
     i <- i + 1L
   }
   NA_integer_
+}
+
+# Offline query checks --------------------------------------------------------
+#
+# scopus_check_query() runs these before any request. Each one reports a query
+# that cannot do what it appears to ask, so none fires on legitimate input. The
+# Python twin's _query_problems() reports the same codes with the same
+# messages, and both are held to tests/testthat/fixtures/query-checks.json.
+# The messages name no function or argument, so they read the same in either
+# language.
+scopus_query_messages <- c(
+  unbalanced = paste(
+    "The query's brackets, quotation marks or braces do not balance.",
+    "Every ( needs a matching ), and every \" or { needs a closing \" or }.",
+    "Brackets inside a phrase are read as text."
+  ),
+  # rscopus issue #50 shows the Search API ignoring LIMIT-TO() without an
+  # error: 55 records against 36 for the same limit written as SUBJAREA().
+  refinement = paste(
+    "The query contains LIMIT-TO() or EXCLUDE(), which belong to the Scopus",
+    "web interface's refinement panel. The Search API does not apply them, so",
+    "the search would run unfiltered (pybliometrics documents LIMIT-TO() as",
+    "affecting the display only). Write the limit as a search field instead,",
+    "such as DOCTYPE(ar), LANGUAGE(english), SUBJAREA(PSYC), SRCTYPE(j) or",
+    "PUBYEAR > 2015."
+  ),
+  # A live request for TITLE-ABS-KEY(TITLE(x)) failed with HTTP 400 (see
+  # dev/design-notes.md, "Concept and intersection sizing").
+  double_field = paste(
+    "The query already opens with a field tag, so wrapping it in another would",
+    "nest one tag inside the other, which the API rejects. Choose no field tag",
+    "to send the query as written."
+  ),
+  # A warning, since how the Search API treats INDEXTERMS() has not been
+  # observed. pybliometrics' ScopusSearch documentation names it, with
+  # LIMIT-TO(), as the only advanced-search fields that do not work.
+  indexterms = paste(
+    "The query uses INDEXTERMS(), which pybliometrics documents as not working",
+    "through the Search API. KEY() can stand in for it, since it searches",
+    "author keywords, index terms, trade names and chemical names together."
+  )
+)
+
+# Matched against the query with its phrases blanked out and its ASCII letters
+# upper-cased, so the operator is found in any case but never inside a phrase.
+# The look-behind stands for \b at the start of a word. Both twins write it out
+# in ASCII, because PCRE's \b and Python's differ on a letter such as an
+# accented e.
+scopus_refinement_pattern <- paste0(
+  "(?<![A-Z0-9_])(?:LIMIT-TO|EXCLUDE)", scopus_space, "*\\(",
+  scopus_space, "*[A-Z-]+", scopus_space, "*,"
+)
+scopus_indexterms_pattern <- paste0(
+  "(?<![A-Z0-9_])INDEXTERMS", scopus_space, "*\\("
+)
+
+# TRUE when `query` opens with a field tag: a tag written against its bracket,
+# as in TITLE(x), or one of the common tags of scopus_field_tags() followed by
+# white space and a bracket, as the web interface writes TITLE-ABS-KEY ( x ).
+# Any capitalised word could open a spaced group, as in HIV (prevention OR
+# treatment), which is a search term and a bracketed group. The spaced form is
+# therefore recognised only for the common tags.
+scopus_opens_with_tag <- function(query) {
+  spaced <- paste(scopus_field_tags()$tag, collapse = "|")
+  pattern <- paste0(
+    "^", scopus_space, "*(?:[A-Z][A-Z-]*\\(|(?:", spaced, ")",
+    scopus_space, "+\\()"
+  )
+  grepl(pattern, query, perl = TRUE)
+}
+
+# The problems scopus_check_query() acts on, as a data frame with one row per
+# problem found (columns `code`, `level` and `message`), in a fixed order. The
+# walk is the one scopus_first_group_end() makes: a quoted or braced phrase is
+# text, so its brackets are never counted, and an unclosed phrase runs to the
+# end of the string.
+scopus_query_problems <- function(query, field = NULL) {
+  chars <- strsplit(query, "", fixed = TRUE)[[1L]]
+  n <- length(chars)
+  masked <- chars
+  depth <- 0L
+  balanced <- TRUE
+  i <- 1L
+  while (i <= n) {
+    ch <- chars[i]
+    if (ch == "\"" || ch == "{") {
+      close <- if (ch == "\"") "\"" else "}"
+      skip <- match(close, chars[i + seq_len(n - i)])
+      if (is.na(skip)) {
+        balanced <- FALSE
+        end <- n
+      } else {
+        end <- i + skip
+      }
+      masked[i:end] <- " "
+      i <- end + 1L
+      next
+    }
+    if (ch == "(") {
+      depth <- depth + 1L
+    } else if (ch == ")") {
+      if (depth == 0L) balanced <- FALSE else depth <- depth - 1L
+    }
+    i <- i + 1L
+  }
+  # chartr() leaves every character outside the two ASCII alphabets alone,
+  # as the Python twin's translation table does.
+  masked <- chartr(
+    paste(letters, collapse = ""), paste(LETTERS, collapse = ""),
+    paste(masked, collapse = "")
+  )
+  found <- c(
+    unbalanced = !balanced || depth != 0L,
+    refinement = grepl(scopus_refinement_pattern, masked, perl = TRUE),
+    double_field = !is.null(field) && scopus_opens_with_tag(query),
+    indexterms = grepl(scopus_indexterms_pattern, masked, perl = TRUE)
+  )
+  codes <- names(found)[found]
+  data.frame(
+    code = codes,
+    level = c("error", "warning")[1L + (codes == "indexterms")],
+    message = unname(scopus_query_messages[codes]),
+    stringsAsFactors = FALSE
+  )
 }

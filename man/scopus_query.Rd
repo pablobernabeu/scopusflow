@@ -38,6 +38,8 @@ phrase, a bracketed group or a single field-tagged group such as
 \verb{TITLE(deep learning)}. Single words are never bracketed, so
 \code{scopus_query("CRISPR", "Cas9", .op = "OR")} stays \verb{CRISPR OR Cas9}, and a
 query composed by an earlier call keeps its meaning when it is joined again.
+A term that already opens with a field tag is refused when \code{.field} is
+given, because the API rejects one tag nested inside another.
 }
 \examples{
 scopus_query("climate change", "adaptation", .field = "TITLE-ABS-KEY")

@@ -5,7 +5,8 @@
 #' committing quota. The count can guide how to partition a [scopus_plan()], or
 #' simply report how large a topic is.
 #'
-#' @param query Character scalar. The base search expression.
+#' @param query Character scalar. The base search expression, checked offline
+#'   before any request (see the *Query checks* section of [scopus_plan()]).
 #' @param years Optional integer vector of publication years to restrict to.
 #' @param field Optional 'Scopus' field tag to wrap the query in (see
 #'   [scopus_plan()]).
@@ -55,8 +56,8 @@ scopus_count <- function(query,
                          api_key = NULL,
                          inst_token = NULL) {
   view <- scopus_match_arg(view, c("STANDARD", "COMPLETE"))
-  scopus_check_query(query)
   field <- scopus_check_field(field)
+  scopus_check_query(query, field)
   years <- scopus_check_years(years)
 
   wrapped <- scopus_wrap_field(query, field)

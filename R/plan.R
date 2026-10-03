@@ -36,6 +36,22 @@
 #'   `cell`, `query` (field-wrapped), `date` (year range string or `NA`), `year`
 #'   (integer or `NA`), `view` and `page_size`. Plan-level settings are stored as
 #'   attributes.
+#' @section Query checks:
+#' `scopus_plan()`, [scopus_count()], [scopus_fetch()], [scopus_trend()],
+#' [scopus_compare_topics()] and [scopus_intersections()] check each query
+#' offline, before any request, and refuse three mistakes with a
+#' `scopus_error_bad_input` condition. `LIMIT-TO()` and `EXCLUDE()` belong to
+#' the web interface's refinement panel, and the Search API ignores them, so
+#' the search would run unfiltered. Write such a limit as a search field, for
+#' example `DOCTYPE(ar)`, `LANGUAGE(english)`, `SUBJAREA(PSYC)`, `SRCTYPE(j)`
+#' or `PUBYEAR > 2015`. A `field` given for a query that already opens with a
+#' field tag would nest one tag inside the other, which the API rejects, so
+#' leave `field` as `NULL` for such a query. Brackets, quotation marks and
+#' braces must balance, counting brackets inside a phrase as text.
+#' `INDEXTERMS()`, which pybliometrics documents as not working through the
+#' Search API, raises a `scopus_warning_query_syntax` warning. `KEY()`
+#' searches the index terms together with author keywords, trade names and
+#' chemical names. The messages are those of the Python twin, word for word.
 #' @seealso [scopus_fetch_plan()] to execute a plan, [scopus_count()] to size it.
 #' @examples
 #' scopus_plan("quantum computing", years = 2015:2022, field = "TITLE-ABS-KEY")
@@ -49,8 +65,8 @@ scopus_plan <- function(query,
                         partition = c("none", "year")) {
   view <- scopus_match_arg(view, c("STANDARD", "COMPLETE"))
   partition <- scopus_match_arg(partition, c("none", "year"))
-  scopus_check_query(query)
   field <- scopus_check_field(field)
+  scopus_check_query(query, field)
   years <- scopus_check_years(years)
   page_size <- scopus_resolve_page_size(page_size, view)
 
@@ -114,11 +130,27 @@ print.scopus_plan <- function(x, ...) {
 
 # Input validation helpers --------------------------------------------------
 
-scopus_check_query <- function(query, call = rlang::caller_env()) {
+# `field` is the normalised tag the query will be wrapped in, or NULL. The
+# offline checks are described in scopus_query_problems() (R/query.R). The
+# first error found is raised, and a warning is issued only for a query that
+# raises none.
+scopus_check_query <- function(query, field = NULL, call = rlang::caller_env()) {
   if (!is.character(query) || length(query) != 1L || is.na(query) || !nzchar(trimws(query))) {
     scopus_abort_bad_input(
       "`query` must be a single, non-empty character string.",
       call = call
+    )
+  }
+  problems <- scopus_query_problems(query, field)
+  errors <- problems[problems$level == "error", , drop = FALSE]
+  if (nrow(errors) > 0L) {
+    scopus_abort_bad_input(errors$message[1L], problem = errors$code[1L], call = call)
+  }
+  for (i in which(problems$level == "warning")) {
+    rlang::warn(
+      problems$message[i],
+      class = "scopus_warning_query_syntax",
+      problem = problems$code[i]
     )
   }
   invisible(query)
@@ -201,9 +233,21 @@ scopus_check_page_size <- function(page_size, view = "STANDARD",
   page_size
 }
 
-# Wrap a query in a field tag, e.g. TITLE-ABS-KEY(language learning).
-scopus_wrap_field <- function(query, field) {
-  if (is.null(field)) query else sprintf("%s(%s)", field, query)
+# Wrap a query in a field tag, e.g. TITLE-ABS-KEY(language learning). The
+# entry points have already refused a tagged query given a field, through
+# scopus_check_query(). The guard here covers every other caller.
+scopus_wrap_field <- function(query, field, call = rlang::caller_env()) {
+  if (is.null(field)) {
+    return(query)
+  }
+  if (scopus_opens_with_tag(query)) {
+    scopus_abort_bad_input(
+      scopus_query_messages[["double_field"]],
+      problem = "double_field",
+      call = call
+    )
+  }
+  sprintf("%s(%s)", field, query)
 }
 
 # Build a "min-max" (or "yyyy") date range string from a vector of years.

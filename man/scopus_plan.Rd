@@ -66,6 +66,25 @@ makes workflows reproducible (the plan can be saved, reviewed and version
 controlled) and lets large retrievals be partitioned, for example one cell per
 year, so they can be cached and resumed.
 }
+\section{Query checks}{
+
+\code{scopus_plan()}, \code{\link[=scopus_count]{scopus_count()}}, \code{\link[=scopus_fetch]{scopus_fetch()}}, \code{\link[=scopus_trend]{scopus_trend()}},
+\code{\link[=scopus_compare_topics]{scopus_compare_topics()}} and \code{\link[=scopus_intersections]{scopus_intersections()}} check each query
+offline, before any request, and refuse three mistakes with a
+\code{scopus_error_bad_input} condition. \code{LIMIT-TO()} and \code{EXCLUDE()} belong to
+the web interface's refinement panel, and the Search API ignores them, so
+the search would run unfiltered. Write such a limit as a search field, for
+example \code{DOCTYPE(ar)}, \code{LANGUAGE(english)}, \code{SUBJAREA(PSYC)}, \code{SRCTYPE(j)}
+or \code{PUBYEAR > 2015}. A \code{field} given for a query that already opens with a
+field tag would nest one tag inside the other, which the API rejects, so
+leave \code{field} as \code{NULL} for such a query. Brackets, quotation marks and
+braces must balance, counting brackets inside a phrase as text.
+\code{INDEXTERMS()}, which pybliometrics documents as not working through the
+Search API, raises a \code{scopus_warning_query_syntax} warning. \code{KEY()}
+searches the index terms together with author keywords, trade names and
+chemical names. The messages are those of the Python twin, word for word.
+}
+
 \examples{
 scopus_plan("quantum computing", years = 2015:2022, field = "TITLE-ABS-KEY")
 scopus_plan("immunotherapy", years = 2010:2020, partition = "year")

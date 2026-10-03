@@ -18,7 +18,8 @@ scopus_fetch(
 )
 }
 \arguments{
-\item{query}{Character scalar. The base search expression.}
+\item{query}{Character scalar. The base search expression, checked offline
+before any request (see the \emph{Query checks} section of \code{\link[=scopus_plan]{scopus_plan()}}).}
 
 \item{max_results}{Maximum number of records to retrieve. Defaults to \code{Inf},
 meaning all available records up to the API ceiling. With the default

@@ -74,14 +74,19 @@ scopus_compare_topics <- function(reference_query,
                                   inst_token = NULL,
                                   verbose = FALSE) {
   view <- scopus_match_arg(view, c("STANDARD", "COMPLETE"))
-  scopus_check_query(reference_query)
+  field <- scopus_check_field(field)
+  scopus_check_query(reference_query, field)
   if (!is.character(comparison_terms) || length(comparison_terms) == 0L ||
       anyNA(comparison_terms) || !all(nzchar(trimws(comparison_terms)))) {
     scopus_abort_bad_input(
       "`comparison_terms` must be a non-empty character vector of non-empty terms."
     )
   }
-  field <- scopus_check_field(field)
+  # Every term is checked before the first request, so a bad one cannot fail
+  # the comparison after the reference counts have been paid for.
+  for (term in comparison_terms) {
+    scopus_check_query(term, field)
+  }
   years <- scopus_check_years(years)
   if (is.null(years)) {
     scopus_abort_bad_input("`years` must be supplied.")

@@ -159,6 +159,10 @@ scopus_intersections <- function(concepts,
   }
   field <- scopus_check_field(field)
   years <- scopus_check_years(years)
+  # A tagged concept is used as written, so it is checked without the field.
+  for (term in unname(concepts)) {
+    scopus_check_query(term, if (scopus_opens_with_tag(term)) NULL else field)
+  }
 
   queries <- vapply(unname(concepts), function(term) {
     scopus_wrap_concept(term, field)
@@ -237,7 +241,9 @@ print.scopus_intersections <- function(x, ...) {
 # Wrap a bare term in the field tag, but pass a value that already reads as a
 # field-tagged expression through untouched: wrapping it again (for example
 # TITLE-ABS-KEY(TITLE(x))) is malformed and the API rejects it with HTTP 400.
+# The test is the one the offline query checks use, so a concept written as
+# the web interface writes it, TITLE-ABS-KEY ( x ), also passes through.
 scopus_wrap_concept <- function(term, field) {
   term <- trimws(term)
-  if (grepl("^[A-Z][A-Z-]*\\(", term)) term else scopus_wrap_field(term, field)
+  if (scopus_opens_with_tag(term)) term else scopus_wrap_field(term, field)
 }
