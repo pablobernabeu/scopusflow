@@ -360,9 +360,13 @@ conditions, transient classification, offline handling, caching and resume,
 plotting where ggplot2 is present, the I/O round-trips and key handling. An
 offline request-contract test pins the outbound URL, query parameters and auth
 header, so a change to the request shape is caught even though no real request is
-made. Spelling is checked by `tests/spelling.R`, which fails `R CMD check`
-wherever `NOT_CRAN` is true: under `devtools::check()` and across the GitHub
-Actions matrix, where setup-r sets it. The test is skipped on CRAN, in a plain
+made. The mocks also bypass `req_retry()`, so the retry loop never runs offline.
+The suite instead tests its parts: which responses `scopus_is_transient()` calls
+transient (a 429 marked `QUOTA_EXCEEDED` is not), the `Retry-After` parser under
+a German time locale, and the policy `scopus_req_retry()` attaches to a request,
+`retry_on_failure` included. Spelling is checked by `tests/spelling.R`, which
+fails `R CMD check` wherever `NOT_CRAN` is true: under `devtools::check()` and
+across the GitHub Actions matrix, where setup-r sets it. The test is skipped on CRAN, in a plain
 `R CMD check` and by `devtools::test()`, which runs only `tests/testthat`. It
 raises an error because the NOTE it used to produce left CI green and let
 unlisted words reach the 0.4.0 release. A `_R_CHECK_DEPENDS_ONLY_` CI run
@@ -833,15 +837,26 @@ where current CRAN builds of the dependencies may not be installable, or raising
 the declared floor. That is a release decision and is left open deliberately.
 
 The package floors are now exercised by a `min-deps` job that installs
-`httr2@1.0.0` and runs the check against it. Only httr2 is pinned: it is the
+`httr2@1.0.4` and runs the check against it. Only httr2 is pinned: it is the
 dependency whose API this package leans on hardest, and pinning it alone avoids
 dragging the rest of the library backwards and failing the job for reasons that
 have nothing to do with scopusflow. The declared `rlang (>= 1.0.0)` was
-corrected to `1.1.0`, which is not a narrowing: httr2 1.0.0 declares
-`rlang (>= 1.1.0)` itself, so no installation satisfying the httr2 floor could
-ever have used rlang 1.0.0. The job asserts the versions it ended up with, since
-a pin that silently failed would leave the check passing against the current
-releases and proving nothing.
+corrected to `1.1.0`, which is not a narrowing: httr2 declares
+`rlang (>= 1.1.0)` itself, from 1.0.0 on, so no installation satisfying the
+httr2 floor could ever have used rlang 1.0.0. The job asserts the versions it
+ended up with, since a pin that silently failed would leave the check passing
+against the current releases and proving nothing.
+
+The httr2 floor was 1.0.0 until the development version after 0.4.0, when it
+rose to 1.0.4. That release introduced `req_retry(retry_on_failure = )` and
+stopped retrying transport failures, such as a timeout or a reset connection,
+unless it is `TRUE` (httr2's NEWS for 1.0.4). Under every later httr2, one
+such failure therefore aborted a harvest, while the job pinned to 1.0.0, which
+still retried them, stayed green. `scopus_req_retry()` now passes
+`retry_on_failure = TRUE`, and passing it to httr2 1.0.0 to 1.0.3 is an
+unused-argument error, hence the new floor. Checking `formals()` for the
+argument would have kept the old floor but left it exercising different retry
+behaviour from current releases.
 
 ## Assumptions
 

@@ -38,6 +38,11 @@
 * RIS records put the source title under `T2`, which reference managers read as
   the publication title, instead of `JO`, which Zotero reads as the journal
   abbreviation, and now carry `DB  - Scopus` and the EID as `AN`.
+* Requests are retried after transport failures such as timeouts and connection
+  resets, which httr2 stopped doing by default in 1.0.4, so one such failure no
+  longer aborts a harvest. scopusflow now requires httr2 1.0.4 or later. A
+  timeout is reported as such, with the class `scopus_error_timeout` (a subclass
+  of `scopus_error_offline`), and no longer as being offline.
 
 ## Bug fixes
 
@@ -98,6 +103,17 @@
   words such as CRISPR-Cas9 and DNA from lower-casing. BibTeX also spaces
   run-together initials ("J. R."), which it would otherwise read as one given
   name. The `authors` column and the citation keys are unchanged.
+* A spent weekly quota is no longer treated as a transient rate limit. Elsevier
+  answers both with HTTP 429, and a response marked `QUOTA_EXCEEDED` now raises
+  `scopus_error_quota_exceeded` (a subclass of `scopus_error_rate_limit`) naming
+  the reset time, and is not retried. It stops a `scopus_abstract()` or
+  `scopus_corpus()` batch with the rows already retrieved kept, an `NA` row for
+  each identifier not retrieved and one `scopus_warning_quota_exceeded`
+  warning. Every remaining identifier used to be tried three times and become an
+  `NA` row with a warning of its own. The 403 message no longer blames the
+  quota, and `Retry-After` dates parse in any locale, where a German or French
+  `LC_TIME` made every one `NA`. `scopus_quota()` documents `reset` as the time
+  the key's quota resets, not a rate-limit window.
 
 ## Documentation
 

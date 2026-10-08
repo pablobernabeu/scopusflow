@@ -48,6 +48,24 @@ test_that("every request carries a transfer timeout", {
   expect_equal(scopusflow:::scopus_request(list(query = "x"))$options$timeout_ms, 5000)
 })
 
+test_that("the retry policy retries transport failures", {
+  # httr2 1.0.4 stopped retrying a timeout or a reset connection unless
+  # retry_on_failure = TRUE, so one such failure aborted a whole harvest.
+  # local_mocked_responses() bypasses req_retry(), so the policy is read off
+  # the request.
+  withr::local_options(scopusflow.api_key = "k", scopusflow.max_tries = 3L)
+  req <- scopusflow:::scopus_req_retry(scopusflow:::scopus_request(list(query = "x")))
+  expect_true(req$policies$retry_on_failure)
+  expect_equal(req$policies$retry_max_tries, 3L)
+  expect_true(is.function(req$policies$retry_is_transient))
+  expect_true(is.function(req$policies$retry_after))
+
+  abstract <- scopusflow:::scopus_req_retry(
+    scopusflow:::scopus_abstract_request("10.1/x", by = "doi")
+  )
+  expect_true(abstract$policies$retry_on_failure)
+})
+
 test_that("empty-string parameters are omitted from the query", {
   withr::local_options(scopusflow.api_key = "k")
   req <- scopusflow:::scopus_request(list(query = "x", view = "", date = NULL))

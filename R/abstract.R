@@ -101,7 +101,15 @@
 #' naming the view and suggesting who to contact, where a generic HTTP failure
 #' would leave you guessing. Because entitlement is a property of the account,
 #' retrieval stops at the first such failure, so the same refusal is not
-#' repeated for every remaining identifier. See the *API access* section of
+#' repeated for every remaining identifier.
+#'
+#' A spent weekly quota (HTTP 429 marked `QUOTA_EXCEEDED`) also stops the
+#' requests, but returns what the batch holds, since it usually arrives
+#' part-way through: the rows already retrieved are kept, each identifier not
+#' retrieved gets a row of `NA`s that is not checkpointed, and one
+#' `scopus_warning_quota_exceeded` warning names the identifier reached, how
+#' many were not retrieved and when the quota resets. A checkpoint in
+#' `cache_dir` is still read after the stop. See the *API access* section of
 #' [scopus_count()] for the other conditions that may be raised.
 #' @seealso [scopus_fetch()], [scopus_extract_dois()], [scopus_corpus()] to
 #'   assemble a minimal keyword/reference corpus across many documents.
@@ -209,6 +217,13 @@ scopus_abstract <- function(ids,
   n_requests <- 0L
   quota <- NULL
   forbidden <- NULL
+  # A spent weekly quota stops the requests but, unlike a 403, not the batch:
+  # it usually arrives part-way through, and aborting would discard the rows
+  # already paid for whenever `cache_dir` is NULL. `quota_spent` holds the
+  # condition, and `quota_spent_at` the identifier it arrived on.
+  quota_spent <- NULL
+  quota_spent_at <- NA_character_
+  not_retrieved <- 0L
 
   # The requested extras are part of the cache key (sorted, so the encoding is
   # stable however `include` was ordered): a resumed run that asks for
@@ -266,6 +281,15 @@ scopus_abstract <- function(ids,
       }
     }
 
+    if (!is.null(quota_spent)) {
+      # No request after the quota ran out. Checkpoints above are still read,
+      # since they cost nothing, and the NA row is not checkpointed, so a run
+      # after the reset retrieves the identifier.
+      not_retrieved <- not_retrieved + 1L
+      rows[[i]] <- scopus_abstract_row(ids[i], list(), include = include)
+      next
+    }
+
     if (verbose) cli::cli_inform("Retrieving {i}/{length(ids)}: {ids[i]}.")
     failed <- FALSE
     # Counts every request made for this identifier, one per REF page,
@@ -295,6 +319,14 @@ scopus_abstract <- function(ids,
       # tryCatch() has returned, outside any handler, avoids that.
       forbidden <<- e
       NULL
+    }, scopus_error_quota_exceeded = function(e) {
+      # Listed before the scopus_error handler, which would otherwise warn
+      # and carry on to the next identifier.
+      quota_spent <<- e
+      quota_spent_at <<- ids[i]
+      failed <<- TRUE
+      if (!is.null(e$quota)) quota <<- e$quota
+      scopus_abstract_row(ids[i], list(), include = include)
     }, scopus_error = function(e) {
       failed <<- TRUE
       cli::cli_warn("Could not retrieve {.val {ids[i]}}: {conditionMessage(e)}")
@@ -330,6 +362,27 @@ scopus_abstract <- function(ids,
     # permanent: a resumed run would serve it as data and never retry.
     if (!is.null(cache_file) && !failed) scopus_write_checkpoint(row, cache_file)
     rows[[i]] <- row
+    if (!is.null(quota_spent)) not_retrieved <- not_retrieved + 1L
+  }
+
+  if (!is.null(quota_spent)) {
+    rlang::warn(
+      sprintf(
+        paste(
+          "The 'Scopus' API key's weekly quota ran out (HTTP 429, QUOTA_EXCEEDED)",
+          "at %s, so no further request was made, and %d %s not retrieved",
+          "and given a row of NA. %s The rows already retrieved are kept. The NA",
+          "rows are not checkpointed, so a run after the reset with `cache_dir`",
+          "set requests only the identifiers still missing."
+        ),
+        quota_spent_at,
+        not_retrieved,
+        if (not_retrieved == 1L) "identifier was" else "identifiers were",
+        scopus_quota_reset_sentence(quota_spent$quota)
+      ),
+      class = "scopus_warning_quota_exceeded",
+      quota = quota_spent$quota
+    )
   }
 
   # Union the columns before binding, as scopus_bind_records() does for plan

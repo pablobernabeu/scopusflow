@@ -131,7 +131,15 @@ not entitled to raises a \code{scopus_error_forbidden} condition with a message
 naming the view and suggesting who to contact, where a generic HTTP failure
 would leave you guessing. Because entitlement is a property of the account,
 retrieval stops at the first such failure, so the same refusal is not
-repeated for every remaining identifier. See the \emph{API access} section of
+repeated for every remaining identifier.
+
+A spent weekly quota (HTTP 429 marked \code{QUOTA_EXCEEDED}) also stops the
+requests, but returns what the batch holds, since it usually arrives
+part-way through: the rows already retrieved are kept, each identifier not
+retrieved gets a row of \code{NA}s that is not checkpointed, and one
+\code{scopus_warning_quota_exceeded} warning names the identifier reached, how
+many were not retrieved and when the quota resets. A checkpoint in
+\code{cache_dir} is still read after the stop. See the \emph{API access} section of
 \code{\link[=scopus_count]{scopus_count()}} for the other conditions that may be raised.
 }
 

@@ -65,16 +65,7 @@ scopus_req_timeout <- function(req) {
 # Non-2xx responses are turned into typed scopusflow conditions. Retry/back-off
 # parameters are read from options so tests can disable sleeping.
 scopus_perform <- function(req, call = rlang::caller_env()) {
-  max_tries <- getOption("scopusflow.max_tries", 3L)
-  backoff <- getOption("scopusflow.retry_backoff", NULL)
-
-  req <- httr2::req_retry(
-    req,
-    max_tries = max_tries,
-    is_transient = scopus_is_transient,
-    backoff = backoff,
-    after = function(resp) scopus_retry_after(resp)
-  )
+  req <- scopus_req_retry(req)
 
   # Let httr2 classify HTTP errors (so retry works), then re-raise them as
   # typed scopusflow conditions carrying the status and parsed quota.
@@ -88,14 +79,52 @@ scopus_perform <- function(req, call = rlang::caller_env()) {
   )
 }
 
-# Which responses should be retried: rate limiting (429) and transient 5xx.
+# The retry policy every request is performed under, built apart from
+# scopus_perform() so a test can read it off the request: httr2's mocks bypass
+# req_retry(), so the retry loop itself cannot run offline.
+#
+# retry_on_failure = TRUE retries a transport failure (a timeout, a reset
+# connection) as well as a transient status. httr2 did so by default until
+# 1.0.4, which made it opt-in, and from then on one such failure aborted a whole
+# harvest. Every request here is an idempotent GET, so a retry is safe. The
+# argument does not exist before httr2 1.0.4, hence the floor in DESCRIPTION.
+scopus_req_retry <- function(req) {
+  httr2::req_retry(
+    req,
+    max_tries = getOption("scopusflow.max_tries", 3L),
+    retry_on_failure = TRUE,
+    is_transient = scopus_is_transient,
+    backoff = getOption("scopusflow.retry_backoff", NULL),
+    after = function(resp) scopus_retry_after(resp)
+  )
+}
+
+# Which responses should be retried: throttling (429) and transient 5xx. A 429
+# that reports a spent weekly quota is not retried, since the quota resets only
+# days later and every retry would be refused in the same way.
 scopus_is_transient <- function(resp) {
-  httr2::resp_status(resp) %in% c(429L, 500L, 502L, 503L, 504L)
+  status <- httr2::resp_status(resp)
+  status %in% c(500L, 502L, 503L, 504L) ||
+    (status == 429L && !scopus_quota_exceeded(resp))
+}
+
+# Whether a response reports the key's weekly quota as spent. Elsevier answers
+# both throttling and a spent quota with HTTP 429, and marks the second with
+# X-ELS-Status "QUOTA_EXCEEDED - Quota Exceeded" (its API key settings page).
+# The header is matched on its prefix, ignoring case, so a change to the text
+# after it does not matter. A 429 without the header counts as throttling, as
+# every 429 did before.
+scopus_quota_exceeded <- function(resp) {
+  if (!isTRUE(httr2::resp_status(resp) == 429L)) {
+    return(FALSE)
+  }
+  status <- httr2::resp_header(resp, "X-ELS-Status")
+  length(status) == 1L && startsWith(toupper(trimws(status)), "QUOTA_EXCEEDED")
 }
 
 # Number of seconds to wait before a retry, honouring Retry-After if present.
-# The header may be a number of seconds or an HTTP date (RFC 7231); both forms
-# are supported.
+# The header may be a number of seconds or an HTTP date; both forms are
+# supported.
 scopus_retry_after <- function(resp) {
   ra <- httr2::resp_header(resp, "Retry-After")
   if (is.null(ra)) {
@@ -105,13 +134,41 @@ scopus_retry_after <- function(resp) {
   if (!is.na(secs)) {
     return(secs)
   }
-  when <- suppressWarnings(
-    as.POSIXct(ra, format = "%a, %d %b %Y %H:%M:%S", tz = "GMT")
-  )
+  when <- scopus_parse_http_date(ra)
   if (is.na(when)) {
     return(NA_real_)
   }
   max(0, as.numeric(difftime(when, Sys.time(), units = "secs")))
+}
+
+# Parse an HTTP date in the IMF-fixdate form RFC 9110 (section 5.6.7) requires
+# senders to use, "Wed, 21 Oct 2037 07:28:00 GMT", into a UTC POSIXct, or NA.
+# The month is looked up in a fixed English table. as.POSIXct() with %b reads
+# month names in the session's LC_TIME, so it returned NA for every such date
+# under a German or French locale. The two obsolete forms the RFC asks
+# recipients to accept as well are left unparsed: Retry-After then falls back
+# to the back-off schedule, as it does without the header.
+scopus_parse_http_date <- function(x) {
+  na <- as.POSIXct(NA_real_, origin = "1970-01-01", tz = "UTC")
+  # Trimmed once, before matching: regmatches() must extract from the same
+  # string regexec() matched, or a leading space shifts every field.
+  x <- trimws(x)
+  parts <- regmatches(x, regexec(
+    "^[A-Za-z]{3}, ([0-9]{1,2}) ([A-Za-z]{3}) ([0-9]{4}) ([0-9]{2}):([0-9]{2}):([0-9]{2}) GMT$",
+    x
+  ))[[1]]
+  if (length(parts) != 7L) {
+    return(na)
+  }
+  months <- c("jan", "feb", "mar", "apr", "may", "jun",
+              "jul", "aug", "sep", "oct", "nov", "dec")
+  month <- match(tolower(parts[3]), months)
+  if (is.na(month)) {
+    return(na)
+  }
+  n <- as.integer(parts[-(1:3)])
+  # ISOdatetime() gives NA for an impossible date such as 31 February.
+  ISOdatetime(n[1], month, as.integer(parts[2]), n[2], n[3], n[4], tz = "UTC")
 }
 
 #' Parse 'Scopus' quota and rate-limit headers
@@ -121,9 +178,11 @@ scopus_retry_after <- function(resp) {
 #' workflow can pause, schedule or report on the remaining allowance.
 #'
 #' @param resp An [httr2::response] object, typically captured during a request.
-#' @return A list with elements `limit`, `remaining`, `reset` (a `POSIXct` time
-#'   at which the rate-limit window resets, or `NA`), `status` and `retry_after`
-#'   (seconds, or `NA`). A missing header yields `NA`.
+#' @return A list with elements `limit`, `remaining`, `reset`, `status` and
+#'   `retry_after` (seconds, or `NA`). `reset` is the `POSIXct` time, in UTC,
+#'   at which the key's quota resets, read from `X-RateLimit-Reset` (epoch
+#'   seconds, per Elsevier's API key settings page), or `NA`. A missing header
+#'   yields `NA`.
 #' @details
 #' The relevant headers are `X-RateLimit-Limit`, `X-RateLimit-Remaining`,
 #' `X-RateLimit-Reset` (epoch seconds), `X-ELS-Status` and `Retry-After`. When

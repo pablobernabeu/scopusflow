@@ -27,7 +27,14 @@
 #' key and internet access. When no key is configured it raises a
 #' `scopus_error_no_key` condition, and other failures raise typed `scopus_error`
 #' subclasses such as `scopus_error_rate_limit`. A [tryCatch()] around the call
-#' lets a workflow handle these gracefully.
+#' lets a workflow handle these gracefully. Throttling (HTTP 429) and server
+#' errors are retried with back-off first, and so are transport failures such
+#' as a timeout or a reset connection. A spent weekly quota, which Elsevier
+#' also answers with HTTP 429, is not retried: it raises
+#' `scopus_error_quota_exceeded`, a subclass of `scopus_error_rate_limit` whose
+#' message gives the reset time. When the last attempt at a request times out
+#' after `getOption("scopusflow.timeout", 60)` seconds, the error is
+#' `scopus_error_timeout`, a subclass of `scopus_error_offline`.
 #' @examplesIf scopusflow::scopus_has_key()
 #' scopus_count("graphene supercapacitor", years = 2015:2024,
 #'              field = "TITLE-ABS-KEY")

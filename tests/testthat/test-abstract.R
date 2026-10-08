@@ -680,6 +680,98 @@ test_that("a 403 suggests the fallback that suits the refused view", {
   expect_no_match(no_view, "view = NULL", fixed = TRUE)
 })
 
+# A server whose key runs out of quota at the `at`-th request: before that it
+# serves each DOI's record, from then on a 429 marked QUOTA_EXCEEDED.
+mock_quota_runs_out <- function(at, log = new.env()) {
+  log$calls <- 0L
+  function(req) {
+    log$calls <- log$calls + 1L
+    if (log$calls >= at) {
+      return(mock_json_response(list(), status = 429L, headers = list(
+        `X-ELS-Status` = "QUOTA_EXCEEDED - Quota Exceeded",
+        `X-RateLimit-Remaining` = "0",
+        `X-RateLimit-Reset` = "1700000000"
+      )))
+    }
+    doi <- mock_request_doi(req)
+    mock_abstract(list(`prism:doi` = doi, `dc:title` = paste("Title of", doi)))
+  }
+}
+
+test_that("a spent quota stops the batch and keeps the rows already retrieved", {
+  # Every remaining identifier used to be tried (three times each, live) and
+  # become an NA row with its own warning.
+  local_scopus_test_env()
+  log <- new.env()
+  httr2::local_mocked_responses(mock_quota_runs_out(4L, log))
+  ids <- sprintf("10.1/%02d", 1:10)
+  warned <- list()
+  ab <- withCallingHandlers(
+    scopus_abstract(ids),
+    warning = function(w) {
+      warned[[length(warned) + 1L]] <<- w
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_equal(log$calls, 4L)
+  expect_equal(attr(ab, "n_requests"), 4L)
+  expect_equal(nrow(ab), 10L)
+  expect_equal(ab$id, ids)
+  expect_equal(ab$title[1:3], paste("Title of", ids[1:3]))
+  expect_true(all(is.na(ab$title[4:10])))
+  expect_length(warned, 1L)
+  w <- warned[[1]]
+  expect_s3_class(w, "scopus_warning_quota_exceeded")
+  expect_match(conditionMessage(w), "10.1/04", fixed = TRUE)
+  expect_match(conditionMessage(w), "7 identifiers", fixed = TRUE)
+  expect_match(conditionMessage(w), "2023-11-14 22:13:20 UTC", fixed = TRUE)
+  # The quota attribute is the 429's, which says the quota is spent.
+  expect_match(attr(ab, "quota")$status, "^QUOTA_EXCEEDED")
+})
+
+test_that("after a spent quota, checkpoints are still served and NA rows never written", {
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  ids <- c("10.1/a", "10.1/b", "10.1/c", "10.1/d")
+  # A first run checkpoints the last identifier alone.
+  httr2::local_mocked_responses(function(req) {
+    mock_abstract(list(`prism:doi` = mock_request_doi(req), `dc:title` = "Cached"))
+  })
+  scopus_abstract(ids[4], cache_dir = cache)
+
+  log <- new.env()
+  httr2::local_mocked_responses(mock_quota_runs_out(2L, log))
+  expect_warning(
+    ab <- scopus_abstract(ids, cache_dir = cache),
+    class = "scopus_warning_quota_exceeded"
+  )
+  expect_equal(log$calls, 2L)
+  expect_equal(ab$title, c("Title of 10.1/a", NA, NA, "Cached"))
+  # The rows retrieved are checkpointed, the NA rows are not.
+  expect_length(list.files(cache, pattern = "^id-"), 2L)
+})
+
+test_that("scopus_corpus() inherits the stop at a spent quota", {
+  local_scopus_test_env()
+  log <- new.env()
+  httr2::local_mocked_responses(function(req) {
+    log$calls <- (log$calls %||% 0L) + 1L
+    if (log$calls >= 2L) {
+      return(mock_json_response(list(), status = 429L, headers = list(
+        `X-ELS-Status` = "QUOTA_EXCEEDED - Quota Exceeded"
+      )))
+    }
+    mock_abstract_full(core = list(`prism:doi` = mock_request_doi(req)), refcount = 0)
+  })
+  records <- data.frame(doi = c("10.1/a", "10.1/b", "10.1/c"), title = "T", year = 2020L)
+  expect_warning(
+    corpus <- scopus_corpus(records),
+    class = "scopus_warning_quota_exceeded"
+  )
+  expect_equal(log$calls, 2L)
+  expect_equal(nrow(corpus), 3L)
+})
+
 test_that("caching writes per-identifier files and resume avoids re-fetching", {
   local_scopus_test_env()
   cache <- withr::local_tempdir()

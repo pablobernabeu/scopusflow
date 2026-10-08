@@ -10,9 +10,11 @@ scopus_quota(resp)
 \item{resp}{An \link[httr2:response]{httr2::response} object, typically captured during a request.}
 }
 \value{
-A list with elements \code{limit}, \code{remaining}, \code{reset} (a \code{POSIXct} time
-at which the rate-limit window resets, or \code{NA}), \code{status} and \code{retry_after}
-(seconds, or \code{NA}). A missing header yields \code{NA}.
+A list with elements \code{limit}, \code{remaining}, \code{reset}, \code{status} and
+\code{retry_after} (seconds, or \code{NA}). \code{reset} is the \code{POSIXct} time, in UTC,
+at which the key's quota resets, read from \code{X-RateLimit-Reset} (epoch
+seconds, per Elsevier's API key settings page), or \code{NA}. A missing header
+yields \code{NA}.
 }
 \description{
 Elsevier returns the caller's weekly quota and short-term rate-limit status in

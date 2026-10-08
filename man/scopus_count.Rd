@@ -50,7 +50,14 @@ This function performs a network request and therefore requires a valid API
 key and internet access. When no key is configured it raises a
 \code{scopus_error_no_key} condition, and other failures raise typed \code{scopus_error}
 subclasses such as \code{scopus_error_rate_limit}. A \code{\link[=tryCatch]{tryCatch()}} around the call
-lets a workflow handle these gracefully.
+lets a workflow handle these gracefully. Throttling (HTTP 429) and server
+errors are retried with back-off first, and so are transport failures such
+as a timeout or a reset connection. A spent weekly quota, which Elsevier
+also answers with HTTP 429, is not retried: it raises
+\code{scopus_error_quota_exceeded}, a subclass of \code{scopus_error_rate_limit} whose
+message gives the reset time. When the last attempt at a request times out
+after \code{getOption("scopusflow.timeout", 60)} seconds, the error is
+\code{scopus_error_timeout}, a subclass of \code{scopus_error_offline}.
 }
 
 \examples{

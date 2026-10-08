@@ -66,9 +66,12 @@ scopus_status_message <- function(status) {
     as.character(status),
     "400" = "The 'Scopus' API rejected the request as malformed (HTTP 400).",
     "401" = "The 'Scopus' API key is missing or invalid (HTTP 401).",
+    # The Search API's WADL calls 403 an authorisation or entitlements error.
+    # A spent quota is a 429 (see scopus_abort_quota_exceeded()).
     "403" = paste0(
-      "Access to the 'Scopus' API was refused (HTTP 403). This usually means ",
-      "the quota is exhausted or your key lacks the required entitlement."
+      "Access to the 'Scopus' API was refused (HTTP 403). The key, the ",
+      "institutional token or the network you are calling from is not ",
+      "entitled to this resource or view."
     ),
     "404" = "The requested 'Scopus' resource was not found (HTTP 404).",
     "413" = "The request payload was too large (HTTP 413).",
@@ -83,6 +86,9 @@ scopus_status_message <- function(status) {
 # `resp` is an optional httr2 response used to attach quota metadata.
 scopus_abort_status <- function(status, resp = NULL, call = rlang::caller_env()) {
   quota <- if (!is.null(resp)) tryCatch(scopus_quota(resp), error = function(e) NULL) else NULL
+  if (!is.null(resp) && scopus_quota_exceeded(resp)) {
+    scopus_abort_quota_exceeded(quota, call = call)
+  }
   rlang::abort(
     message = scopus_status_message(status),
     class = c(scopus_status_class(status), "scopus_error"),
@@ -90,6 +96,35 @@ scopus_abort_status <- function(status, resp = NULL, call = rlang::caller_env())
     quota = quota,
     call = call
   )
+}
+
+# Abort because the key's weekly quota is spent: a 429 marked QUOTA_EXCEEDED
+# (see scopus_quota_exceeded()). It is a subclass of scopus_error_rate_limit,
+# so a handler written for the rate limit still catches it, and it is not
+# retried, since the quota resets only days later.
+scopus_abort_quota_exceeded <- function(quota, call = rlang::caller_env()) {
+  rlang::abort(
+    message = paste(
+      "The 'Scopus' API key's weekly quota is used up (HTTP 429, QUOTA_EXCEEDED).",
+      scopus_quota_reset_sentence(quota),
+      "Cells and identifiers already retrieved are kept when `cache_dir` is set,",
+      "so resume after the reset."
+    ),
+    class = c("scopus_error_quota_exceeded", "scopus_error_rate_limit", "scopus_error"),
+    status = 429L,
+    quota = quota,
+    call = call
+  )
+}
+
+# "It resets at <time> UTC.", from a parsed quota, or a sentence saying the
+# response gave no reset time.
+scopus_quota_reset_sentence <- function(quota) {
+  reset <- quota$reset
+  if (length(reset) != 1L || is.na(reset)) {
+    return("The response did not say when it resets.")
+  }
+  sprintf("It resets at %s UTC.", format(reset, "%Y-%m-%d %H:%M:%S", tz = "UTC"))
 }
 
 # Abort because no API key is available. Raised through cli_abort(), which
@@ -108,12 +143,41 @@ scopus_abort_no_key <- function(call = rlang::caller_env()) {
   )
 }
 
-# Abort because the host is unreachable (offline / DNS failure).
+# Abort because the host is unreachable (offline / DNS failure), or because it
+# did not answer within the transfer timeout set by scopus_req_timeout(). A
+# timeout keeps the offline class, so a handler written for that still catches
+# it, but its message no longer suggests the caller is offline.
 scopus_abort_offline <- function(parent = NULL, call = rlang::caller_env()) {
+  if (scopus_is_timeout(parent)) {
+    rlang::abort(
+      message = sprintf(
+        "The 'Scopus' API did not respond within %s seconds (option scopusflow.timeout).",
+        format(getOption("scopusflow.timeout", 60))
+      ),
+      class = c("scopus_error_timeout", "scopus_error_offline", "scopus_error"),
+      parent = parent,
+      call = call
+    )
+  }
   rlang::abort(
     message = "Could not reach the 'Scopus' API. The service may be unavailable, or you may be offline.",
     class = c("scopus_error_offline", "scopus_error"),
     parent = parent,
     call = call
   )
+}
+
+# Whether a transport failure, or a condition it wraps, is curl's timeout. The
+# curl package raises it as curl_error_operation_timedout, with libcurl's
+# message "Timeout was reached", which is also matched in case the class
+# changes.
+scopus_is_timeout <- function(cnd) {
+  while (inherits(cnd, "condition")) {
+    if (inherits(cnd, "curl_error_operation_timedout") ||
+        grepl("Timeout was reached", conditionMessage(cnd), fixed = TRUE)) {
+      return(TRUE)
+    }
+    cnd <- cnd$parent
+  }
+  FALSE
 }

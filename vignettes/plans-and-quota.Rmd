@@ -300,3 +300,9 @@ result <- tryCatch(
 
 Because each completed cell is already cached, resuming after such a pause costs
 nothing for the work already done.
+
+Elsevier answers throttling and a spent weekly quota alike with HTTP 429.
+Throttling is retried with back-off before any condition is raised. A spent
+quota is not, since it resets only days later. It arrives as
+`scopus_error_quota_exceeded`, a subclass of `scopus_error_rate_limit`, so the
+handler above catches it too, and its message gives the time the quota resets.

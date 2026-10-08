@@ -26,7 +26,7 @@ Depends:
     R (>= 4.1.0)
 Imports:
     cli,
-    httr2 (>= 1.0.0),
+    httr2 (>= 1.0.4),
     jsonlite,
     rlang (>= 1.1.0),
     stats,
