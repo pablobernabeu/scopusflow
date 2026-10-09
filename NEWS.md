@@ -124,7 +124,7 @@
 * The spelling test now fails a check run with `NOT_CRAN` set, as in
   `devtools::check()` and on GitHub Actions, where an unknown word used to surface
   only as a NOTE that left the run green. CRAN and a plain `R CMD check` still skip
-  the test. The word list gains the eleven names and terms that had slipped past it.
+  the test. The word list gains the twelve names and terms that had slipped past it.
 * The designing-queries article explains loose and exact phrases, and replaces
   its spelling-variant example, which 'Scopus' matches without help, with two
   phrases naming one condition. It also shows why a query written by hand that

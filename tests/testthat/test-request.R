@@ -66,6 +66,18 @@ test_that("the retry policy retries transport failures", {
   expect_true(abstract$policies$retry_on_failure)
 })
 
+test_that("a single try attaches no retry policy, which every httr2 accepts", {
+  # httr2 1.0.4 to 1.0.7, which the floor in DESCRIPTION admits, reject
+  # req_retry(max_tries = 1), while 1.1.0 and later read it as "do not retry".
+  # A request without a retry policy is performed once under all of them.
+  withr::local_options(scopusflow.api_key = "k")
+  req <- scopusflow:::scopus_request(list(query = "x"))
+  withr::local_options(scopusflow.max_tries = 1L)
+  expect_identical(scopusflow:::scopus_req_retry(req), req)
+  withr::local_options(scopusflow.max_tries = 1)
+  expect_identical(scopusflow:::scopus_req_retry(req), req)
+})
+
 test_that("empty-string parameters are omitted from the query", {
   withr::local_options(scopusflow.api_key = "k")
   req <- scopusflow:::scopus_request(list(query = "x", view = "", date = NULL))

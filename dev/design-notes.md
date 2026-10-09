@@ -369,7 +369,14 @@ fails `R CMD check` wherever `NOT_CRAN` is true: under `devtools::check()` and
 across the GitHub Actions matrix, where setup-r sets it. The test is skipped on CRAN, in a plain
 `R CMD check` and by `devtools::test()`, which runs only `tests/testthat`. It
 raises an error because the NOTE it used to produce left CI green and let
-unlisted words reach the 0.4.0 release. A `_R_CHECK_DEPENDS_ONLY_` CI run
+unlisted words reach the 0.4.0 release. Which words need listing depends on the
+version of R. The spelling package checks words with hunspell, which by default
+ignores the words in R's own `share/dictionaries/en_stats` list, and R 4.4.0
+added macOS to that list. R 4.3, the `oldrel-3` leg of the matrix, therefore
+flagged the README's macOS while every later R accepted it. `inst/WORDLIST`
+lists the word itself, since the declared floor is R 4.1.0. Run under R 4.4 or
+later, `spelling::update_wordlist()` offers to remove it again, and the offer
+should be declined. A `_R_CHECK_DEPENDS_ONLY_` CI run
 proves the Imports are declared correctly. The mocks cannot tell whether the
 live API has changed, so a weekly, key-gated live
 smoke test checks that a real query still returns the documented, populated
@@ -857,6 +864,17 @@ still retried them, stayed green. `scopus_req_retry()` now passes
 unused-argument error, hence the new floor. Checking `formals()` for the
 argument would have kept the old floor but left it exercising different retry
 behaviour from current releases.
+
+The new floor brought one more difference into range. httr2 1.0.4 to 1.0.7
+reject `req_retry(max_tries = 1)` as an invalid argument, while 1.1.0 and later
+read it as a request not to retry (httr2's NEWS for 1.1.0). The
+`scopusflow.max_tries` option was passed straight through, so a single try
+failed every request under those four releases, and the `min-deps` job caught
+it in the test that sets the option to 1. `scopus_req_retry()` now attaches no
+retry policy for a single try, and httr2 performs a request without one exactly
+once in every release from the floor on. Raising the floor to 1.1.0 was the
+alternative, and was rejected because nothing else in the package needs that
+release.
 
 ## Assumptions
 

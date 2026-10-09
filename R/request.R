@@ -88,10 +88,19 @@ scopus_perform <- function(req, call = rlang::caller_env()) {
 # 1.0.4, which made it opt-in, and from then on one such failure aborted a whole
 # harvest. Every request here is an idempotent GET, so a retry is safe. The
 # argument does not exist before httr2 1.0.4, hence the floor in DESCRIPTION.
+#
+# A single try (scopusflow.max_tries = 1) attaches no policy at all. httr2 reads
+# max_tries = 1 as "do not retry" only from 1.1.0, while 1.0.4 to 1.0.7, which
+# that floor admits, reject it as an invalid argument. A request without a
+# policy is performed once under every httr2, which is what a single try means.
 scopus_req_retry <- function(req) {
+  max_tries <- getOption("scopusflow.max_tries", 3L)
+  if (is.numeric(max_tries) && identical(as.numeric(max_tries), 1)) {
+    return(req)
+  }
   httr2::req_retry(
     req,
-    max_tries = getOption("scopusflow.max_tries", 3L),
+    max_tries = max_tries,
     retry_on_failure = TRUE,
     is_transient = scopus_is_transient,
     backoff = getOption("scopusflow.retry_backoff", NULL),
