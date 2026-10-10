@@ -12,13 +12,13 @@ Source:
 
 Bernabeu, P. (2026). scopusflow: A reproducible workflow layer for
 'Scopus' bibliographic searches. R package version 0.4.0.
-https://doi.org/10.5281/zenodo.21252669
+https://doi.org/10.32614/CRAN.package.scopusflow
 
     @Manual{,
       title = {{scopusflow}: A reproducible workflow layer for '{Scopus}' bibliographic searches},
       author = {Pablo Bernabeu},
       year = {2026},
       note = {R package version 0.4.0},
-      doi = {10.5281/zenodo.21252669},
-      url = {https://doi.org/10.5281/zenodo.21252669},
+      doi = {10.32614/CRAN.package.scopusflow},
+      url = {https://CRAN.R-project.org/package=scopusflow},
     }
