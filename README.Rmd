@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 [![R-CMD-check](https://github.com/pablobernabeu/scopusflow/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/pablobernabeu/scopusflow/actions/workflows/R-CMD-check.yaml)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/license/MIT)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21252669.svg)](https://doi.org/10.5281/zenodo.21252669)
+[![DOI](https://img.shields.io/badge/DOI-10.32614%2FCRAN.package.scopusflow-blue.svg)](https://doi.org/10.32614/CRAN.package.scopusflow)
 <!-- badges: end -->
 
 scopusflow is a reproducible, quota-aware workflow layer over the Elsevier

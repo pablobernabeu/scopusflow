@@ -55,12 +55,16 @@ home:
     # prunes), and Community shows only the contributing guide.
     structure: [links, license, community, citation, authors, dev]
     components:
+      # The DOI is the one CRAN assigned, which names the package across its
+      # versions. It is set as text, as lexsync's site sets it, so that it can
+      # wrap in the narrow sidebar: the <wbr> allows a break after the slash. The
+      # README's DOI badge still appears under Dev status.
       citation:
         title: Citation
         text: |
           [How to cite scopusflow](articles/about.html)
 
-          [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21252669.svg)](https://doi.org/10.5281/zenodo.21252669)
+          DOI [10.32614/<wbr>CRAN.package.scopusflow](https://doi.org/10.32614/CRAN.package.scopusflow)
       license:
         title: Licence
         text: >

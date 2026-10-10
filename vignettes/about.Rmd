@@ -23,7 +23,7 @@ If you use scopusflow in published work, please cite it.
 
 > Bernabeu, P. (2026). scopusflow: A reproducible workflow layer for 'Scopus'
 > bibliographic searches. R package version `r packageVersion("scopusflow")`.
-> https://doi.org/10.5281/zenodo.21252669
+> https://doi.org/10.32614/CRAN.package.scopusflow
 
 ```{r bibtex, echo = FALSE, results = "asis"}
 # Build the BibTeX entry from the installed version so it never drifts, then
@@ -37,8 +37,8 @@ bib <- paste(
   "  author = {Pablo Bernabeu},",
   "  year   = {2026},",
   sprintf("  note   = {R package version %s},", ver),
-  "  doi    = {10.5281/zenodo.21252669},",
-  "  url    = {https://doi.org/10.5281/zenodo.21252669},",
+  "  doi    = {10.32614/CRAN.package.scopusflow},",
+  "  url    = {https://CRAN.R-project.org/package=scopusflow},",
   "}",
   sep = "\n"
 )
@@ -94,10 +94,13 @@ affiliated with or endorsed by Elsevier.
 
 ## Versioning and archival
 
-Releases are tagged on GitHub and archived on Zenodo. The concept DOI
-[10.5281/zenodo.21252669](https://doi.org/10.5281/zenodo.21252669) always
-resolves to the latest archived version, so a citation stays current without
-naming a version. The
+CRAN assigned the package the DOI
+[10.32614/CRAN.package.scopusflow](https://doi.org/10.32614/CRAN.package.scopusflow)
+on publication. It names the package across all its versions, so the version
+in the citation identifies the release used. Releases are also tagged on GitHub
+and archived on Zenodo, where the concept DOI
+[10.5281/zenodo.21252669](https://doi.org/10.5281/zenodo.21252669) resolves to
+the latest archived release and each release has a DOI of its own. The
 [changelog](https://pablobernabeu.github.io/scopusflow/news/index.html) records
 what changed in each release.
 
