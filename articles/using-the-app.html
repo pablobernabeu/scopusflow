@@ -84,7 +84,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Using the code-free app</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.4.0/vignettes/using-the-app.Rmd" class="external-link"><code>vignettes/using-the-app.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/vignettes/using-the-app.Rmd" class="external-link"><code>vignettes/using-the-app.Rmd</code></a></small>
       <div class="d-none name"><code>using-the-app.Rmd</code></div>
     </div>
 
@@ -220,9 +220,12 @@ script.</div>
 table of titles, years, sources and citations. By year draws the
 publications-per-year trend through <code>autoplot()</code>. Top sources
 and Top authors tally the most frequent of each with
-<code><a href="../reference/scopus_top.html">scopus_top()</a></code> and <code><a href="../reference/plot_scopus_top.html">plot_scopus_top()</a></code>. Every
-figure is drawn by the same library functions you would call from a
-script, so the app shows you nothing you could not reproduce.</p>
+<code><a href="../reference/scopus_top.html">scopus_top()</a></code> and <code><a href="../reference/plot_scopus_top.html">plot_scopus_top()</a></code>. Under the
+<code>STANDARD</code> detail, the API sends the first author of each
+record alone, so a note above the Top authors plot says that it tallies
+first authors, and choosing <code>COMPLETE</code> gives every author.
+Every figure is drawn by the same library functions you would call from
+a script, so the app shows you nothing you could not reproduce.</p>
 <div class="float">
 <img src="figures/app-results.png" alt="The Results panel with tabs for Records, By year, Top sources, Top authors, Compare topics and Export. The Records tab is open, showing the first rows of a table of titles, years, journals and citation counts from the demo harvest. The first row reads “Recent trends in graphene supercapacitors: from large area to microsupercapacitors”, published in Sustainable Energy &amp; Fuels in 2021 with 211 citations, and the rows below it are likewise real articles from the bundled corpus."><div class="figcaption">The Results panel with tabs for Records, By
 year, Top sources, Top authors, Compare topics and Export. The Records

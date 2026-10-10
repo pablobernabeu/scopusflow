@@ -52,14 +52,14 @@ scopus_corpus(
 
   Either `"FULL"` (the default) or `"REF"`, passed to
   [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md).
-  `"FULL"` is recommended: in development, it returned a complete,
-  correctly counted reference list for every document tried, while
-  `"REF"` returned an inconsistent, sometimes-truncated subset (see
-  [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)'s
-  documentation for the details and for the entitlement each view
-  needs). The `REF` response also carries no author keywords, so under
-  that view only the references are requested and `keywords` is empty
-  for every record.
+  `"FULL"` returns a document's whole bibliography in one request.
+  `"REF"` serves it about 40 references per request, which
+  [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+  follows page by page, so a document with *N* references costs
+  `ceiling(N / 40)` requests (see its documentation for the details and
+  for the entitlement each view needs). The `REF` response also carries
+  no author keywords, so under that view only the references are
+  requested and `keywords` is empty for every record.
 
 - cache_dir, resume:
 
@@ -95,8 +95,9 @@ many.
 
 ## API access
 
-This performs one Abstract Retrieval request per usable record, on top
-of whatever retrieved `records` in the first place; see
+This performs one Abstract Retrieval request per usable record, or one
+per page of references under `view = "REF"`, on top of whatever
+retrieved `records` in the first place; see
 [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)'s
 *API access* section for the entitlement `view = "FULL"`/`"REF"` needs
 and how a 403 is handled.

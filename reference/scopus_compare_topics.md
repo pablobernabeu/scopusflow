@@ -32,8 +32,10 @@ scopus_compare_topics(
 - comparison_terms:
 
   Character vector of topics to compare against the reference (for
-  example `c("effect size", "Bayesian")`). Each is combined with the
-  reference using a logical AND.
+  example `c("effect size", "Bayesian")`). Each is joined to the
+  reference as `(reference) AND (term)`, after `field` has wrapped each
+  side. A reference containing OR or AND NOT therefore keeps its
+  meaning, and every comparison set is a subset of the reference.
 
 - years:
 

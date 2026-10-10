@@ -56,7 +56,7 @@ all consume it."><meta property="og:image" content="https://pablobernabeu.github
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Normalise raw 'Scopus' entries to a stable tidy schema</h1>
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.4.0/R/combine.R" class="external-link"><code>R/combine.R</code></a>, <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.4.0/R/plot-analyse.R" class="external-link"><code>R/plot-analyse.R</code></a>, <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.4.0/R/records.R" class="external-link"><code>R/records.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/R/combine.R" class="external-link"><code>R/combine.R</code></a>, <a href="https://github.com/pablobernabeu/scopusflow/blob/main/R/plot-analyse.R" class="external-link"><code>R/plot-analyse.R</code></a>, <a href="https://github.com/pablobernabeu/scopusflow/blob/main/R/records.R" class="external-link"><code>R/records.R</code></a></small>
       <div class="d-none name"><code>scopus_records.Rd</code></div>
     </div>
 
@@ -107,11 +107,12 @@ entries, kept in the <code>query</code> column for provenance.</p></dd>
 
 <dt id="arg-view">view<a class="anchor" aria-label="anchor" href="#arg-view"></a></dt>
 <dd><p>Optional character scalar naming the Search API view the entries
-came from. Pass <code>"COMPLETE"</code> to add an <code>authkeywords</code> column (see below);
-any other value, including the default <code>NULL</code>, reproduces the original
-columns exactly, so existing callers that never mention <code>view</code> see no
-change at all. <code><a href="scopus_fetch.html">scopus_fetch()</a></code> and <code><a href="scopus_fetch_plan.html">scopus_fetch_plan()</a></code> pass this through
-automatically.</p></dd>
+came from. Pass <code>"COMPLETE"</code> to read <code>authors</code> from the author list that
+view carries and to add an <code>authkeywords</code> column (see below). Any other
+value, including the default <code>NULL</code>, reads the first author and reproduces
+the original columns exactly, so existing callers that never mention
+<code>view</code> see no change at all. <code><a href="scopus_fetch.html">scopus_fetch()</a></code> and <code><a href="scopus_fetch_plan.html">scopus_fetch_plan()</a></code>
+pass this through automatically.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -122,11 +123,12 @@ frame with the same columns and the <code>scopus_records</code> class removed.</
 year.</p>
 <p>A tibble of class <code>scopus_records</code> with the columns
 <code>entry_number</code> (integer), <code>scopus_id</code> (character), <code>doi</code> (character),
-<code>title</code> (character), <code>authors</code> (character, the creator names joined with
-<code>"; "</code> when several are listed), <code>year</code> (integer, the leading four digits of
-the cover date), <code>date</code> (character, the ISO cover date), <code>publication</code>
-(character, the source title), <code>citations</code> (integer) and <code>query</code>
-(character). A missing field becomes <code>NA</code>, and an empty result set yields a
+<code>title</code> (character), <code>authors</code> (character, the author list under
+<code>view = "COMPLETE"</code> and the first author otherwise, as <em>Details</em> explains),
+<code>year</code> (integer, the leading four digits of the cover date), <code>date</code>
+(character, the ISO cover date), <code>publication</code> (character, the source
+title), <code>citations</code> (integer) and <code>query</code> (character). A missing field
+becomes <code>NA</code>, and an empty result set yields a
 zero-row tibble with the same columns. When <code>view = "COMPLETE"</code>, an
 <code>authkeywords</code> column is added: the author-supplied keywords the 'Scopus'
 Search API returns under that view, as a single string in 'Scopus'
@@ -140,6 +142,26 @@ API omits the field for a given key's entitlement; see <em>Details</em>).</p>
 carries an <code>error</code> field and no identifier. This is detected and turned into a
 zero-row result, with no spurious record in it, while a genuine record that also
 carries a per-entry <code>error</code> annotation is kept.</p>
+<p>What <code>authors</code> holds depends on the view. The Search API's <code>dc:creator</code>
+field is the first author alone under either view, in the indexed form
+'Scopus' uses (<code>"Zhang F."</code>). The author list arrives only under
+<code>view = "COMPLETE"</code>, as the <code>author</code> objects Elsevier's views table lists
+for that view alone. A <code>STANDARD</code> record therefore names its first author,
+and a tally of <code>STANDARD</code> authors counts first authorships. A harvest
+records its view in the <code>view</code> attribute (see <code><a href="scopus_fetch.html">scopus_fetch()</a></code>), and
+<code><a href="scopus_top.html">scopus_top()</a></code> and <code><a href="as_bibliometrix.html">as_bibliometrix()</a></code> say once per session that a set
+retrieved under <code>STANDARD</code> names first authors only. Under <code>COMPLETE</code>, each
+author is written as <code>"Surname, Given"</code>, as the surname alone when the given
+name is missing or empty, or as the indexed name when the surname is
+missing. Exact duplicates are dropped. The API lists at most 100 authors per
+record, and its <code>author-count</code> field gives the total. A record whose list
+names nobody falls back to <code>dc:creator</code>. The Python twin builds the same
+string from pybliometrics' <code>author_names</code> in the common case, and parts
+company at two edges. Where an author object lacks a <code>surname</code> or
+<code>given-name</code> key, pybliometrics builds no list, so that twin keeps the first
+author while this one lists every author. Where a surname is null or empty,
+pybliometrics writes the given name after a bare comma, and this package uses
+the indexed name.</p>
 <p>Author keywords are only ever present under <code>view = "COMPLETE"</code>; the
 <code>STANDARD</code> view (the default throughout the package) never includes them,
 and <code>authkeywords</code> is not added to the output at all in that case, so

@@ -85,6 +85,30 @@ stored as attributes.
 
 `is_scopus_plan()` returns a length-one logical.
 
+## Query checks
+
+`scopus_plan()`,
+[`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md),
+[`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md),
+[`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md),
+[`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
+and
+[`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md)
+check each query offline, before any request, and refuse three mistakes
+with a `scopus_error_bad_input` condition. `LIMIT-TO()` and `EXCLUDE()`
+belong to the web interface's refinement panel, and the Search API
+ignores them, so the search would run unfiltered. Write such a limit as
+a search field, for example `DOCTYPE(ar)`, `LANGUAGE(english)`,
+`SUBJAREA(PSYC)`, `SRCTYPE(j)` or `PUBYEAR > 2015`. A `field` given for
+a query that already opens with a field tag would nest one tag inside
+the other, which the API rejects, so leave `field` as `NULL` for such a
+query. Brackets, quotation marks and braces must balance, counting
+brackets inside a phrase as text. `INDEXTERMS()`, which pybliometrics
+documents as not working through the Search API, raises a
+`scopus_warning_query_syntax` warning. `KEY()` searches the index terms
+together with author keywords, trade names and chemical names. The
+messages are those of the Python twin, word for word.
+
 ## See also
 
 [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)

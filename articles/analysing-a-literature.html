@@ -84,7 +84,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Analysing and visualising a literature</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.4.0/vignettes/analysing-a-literature.Rmd" class="external-link"><code>vignettes/analysing-a-literature.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/vignettes/analysing-a-literature.Rmd" class="external-link"><code>vignettes/analysing-a-literature.Rmd</code></a></small>
       <div class="d-none name"><code>analysing-a-literature.Rmd</code></div>
     </div>
 
@@ -201,16 +201,25 @@ articles are spread across 90 journals, and only <em>ACS Applied
 Materials &amp; Interfaces</em>, with eight, appears more than five
 times. The author tally is flatter still, with 119 distinct authors, the
 most prolific of whom contributed three papers.</p>
-<p>An author string that holds several names is split, so each
-contributor is counted once per record. The bundled corpus names only
-the first author of each paper, so it cannot show that happening. Two
-records with placeholder names can, and the same splitting applies to
-the semicolon-joined author lists a live harvest returns.</p>
+<p>Which authors a record names depends on the view it was retrieved
+under. The <code>STANDARD</code> view, the default, carries the first
+author alone, so a tally by author of a <code>STANDARD</code> harvest
+counts first authorships, and <code><a href="../reference/scopus_top.html">scopus_top()</a></code> says so once per
+session. The <code>COMPLETE</code> view carries the author list, up to
+100 names per record, which <code><a href="../reference/scopus_records.html">scopus_records()</a></code> writes as
+<code>"Surname, Given"</code> names joined by <code>"; "</code>. The
+tally splits that list, so each contributor is counted once per record.
+The bundled corpus names only the first author of each paper and cannot
+show the split, but two entries in the shape the <code>COMPLETE</code>
+view returns, with placeholder names, can.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">multi</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_records.html">scopus_records</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>entry <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>`dc:creator` <span class="op">=</span> <span class="st">"Author A.; Author B."</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>`dc:creator` <span class="op">=</span> <span class="st">"Author B."</span><span class="op">)</span></span>
-<span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>`dc:creator` <span class="op">=</span> <span class="st">"Author A."</span>,</span>
+<span>       author <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>surname <span class="op">=</span> <span class="st">"Author"</span>, `given-name` <span class="op">=</span> <span class="st">"A."</span><span class="op">)</span>,</span>
+<span>                     <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>surname <span class="op">=</span> <span class="st">"Author"</span>, `given-name` <span class="op">=</span> <span class="st">"B."</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>`dc:creator` <span class="op">=</span> <span class="st">"Author B."</span>,</span>
+<span>       author <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>surname <span class="op">=</span> <span class="st">"Author"</span>, `given-name` <span class="op">=</span> <span class="st">"B."</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span><span class="op">)</span>, view <span class="op">=</span> <span class="st">"COMPLETE"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/scopus_top.html">scopus_top</a></span><span class="op">(</span><span class="va">multi</span>, by <span class="op">=</span> <span class="st">"author"</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
@@ -219,11 +228,11 @@ the semicolon-joined author lists a live harvest returns.</p>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left">Author B.</td>
+<td align="left">Author, B.</td>
 <td align="right">2</td>
 </tr>
 <tr class="even">
-<td align="left">Author A.</td>
+<td align="left">Author, A.</td>
 <td align="right">1</td>
 </tr>
 </tbody>

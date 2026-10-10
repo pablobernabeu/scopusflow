@@ -54,7 +54,7 @@ field-tag and bracket mistakes tend to creep in."><meta property="og:image" cont
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Build a field-tagged 'Scopus' query</h1>
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.4.0/R/query.R" class="external-link"><code>R/query.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/R/query.R" class="external-link"><code>R/query.R</code></a></small>
       <div class="d-none name"><code>scopus_query.Rd</code></div>
     </div>
 
@@ -95,6 +95,22 @@ field-tag and bracket mistakes tend to creep in.</p>
 <code><a href="scopus_fetch.html">scopus_fetch()</a></code> or the <code>query</code> of <code><a href="scopus_plan.html">scopus_plan()</a></code>.</p>
     </div>
     <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Each term is trimmed and, given <code>.field</code>, wrapped in that tag, whose
+brackets hold the term together. Without a field tag, a term of several
+words is put in brackets before two or more terms are joined, because
+'Scopus' joins the words of an unquoted term with AND. Joined bare,
+<code>machine learning OR deep learning</code> would read as
+<code>machine AND (learning OR deep) AND learning</code>. A term that is already one
+operand is left as written: a quoted <code>"..."</code> phrase, a braced <code>{...}</code>
+phrase, a bracketed group or a single field-tagged group such as
+<code>TITLE(deep learning)</code>. Single words are never bracketed, so
+<code>scopus_query("CRISPR", "Cas9", .op = "OR")</code> stays <code>CRISPR OR Cas9</code>, and a
+query composed by an earlier call keeps its meaning when it is joined again.
+A term that already opens with a field tag is refused when <code>.field</code> is
+given, because the API rejects one tag nested inside another.</p>
+    </div>
+    <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="scopus_field_tags.html">scopus_field_tags()</a></code>, <code><a href="scopus_plan.html">scopus_plan()</a></code></p></div>
     </div>
@@ -107,6 +123,11 @@ field-tag and bracket mistakes tend to creep in.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "graphene AND supercapacitor"</span>
 <span class="r-in"><span><span class="fu">scopus_query</span><span class="op">(</span><span class="st">"CRISPR"</span>, <span class="st">"Cas9"</span>, <span class="st">"Cas12"</span>, .op <span class="op">=</span> <span class="st">"OR"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "CRISPR OR Cas9 OR Cas12"</span>
+<span class="r-in"><span><span class="co"># Without a field tag, multi-word terms are bracketed and phrases kept as written.</span></span></span>
+<span class="r-in"><span><span class="fu">scopus_query</span><span class="op">(</span><span class="st">"machine learning"</span>, <span class="st">"deep learning"</span>, .op <span class="op">=</span> <span class="st">"OR"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "(machine learning) OR (deep learning)"</span>
+<span class="r-in"><span><span class="fu">scopus_query</span><span class="op">(</span><span class="st">'"heart attack"'</span>, <span class="st">'"myocardial infarction"'</span>, .op <span class="op">=</span> <span class="st">"OR"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "\"heart attack\" OR \"myocardial infarction\""</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

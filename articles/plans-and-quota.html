@@ -84,7 +84,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Search plans and quota-aware retrieval</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.4.0/vignettes/plans-and-quota.Rmd" class="external-link"><code>vignettes/plans-and-quota.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/vignettes/plans-and-quota.Rmd" class="external-link"><code>vignettes/plans-and-quota.Rmd</code></a></small>
       <div class="d-none name"><code>plans-and-quota.Rmd</code></div>
     </div>
 
@@ -757,6 +757,12 @@ them and carry on.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Because each completed cell is already cached, resuming after such a
 pause costs nothing for the work already done.</p>
+<p>Elsevier answers throttling and a spent weekly quota alike with HTTP
+429. Throttling is retried with back-off before any condition is raised.
+A spent quota is not, since it resets only days later. It arrives as
+<code>scopus_error_quota_exceeded</code>, a subclass of
+<code>scopus_error_rate_limit</code>, so the handler above catches it
+too, and its message gives the time the quota resets.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

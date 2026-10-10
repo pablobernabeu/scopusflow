@@ -24,7 +24,9 @@ scopus_trend(
 
 - query:
 
-  Character scalar. The base search expression.
+  Character scalar. The base search expression, checked offline before
+  any request (see the *Query checks* section of
+  [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md)).
 
 - years:
 

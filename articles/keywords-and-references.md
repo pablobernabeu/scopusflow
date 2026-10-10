@@ -56,10 +56,10 @@ Scopus/Elsevier account contact.
 The reference list is not available from Search under any view. It needs
 Abstract Retrieval’s `FULL` or `REF` view, an entitlement separate from
 ordinary abstract access and from Search access. This is a per-document
-endpoint, so retrieving references for *n* documents costs *n* requests
-against Abstract Retrieval’s own, smaller weekly quota, separate from
-Search’s. Each row of the returned `references` data frame is one cited
-work.
+endpoint, so retrieving references for *n* documents under `FULL` costs
+*n* requests against Abstract Retrieval’s own, smaller weekly quota,
+separate from Search’s. Each row of the returned `references` data frame
+is one cited work.
 
 ``` r
 
@@ -82,12 +82,15 @@ ab$references[[1]][, c("title", "authors", "source", "year")]
 | ImageNet classification with deep convolutional neural networks | Krizhevsky A.; Sutskever I.; Hinton G. | Advances in Neural Information Processing Systems | 2012 |
 | Learning representations by back-propagating errors | Rumelhart D.; Hinton G.; Williams R. | Nature | 1986 |
 
-`view = "FULL"` is the recommended default. In development, it returned
-a complete, correctly counted reference list for every document tried,
-while `view = "REF"` returned an inconsistent, sometimes-truncated
-subset, on an otherwise identical request made moments apart.
+`view = "FULL"` is the recommended default, since it returns the whole
+bibliography in one request. `view = "REF"` serves it about 40
+references at a time, and
 [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
-warns when the number of references returned does not match the
+follows the view’s `startref` parameter page by page until the list is
+complete, so a document with *N* references costs `ceiling(N / 40)`
+requests under `REF`.
+[`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+warns when the number of references it holds still does not match the
 document’s own reported count, so a partial list never arrives
 unannounced.
 

@@ -27,7 +27,9 @@ scopus_fetch(
 
 - query:
 
-  Character scalar. The base search expression.
+  Character scalar. The base search expression, checked offline before
+  any request (see the *Query checks* section of
+  [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md)).
 
 - max_results:
 
@@ -99,7 +101,11 @@ version matter because `citations` is a snapshot value that keeps
 moving, so two saved sets are only comparable if each records when it
 was taken, and
 [`scopus_search_report()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_search_report.md)
-reads all of them back. They survive a `.rds` round trip through
+reads all of them back. `view` records the view, which decides what
+`authors` holds: the first author under `STANDARD` and the author list
+under `COMPLETE` (see
+[`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)).
+These attributes survive a `.rds` round trip through
 [`write_scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_records.md)
 but not a `.csv` one, which carries columns only.
 

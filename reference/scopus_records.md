@@ -48,10 +48,11 @@ is_scopus_records(x)
 - view:
 
   Optional character scalar naming the Search API view the entries came
-  from. Pass `"COMPLETE"` to add an `authkeywords` column (see below);
-  any other value, including the default `NULL`, reproduces the original
-  columns exactly, so existing callers that never mention `view` see no
-  change at all.
+  from. Pass `"COMPLETE"` to read `authors` from the author list that
+  view carries and to add an `authkeywords` column (see below). Any
+  other value, including the default `NULL`, reads the first author and
+  reproduces the original columns exactly, so existing callers that
+  never mention `view` see no change at all.
   [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
   and
   [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
@@ -69,17 +70,17 @@ of the records per year.
 
 A tibble of class `scopus_records` with the columns `entry_number`
 (integer), `scopus_id` (character), `doi` (character), `title`
-(character), `authors` (character, the creator names joined with `"; "`
-when several are listed), `year` (integer, the leading four digits of
-the cover date), `date` (character, the ISO cover date), `publication`
-(character, the source title), `citations` (integer) and `query`
-(character). A missing field becomes `NA`, and an empty result set
-yields a zero-row tibble with the same columns. When
-`view = "COMPLETE"`, an `authkeywords` column is added: the
-author-supplied keywords the 'Scopus' Search API returns under that
-view, as a single string in 'Scopus' own `" | "`-delimited form (`NA`
-when the document has none, or when the API omits the field for a given
-key's entitlement; see *Details*).
+(character), `authors` (character, the author list under
+`view = "COMPLETE"` and the first author otherwise, as *Details*
+explains), `year` (integer, the leading four digits of the cover date),
+`date` (character, the ISO cover date), `publication` (character, the
+source title), `citations` (integer) and `query` (character). A missing
+field becomes `NA`, and an empty result set yields a zero-row tibble
+with the same columns. When `view = "COMPLETE"`, an `authkeywords`
+column is added: the author-supplied keywords the 'Scopus' Search API
+returns under that view, as a single string in 'Scopus' own
+`" | "`-delimited form (`NA` when the document has none, or when the API
+omits the field for a given key's entitlement; see *Details*).
 
 `is_scopus_records()` returns a length-one logical.
 
@@ -90,6 +91,32 @@ entry that carries an `error` field and no identifier. This is detected
 and turned into a zero-row result, with no spurious record in it, while
 a genuine record that also carries a per-entry `error` annotation is
 kept.
+
+What `authors` holds depends on the view. The Search API's `dc:creator`
+field is the first author alone under either view, in the indexed form
+'Scopus' uses (`"Zhang F."`). The author list arrives only under
+`view = "COMPLETE"`, as the `author` objects Elsevier's views table
+lists for that view alone. A `STANDARD` record therefore names its first
+author, and a tally of `STANDARD` authors counts first authorships. A
+harvest records its view in the `view` attribute (see
+[`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)),
+and
+[`scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_top.md)
+and
+[`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)
+say once per session that a set retrieved under `STANDARD` names first
+authors only. Under `COMPLETE`, each author is written as
+`"Surname, Given"`, as the surname alone when the given name is missing
+or empty, or as the indexed name when the surname is missing. Exact
+duplicates are dropped. The API lists at most 100 authors per record,
+and its `author-count` field gives the total. A record whose list names
+nobody falls back to `dc:creator`. The Python twin builds the same
+string from pybliometrics' `author_names` in the common case, and parts
+company at two edges. Where an author object lacks a `surname` or
+`given-name` key, pybliometrics builds no list, so that twin keeps the
+first author while this one lists every author. Where a surname is null
+or empty, pybliometrics writes the given name after a bare comma, and
+this package uses the indexed name.
 
 Author keywords are only ever present under `view = "COMPLETE"`; the
 `STANDARD` view (the default throughout the package) never includes

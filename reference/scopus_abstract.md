@@ -14,7 +14,7 @@ request.
 scopus_abstract(
   ids,
   by = c("doi", "scopus_id"),
-  view = NULL,
+  view = "META_ABS",
   include = character(),
   cache_dir = NULL,
   resume = TRUE,
@@ -38,13 +38,15 @@ scopus_abstract(
 
 - view:
 
-  Optional character scalar naming the Abstract Retrieval view to
-  request: one of `"META"`, `"META_ABS"`, `"REF"` or `"FULL"`. `NULL`
-  (the default) omits the `view` parameter from the request entirely,
-  exactly as scopusflow has always done, so existing calls that never
-  mention `view` are unaffected. Retrieving `include = "references"`
-  requires `view = "FULL"` or `view = "REF"`; see *Details* for how the
-  two differ and which to prefer.
+  The Abstract Retrieval view to request: `"META_ABS"` (the default),
+  `"META"`, `"REF"` or `"FULL"`, or `NULL`. `"META_ABS"` is the view
+  Elsevier documents as carrying the abstract with the core metadata.
+  `NULL` sends no `view` parameter, as scopusflow 0.4.0 and earlier did,
+  and leaves the choice to the API. Elsevier documents its default as
+  `"META"`, a view without the abstract, but a live request in October
+  2026 returned the abstract without a view. Retrieving
+  `include = "references"` requires `view = "FULL"` or `view = "REF"`;
+  see *Details* for how the two differ and which to prefer.
 
 - include:
 
@@ -65,8 +67,8 @@ scopus_abstract(
   `NULL` (the default) performs no caching. Worth setting whenever
   `include` is used: Abstract Retrieval draws on its own weekly quota,
   smaller than and separate from Search's, and every identifier here
-  costs its own request, so re-running an interrupted batch without a
-  cache re-spends quota already spent.
+  costs at least one request of its own, so re-running an interrupted
+  batch without a cache re-spends quota already spent.
 
 - resume:
 
@@ -118,17 +120,22 @@ always be unnested.
 ## Details
 
 Retrieving references needs Abstract Retrieval's `FULL` or `REF` view,
-and keywords need `FULL`. In development, against a live key with full
-Abstract Retrieval access, `view = "FULL"` returned a complete,
-correctly counted reference list for every document tried.
-`view = "REF"` returned the identical, complete list in one case but a
-truncated (paginated) subset in another, on an otherwise identical
-request made moments apart, so `"FULL"` is recommended when your
-entitlement allows it. `"REF"` remains available for accounts entitled
-only to it; when the number of references returned does not match the
-document's own reported reference count, a warning is issued naming the
-identifier, since the list may be an incomplete page of the
-bibliography.
+and keywords need `FULL`. `FULL` returns the whole bibliography in one
+request. `REF` serves it a page at a time, about 40 references per
+request, so `scopus_abstract()` follows the view's `startref` parameter
+until it holds as many references as the document reports, as
+pybliometrics does. A `REF` document with *N* references therefore costs
+`ceiling(N / 40)` requests, each counted in `n_requests`, which makes
+`"FULL"` the cheaper view when your entitlement allows it. Elsevier's
+guide numbers `startref` from 0 and pybliometrics from 1, and which of
+the two the API follows has not been confirmed. Paging stops on an empty
+page, on a page that adds no new reference, or after as many pages as
+the first page's length implies, so neither numbering can make it loop
+or repeat references. When the number of references held still differs
+from the document's reported count, a
+`scopus_warning_incomplete_references` warning says so. An identifier
+whose later page fails is a failed retrieval: it gets a row of `NA`s
+with a warning and is not checkpointed.
 
 Author keywords were not populated by either 'Scopus' Search's
 `COMPLETE` view (see
@@ -142,15 +149,25 @@ documents do carry keywords.
 
 ## API access
 
-This performs one request per identifier and requires a valid API key
-and internet access; full-text abstract access, and the `FULL`/`REF`
-views in particular, can also depend on your entitlement. A view or
-field your key is not entitled to raises a `scopus_error_forbidden`
-condition with a message naming the view and suggesting who to contact,
-where a generic HTTP failure would leave you guessing. Because
-entitlement is a property of the account, retrieval stops at the first
-such failure, so the same refusal is not repeated for every remaining
-identifier. See the *API access* section of
+This performs one request per identifier, or one per page of references
+under `view = "REF"` with `include = "references"`, and requires a valid
+API key and internet access; full-text abstract access, and the
+`FULL`/`REF` views in particular, can also depend on your entitlement. A
+view or field your key is not entitled to raises a
+`scopus_error_forbidden` condition with a message naming the view and
+suggesting who to contact, where a generic HTTP failure would leave you
+guessing. Because entitlement is a property of the account, retrieval
+stops at the first such failure, so the same refusal is not repeated for
+every remaining identifier.
+
+A spent weekly quota (HTTP 429 marked `QUOTA_EXCEEDED`) also stops the
+requests, but returns what the batch holds, since it usually arrives
+part-way through: the rows already retrieved are kept, each identifier
+not retrieved gets a row of `NA`s that is not checkpointed, and one
+`scopus_warning_quota_exceeded` warning names the identifier reached,
+how many were not retrieved and when the quota resets. A checkpoint in
+`cache_dir` is still read after the stop. See the *API access* section
+of
 [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md)
 for the other conditions that may be raised.
 

@@ -36,6 +36,24 @@ as_ris(x, file = NULL)
 A length-one character string of the formatted records (returned
 invisibly when `file` is supplied).
 
+## Details
+
+Names are written family name first, with a comma. Under the `STANDARD`
+view, the `authors` column holds 'Scopus' names in the form `Zhang F.`,
+which BibTeX would read as given name "Zhang" and family name "F.", so a
+name ending in initials is exported as `Zhang, F.`. BibTeX entries also
+space run-together initials (`Kitchin, J. R.`), which BibTeX otherwise
+takes for a single given name. Names that already carry a comma, as
+under `COMPLETE`, and names given first are written as they stand. The
+`authors` column itself and the citation keys are unchanged. In a BibTeX
+title, every word with a capital after its first letter is braced
+(`{DNA}`, `{CRISPR-Cas9}`), so bibliography styles cannot lower-case it.
+
+An RIS entry gives the source title under `T2`, the tag 'Scopus' itself
+uses and reference managers read as the publication title, records the
+database as `DB - Scopus` and, when the record has an identifier, gives
+the EID as the accession number (`AN - 2-s2.0-<scopus_id>`).
+
 ## See also
 
 [`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md),
@@ -51,11 +69,11 @@ invisibly when `file` is supplied).
 cat(substr(as_bibtex(example_records), 1, 200))
 #> @article{jianhua2015,
 #>   author = {Jianhua Yu},
-#>   title = {Enhanced Capacitive Properties of All-solid-state Symmetric Graphene Supercapacitors by Incorporating Nitrogen-doping and SnO2 Nanoparticles},
+#>   title = {Enhanced Capacitive Properties of All-solid-state Symmetric Graphene Supercapacitors by Incorporating Nitrogen-doping and {SnO2} Nanoparticles
 cat(substr(as_ris(example_records), 1, 200))
 #> TY  - JOUR
 #> TI  - Enhanced Capacitive Properties of All-solid-state Symmetric Graphene Supercapacitors by Incorporating Nitrogen-doping and SnO2 Nanoparticles
 #> AU  - Jianhua Yu
 #> PY  - 2015
-#> JO  - Journal 
+#> T2  - Journal 
 ```

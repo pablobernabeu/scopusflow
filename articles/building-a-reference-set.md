@@ -144,27 +144,34 @@ bibliography. Each record becomes one entry, with its authors split out.
 
 ``` r
 
-cat(substr(as_ris(example_records), 1, 470))
+ris <- as_ris(example_records)
+cat(strsplit(ris, "\n\n", fixed = TRUE)[[1]][1:2], sep = "\n\n")
 ```
 
     TY  - JOUR
     TI  - Enhanced Capacitive Properties of All-solid-state Symmetric Graphene Supercapacitors by Incorporating Nitrogen-doping and SnO2 Nanoparticles
     AU  - Jianhua Yu
     PY  - 2015
-    JO  - Journal of Inorganic Materials
+    T2  - Journal of Inorganic Materials
     DO  - 10.15541/jim20140527
+    DB  - Scopus
     ER  - 
 
     TY  - JOUR
     TI  - Fabrication and Characterization of a Vertically-Oriented Graphene Supercapacitor
     AU  - Patrick R Rice
     PY  - 2015
-    JO  - DigitalCommons - CalPoly (California State Polytechnic University)
+    T2  - DigitalCommons - CalPoly (California State Polytechnic University)
+    DB  - Scopus
     ER  - 
 
 The first two entries of 138 are shown. The second has no DOI, so its
 `DO` line is simply absent, with no empty field written in its place,
-and the entry still imports on its title, author and year.
+and the entry still imports on its title, author and year. The source
+sits under `T2`, the tag ‘Scopus’ itself uses for it. A ‘Scopus’ name
+such as `Zhang F.` is exported as `Zhang, F.`, so that a reference
+manager or BibTeX reads Zhang as the family name. Nearly all the bundled
+records give names first, and those are written as they stand.
 
 Pass a `file` to write the whole set. Nothing is written without one.
 

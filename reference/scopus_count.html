@@ -54,7 +54,7 @@ simply report how large a topic is."><meta property="og:image" content="https://
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Count 'Scopus' results for a query</h1>
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.4.0/R/count.R" class="external-link"><code>R/count.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/R/count.R" class="external-link"><code>R/count.R</code></a></small>
       <div class="d-none name"><code>scopus_count.Rd</code></div>
     </div>
 
@@ -82,7 +82,8 @@ simply report how large a topic is.</p>
 
 
 <dl><dt id="arg-query">query<a class="anchor" aria-label="anchor" href="#arg-query"></a></dt>
-<dd><p>Character scalar. The base search expression.</p></dd>
+<dd><p>Character scalar. The base search expression, checked offline
+before any request (see the <em>Query checks</em> section of <code><a href="scopus_plan.html">scopus_plan()</a></code>).</p></dd>
 
 
 <dt id="arg-years">years<a class="anchor" aria-label="anchor" href="#arg-years"></a></dt>
@@ -123,7 +124,14 @@ can pace itself off a count.</p>
 key and internet access. When no key is configured it raises a
 <code>scopus_error_no_key</code> condition, and other failures raise typed <code>scopus_error</code>
 subclasses such as <code>scopus_error_rate_limit</code>. A <code><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch()</a></code> around the call
-lets a workflow handle these gracefully.</p>
+lets a workflow handle these gracefully. Throttling (HTTP 429) and server
+errors are retried with back-off first, and so are transport failures such
+as a timeout or a reset connection. A spent weekly quota, which Elsevier
+also answers with HTTP 429, is not retried: it raises
+<code>scopus_error_quota_exceeded</code>, a subclass of <code>scopus_error_rate_limit</code> whose
+message gives the reset time. When the last attempt at a request times out
+after <code>getOption("scopusflow.timeout", 60)</code> seconds, the error is
+<code>scopus_error_timeout</code>, a subclass of <code>scopus_error_offline</code>.</p>
     </div>
 
     <div class="section level2">

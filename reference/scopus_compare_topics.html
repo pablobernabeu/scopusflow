@@ -56,7 +56,7 @@ growing or shrinking within a literature."><meta property="og:image" content="ht
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Compare publication trends across topics</h1>
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.4.0/R/compare.R" class="external-link"><code>R/compare.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/R/compare.R" class="external-link"><code>R/compare.R</code></a></small>
       <div class="d-none name"><code>scopus_compare_topics.Rd</code></div>
     </div>
 
@@ -93,8 +93,10 @@ comparison (for example <code>"language learning"</code>).</p></dd>
 
 <dt id="arg-comparison-terms">comparison_terms<a class="anchor" aria-label="anchor" href="#arg-comparison-terms"></a></dt>
 <dd><p>Character vector of topics to compare against the
-reference (for example <code>c("effect size", "Bayesian")</code>). Each is combined
-with the reference using a logical AND.</p></dd>
+reference (for example <code>c("effect size", "Bayesian")</code>). Each is joined to
+the reference as <code>(reference) AND (term)</code>, after <code>field</code> has wrapped each
+side. A reference containing OR or AND NOT therefore keeps its meaning, and
+every comparison set is a subset of the reference.</p></dd>
 
 
 <dt id="arg-years">years<a class="anchor" aria-label="anchor" href="#arg-years"></a></dt>

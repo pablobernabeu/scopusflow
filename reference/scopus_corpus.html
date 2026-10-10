@@ -66,7 +66,7 @@ convention for users who want bibliometrix's tag names instead."><meta property=
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Assemble a minimal, cross-tool corpus with keywords and references</h1>
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.4.0/R/corpus.R" class="external-link"><code>R/corpus.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/R/corpus.R" class="external-link"><code>R/corpus.R</code></a></small>
       <div class="d-none name"><code>scopus_corpus.Rd</code></div>
     </div>
 
@@ -113,13 +113,13 @@ convention for users who want bibliometrix's tag names instead.</p>
 
 <dt id="arg-view">view<a class="anchor" aria-label="anchor" href="#arg-view"></a></dt>
 <dd><p>Either <code>"FULL"</code> (the default) or <code>"REF"</code>, passed to
-<code><a href="scopus_abstract.html">scopus_abstract()</a></code>. <code>"FULL"</code> is recommended: in development, it
-returned a complete, correctly counted reference list for every document
-tried, while <code>"REF"</code> returned an inconsistent, sometimes-truncated
-subset (see <code><a href="scopus_abstract.html">scopus_abstract()</a></code>'s documentation for the details and for
-the entitlement each view needs). The <code>REF</code> response also carries no
-author keywords, so under that view only the references are requested
-and <code>keywords</code> is empty for every record.</p></dd>
+<code><a href="scopus_abstract.html">scopus_abstract()</a></code>. <code>"FULL"</code> returns a document's whole bibliography in
+one request. <code>"REF"</code> serves it about 40 references per request, which
+<code><a href="scopus_abstract.html">scopus_abstract()</a></code> follows page by page, so a document with <em>N</em>
+references costs <code>ceiling(N / 40)</code> requests (see its documentation for
+the details and for the entitlement each view needs). The <code>REF</code> response
+also carries no author keywords, so under that view only the references
+are requested and <code>keywords</code> is empty for every record.</p></dd>
 
 
 <dt id="arg-cache-dir-resume">cache_dir, resume<a class="anchor" aria-label="anchor" href="#arg-cache-dir-resume"></a></dt>
@@ -153,8 +153,9 @@ with one row per cited work). A record in <code>records</code> whose identifier 
     <h2 id="api-access">API access<a class="anchor" aria-label="anchor" href="#api-access"></a></h2>
 
 
-<p>This performs one Abstract Retrieval request per usable record, on top of
-whatever retrieved <code>records</code> in the first place; see <code><a href="scopus_abstract.html">scopus_abstract()</a></code>'s
+<p>This performs one Abstract Retrieval request per usable record, or one per
+page of references under <code>view = "REF"</code>, on top of whatever retrieved
+<code>records</code> in the first place; see <code><a href="scopus_abstract.html">scopus_abstract()</a></code>'s
 <em>API access</em> section for the entitlement <code>view = "FULL"</code>/<code>"REF"</code> needs and
 how a 403 is handled.</p>
     </div>

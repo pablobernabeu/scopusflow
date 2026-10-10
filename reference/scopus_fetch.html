@@ -52,7 +52,7 @@ ceiling, rate-limit handling and retry with back-off are all managed for you."><
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Fetch 'Scopus' records for a query</h1>
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.4.0/R/fetch.R" class="external-link"><code>R/fetch.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/R/fetch.R" class="external-link"><code>R/fetch.R</code></a></small>
       <div class="d-none name"><code>scopus_fetch.Rd</code></div>
     </div>
 
@@ -83,7 +83,8 @@ ceiling, rate-limit handling and retry with back-off are all managed for you.</p
 
 
 <dl><dt id="arg-query">query<a class="anchor" aria-label="anchor" href="#arg-query"></a></dt>
-<dd><p>Character scalar. The base search expression.</p></dd>
+<dd><p>Character scalar. The base search expression, checked offline
+before any request (see the <em>Query checks</em> section of <code><a href="scopus_plan.html">scopus_plan()</a></code>).</p></dd>
 
 
 <dt id="arg-max-results">max_results<a class="anchor" aria-label="anchor" href="#arg-max-results"></a></dt>
@@ -146,7 +147,9 @@ the harvest is dated by <code>retrieved_at</code> (a <code>POSIXct</code>) and
 offset or by cursor. The date and version matter because <code>citations</code> is a
 snapshot value that keeps moving, so two saved sets are only comparable if
 each records when it was taken, and <code><a href="scopus_search_report.html">scopus_search_report()</a></code> reads all of
-them back. They survive a <code>.rds</code> round trip through
+them back. <code>view</code> records the view, which decides what <code>authors</code> holds: the
+first author under <code>STANDARD</code> and the author list under <code>COMPLETE</code> (see
+<code><a href="scopus_records.html">scopus_records()</a></code>). These attributes survive a <code>.rds</code> round trip through
 <code><a href="write_scopus_records.html">write_scopus_records()</a></code> but not a <code>.csv</code> one, which carries columns only.</p>
     </div>
     <div class="section level2">

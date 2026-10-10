@@ -52,7 +52,7 @@ results can flow into downstream science-mapping workflows."><meta property="og:
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Convert records to a bibliometrix-compatible data frame</h1>
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.4.0/R/bibliometrix.R" class="external-link"><code>R/bibliometrix.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/R/bibliometrix.R" class="external-link"><code>R/bibliometrix.R</code></a></small>
       <div class="d-none name"><code>as_bibliometrix.Rd</code></div>
     </div>
 
@@ -91,6 +91,13 @@ fields that some bibliometrix analyses use, such as full author affiliations
 or cited references, are left out. To obtain those, export a full 'Scopus'
 CSV or BibTeX file from the web interface and read it with
 <code>bibliometrix::convert2df()</code>.</p>
+<p><code>AU</code> holds every author only for a retrieval made with
+<code>view = "COMPLETE"</code>. Under <code>STANDARD</code> the API sends the first author alone,
+so each document would look single-authored to the collaboration measures
+and co-authorship networks bibliometrix builds from <code>AU</code>. Converting a set
+retrieved under <code>STANDARD</code> therefore raises a warning of class
+<code>scopus_warning_first_author_only</code>, once per session (see
+<code><a href="scopus_records.html">scopus_records()</a></code>).</p>
     </div>
 
     <div class="section level2">

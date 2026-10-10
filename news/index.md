@@ -1,5 +1,186 @@
 # Changelog
 
+## scopusflow (development version)
+
+### Changed behaviour
+
+- Input errors now inherit `scopus_error`, as the package has always
+  documented. `scopus_error_bad_input` was raised on its own, so
+  `tryCatch(scopus_error = ...)` let a blank query or an out-of-range
+  year through. Invalid `view`, `partition`, `by`, `.op` and `style`
+  values now raise `scopus_error_bad_input` too, where they were bare
+  `rlang_error` conditions with the same message. A retry loop keyed on
+  `scopus_error` should test the subclass, since an input error will not
+  succeed on retry.
+- [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+  now requests `view = "META_ABS"` by default, the view Elsevier
+  documents as carrying the abstract, as the Python twin does. It used
+  to send no view and so took the API’s default, which Elsevier
+  documents as META, a view without the abstract. A live request in
+  October 2026 nonetheless returned the abstract without a view, so
+  earlier default calls may well have carried it. The column no longer
+  depends on behaviour the documentation contradicts. Pass `view = NULL`
+  to send the old request. A default call’s checkpoints are now keyed
+  `META_ABS`. A cache written by 0.4.0 for a call without a view
+  therefore serves only `view = NULL`, and a default call spends a
+  request on each of its identifiers again.
+- Queries are checked offline before any request. `LIMIT-TO()` and
+  `EXCLUDE()` refinement syntax pasted from the web interface, a field
+  tag wrapped around a query that already opens with one, and unbalanced
+  brackets, quotation marks or braces now raise `scopus_error_bad_input`
+  in
+  [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md),
+  [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md),
+  [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md),
+  [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md),
+  [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
+  and
+  [`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md).
+  The Search API ignores a refinement without an error, so such a search
+  ran unfiltered. A nested field tag failed with HTTP 400 after spending
+  a request, and unbalanced brackets reached the API unchecked.
+  `INDEXTERMS()`, which pybliometrics documents as not working through
+  the Search API, raises a `scopus_warning_query_syntax` warning. The
+  messages match the Python twin’s word for word. Given `.field`,
+  [`scopus_query()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_query.md)
+  now refuses a term that already opens with a field tag, where
+  `scopus_query("TITLE(x)", .field = "ABS")` used to give
+  `ABS(TITLE(x))`.
+  [`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md)
+  uses a concept written as the web interface writes a tag,
+  `TITLE-ABS-KEY ( x )`, as given, where it used to wrap it in `field` a
+  second time.
+- RIS records put the source title under `T2`, which reference managers
+  read as the publication title, instead of `JO`, which Zotero reads as
+  the journal abbreviation, and now carry `DB - Scopus` and the EID as
+  `AN`.
+- Requests are retried after transport failures such as timeouts and
+  connection resets, which httr2 stopped doing by default in 1.0.4, so
+  one such failure no longer aborts a harvest. scopusflow now requires
+  httr2 1.0.4 or later. A timeout is reported as such, with the class
+  `scopus_error_timeout` (a subclass of `scopus_error_offline`), and no
+  longer as being offline.
+
+### Bug fixes
+
+- The app’s Check size button no longer closes the session on a blank
+  query. The handler caught `scopus_error` alone, so the input error
+  escaped it and Shiny ended the session. Check size and Fetch now
+  refuse a blank query with a notification, as Compare and the Python
+  app already did, and any other failure in Check size is shown as a
+  notification.
+- [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
+  joined the reference and each comparison term without brackets, so a
+  reference containing OR or AND NOT was regrouped by the operator
+  precedence of ‘Scopus’. Under the documented order, which applies AND
+  NOT last, an AND NOT reference took the term into its negation, so the
+  comparison set could exceed the reference and shares passed 100%. The
+  join is now `(reference) AND (term)`, as
+  [`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md)
+  already wrote it. Re-run comparisons whose reference contains OR or
+  AND NOT.
+- [`scopus_query()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_query.md)
+  now brackets each term of several words when it joins two or more
+  terms without a field tag, since ‘Scopus’ joins the words of an
+  unquoted term with AND.
+  `scopus_query("machine learning", "deep learning", .op = "OR")` used
+  to give `machine learning OR deep learning`, which reads as
+  `machine AND (learning OR deep) AND learning`. Quoted and braced
+  phrases, bracketed groups and single field-tagged groups are left as
+  written, and single words are never bracketed, so
+  `scopus_query("CRISPR", "Cas9", .op = "OR")` is unchanged. Terms are
+  also trimmed of the white space the Python twin trims, no-break spaces
+  included.
+- A reference list that arrives as a single bare object, which is how
+  Elsevier’s JSON sends a one-item array, no longer aborts the whole
+  [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+  or
+  [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
+  batch, and every resume of it, with an untyped “subscript out of
+  bounds” error. Neither does a cited work whose author list arrives
+  that way. Any other shape the keyword or reference parser cannot read
+  is now handled as a malformed response (`scopus_error_malformed`).
+  That identifier gets a row of `NA`s and a warning and is retried on
+  resume, while the rest of the batch completes. A lone author-keyword
+  entry that carries no text, such as `{"@_fa": "true"}`, no longer
+  becomes the keyword “true”.
+- The `authors` column held only the first author. The Search API’s
+  `dc:creator` field is the first author alone, and the author list
+  exists only under `view = "COMPLETE"`, where scopusflow ignored it.
+  Under `COMPLETE` the column now lists the authors as
+  `"Surname, Given"`, joined by `"; "` (up to the API’s 100 per record),
+  so author tallies,
+  [`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)
+  and the BibTeX and RIS exports see every author. Under `STANDARD` it
+  still holds the first author, and `scopus_top(by = "author")` and
+  [`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)
+  now say so once per session, as a note on the app’s Top authors tab
+  does. Retrievals record their view as the `view` attribute, which a
+  combined set keeps where its parts agree. `COMPLETE`-view checkpoints
+  written by earlier versions are refetched once, and `STANDARD` ones
+  are served as before. This corrects the 0.1.0 entry, which said the
+  column retained every author a record lists.
+- Under `view = "REF"`,
+  [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+  returned only the first page of a reference list, about 40 references,
+  which the documentation blamed on the API. It now follows `startref`
+  until the list is complete, as pybliometrics does, at a cost of one
+  request per 40 references, and `n_requests` counts each page. A REF
+  reference’s title and source are now read, where both were always
+  `NA`. REF cache files are keyed `REF-paged`, so truncated ones written
+  by 0.4.0 are refetched once. This reaches
+  `scopus_corpus(view = "REF")` too.
+- BibTeX and RIS exports wrote names in the ‘Scopus’ form “Surname I.”,
+  with no comma, so BibTeX and biber took the initials for the family
+  name and sorted bibliographies by them, and Zotero kept each RIS
+  author as a single field. This touched every export of records
+  retrieved outside `COMPLETE`. A name ending in initials is now written
+  “Surname, I.”, and BibTeX titles protect words such as CRISPR-Cas9 and
+  DNA from lower-casing. BibTeX also spaces run-together initials (“J.
+  R.”), which it would otherwise read as one given name. The `authors`
+  column and the citation keys are unchanged.
+- A spent weekly quota is no longer treated as a transient rate limit.
+  Elsevier answers both with HTTP 429, and a response marked
+  `QUOTA_EXCEEDED` now raises `scopus_error_quota_exceeded` (a subclass
+  of `scopus_error_rate_limit`) naming the reset time, and is not
+  retried. It stops a
+  [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+  or
+  [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
+  batch with the rows already retrieved kept, an `NA` row for each
+  identifier not retrieved and one `scopus_warning_quota_exceeded`
+  warning. Every remaining identifier used to be tried three times and
+  become an `NA` row with a warning of its own. The 403 message no
+  longer blames the quota, and `Retry-After` dates parse in any locale,
+  where a German or French `LC_TIME` made every one `NA`.
+  [`scopus_quota()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_quota.md)
+  documents `reset` as the time the key’s quota resets, not a rate-limit
+  window.
+
+### Documentation
+
+- The README no longer names the version CRAN carries. The README inside
+  the 0.4.0 tarball said CRAN carried 0.1.0, because the figure was
+  typed by hand and a README is built before CRAN accepts a submission.
+  The installation section now points to NEWS for what each release
+  added.
+- The spelling test now fails a check run with `NOT_CRAN` set, as in
+  [`devtools::check()`](https://devtools.r-lib.org/reference/check.html)
+  and on GitHub Actions, where an unknown word used to surface only as a
+  NOTE that left the run green. CRAN and a plain `R CMD check` still
+  skip the test. The word list gains the twelve names and terms that had
+  slipped past it.
+- The designing-queries article explains loose and exact phrases, and
+  replaces its spelling-variant example, which ‘Scopus’ matches without
+  help, with two phrases naming one condition. It also shows why a query
+  written by hand that mixes operators needs brackets, under both the
+  documented operator order and the one Elsevier has announced.
+- The designing-queries article describes the offline query checks and
+  gives a recipe for testing a strategy’s relative recall against
+  records known to be relevant, with two searches per chain of DOIs
+  (Sampson et al., 2006; Bramer et al., 2018). The recipe contacts the
+  API and is not run in the article.
+
 ## scopusflow 0.4.0
 
 CRAN release: 2026-08-21
@@ -194,7 +375,7 @@ longer leave a half-written file that breaks every later resume.
   1.0.0’s own DESCRIPTION, which requires `rlang (>= 1.1.0)`, so the old
   floor described a combination no user could have installed. It is
   CRAN-visible metadata.
-- The live API check’s documented request cost, the cache guard’s
+- The documented request cost of the live API check, the cache guard’s
   description in the documentation and vignette, and the path to the
   Python twin’s copy of the example records were all corrected.
 

@@ -56,7 +56,7 @@ year, so they can be cached and resumed."><meta property="og:image" content="htt
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Build a reproducible 'Scopus' search plan</h1>
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.4.0/R/plan.R" class="external-link"><code>R/plan.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/R/plan.R" class="external-link"><code>R/plan.R</code></a></small>
       <div class="d-none name"><code>scopus_plan.Rd</code></div>
     </div>
 
@@ -141,6 +141,26 @@ under the API's hard limit of <code>start &lt; 5000</code>.</p></dd>
 (integer or <code>NA</code>), <code>view</code> and <code>page_size</code>. Plan-level settings are stored as
 attributes.</p>
 <p><code>is_scopus_plan()</code> returns a length-one logical.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="query-checks">Query checks<a class="anchor" aria-label="anchor" href="#query-checks"></a></h2>
+
+
+<p><code>scopus_plan()</code>, <code><a href="scopus_count.html">scopus_count()</a></code>, <code><a href="scopus_fetch.html">scopus_fetch()</a></code>, <code><a href="scopus_trend.html">scopus_trend()</a></code>,
+<code><a href="scopus_compare_topics.html">scopus_compare_topics()</a></code> and <code><a href="scopus_intersections.html">scopus_intersections()</a></code> check each query
+offline, before any request, and refuse three mistakes with a
+<code>scopus_error_bad_input</code> condition. <code>LIMIT-TO()</code> and <code>EXCLUDE()</code> belong to
+the web interface's refinement panel, and the Search API ignores them, so
+the search would run unfiltered. Write such a limit as a search field, for
+example <code>DOCTYPE(ar)</code>, <code>LANGUAGE(english)</code>, <code>SUBJAREA(PSYC)</code>, <code>SRCTYPE(j)</code>
+or <code>PUBYEAR &gt; 2015</code>. A <code>field</code> given for a query that already opens with a
+field tag would nest one tag inside the other, which the API rejects, so
+leave <code>field</code> as <code>NULL</code> for such a query. Brackets, quotation marks and
+braces must balance, counting brackets inside a phrase as text.
+<code>INDEXTERMS()</code>, which pybliometrics documents as not working through the
+Search API, raises a <code>scopus_warning_query_syntax</code> warning. <code>KEY()</code>
+searches the index terms together with author keywords, trade names and
+chemical names. The messages are those of the Python twin, word for word.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

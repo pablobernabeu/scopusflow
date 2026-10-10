@@ -37,6 +37,14 @@ affiliations or cited references, are left out. To obtain those, export
 a full 'Scopus' CSV or BibTeX file from the web interface and read it
 with `bibliometrix::convert2df()`.
 
+`AU` holds every author only for a retrieval made with
+`view = "COMPLETE"`. Under `STANDARD` the API sends the first author
+alone, so each document would look single-authored to the collaboration
+measures and co-authorship networks bibliometrix builds from `AU`.
+Converting a set retrieved under `STANDARD` therefore raises a warning
+of class `scopus_warning_first_author_only`, once per session (see
+[`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)).
+
 ## Examples
 
 ``` r

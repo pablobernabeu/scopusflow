@@ -53,7 +53,11 @@ Errors are raised as typed conditions in the `scopus_error` family
 through
 [`rlang::abort()`](https://rlang.r-lib.org/reference/abort.html), never
 with a bare [`stop()`](https://rdrr.io/r/base/stop.html), so that
-callers can handle them programmatically. User-facing messages use
+callers can handle them programmatically. An invalid argument goes
+through `scopus_abort_bad_input()`, and a choice among fixed values is
+matched with `scopus_match_arg()` in place of
+[`rlang::arg_match()`](https://rlang.r-lib.org/reference/arg_match.html),
+so that input errors stay in the family too. User-facing messages use
 `cli`.
 
 An API key is a secret. It is read only from the `SCOPUS_API_KEY`
@@ -120,7 +124,11 @@ runtime instead.
 Each workflow declares the permissions it needs, so the repository’s
 default workflow permissions can stay read-only. The auto-fix pull
 request additionally requires *Settings → Actions → General* to allow
-GitHub Actions to create and approve pull requests.
+GitHub Actions to create and approve pull requests. Because the auto-fix
+job opens it with the workflow’s own token, continuous integration does
+not start on that pull request by itself, so run R-CMD-check on its
+branch before merging. A fix attempt that fails is reported on the open
+dependency issue, and the run finishes red.
 
 ## Submitting a pull request
 

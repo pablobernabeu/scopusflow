@@ -20,9 +20,11 @@ scopus_quota(resp)
 
 ## Value
 
-A list with elements `limit`, `remaining`, `reset` (a `POSIXct` time at
-which the rate-limit window resets, or `NA`), `status` and `retry_after`
-(seconds, or `NA`). A missing header yields `NA`.
+A list with elements `limit`, `remaining`, `reset`, `status` and
+`retry_after` (seconds, or `NA`). `reset` is the `POSIXct` time, in UTC,
+at which the key's quota resets, read from `X-RateLimit-Reset` (epoch
+seconds, per Elsevier's API key settings page), or `NA`. A missing
+header yields `NA`.
 
 ## Details
 

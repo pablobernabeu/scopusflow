@@ -52,7 +52,11 @@ scopus_fetch_plan(
   for is served trimmed to that cap, the fuller set staying on disk. A
   checkpoint that cannot be read back, for example one left half-written
   by an interrupted run, is also treated as a miss, and never aborts the
-  harvest.
+  harvest. A `COMPLETE` checkpoint written by a release that read
+  `authors` from the first author alone (0.4.0 and earlier) is a miss as
+  well, and is refetched once with a warning. `STANDARD` checkpoints
+  from those releases are served as before, since their authors were
+  read correctly.
 
 - resume:
 
@@ -91,7 +95,8 @@ since a combined set is only as fresh as its oldest cell, and every
 version that contributed is listed, since resuming an older cache means
 more than one did. Both are omitted when any cell cannot supply them, as
 a checkpoint written before they existed cannot. Dating the whole from
-the part of it that can be dated would misreport the set.
+the part of it that can be dated would misreport the set. `paging` and
+`view` are kept where every cell records the same one.
 
 ## API access
 

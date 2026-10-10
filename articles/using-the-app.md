@@ -149,8 +149,11 @@ authors tally the most frequent of each with
 [`scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_top.md)
 and
 [`plot_scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_top.md).
-Every figure is drawn by the same library functions you would call from
-a script, so the app shows you nothing you could not reproduce.
+Under the `STANDARD` detail, the API sends the first author of each
+record alone, so a note above the Top authors plot says that it tallies
+first authors, and choosing `COMPLETE` gives every author. Every figure
+is drawn by the same library functions you would call from a script, so
+the app shows you nothing you could not reproduce.
 
 ![The Results panel with tabs for Records, By year, Top sources, Top
 authors, Compare topics and Export. The Records tab is open, showing the

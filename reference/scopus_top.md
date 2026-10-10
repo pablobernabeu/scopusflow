@@ -23,7 +23,13 @@ scopus_top(x, by = c("source", "author"), n = 10L)
 
   What to tally: `"source"` (the publication titles) or `"author"`.
   Author strings holding several names separated by `"; "` are split, so
-  each contributor is counted once per record.
+  each contributor is counted once per record. Only a
+  `view = "COMPLETE"` retrieval holds several names, since `STANDARD`
+  records carry the first author alone (see
+  [`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)).
+  A tally by author of a set retrieved under `STANDARD` therefore counts
+  first authorships, and says so with a warning of class
+  `scopus_warning_first_author_only`, once per session.
 
 - n:
 
@@ -64,7 +70,8 @@ scopus_top(example_records, by = "source")
 #> 10 Nanotechnology                         3
 
 # That corpus names one author per article, so the author tally counts
-# first authors; a live harvest lists every author and splits them.
+# first authors. A harvest retrieved with view = "COMPLETE" lists every
+# author, and the tally splits them.
 scopus_top(example_records, by = "author", n = 5)
 #> # A tibble: 5 × 2
 #>   value                 n

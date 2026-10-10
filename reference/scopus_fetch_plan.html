@@ -54,7 +54,7 @@ bound once into a single scopus_records tibble."><meta property="og:image" conte
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Execute a 'Scopus' search plan, with optional caching and resume</h1>
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.4.0/R/fetch_plan.R" class="external-link"><code>R/fetch_plan.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/R/fetch_plan.R" class="external-link"><code>R/fetch_plan.R</code></a></small>
       <div class="d-none name"><code>scopus_fetch_plan.Rd</code></div>
     </div>
 
@@ -105,7 +105,10 @@ A checkpoint holding more records than the current <code>max_results</code> asks
 is served trimmed to that cap, the fuller set staying on disk. A
 checkpoint that cannot be read back, for example one left half-written by
 an interrupted run, is also treated as a miss, and never aborts the
-harvest.</p></dd>
+harvest. A <code>COMPLETE</code> checkpoint written by a release that read <code>authors</code>
+from the first author alone (0.4.0 and earlier) is a miss as well, and is
+refetched once with a warning. <code>STANDARD</code> checkpoints from those releases
+are served as before, since their authors were read correctly.</p></dd>
 
 
 <dt id="arg-resume">resume<a class="anchor" aria-label="anchor" href="#arg-resume"></a></dt>
@@ -140,7 +143,8 @@ set is only as fresh as its oldest cell, and every version that
 contributed is listed, since resuming an older cache means more than one
 did. Both are omitted when any cell cannot supply them, as a checkpoint
 written before they existed cannot. Dating the whole from the part of it
-that can be dated would misreport the set.</p>
+that can be dated would misreport the set. <code>paging</code> and <code>view</code> are kept
+where every cell records the same one.</p>
     </div>
     <div class="section level2">
     <h2 id="api-access">API access<a class="anchor" aria-label="anchor" href="#api-access"></a></h2>

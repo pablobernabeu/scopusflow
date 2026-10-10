@@ -58,7 +58,7 @@ unique within the export, and special characters are escaped."><meta property="o
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Export records to BibTeX or RIS</h1>
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.4.0/R/export-refman.R" class="external-link"><code>R/export-refman.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/R/export-refman.R" class="external-link"><code>R/export-refman.R</code></a></small>
       <div class="d-none name"><code>as_bibtex.Rd</code></div>
     </div>
 
@@ -98,6 +98,23 @@ Nothing is written unless a path is given.</p></dd>
 invisibly when <code>file</code> is supplied).</p>
     </div>
     <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Names are written family name first, with a comma. Under the <code>STANDARD</code>
+view, the <code>authors</code> column holds 'Scopus' names in the form <code>Zhang F.</code>,
+which BibTeX would read as given name "Zhang" and family name "F.", so a
+name ending in initials is exported as <code>Zhang, F.</code>. BibTeX entries also
+space run-together initials (<code>Kitchin, J. R.</code>), which BibTeX otherwise
+takes for a single given name. Names that already carry a comma, as under
+<code>COMPLETE</code>, and names given first are written as they stand. The <code>authors</code>
+column itself and the citation keys are unchanged. In a BibTeX title, every
+word with a capital after its first letter is braced (<code>{DNA}</code>,
+<code>{CRISPR-Cas9}</code>), so bibliography styles cannot lower-case it.</p>
+<p>An RIS entry gives the source title under <code>T2</code>, the tag 'Scopus' itself
+uses and reference managers read as the publication title, records the
+database as <code>DB  - Scopus</code> and, when the record has an identifier, gives the
+EID as the accession number (<code>AN  - 2-s2.0-&lt;scopus_id&gt;</code>).</p>
+    </div>
+    <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="as_bibliometrix.html">as_bibliometrix()</a></code>, <code><a href="write_scopus_records.html">write_scopus_records()</a></code>, <code><a href="scopus_extract_dois.html">scopus_extract_dois()</a></code></p></div>
     </div>
@@ -110,13 +127,13 @@ invisibly when <code>file</code> is supplied).</p>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fu">as_bibtex</span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">200</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> @article{jianhua2015,</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   author = {Jianhua Yu},</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   title = {Enhanced Capacitive Properties of All-solid-state Symmetric Graphene Supercapacitors by Incorporating Nitrogen-doping and SnO2 Nanoparticles},</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   title = {Enhanced Capacitive Properties of All-solid-state Symmetric Graphene Supercapacitors by Incorporating Nitrogen-doping and {SnO2} Nanoparticles</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fu">as_ris</span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">200</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> TY  - JOUR</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> TI  - Enhanced Capacitive Properties of All-solid-state Symmetric Graphene Supercapacitors by Incorporating Nitrogen-doping and SnO2 Nanoparticles</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> AU  - Jianhua Yu</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> PY  - 2015</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> JO  - Journal </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> T2  - Journal </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

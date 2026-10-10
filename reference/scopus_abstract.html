@@ -58,7 +58,7 @@ reference list to the same request."><meta property="og:image" content="https://
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Retrieve abstracts and richer metadata</h1>
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.4.0/R/abstract.R" class="external-link"><code>R/abstract.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/R/abstract.R" class="external-link"><code>R/abstract.R</code></a></small>
       <div class="d-none name"><code>scopus_abstract.Rd</code></div>
     </div>
 
@@ -76,7 +76,7 @@ reference list to the same request.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">scopus_abstract</span><span class="op">(</span></span>
 <span>  <span class="va">ids</span>,</span>
 <span>  by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"doi"</span>, <span class="st">"scopus_id"</span><span class="op">)</span>,</span>
-<span>  view <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  view <span class="op">=</span> <span class="st">"META_ABS"</span>,</span>
 <span>  include <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  cache_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  resume <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -101,12 +101,15 @@ Identifiers or 'Scopus' record identifiers (with or without the
 
 
 <dt id="arg-view">view<a class="anchor" aria-label="anchor" href="#arg-view"></a></dt>
-<dd><p>Optional character scalar naming the Abstract Retrieval view to
-request: one of <code>"META"</code>, <code>"META_ABS"</code>, <code>"REF"</code> or <code>"FULL"</code>. <code>NULL</code> (the
-default) omits the <code>view</code> parameter from the request entirely, exactly as
-scopusflow has always done, so existing calls that never mention <code>view</code>
-are unaffected. Retrieving <code>include = "references"</code> requires <code>view = "FULL"</code> or <code>view = "REF"</code>; see <em>Details</em> for how the two differ and which
-to prefer.</p></dd>
+<dd><p>The Abstract Retrieval view to request: <code>"META_ABS"</code> (the
+default), <code>"META"</code>, <code>"REF"</code> or <code>"FULL"</code>, or <code>NULL</code>. <code>"META_ABS"</code> is the
+view Elsevier documents as carrying the abstract with the core metadata.
+<code>NULL</code> sends no <code>view</code> parameter, as scopusflow 0.4.0 and earlier did,
+and leaves the choice to the API. Elsevier documents its default as
+<code>"META"</code>, a view without the abstract, but a live request in October 2026
+returned the abstract without a view. Retrieving <code>include = "references"</code>
+requires <code>view = "FULL"</code> or <code>view = "REF"</code>; see <em>Details</em> for how the two
+differ and which to prefer.</p></dd>
 
 
 <dt id="arg-include">include<a class="anchor" aria-label="anchor" href="#arg-include"></a></dt>
@@ -126,7 +129,7 @@ itself is otherwise accessible. See <em>Details</em>.</p></dd>
 <code><a href="scopus_fetch_plan.html">scopus_fetch_plan()</a></code>. <code>NULL</code> (the default) performs no caching. Worth
 setting whenever <code>include</code> is used: Abstract Retrieval draws on its own
 weekly quota, smaller than and separate from Search's, and every
-identifier here costs its own request, so re-running an interrupted batch
+identifier here costs at least one request of its own, so re-running an interrupted batch
 without a cache re-spends quota already spent.</p></dd>
 
 
@@ -175,16 +178,21 @@ always be unnested.</p>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Retrieving references needs Abstract Retrieval's <code>FULL</code> or <code>REF</code> view, and
-keywords need <code>FULL</code>. In development, against a live key with full Abstract Retrieval
-access, <code>view = "FULL"</code> returned a complete, correctly counted reference
-list for every document tried. <code>view = "REF"</code> returned the identical,
-complete list in one case but a truncated (paginated) subset in another, on
-an otherwise identical request made moments apart, so <code>"FULL"</code> is
-recommended when your entitlement allows it. <code>"REF"</code> remains available for
-accounts entitled only to it; when the number of references returned does
-not match the document's own reported reference count, a warning is issued
-naming the identifier, since the list may be an incomplete page of the
-bibliography.</p>
+keywords need <code>FULL</code>. <code>FULL</code> returns the whole bibliography in one request.
+<code>REF</code> serves it a page at a time, about 40 references per request, so
+<code>scopus_abstract()</code> follows the view's <code>startref</code> parameter until it holds
+as many references as the document reports, as pybliometrics does. A <code>REF</code>
+document with <em>N</em> references therefore costs <code>ceiling(N / 40)</code> requests,
+each counted in <code>n_requests</code>, which makes <code>"FULL"</code> the cheaper view when
+your entitlement allows it. Elsevier's guide numbers <code>startref</code> from 0 and
+pybliometrics from 1, and which of the two the API follows has not been
+confirmed. Paging stops on an empty page, on a page that adds no new
+reference, or after as many pages as the first page's length implies, so
+neither numbering can make it loop or repeat references. When the number
+of references held still differs from the document's reported count, a
+<code>scopus_warning_incomplete_references</code> warning says so. An
+identifier whose later page fails is a failed retrieval: it gets a row of
+<code>NA</code>s with a warning and is not checkpointed.</p>
 <p>Author keywords were not populated by either 'Scopus' Search's <code>COMPLETE</code>
 view (see <code><a href="scopus_records.html">scopus_records()</a></code>) or Abstract Retrieval's <code>FULL</code> view in this
 package's own development testing, against a live, otherwise
@@ -197,14 +205,22 @@ Scopus/Elsevier account contact. The documents do carry keywords.</p>
     <h2 id="api-access">API access<a class="anchor" aria-label="anchor" href="#api-access"></a></h2>
 
 
-<p>This performs one request per identifier and requires a valid API key and
-internet access; full-text abstract access, and the <code>FULL</code>/<code>REF</code> views in
+<p>This performs one request per identifier, or one per page of references
+under <code>view = "REF"</code> with <code>include = "references"</code>, and requires a valid
+API key and internet access; full-text abstract access, and the <code>FULL</code>/<code>REF</code> views in
 particular, can also depend on your entitlement. A view or field your key is
 not entitled to raises a <code>scopus_error_forbidden</code> condition with a message
 naming the view and suggesting who to contact, where a generic HTTP failure
 would leave you guessing. Because entitlement is a property of the account,
 retrieval stops at the first such failure, so the same refusal is not
-repeated for every remaining identifier. See the <em>API access</em> section of
+repeated for every remaining identifier.</p>
+<p>A spent weekly quota (HTTP 429 marked <code>QUOTA_EXCEEDED</code>) also stops the
+requests, but returns what the batch holds, since it usually arrives
+part-way through: the rows already retrieved are kept, each identifier not
+retrieved gets a row of <code>NA</code>s that is not checkpointed, and one
+<code>scopus_warning_quota_exceeded</code> warning names the identifier reached, how
+many were not retrieved and when the quota resets. A checkpoint in
+<code>cache_dir</code> is still read after the stop. See the <em>API access</em> section of
 <code><a href="scopus_count.html">scopus_count()</a></code> for the other conditions that may be raised.</p>
     </div>
     <div class="section level2">
