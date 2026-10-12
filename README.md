@@ -12,7 +12,8 @@ status](https://www.r-pkg.org/badges/version/scopusflow)](https://CRAN.R-project
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![License:
 MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/license/MIT)
-[![DOI](https://img.shields.io/badge/DOI-10.32614%2FCRAN.package.scopusflow-blue.svg)](https://doi.org/10.32614/CRAN.package.scopusflow)
+[![DOI
+10.32614/CRAN.package.scopusflow](https://img.shields.io/badge/DOI-10.32614%2FCRAN.package.scopusflow-blue.svg)](https://doi.org/10.32614/CRAN.package.scopusflow)
 <!-- badges: end -->
 
 scopusflow is a reproducible, quota-aware workflow layer over the
@@ -184,6 +185,10 @@ the reference and its BibTeX entry.
 ``` r
 citation("scopusflow")
 ```
+
+The DOI that CRAN assigned to the package is
+<https://doi.org/10.32614/CRAN.package.scopusflow>, and it covers every
+version.
 
 The [About
 page](https://pablobernabeu.github.io/scopusflow/articles/about.html)

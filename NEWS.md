@@ -118,11 +118,15 @@
 ## Documentation
 
 * `citation("scopusflow")`, the website and `CITATION.cff` give the DOI that
-  CRAN assigned to the package, 10.32614/CRAN.package.scopusflow, in place of
-  the Zenodo concept DOI. It names the R package across all its versions, and it
-  is the DOI that the CRAN page and the citation R generates for a CRAN package
+  CRAN assigned to the package,
+  <https://doi.org/10.32614/CRAN.package.scopusflow>, in place of the Zenodo
+  concept DOI. It names the R package across all its versions, and it is the
+  DOI that the CRAN page and the citation R generates for a CRAN package
   already gave, so the package no longer circulates under two. Zenodo still
   archives every GitHub release, and `CITATION.cff` lists both identifiers.
+  The CRAN DOI and the Zenodo DOI are shown as full links on the website and in
+  the README, and the sidebar of the home page shows the CRAN DOI once: the DOI
+  badge in the README no longer appears there a second time.
 * The README no longer names the version CRAN carries. The README inside the 0.4.0
   tarball said CRAN carried 0.1.0, because the figure was typed by hand and a README
   is built before CRAN accepts a submission. The installation section now points to
