@@ -9,8 +9,13 @@
 #' @param dedupe Logical. When `TRUE`, records sharing a 'Scopus' identifier, or
 #'   failing that a DOI (compared case-insensitively), are kept once.
 #' @return A [scopus_records] tibble. Per-retrieval attributes such as
-#'   `total_results` are not carried over, since they describe a single fetch.
-#'   The merge itself is recorded in the `combined` attribute, a list of `n_in`
+#'   `total_results` and `plan` are not carried over, since they describe a
+#'   single fetch. The provenance a merge leaves true is kept, as
+#'   [scopus_fetch_plan()] keeps it for plan cells. `retrieved_at` is the
+#'   earliest of the inputs' times and `retrieved_until` the latest, so a
+#'   baseline merged with its update is dated from one to the other. Every
+#'   contributing `scopusflow_version` is listed. The merge itself is recorded
+#'   in the `combined` attribute, a list of `n_in`
 #'   (records supplied), `n_out` (records kept), `n_removed` and `deduplicated`,
 #'   which is what lets [scopus_search_report()] state how many duplicates were
 #'   removed, so the PRISMA-S item is answered.

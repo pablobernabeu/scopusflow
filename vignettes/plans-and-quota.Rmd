@@ -265,11 +265,11 @@ snippet that rebuilds the plan, which makes a natural supplementary file.
 scopus_search_report(records, file = "search-record.md")
 ```
 
-Five of the sixteen PRISMA-S items are answered here from the objects, and a
-sixth, de-duplication, would be too had these records been merged with
-`scopus_combine()`. The rest, among them peer review of the strategy, grey
-literature and any other database searched, are listed as yours to supply,
-because the package has no way to know them.
+Six of the sixteen PRISMA-S items are answered here from the objects, and a
+seventh, de-duplication, would be too had these records been merged with
+`scopus_combine()`. The rest, among them peer review of the strategy and grey
+literature, are listed as yours to supply, because the package has no way to
+know them. Any other database the review searched is yours to name as well.
 
 ## When the ceiling bites
 

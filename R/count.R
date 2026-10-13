@@ -7,7 +7,12 @@
 #'
 #' @param query Character scalar. The base search expression, checked offline
 #'   before any request (see the *Query checks* section of [scopus_plan()]).
-#' @param years Optional integer vector of publication years to restrict to.
+#' @param years Optional integer vector of publication years. [scopus_count()],
+#'   [scopus_fetch()] and [scopus_intersections()] send one inclusive range from
+#'   the earliest year to the latest, as a [scopus_plan()] with
+#'   `partition = "none"` does, so `c(2015, 2020)` covers every year from 2015
+#'   to 2020. [scopus_trend()], [scopus_compare_topics()] and a plan with
+#'   `partition = "year"` take each listed year.
 #' @param field Optional 'Scopus' field tag to wrap the query in (see
 #'   [scopus_plan()]).
 #' @param view Either `"STANDARD"` or `"COMPLETE"`. `COMPLETE` adds an

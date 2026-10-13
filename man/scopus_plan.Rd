@@ -20,10 +20,13 @@ is_scopus_plan(x)
 \item{query}{Character scalar. The base search expression, without field tags
 or year filters (these are added through \code{field} and \code{years}).}
 
-\item{years}{Optional integer vector of publication years to restrict to, for
-example \code{2015:2020}. When \code{partition = "year"}, one plan cell is created for
-each distinct year. Otherwise the minimum and maximum define a single date
-range.}
+\item{years}{Optional integer vector of publication years, for example
+\code{2015:2020}. When \code{partition = "year"}, one plan cell is created for each
+distinct year, so \code{c(2015, 2020)} searches those two years alone, as
+\code{\link[=scopus_trend]{scopus_trend()}} and \code{\link[=scopus_compare_topics]{scopus_compare_topics()}} do. Otherwise, the plan sends
+one inclusive range from the earliest year to the latest, so \code{c(2015, 2020)}
+covers every year from 2015 to 2020, as in \code{\link[=scopus_count]{scopus_count()}},
+\code{\link[=scopus_fetch]{scopus_fetch()}} and \code{\link[=scopus_intersections]{scopus_intersections()}}.}
 
 \item{field}{Optional character scalar naming a 'Scopus' field tag to wrap the
 query in, for example \code{"TITLE-ABS-KEY"}, \code{"TITLE"}, \code{"AUTH"} or \code{"AFFIL"}.

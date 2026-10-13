@@ -19,9 +19,11 @@ retrieval provenance and, through its \code{plan} attribute, the plan; or a bare
 \code{print()}, the report object itself.}
 
 \item{plan}{Optional \code{\link[=scopus_plan]{scopus_plan()}} describing \code{x}. Supply it when a record
-set does not carry one, for example one retrieved with \code{\link[=scopus_fetch]{scopus_fetch()}} or
-read back from a \code{.csv}. An explicit plan takes precedence over the one \code{x}
-carries.}
+set does not carry one, for example one read back from a \code{.csv}, a merged
+set, or one saved by \code{\link[=scopus_fetch]{scopus_fetch()}} in scopusflow 0.4.0 or earlier,
+which attached none. An explicit plan takes precedence over the one \code{x}
+carries. A one-cell plan supplied for a set without per-cell counts takes
+the set's own row count and \code{total_results}.}
 
 \item{file}{Optional path at which to write the record as Markdown. A file is
 written only when this argument is supplied, and only to the exact path
@@ -40,7 +42,8 @@ A list of class \code{scopus_search_report}, returned invisibly when
 \code{database}, \code{platform}, \code{query} (the base query), \code{field}, \code{expression}
 (the field-wrapped query of each cell), \code{view}, \code{page_size}, \code{paging},
 \code{partition}, \code{n_cells}, \code{years}, \code{cells} (a tibble of \code{cell}, \code{limit},
-\code{n_records} and \code{reported_total}), \code{searched_at}, \code{version}, \code{n_records},
+\code{n_records} and \code{reported_total}), \code{searched_at} and \code{searched_until} (the
+earliest and latest retrieval times), \code{version}, \code{n_records},
 \code{n_with_doi}, \code{reported_total}, \code{records_combined}, \code{duplicates_removed},
 \code{deduplicated}, \code{snippet} and \code{prisma} (a tibble of \code{item}, \code{name},
 \code{source} and \code{note}). A field the objects do not record is \code{NA}.
@@ -57,11 +60,17 @@ PRISMA-S (Rethlefsen et al., 2021), together with the identification counts
 of the PRISMA 2020 flow diagram.
 }
 \details{
-Everything in the record comes from the objects handed to it. The date of the
-search is the \code{retrieved_at} attribute \code{\link[=scopus_fetch]{scopus_fetch()}} attaches, never the
-current time; the number of records the API reported as matching is what the
+Everything in the record comes from the objects handed to it. The dates of
+the search are the \code{retrieved_at} and \code{retrieved_until} attributes
+\code{\link[=scopus_fetch]{scopus_fetch()}} attaches, never the current time. A harvest resumed over
+several days, or a baseline merged with its update, is dated from its first
+retrieval to its last. PRISMA-S item 13 then gives the date of the last
+search, as the checklist asks. Stamps that fall on one UTC day give that
+single date. The years are those the cells' limits sent, and years with gaps
+between them are listed, since a span would claim years no cell searched.
+The number of records the API reported as matching is what the
 cells recorded (the \code{cell_totals} attribute \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} attaches,
-or \code{total_results} for a set retrieved without a plan), never an inference
+or, for a set from a single search, its \code{total_results}), never an inference
 from the number of rows, and it is given overall only when every cell
 reported one; and the duplicates removed are those \code{\link[=scopus_combine]{scopus_combine()}}
 recorded removing. Where
@@ -72,11 +81,13 @@ nothing in. This matters most for completeness: a harvest whose reported
 total is unknown is never described as exhaustive.
 
 The PRISMA-S map is decided the same way. Items the package holds evidence
-for (the database and platform, the full strategy, the limits, the date, the
+for (the database and platform, that Scopus was searched on its own, the
+full strategy and the limits where a plan records them, the date, the
 totals, and de-duplication where it was performed) are listed as supplied.
-The rest, among them peer review of the strategy, grey literature, other
-databases and citation searching, are listed as the author's to supply,
-because the package has no way to know them.
+Without a plan, the year limit is unrecorded, not absent, and the record says
+so. The rest, among them peer review of the strategy, grey literature and
+citation searching, are listed as the author's to supply, because the
+package has no way to know them.
 }
 \examples{
 # A search described but not yet run. The record says so throughout rather

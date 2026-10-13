@@ -40,7 +40,12 @@ most quota-efficient page the view allows (200 for \code{STANDARD}, 25 for
 \item{field}{Optional 'Scopus' field tag to wrap the query in (see
 \code{\link[=scopus_plan]{scopus_plan()}}).}
 
-\item{years}{Optional integer vector of publication years to restrict to.}
+\item{years}{Optional integer vector of publication years. \code{\link[=scopus_count]{scopus_count()}},
+\code{\link[=scopus_fetch]{scopus_fetch()}} and \code{\link[=scopus_intersections]{scopus_intersections()}} send one inclusive range from
+the earliest year to the latest, as a \code{\link[=scopus_plan]{scopus_plan()}} with
+\code{partition = "none"} does, so \code{c(2015, 2020)} covers every year from 2015
+to 2020. \code{\link[=scopus_trend]{scopus_trend()}}, \code{\link[=scopus_compare_topics]{scopus_compare_topics()}} and a plan with
+\code{partition = "year"} take each listed year.}
 
 \item{cursor}{Logical. When \code{TRUE}, retrieve the result set with cursor-based
 pagination, which has no 5000-record ceiling, so an entire large query can be
@@ -61,12 +66,18 @@ A \link{scopus_records} tibble. The reported total and the most recent
 parsed quota are attached as the \code{total_results} and \code{quota} attributes,
 the harvest is dated by \code{retrieved_at} (a \code{POSIXct}) and
 \code{scopusflow_version}, and \code{paging} records whether it was retrieved by
-offset or by cursor. The date and version matter because \code{citations} is a
+offset or by cursor. \code{retrieved_until} gives the same time as
+\code{retrieved_at} for a single search. A set combined from several keeps the
+earliest of their times as \code{retrieved_at} and the latest as
+\code{retrieved_until}. The date and version matter because \code{citations} is a
 snapshot value that keeps moving, so two saved sets are only comparable if
 each records when it was taken, and \code{\link[=scopus_search_report]{scopus_search_report()}} reads all of
 them back. \code{view} records the view, which decides what \code{authors} holds: the
 first author under \code{STANDARD} and the author list under \code{COMPLETE} (see
-\code{\link[=scopus_records]{scopus_records()}}). These attributes survive a \code{.rds} round trip through
+\code{\link[=scopus_records]{scopus_records()}}). \code{plan} is the one-cell plan the call ran,
+\code{scopus_plan(query, years, field, view, page_size, partition = "none")}, so
+the search record states the field tag and the year limit the request
+carried. These attributes survive a \code{.rds} round trip through
 \code{\link[=write_scopus_records]{write_scopus_records()}} but not a \code{.csv} one, which carries columns only.
 }
 \description{

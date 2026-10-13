@@ -93,7 +93,11 @@ test_that("a merge carries no attribute describing a single retrieval", {
   expect_null(attr(merged, "cell_totals"))
 
   # The provenance a merge does not invalidate stays, as it does for plan cells.
+  # Inputs that record one time each give it as both the earliest and the
+  # latest.
   expect_equal(attr(merged, "retrieved_at"),
+               as.POSIXct("2026-07-22 09:15:00", tz = "UTC"))
+  expect_equal(attr(merged, "retrieved_until"),
                as.POSIXct("2026-07-22 09:15:00", tz = "UTC"))
   expect_equal(attr(merged, "scopusflow_version"), "0.3.0")
 

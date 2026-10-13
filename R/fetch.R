@@ -26,12 +26,18 @@
 #'   parsed quota are attached as the `total_results` and `quota` attributes,
 #'   the harvest is dated by `retrieved_at` (a `POSIXct`) and
 #'   `scopusflow_version`, and `paging` records whether it was retrieved by
-#'   offset or by cursor. The date and version matter because `citations` is a
+#'   offset or by cursor. `retrieved_until` gives the same time as
+#'   `retrieved_at` for a single search. A set combined from several keeps the
+#'   earliest of their times as `retrieved_at` and the latest as
+#'   `retrieved_until`. The date and version matter because `citations` is a
 #'   snapshot value that keeps moving, so two saved sets are only comparable if
 #'   each records when it was taken, and [scopus_search_report()] reads all of
 #'   them back. `view` records the view, which decides what `authors` holds: the
 #'   first author under `STANDARD` and the author list under `COMPLETE` (see
-#'   [scopus_records()]). These attributes survive a `.rds` round trip through
+#'   [scopus_records()]). `plan` is the one-cell plan the call ran,
+#'   `scopus_plan(query, years, field, view, page_size, partition = "none")`, so
+#'   the search record states the field tag and the year limit the request
+#'   carried. These attributes survive a `.rds` round trip through
 #'   [write_scopus_records()] but not a `.csv` one, which carries columns only.
 #' @section API access:
 #' Requires a valid API key and internet access. The *API access* section of
@@ -70,11 +76,18 @@ scopus_fetch <- function(query,
   wrapped <- scopus_wrap_field(query, field)
   date <- if (is.null(years)) NULL else scopus_year_range(years)
 
-  scopus_fetch_core(
+  records <- scopus_fetch_core(
     wrapped = wrapped, date = date, view = view, page_size = page_size,
     max_results = max_results, cursor = isTRUE(cursor),
     api_key = api_key, inst_token = inst_token, verbose = verbose
   )
+  # The plan this call ran, one cell sending the same query and date. Without
+  # it, the search record could not state the field tag or the year limit,
+  # since the year travels as the request's date parameter and never reaches
+  # the records. The paging mode is not part of a plan, and `paging` records it.
+  attr(records, "plan") <- scopus_new_plan(query, years, field, view, page_size,
+                                           partition = "none")
+  records
 }
 
 # Internal pagination engine shared by scopus_fetch() and scopus_fetch_plan().
@@ -183,11 +196,15 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
 # them for the same reason. It decides whether `authors` holds the first author
 # or the author list, and an author tally of a STANDARD set has to say that it
 # counts first authorships. Attributes, never columns, so the documented schema
-# and the CSV round-trip are untouched.
+# and the CSV round-trip are untouched. A single retrieval has one time, given
+# as both the earliest and the latest, so that a set bound from several can
+# carry the span its parts were taken over (see scopus_bind_provenance()).
 scopus_attach_provenance <- function(records, total, quota, paging, view) {
+  stamp <- Sys.time()
   attr(records, "total_results") <- total
   attr(records, "quota") <- quota
-  attr(records, "retrieved_at") <- Sys.time()
+  attr(records, "retrieved_at") <- stamp
+  attr(records, "retrieved_until") <- stamp
   attr(records, "scopusflow_version") <-
     as.character(utils::packageVersion("scopusflow"))
   attr(records, "paging") <- paging

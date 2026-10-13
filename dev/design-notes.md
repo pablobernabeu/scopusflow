@@ -836,6 +836,23 @@ lists every version that contributed, since resuming an older cache means more
 than one did. The bundled `example_records` deliberately carries neither, so
 that the round-trip identity shown in the documentation stays deterministic.
 
+The earliest time alone cannot date a search for a methods section, though.
+PRISMA-S item 13 asks for the date when the last search occurred, and its
+explanation asks for the time frame over which the searches ran (Rethlefsen et
+al., 2021). A harvest resumed a week later, or a baseline merged with its update
+a year on, was dated by its first cell, so the record never named the last
+search. Retrievals therefore also carry `retrieved_until`. For a single search,
+it is the same time as `retrieved_at`. For a combined set, it is the latest of
+its parts' times, and a part written before the attribute existed counts by its
+one stamp. Both are claimed only when every part carries a time, as the
+earliest always was. `retrieved_at` keeps the earliest, so a set is still read
+as only as fresh as its oldest cell. The search record dates such a set from
+the first time to the last, and item 13 gives the last. Stamps that fall on one
+UTC day give one date, as a single stamp always has, so the record of a one-day
+harvest did not change. The Python twin's `scopus_combine()` carries both times
+by the same rule, so a merged set reads alike in both twins, as the shared
+golden file `tests/testthat/golden-search-record-merged.txt` pins.
+
 ## Writing up a search: the honesty contract
 
 `scopus_search_report()` assembles the search-strategy record a systematic
@@ -848,10 +865,10 @@ an absent `retrieved_at`; the reported total is read from what the API said,
 never inferred from the row count, and is claimed overall only when every cell
 reported one; duplicates are counted only where `scopus_combine()` recorded
 removing them; and a PRISMA-S item is listed as supplied only where the evidence
-exists, which leaves ten of the sixteen (peer review, other databases, grey
-literature, citation searching and the rest) explicitly the author's. A
-plausible figure nobody can check would be worse than an admitted gap, so every
-unverifiable field says it is unrecorded, in words.
+exists, which leaves nine of the sixteen (peer review, grey literature, citation
+searching and the rest) explicitly the author's. A plausible figure nobody can
+check would be worse than an admitted gap, so every unverifiable field says it
+is unrecorded, in words.
 
 Three additions were needed to make that possible, and each is useful in its own
 right. `scopus_fetch_plan()` now carries per-cell accounting (`cell_totals`) and
@@ -864,11 +881,28 @@ at the API's ceiling where a cursor-paged one does not, and the record has to
 say which was used.
 
 The rendering is held byte-identical against the Python twin's, pinned by
-`tests/testthat/golden-search-record.txt` and its copy in the Python repo. The
+`tests/testthat/golden-search-record.txt` and its copy in the Python repo, and
+for a merged set by `golden-search-record-merged.txt` beside it. The
 reproduction snippet is the one part that cannot be shared, being code in the
 host language; both suites evaluate the snippet they emit over a grid of plans
 and assert it rebuilds an identical plan, which is the executable form of the
 report's central claim.
+
+The same honesty rule settles four further details. Without a plan, the year
+limit is unrecorded, not absent, since this package sends the year as the
+request's `date` parameter, which the records never see. The cell then reads
+"year limit unrecorded", and item 8 stays with the author, since the expression
+is recorded but the field tag and limits it was sent with are not.
+`scopus_fetch()` therefore attaches the one-cell plan it ran, and a one-cell
+plan takes the set's own counts, since it stands for the one search they come
+from. Years are read back from the cells' limits, and year cells with gaps
+between them are listed ("2015, 2020 and 2025"), because a span over the gaps
+would claim years no cell searched. Within such a list, a run of three or more
+years is still written as a span, so that a decade is not spelled out year by
+year. Item 2 asks for the databases searched together on one platform, as Ovid
+searches several at once. Scopus is searched on its own, so the record supplies
+the item, as it supplies the platform for item 1. Any other database a review
+searched is the author's to name under item 1.
 
 ## Tested version floors
 

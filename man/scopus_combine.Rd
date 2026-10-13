@@ -19,8 +19,13 @@ failing that a DOI (compared case-insensitively), are kept once.}
 }
 \value{
 A \link{scopus_records} tibble. Per-retrieval attributes such as
-\code{total_results} are not carried over, since they describe a single fetch.
-The merge itself is recorded in the \code{combined} attribute, a list of \code{n_in}
+\code{total_results} and \code{plan} are not carried over, since they describe a
+single fetch. The provenance a merge leaves true is kept, as
+\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} keeps it for plan cells. \code{retrieved_at} is the
+earliest of the inputs' times and \code{retrieved_until} the latest, so a
+baseline merged with its update is dated from one to the other. Every
+contributing \code{scopusflow_version} is listed. The merge itself is recorded
+in the \code{combined} attribute, a list of \code{n_in}
 (records supplied), \code{n_out} (records kept), \code{n_removed} and \code{deduplicated},
 which is what lets \code{\link[=scopus_search_report]{scopus_search_report()}} state how many duplicates were
 removed, so the PRISMA-S item is answered.

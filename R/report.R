@@ -45,9 +45,11 @@ scopus_report_months <- function() {
 #'   [scopus_plan()] for a search that has not been run yet. For `format()` and
 #'   `print()`, the report object itself.
 #' @param plan Optional [scopus_plan()] describing `x`. Supply it when a record
-#'   set does not carry one, for example one retrieved with [scopus_fetch()] or
-#'   read back from a `.csv`. An explicit plan takes precedence over the one `x`
-#'   carries.
+#'   set does not carry one, for example one read back from a `.csv`, a merged
+#'   set, or one saved by [scopus_fetch()] in scopusflow 0.4.0 or earlier,
+#'   which attached none. An explicit plan takes precedence over the one `x`
+#'   carries. A one-cell plan supplied for a set without per-cell counts takes
+#'   the set's own row count and `total_results`.
 #' @param file Optional path at which to write the record as Markdown. A file is
 #'   written only when this argument is supplied, and only to the exact path
 #'   given, so the package leaves the working directory untouched unless asked.
@@ -57,16 +59,23 @@ scopus_report_months <- function() {
 #'   `database`, `platform`, `query` (the base query), `field`, `expression`
 #'   (the field-wrapped query of each cell), `view`, `page_size`, `paging`,
 #'   `partition`, `n_cells`, `years`, `cells` (a tibble of `cell`, `limit`,
-#'   `n_records` and `reported_total`), `searched_at`, `version`, `n_records`,
+#'   `n_records` and `reported_total`), `searched_at` and `searched_until` (the
+#'   earliest and latest retrieval times), `version`, `n_records`,
 #'   `n_with_doi`, `reported_total`, `records_combined`, `duplicates_removed`,
 #'   `deduplicated`, `snippet` and `prisma` (a tibble of `item`, `name`,
 #'   `source` and `note`). A field the objects do not record is `NA`.
 #' @details
-#' Everything in the record comes from the objects handed to it. The date of the
-#' search is the `retrieved_at` attribute [scopus_fetch()] attaches, never the
-#' current time; the number of records the API reported as matching is what the
+#' Everything in the record comes from the objects handed to it. The dates of
+#' the search are the `retrieved_at` and `retrieved_until` attributes
+#' [scopus_fetch()] attaches, never the current time. A harvest resumed over
+#' several days, or a baseline merged with its update, is dated from its first
+#' retrieval to its last. PRISMA-S item 13 then gives the date of the last
+#' search, as the checklist asks. Stamps that fall on one UTC day give that
+#' single date. The years are those the cells' limits sent, and years with gaps
+#' between them are listed, since a span would claim years no cell searched.
+#' The number of records the API reported as matching is what the
 #' cells recorded (the `cell_totals` attribute [scopus_fetch_plan()] attaches,
-#' or `total_results` for a set retrieved without a plan), never an inference
+#' or, for a set from a single search, its `total_results`), never an inference
 #' from the number of rows, and it is given overall only when every cell
 #' reported one; and the duplicates removed are those [scopus_combine()]
 #' recorded removing. Where
@@ -77,11 +86,13 @@ scopus_report_months <- function() {
 #' total is unknown is never described as exhaustive.
 #'
 #' The PRISMA-S map is decided the same way. Items the package holds evidence
-#' for (the database and platform, the full strategy, the limits, the date, the
+#' for (the database and platform, that Scopus was searched on its own, the
+#' full strategy and the limits where a plan records them, the date, the
 #' totals, and de-duplication where it was performed) are listed as supplied.
-#' The rest, among them peer review of the strategy, grey literature, other
-#' databases and citation searching, are listed as the author's to supply,
-#' because the package has no way to know them.
+#' Without a plan, the year limit is unrecorded, not absent, and the record says
+#' so. The rest, among them peer review of the strategy, grey literature and
+#' citation searching, are listed as the author's to supply, because the
+#' package has no way to know them.
 #' @references
 #' Rethlefsen, M. L., Kirtley, S., Waffenschmidt, S., Ayala, A. P., Moher, D.,
 #' Page, M. J., & Koffel, J. B. (2021). PRISMA-S: an extension to the PRISMA
@@ -180,6 +191,12 @@ scopus_report_build <- function(records, plan) {
 
   combined <- if (is.null(records)) NULL else attr(records, "combined")
   stamp <- if (is.null(records)) NULL else attr(records, "retrieved_at")
+  # The last search, read only beside a first one. A set written before
+  # `retrieved_until` existed has the one stamp, and a latest time recorded
+  # before the earliest cannot widen the span backwards.
+  until <- if (is.null(stamp)) NULL else {
+    max(c(as.POSIXct(stamp), as.POSIXct(attr(records, "retrieved_until") %||% stamp)))
+  }
   version <- if (is.null(records)) NULL else attr(records, "scopusflow_version")
   paging <- if (is.null(records)) NA_character_ else (attr(records, "paging") %||% NA_character_)
 
@@ -197,6 +214,7 @@ scopus_report_build <- function(records, plan) {
     years = scopus_report_years(cells, plan),
     cells = cells,
     searched_at = if (is.null(stamp)) NA else min(stamp),
+    searched_until = if (is.null(until)) NA else until,
     version = if (is.null(version)) NA_character_ else paste(version, collapse = ", "),
     n_records = if (is.null(records)) NA_integer_ else nrow(records),
     n_with_doi = if (is.null(records)) NA_integer_ else sum(!is.na(records$doi)),
@@ -214,8 +232,11 @@ scopus_report_build <- function(records, plan) {
 # The per-cell table. A plan supplies the cells and their year limits; the
 # counts come from the `cell_totals` attribute scopus_fetch_plan() records, and
 # stay NA when the set never carried one (a CSV round trip, the bundled corpus,
-# a set assembled by hand). Without a plan the whole retrieval is treated as one
-# cell, so the rest of the code has a single shape to render.
+# a set assembled by hand). A set from a single search, as scopus_fetch()
+# returns, carries no cell counts, only its own total, so a plan with one cell,
+# which stands for that search, takes the set's figures. Without a plan the
+# whole retrieval is treated as one cell, so the rest of the code has a single
+# shape to render.
 scopus_report_cells <- function(records, plan) {
   counts <- if (is.null(records)) NULL else attr(records, "cell_totals")
   if (!is.null(plan)) {
@@ -229,20 +250,28 @@ scopus_report_cells <- function(records, plan) {
         identical(as.integer(counts$cell), out$cell)) {
       out$n_records <- as.integer(counts$n_records)
       out$reported_total <- as.numeric(counts$reported_total)
+    } else if (nrow(out) == 1L && !is.null(records)) {
+      out$n_records <- nrow(records)
+      out$reported_total <- scopus_report_total_results(records)
     }
     return(out)
   }
   if (!is.null(records)) {
-    total <- attr(records, "total_results")
     return(tibble::tibble(
       cell = 1L,
       limit = NA_character_,
       n_records = nrow(records),
-      reported_total = if (is.null(total)) NA_real_ else as.numeric(total)
+      reported_total = scopus_report_total_results(records)
     ))
   }
   tibble::tibble(cell = integer(), limit = character(),
                  n_records = integer(), reported_total = numeric())
+}
+
+# The API's own count of matching records, as the set carries it.
+scopus_report_total_results <- function(records) {
+  total <- attr(records, "total_results")
+  if (is.null(total)) NA_real_ else as.numeric(total)
 }
 
 # The field-wrapped query of each cell. The plan holds it; failing that the
@@ -254,20 +283,40 @@ scopus_report_expression <- function(records, plan) {
   if (length(q) == 0L) NA_character_ else as.character(q)
 }
 
-# The year span actually sent, read back from the cells' date limits rather
-# than from any year vector, because the limit is what reached the API.
+# The years actually searched, read back from the cells' date limits rather
+# than from any year vector, because the limit is what reached the API. A range
+# limit such as "2015-2025" covers every year in it, since the API takes the
+# range inclusively, and a single-year limit covers that year.
 scopus_report_years <- function(cells, plan) {
   limits <- cells$limit[!is.na(cells$limit)]
-  if (length(limits) == 0L) {
+  covered <- unlist(lapply(limits, function(limit) {
+    found <- as.integer(regmatches(limit, gregexpr("[0-9]{4}", limit))[[1]])
+    if (length(found) == 0L) integer() else seq(min(found), max(found))
+  }))
+  if (length(covered) == 0L) {
     return(NA_character_)
   }
-  years <- as.integer(unlist(regmatches(limits, gregexpr("[0-9]{4}", limits))))
-  if (length(years) == 0L) {
-    return(NA_character_)
+  scopus_report_year_list(sort(unique(covered)))
+}
+
+# Sorted years as a methods section states them. One unbroken run reads as a
+# span, "2015 to 2024". Years with gaps between them are listed, "2015, 2020
+# and 2025", because a span over the gaps would claim years no cell searched.
+# Within such a list, a run of three or more years is still written as a span,
+# so that a decade is not spelled out year by year. A run of two is listed,
+# since a span saves no words there. The Python twin renders the same years
+# identically.
+scopus_report_year_list <- function(years) {
+  runs <- split(years, cumsum(c(1L, diff(years) != 1L)))
+  span <- function(run) sprintf("%d to %d", run[1L], run[length(run)])
+  if (length(runs) == 1L) {
+    run <- runs[[1L]]
+    return(if (length(run) == 1L) as.character(run) else span(run))
   }
-  if (min(years) == max(years)) as.character(min(years)) else {
-    sprintf("%d to %d", min(years), max(years))
-  }
+  parts <- unlist(lapply(runs, function(run) {
+    if (length(run) >= 3L) span(run) else as.character(run)
+  }), use.names = FALSE)
+  paste(paste(parts[-length(parts)], collapse = ", "), "and", parts[length(parts)])
 }
 
 scopus_report_combined <- function(combined, field) {
@@ -333,18 +382,32 @@ scopus_report_prisma <- function(x) {
   notes[1] <- sprintf("%s, searched on the %s.", x$database, x$platform)
   supplied <- c(supplied, 1L)
 
-  notes[2] <- "Whether any database besides Scopus was searched, and how the strategy was translated for it."
+  # Item 2 asks which databases were searched together on one platform, as
+  # Ovid searches several at once. The API searches Scopus alone, which the
+  # record can state, as it states the platform for item 1. Any other database
+  # a review searched is named under item 1, by the author. A plan not yet run
+  # is described in the present, as the paragraph describes it.
+  notes[2] <- sprintf(
+    "Scopus %s searched on its own, not as one of several databases searched together on one platform.",
+    if (scopus_report_run(x)) "was" else "is"
+  )
+  supplied <- c(supplied, 2L)
   notes[3] <- "Any trial or study registry searched."
   notes[4] <- "Any web site, table of contents or other source searched or browsed by hand."
   notes[5] <- "Any backward or forward citation searching."
   notes[6] <- "Any authors or organisations contacted for studies."
   notes[7] <- "Any further method used to identify records."
 
-  if (!anyNA(x$expression)) {
+  # Without a plan, the expression is the one the records carry. The field tag
+  # and year limit it was sent with are recorded nowhere, the year having
+  # travelled as the request's date parameter, so the full strategy is not here.
+  if (anyNA(x$expression)) {
+    notes[8] <- "The exact strategy, which this set does not record."
+  } else if (is.na(x$partition)) {
+    notes[8] <- "The search expression is recorded, but no plan records the limits it was sent with."
+  } else {
     notes[8] <- "The search expression, field tag and year limit of every cell, as the plan sends them."
     supplied <- c(supplied, 8L)
-  } else {
-    notes[8] <- "The exact strategy, which this set does not record."
   }
 
   if (!is.na(x$partition)) {
@@ -365,7 +428,16 @@ scopus_report_prisma <- function(x) {
   notes[11] <- "Any earlier review or strategy this search was adapted from."
   notes[12] <- "Whether the search was re-run or updated, and when."
 
-  if (!is.na(x$searched_at)) {
+  # PRISMA-S item 13 asks for the date of the last search. Records, not
+  # cells, in the span, since a merged set mixes searches.
+  if (scopus_report_spans_days(x)) {
+    notes[13] <- sprintf(
+      "Last searched on %s; the records were retrieved between %s and %s.",
+      scopus_report_stamp(x$searched_until), scopus_report_stamp(x$searched_at),
+      scopus_report_stamp(x$searched_until)
+    )
+    supplied <- c(supplied, 13L)
+  } else if (!is.na(x$searched_at)) {
     notes[13] <- sprintf("%s.", scopus_report_stamp(x$searched_at))
     supplied <- c(supplied, 13L)
   } else if (is.na(x$n_records)) {
@@ -433,6 +505,18 @@ scopus_report_date <- function(t) {
   sprintf("%d %s %d", lt$mday, scopus_report_months()[lt$mon + 1L], lt$year + 1900L)
 }
 
+# Whether the earliest and latest retrieval times fall on different UTC days.
+# Only then is the search dated as a span. Stamps a few hours apart on one day
+# give that day, as a single stamp always has, so the record of a one-day
+# harvest, compared byte for byte with the Python twin's, is unchanged.
+scopus_report_spans_days <- function(x) {
+  if (is.na(x$searched_at) || is.na(x$searched_until)) {
+    return(FALSE)
+  }
+  day <- function(t) format(as.POSIXct(t), tz = "UTC", format = "%Y-%m-%d")
+  !identical(day(x$searched_at), day(x$searched_until))
+}
+
 scopus_report_run <- function(x) !is.na(x$n_records)
 
 # The label/value pairs the readable record and the Markdown share, so the two
@@ -470,6 +554,9 @@ scopus_report_pairs <- function(x) {
     not_run
   } else if (is.na(x$searched_at)) {
     "unrecorded, this set does not carry the time it was retrieved"
+  } else if (scopus_report_spans_days(x)) {
+    sprintf("%s to %s", scopus_report_stamp(x$searched_at),
+            scopus_report_stamp(x$searched_until))
   } else {
     scopus_report_stamp(x$searched_at)
   }
@@ -533,11 +620,24 @@ scopus_report_pairs <- function(x) {
   )
 }
 
+# A cell's year limit as the record shows it. A plan that sets no limit has
+# none, but a set without a plan only fails to record one: its limit may have
+# travelled as the request's date parameter, which the records never see.
+scopus_report_limit <- function(x, limit) {
+  if (!is.na(limit)) {
+    limit
+  } else if (is.na(x$partition)) {
+    "year limit unrecorded"
+  } else {
+    "no year limit"
+  }
+}
+
 # One line per cell for the readable record.
 scopus_report_cell_lines <- function(x) {
   cells <- x$cells
   vapply(seq_len(nrow(cells)), function(i) {
-    limit <- if (is.na(cells$limit[i])) "no year limit" else cells$limit[i]
+    limit <- scopus_report_limit(x, cells$limit[i])
     n <- cells$n_records[i]
     reported <- cells$reported_total[i]
     tail <- if (is.na(n)) {
@@ -559,7 +659,7 @@ scopus_report_cell_lines <- function(x) {
 scopus_report_cell_table <- function(x) {
   cells <- x$cells
   rows <- vapply(seq_len(nrow(cells)), function(i) {
-    limit <- if (is.na(cells$limit[i])) "no year limit" else cells$limit[i]
+    limit <- scopus_report_limit(x, cells$limit[i])
     n <- cells$n_records[i]
     reported <- cells$reported_total[i]
     complete <- if (is.na(n) || is.na(reported)) {
@@ -710,6 +810,9 @@ scopus_report_paragraph <- function(x) {
     "The search described here has not been run."
   } else if (is.na(x$searched_at)) {
     "The literature was searched in Scopus, on the Elsevier Scopus Search API, on a date this record does not carry."
+  } else if (scopus_report_spans_days(x)) {
+    sprintf("The literature was searched in Scopus, on the Elsevier Scopus Search API, between %s and %s.",
+            scopus_report_date(x$searched_at), scopus_report_date(x$searched_until))
   } else {
     sprintf("The literature was searched in Scopus, on the Elsevier Scopus Search API, on %s.",
             scopus_report_date(x$searched_at))

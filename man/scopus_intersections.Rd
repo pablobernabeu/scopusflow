@@ -35,7 +35,12 @@ rows stay readable while the concept rows keep their full names.}
 \item{sep}{Separator joining the member labels in an intersection label.
 Defaults to a multiplication sign between spaces.}
 
-\item{years}{Optional integer vector of publication years to restrict to.}
+\item{years}{Optional integer vector of publication years. \code{\link[=scopus_count]{scopus_count()}},
+\code{\link[=scopus_fetch]{scopus_fetch()}} and \code{\link[=scopus_intersections]{scopus_intersections()}} send one inclusive range from
+the earliest year to the latest, as a \code{\link[=scopus_plan]{scopus_plan()}} with
+\code{partition = "none"} does, so \code{c(2015, 2020)} covers every year from 2015
+to 2020. \code{\link[=scopus_trend]{scopus_trend()}}, \code{\link[=scopus_compare_topics]{scopus_compare_topics()}} and a plan with
+\code{partition = "year"} take each listed year.}
 
 \item{field}{Optional 'Scopus' field tag wrapped around each concept value
 that is not already a complete field-tagged expression (see

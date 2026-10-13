@@ -8,10 +8,13 @@
 #'
 #' @param query Character scalar. The base search expression, without field tags
 #'   or year filters (these are added through `field` and `years`).
-#' @param years Optional integer vector of publication years to restrict to, for
-#'   example `2015:2020`. When `partition = "year"`, one plan cell is created for
-#'   each distinct year. Otherwise the minimum and maximum define a single date
-#'   range.
+#' @param years Optional integer vector of publication years, for example
+#'   `2015:2020`. When `partition = "year"`, one plan cell is created for each
+#'   distinct year, so `c(2015, 2020)` searches those two years alone, as
+#'   [scopus_trend()] and [scopus_compare_topics()] do. Otherwise, the plan sends
+#'   one inclusive range from the earliest year to the latest, so `c(2015, 2020)`
+#'   covers every year from 2015 to 2020, as in [scopus_count()],
+#'   [scopus_fetch()] and [scopus_intersections()].
 #' @param field Optional character scalar naming a 'Scopus' field tag to wrap the
 #'   query in, for example `"TITLE-ABS-KEY"`, `"TITLE"`, `"AUTH"` or `"AFFIL"`.
 #'   When `NULL`, the query is used verbatim. See [scopus_field_tags()] for the
@@ -69,15 +72,22 @@ scopus_plan <- function(query,
   scopus_check_query(query, field)
   years <- scopus_check_years(years)
   page_size <- scopus_resolve_page_size(page_size, view)
+  if (partition == "year" && is.null(years)) {
+    scopus_abort_bad_input(
+      "`partition = \"year\"` requires `years` to be supplied."
+    )
+  }
+  scopus_new_plan(query, years, field, view, page_size, partition)
+}
 
+# Build a plan from arguments already checked as scopus_plan() checks them.
+# scopus_fetch() attaches the plan it ran through this, since its own checks
+# have run by then, and a second scopus_check_query() would repeat any warning
+# the query raised.
+scopus_new_plan <- function(query, years, field, view, page_size, partition) {
   wrapped <- scopus_wrap_field(query, field)
 
   if (partition == "year") {
-    if (is.null(years)) {
-      scopus_abort_bad_input(
-        "`partition = \"year\"` requires `years` to be supplied."
-      )
-    }
     yrs <- sort(unique(years))
     cells <- tibble::tibble(
       cell = seq_along(yrs),

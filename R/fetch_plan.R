@@ -50,15 +50,18 @@
 #'   said it should warns, because a truncated or refused download otherwise
 #'   arrives as a merely small result set; a cell stopped by `max_results` is
 #'   short by request and does not warn. [scopus_search_report()] reads all of
-#'   this back. The `retrieved_at` and
+#'   this back. The `retrieved_at`, `retrieved_until` and
 #'   `scopusflow_version` attributes described in [scopus_fetch()] are carried
-#'   across from the cells: the time is the earliest of them, since a combined
-#'   set is only as fresh as its oldest cell, and every version that
-#'   contributed is listed, since resuming an older cache means more than one
-#'   did. Both are omitted when any cell cannot supply them, as a checkpoint
-#'   written before they existed cannot. Dating the whole from the part of it
-#'   that can be dated would misreport the set. `paging` and `view` are kept
-#'   where every cell records the same one.
+#'   across from the cells. `retrieved_at` is the earliest of their times, since
+#'   a combined set is only as fresh as its oldest cell. `retrieved_until` is
+#'   the latest, the last search, which the record of a harvest resumed over
+#'   several days has to give. Every version that contributed is listed, since
+#'   resuming an older cache means more than one did. Each is omitted when any
+#'   cell cannot supply it, as a checkpoint written before these attributes
+#'   existed cannot. Dating the whole from the part of it that can be dated
+#'   would misreport the set. A cell written before `retrieved_until` existed
+#'   counts by its `retrieved_at`. `paging` and `view` are kept where every
+#'   cell records the same one.
 #' @section API access:
 #' Any cell not served from cache requires a valid API key and internet access.
 #' The *API access* section of [scopus_count()] gives the details.
@@ -365,8 +368,8 @@ scopus_serve_checkpoint <- function(cached, max_results) {
     return(cached)
   }
   out <- utils::head(cached, max_results)
-  for (a in c("total_results", "quota", "retrieved_at", "scopusflow_version",
-              "paging", "view")) {
+  for (a in c("total_results", "quota", "retrieved_at", "retrieved_until",
+              "scopusflow_version", "paging", "view")) {
     attr(out, a) <- attr(cached, a)
   }
   out
@@ -433,19 +436,26 @@ scopus_bind_records <- function(records_list) {
   scopus_bind_provenance(bound, records_list)
 }
 
-# Carry the cells' retrieval provenance onto the combined set. The time is the
-# earliest of them, because a combined set is only as fresh as its oldest cell
-# and a resumed harvest can span days. Every contributing version is kept,
-# since resuming a cache written by an earlier scopusflow genuinely produces a
-# set that more than one version built. Both are claimed only when every cell
-# carries them: a checkpoint written before these attributes existed has no
-# time of its own, and taking the earliest of the rest would date the combined
-# set later than one of the cells inside it, which is the one thing a
+# Carry the cells' retrieval provenance onto the combined set. `retrieved_at`
+# is the earliest of the cells' times, because a combined set is only as fresh
+# as its oldest cell and a resumed harvest can span days. `retrieved_until` is
+# the latest, since PRISMA-S item 13 asks for the date of the last search, and
+# a cell written before that attribute existed counts by its one stamp. Every
+# contributing version is kept, since resuming a cache written by an earlier
+# scopusflow produces a set that more than one version built. The times are
+# claimed only when every cell carries one, and the versions only when every
+# cell carries one. A checkpoint written before these attributes existed has
+# no time of its own, and taking the earliest of the rest would date the
+# combined set later than one of the cells inside it, which is the one thing a
 # provenance field must never do.
 scopus_bind_provenance <- function(bound, records_list) {
   stamps <- lapply(records_list, attr, "retrieved_at")
   if (!any(vapply(stamps, is.null, logical(1)))) {
     attr(bound, "retrieved_at") <- min(do.call(c, stamps))
+    latest <- lapply(records_list, function(r) {
+      attr(r, "retrieved_until") %||% attr(r, "retrieved_at")
+    })
+    attr(bound, "retrieved_until") <- max(do.call(c, latest))
   }
   versions <- lapply(records_list, attr, "scopusflow_version")
   if (!any(vapply(versions, is.null, logical(1)))) {

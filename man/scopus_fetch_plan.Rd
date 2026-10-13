@@ -69,15 +69,18 @@ looking like a real figure. A cell that comes back shorter than the API
 said it should warns, because a truncated or refused download otherwise
 arrives as a merely small result set; a cell stopped by \code{max_results} is
 short by request and does not warn. \code{\link[=scopus_search_report]{scopus_search_report()}} reads all of
-this back. The \code{retrieved_at} and
+this back. The \code{retrieved_at}, \code{retrieved_until} and
 \code{scopusflow_version} attributes described in \code{\link[=scopus_fetch]{scopus_fetch()}} are carried
-across from the cells: the time is the earliest of them, since a combined
-set is only as fresh as its oldest cell, and every version that
-contributed is listed, since resuming an older cache means more than one
-did. Both are omitted when any cell cannot supply them, as a checkpoint
-written before they existed cannot. Dating the whole from the part of it
-that can be dated would misreport the set. \code{paging} and \code{view} are kept
-where every cell records the same one.
+across from the cells. \code{retrieved_at} is the earliest of their times, since
+a combined set is only as fresh as its oldest cell. \code{retrieved_until} is
+the latest, the last search, which the record of a harvest resumed over
+several days has to give. Every version that contributed is listed, since
+resuming an older cache means more than one did. Each is omitted when any
+cell cannot supply it, as a checkpoint written before these attributes
+existed cannot. Dating the whole from the part of it that can be dated
+would misreport the set. A cell written before \code{retrieved_until} existed
+counts by its \code{retrieved_at}. \code{paging} and \code{view} are kept where every
+cell records the same one.
 }
 \description{
 Runs every cell of a \code{\link[=scopus_plan]{scopus_plan()}} in turn, optionally caching each cell's

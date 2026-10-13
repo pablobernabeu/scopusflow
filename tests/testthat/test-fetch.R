@@ -243,3 +243,54 @@ test_that("cursor paging dates its retrieval too", {
   expect_s3_class(attr(recs, "retrieved_at"), "POSIXct")
   expect_false(is.null(attr(recs, "scopusflow_version")))
 })
+
+test_that("a retrieval records the latest time as well as the earliest", {
+  # One search has one time, so the two agree. A combined set takes the
+  # earliest of one and the latest of the other (see test-cache.R).
+  local_scopus_test_env()
+  httr2::local_mocked_responses(mock_corpus(total = 2L))
+  recs <- scopus_fetch("anything")
+  expect_s3_class(attr(recs, "retrieved_until"), "POSIXct")
+  expect_identical(attr(recs, "retrieved_until"), attr(recs, "retrieved_at"))
+})
+
+test_that("scopus_fetch() attaches the one-cell plan it ran", {
+  # Without it, the search record called the year limit unrecorded and the
+  # field tag unknown, although the call had sent both.
+  local_scopus_test_env()
+  httr2::local_mocked_responses(mock_corpus(total = 3L))
+  recs <- scopus_fetch("graphene", field = "title-abs-key", years = c(2015L, 2020L))
+  expect_identical(
+    attr(recs, "plan"),
+    scopus_plan("graphene", years = c(2015L, 2020L), field = "TITLE-ABS-KEY",
+                partition = "none")
+  )
+  report <- scopus_search_report(recs)
+  expect_equal(report$field, "TITLE-ABS-KEY")
+  expect_equal(report$years, "2015 to 2020")
+  expect_equal(report$prisma$source[8], "record")
+  # The set's own counts survive the plan, which has one cell to give them to.
+  expect_equal(report$reported_total, 3)
+  expect_true(grepl("  1 (2015-2020): 3 retrieved, 3 reported, complete",
+                    format(report, style = "report"), fixed = TRUE))
+
+  expect_identical(attr(scopus_fetch("anything"), "plan"), scopus_plan("anything"))
+  cursor <- local({
+    httr2::local_mocked_responses(mock_cursor_corpus(total = 3L))
+    scopus_fetch("anything", view = "COMPLETE", page_size = 10L, cursor = TRUE)
+  })
+  expect_identical(attr(cursor, "plan"),
+                   scopus_plan("anything", view = "COMPLETE", page_size = 10L))
+
+  # The plan is built from the arguments already checked, so a query warning
+  # is raised once, not again for the plan.
+  n <- 0L
+  withCallingHandlers(
+    scopus_fetch("INDEXTERMS(graphene)"),
+    scopus_warning_query_syntax = function(w) {
+      n <<- n + 1L
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_equal(n, 1L)
+})

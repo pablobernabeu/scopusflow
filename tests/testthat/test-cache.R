@@ -138,6 +138,14 @@ test_that("a checkpoint holding more than the request is served trimmed to the c
   # The checkpoint on disk keeps all five rows for a later, wider request.
   expect_equal(nrow(scopus_fetch_plan(plan, cache_dir = cache, resume = TRUE)), 5L)
   expect_equal(calls, after_first)
+
+  # The trimmed copy restates each provenance attribute, the latest retrieval
+  # time among them, since subsetting cannot be trusted to keep them.
+  cached <- scopus_fetch("x")
+  attr(cached, "retrieved_until") <- attr(cached, "retrieved_at") + 60
+  served <- scopusflow:::scopus_serve_checkpoint(cached, 2)
+  expect_equal(nrow(served), 2L)
+  expect_identical(attr(served, "retrieved_until"), attr(cached, "retrieved_until"))
 })
 
 test_that("a zero-row checkpoint is not served to a different query", {
@@ -418,6 +426,38 @@ test_that("a combined harvest is dated by its oldest cell", {
                as.character(utils::packageVersion("scopusflow")))
 })
 
+test_that("a combined harvest also records when its latest cell was retrieved", {
+  # PRISMA-S item 13 asks for the date of the last search, which the earliest
+  # stamp alone cannot give for a harvest resumed over several days.
+  local_scopus_test_env()
+  httr2::local_mocked_responses(mock_corpus(total = 1L))
+  utc <- function(x) as.POSIXct(x, tz = "UTC")
+  cells <- lapply(1:3, function(i) scopus_fetch("x"))
+  attr(cells[[1]], "retrieved_at") <- utc("2024-01-02 03:04:05")
+  attr(cells[[1]], "retrieved_until") <- utc("2024-01-02 03:04:05")
+  # A cell written before retrieved_until existed counts by its one stamp.
+  attr(cells[[2]], "retrieved_at") <- utc("2024-06-07 08:09:10")
+  attr(cells[[2]], "retrieved_until") <- NULL
+  attr(cells[[3]], "retrieved_at") <- utc("2024-03-01 00:00:00")
+  attr(cells[[3]], "retrieved_until") <- utc("2024-03-02 00:00:00")
+
+  bound <- scopusflow:::scopus_bind_records(cells)
+  expect_equal(attr(bound, "retrieved_at"), utc("2024-01-02 03:04:05"))
+  expect_equal(attr(bound, "retrieved_until"), utc("2024-06-07 08:09:10"))
+
+  # Both go when any cell cannot be dated, as the earliest always did.
+  attr(cells[[1]], "retrieved_at") <- NULL
+  attr(cells[[1]], "retrieved_until") <- NULL
+  partial <- scopusflow:::scopus_bind_records(cells)
+  expect_null(attr(partial, "retrieved_at"))
+  expect_null(attr(partial, "retrieved_until"))
+
+  # A merge takes the same rule, so a baseline and its update keep both dates.
+  merged <- scopus_combine(cells[[2]], cells[[3]])
+  expect_equal(attr(merged, "retrieved_at"), utc("2024-03-01 00:00:00"))
+  expect_equal(attr(merged, "retrieved_until"), utc("2024-06-07 08:09:10"))
+})
+
 test_that("the managed cache directory is under R_user_dir and clearable", {
   # Redirect the managed cache into a temporary location for the test.
   tmp <- withr::local_tempdir()
@@ -467,8 +507,43 @@ test_that("a resumed harvest keeps each cell's total, time and version", {
   expect_equal(attr(resumed, "cell_totals")$reported_total, c(2, 2))
   expect_equal(attr(resumed, "total_results"), 4)
   expect_equal(attr(resumed, "retrieved_at"), attr(first, "retrieved_at"))
+  expect_s3_class(attr(resumed, "retrieved_until"), "POSIXct")
+  expect_equal(attr(resumed, "retrieved_until"), attr(first, "retrieved_until"))
   expect_identical(attr(resumed, "scopusflow_version"),
                    attr(first, "scopusflow_version"))
+})
+
+test_that("a harvest resumed from cells fetched on different days spans them", {
+  # Each checkpoint keeps the time its cell was retrieved, so a harvest whose
+  # cells were fetched a week apart is dated from the first to the last. The
+  # Python twin dates one from its manifests in the same way. A checkpoint
+  # written before retrieved_until existed counts by its one stamp.
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  httr2::local_mocked_responses(mock_corpus(total = 2L))
+  plan <- scopus_plan("x", years = 2019:2020, partition = "year")
+  scopus_fetch_plan(plan, cache_dir = cache, resume = TRUE)
+
+  restamp <- function(i, at, until = NULL) {
+    path <- file.path(cache, scopusflow:::scopus_cell_cache_name(plan[i, ]))
+    cell <- readRDS(path)
+    attr(cell, "retrieved_at") <- as.POSIXct(at, tz = "UTC")
+    attr(cell, "retrieved_until") <- if (!is.null(until)) as.POSIXct(until, tz = "UTC")
+    saveRDS(cell, path)
+  }
+  restamp(1L, "2026-07-20 09:00:00", "2026-07-20 09:00:00")
+  restamp(2L, "2026-07-27 16:30:00")
+
+  resumed <- scopus_fetch_plan(plan, cache_dir = cache, resume = TRUE)
+  expect_equal(attr(resumed, "retrieved_at"),
+               as.POSIXct("2026-07-20 09:00:00", tz = "UTC"))
+  expect_equal(attr(resumed, "retrieved_until"),
+               as.POSIXct("2026-07-27 16:30:00", tz = "UTC"))
+  record <- format(scopus_search_report(resumed), style = "report")
+  expect_true(grepl("Date searched: 2026-07-20 09:00:00 UTC to 2026-07-27 16:30:00 UTC\n",
+                    record, fixed = TRUE))
+  expect_true(grepl("13 Dates of searches. Last searched on 2026-07-27 16:30:00 UTC;",
+                    record, fixed = TRUE))
 })
 
 test_that("an overall total is claimed only when every cell reported one", {

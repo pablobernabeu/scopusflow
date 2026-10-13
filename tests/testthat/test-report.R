@@ -202,10 +202,30 @@ test_that("the PRISMA-S map never claims an item the package cannot know", {
   report <- scopus_search_report(report_fixture())
   expect_equal(nrow(report$prisma), 16L)
   expect_equal(report$prisma$item, 1:16)
-  author_only <- c(2L, 3L, 4L, 5L, 6L, 7L, 10L, 11L, 12L, 14L)
+  author_only <- c(3L, 4L, 5L, 6L, 7L, 10L, 11L, 12L, 14L)
   expect_true(all(report$prisma$source[author_only] == "author"))
-  expect_true(all(report$prisma$source[c(1L, 8L, 9L, 13L, 15L)] == "record"))
+  expect_true(all(report$prisma$source[c(1L, 2L, 8L, 9L, 13L, 15L)] == "record"))
   expect_equal(report$prisma$name[14], "Peer review")
+})
+
+test_that("item 2 says Scopus was searched on its own", {
+  # PRISMA-S item 2 asks which databases were searched together on one
+  # platform, as Ovid searches several at once. Scopus is searched alone, so
+  # the record can say so. Other databases a review searched are named under
+  # item 1, by the author.
+  report <- scopus_search_report(report_fixture())
+  expect_equal(report$prisma$source[2], "record")
+  expect_equal(
+    report$prisma$note[2],
+    "Scopus was searched on its own, not as one of several databases searched together on one platform."
+  )
+  # A plan not yet run is described in the present, as the paragraph is.
+  unrun <- scopus_search_report(scopus_plan("x"))
+  expect_equal(unrun$prisma$source[2], "record")
+  expect_equal(
+    unrun$prisma$note[2],
+    "Scopus is searched on its own, not as one of several databases searched together on one platform."
+  )
 })
 
 test_that("a record set without a plan reports what it holds and no more", {
@@ -223,9 +243,121 @@ test_that("a record set without a plan reports what it holds and no more", {
   expect_true(grepl("no reproduction snippet can be written",
                     format(report, style = "markdown"), fixed = TRUE))
 
+  # The year limit is unrecorded, which is not the same as there being none.
+  expect_true(grepl("  1 (year limit unrecorded): 138 retrieved, 200 reported, incomplete",
+                    text, fixed = TRUE))
+  expect_false(grepl("no year limit", text, fixed = TRUE))
+  expect_true(grepl("| 1 | year limit unrecorded | 138 | 200 | no |",
+                    format(report, style = "markdown"), fixed = TRUE))
+
+  # The expression is there, but nothing records the field tag and the year
+  # limit it was sent with, so the full strategy is the author's to give.
+  expect_equal(report$prisma$source[8], "author")
+  expect_equal(report$prisma$note[8],
+               "The search expression is recorded, but no plan records the limits it was sent with.")
+
   # A plan supplied by hand fills those fields in.
   plan <- scopus_plan("graphene supercapacitor", field = "TITLE-ABS-KEY")
-  expect_equal(scopus_search_report(recs, plan = plan)$view, "STANDARD")
+  with_plan <- scopus_search_report(recs, plan = plan)
+  expect_equal(with_plan$view, "STANDARD")
+  expect_equal(with_plan$prisma$source[8], "record")
+
+  # A one-cell plan describes the one search the set came from, so the set's
+  # own counts stay with it. They used to become unrecorded the moment the
+  # plan the help page recommends was supplied.
+  expect_equal(with_plan$cells$n_records, 138L)
+  expect_equal(with_plan$cells$reported_total, 200)
+  expect_equal(with_plan$reported_total, 200)
+  expect_true(grepl("  1 (no year limit): 138 retrieved, 200 reported, incomplete",
+                    format(with_plan, style = "report"), fixed = TRUE))
+
+  # A partitioned plan cannot say which cell the count belongs to, so its
+  # cells stay unrecorded.
+  by_year <- scopus_plan("graphene supercapacitor", years = 2015:2016,
+                         partition = "year")
+  split <- scopus_search_report(recs, plan = by_year)
+  expect_true(all(is.na(split$cells$n_records)))
+  expect_true(is.na(split$reported_total))
+})
+
+test_that("a plan that sets no year limit still says there is none", {
+  text <- format(scopus_search_report(scopus_plan("x")), style = "report")
+  expect_true(grepl("  1 (no year limit): retrieved records unrecorded", text, fixed = TRUE))
+  expect_false(grepl("year limit unrecorded", text, fixed = TRUE))
+})
+
+test_that("a harvest run over several days is dated from its first search to its last", {
+  # PRISMA-S item 13 asks for the date of the last search. A resumed harvest
+  # or a merged set spans days, and its earliest stamp alone hid when it was
+  # last searched.
+  recs <- report_fixture()
+  attr(recs, "retrieved_at") <- as.POSIXct("2026-07-20 09:00:00", tz = "UTC")
+  attr(recs, "retrieved_until") <- as.POSIXct("2026-07-27 16:30:00", tz = "UTC")
+  report <- scopus_search_report(recs)
+  expect_equal(report$searched_at, as.POSIXct("2026-07-20 09:00:00", tz = "UTC"))
+  expect_equal(report$searched_until, as.POSIXct("2026-07-27 16:30:00", tz = "UTC"))
+  expect_true(grepl("Date searched: 2026-07-20 09:00:00 UTC to 2026-07-27 16:30:00 UTC\n",
+                    format(report, style = "report"), fixed = TRUE))
+  expect_equal(report$prisma$source[13], "record")
+  expect_equal(
+    report$prisma$note[13],
+    paste("Last searched on 2026-07-27 16:30:00 UTC; the records were retrieved",
+          "between 2026-07-20 09:00:00 UTC and 2026-07-27 16:30:00 UTC.")
+  )
+  expect_true(grepl(
+    "searched in Scopus, on the Elsevier Scopus Search API, between 20 July 2026 and 27 July 2026.",
+    format(report, style = "paragraph"), fixed = TRUE
+  ))
+})
+
+test_that("stamps on one UTC day give the single date they always gave", {
+  recs <- report_fixture()
+  attr(recs, "retrieved_until") <- as.POSIXct("2026-07-22 18:45:00", tz = "UTC")
+  report <- scopus_search_report(recs)
+  expect_true(grepl("Date searched: 2026-07-22 09:15:00 UTC\n",
+                    format(report, style = "report"), fixed = TRUE))
+  expect_equal(report$prisma$note[13], "2026-07-22 09:15:00 UTC.")
+  expect_true(grepl("Search API, on 22 July 2026.",
+                    format(report, style = "paragraph"), fixed = TRUE))
+
+  # The day is the UTC day, so an hour either side of midnight is two days.
+  attr(recs, "retrieved_at") <- as.POSIXct("2026-07-22 23:30:00", tz = "UTC")
+  attr(recs, "retrieved_until") <- as.POSIXct("2026-07-23 00:30:00", tz = "UTC")
+  expect_true(grepl("Date searched: 2026-07-22 23:30:00 UTC to 2026-07-23 00:30:00 UTC",
+                    format(scopus_search_report(recs), style = "report"), fixed = TRUE))
+
+  # A latest stamp recorded before the earliest is no span at all.
+  attr(recs, "retrieved_until") <- as.POSIXct("2026-07-01 00:00:00", tz = "UTC")
+  expect_equal(scopus_search_report(recs)$searched_until, attr(recs, "retrieved_at"))
+})
+
+test_that("non-contiguous year cells are listed, not shown as one span", {
+  # Three year cells for 2015, 2020 and 2025 searched three years. Written up
+  # as 2015 to 2025 they claimed eight more.
+  report <- scopus_search_report(
+    scopus_plan("x", years = c(2015, 2020, 2025), partition = "year")
+  )
+  expect_equal(report$years, "2015, 2020 and 2025")
+  text <- format(report, style = "report")
+  expect_true(grepl("Years: 2015, 2020 and 2025\n", text, fixed = TRUE))
+  expect_true(grepl("9 Limits and restrictions. Publication years 2015, 2020 and 2025.",
+                    text, fixed = TRUE))
+  expect_true(grepl("limited to publication years 2015, 2020 and 2025.",
+                    format(report, style = "paragraph"), fixed = TRUE))
+
+  years_of <- function(...) scopus_search_report(scopus_plan("x", ...))$years
+  # A run of three or more years within the list reads as a span.
+  expect_equal(years_of(years = c(2010:2013, 2020:2022), partition = "year"),
+               "2010 to 2013 and 2020 to 2022")
+  expect_equal(years_of(years = c(2015, 2016, 2020), partition = "year"),
+               "2015, 2016 and 2020")
+  expect_equal(years_of(years = c(2015, 2017:2020), partition = "year"),
+               "2015 and 2017 to 2020")
+  # Contiguous cells stay one span. A single cell sends one range from the
+  # earliest year to the latest, which is what the record states for it.
+  expect_equal(years_of(years = 2015:2025, partition = "year"), "2015 to 2025")
+  expect_equal(years_of(years = c(2015, 2020, 2025)), "2015 to 2025")
+  expect_equal(years_of(years = 2019L, partition = "year"), "2019")
 })
 
 test_that("the reproduction snippet rebuilds the plan it describes", {
@@ -345,5 +477,35 @@ test_that("the record matches the golden file both twins are pinned to", {
                      format(report, style = "paragraph"), "\n")
   golden <- rawToChar(readBin(test_path("golden-search-record.txt"), "raw",
                               file.size(test_path("golden-search-record.txt"))))
+  expect_identical(rendered, golden)
+})
+
+# A baseline search and a later update of it, merged with de-duplication, as a
+# review that re-runs its search a year on would hold them. Built by hand in the
+# same way in the Python suite, whose copy of the golden file below is
+# byte-identical.
+merged_fixture <- function() {
+  baseline <- example_records[example_records$year <= 2023, ]
+  attr(baseline, "retrieved_at") <- as.POSIXct("2024-01-10 09:00:00", tz = "UTC")
+  attr(baseline, "scopusflow_version") <- "0.3.0"
+  attr(baseline, "paging") <- "offset"
+  update <- example_records
+  attr(update, "retrieved_at") <- as.POSIXct("2025-01-10 09:00:00", tz = "UTC")
+  attr(update, "scopusflow_version") <- "0.4.0"
+  attr(update, "paging") <- "offset"
+  scopus_combine(baseline, update, dedupe = TRUE)
+}
+
+test_that("a merged set's record matches the golden file both twins are pinned to", {
+  # golden-search-record-merged.txt is byte-identical to the Python twin's copy.
+  # The merge keeps both retrieval dates, so the record is dated from the
+  # baseline to the update, and item 13 gives the update's date as the last
+  # search. No plan survives a merge, so the year limit is unrecorded and the
+  # full strategy is the author's to give.
+  report <- scopus_search_report(merged_fixture())
+  rendered <- paste0(format(report, style = "report"), "\n\n",
+                     format(report, style = "paragraph"), "\n")
+  path <- test_path("golden-search-record-merged.txt")
+  golden <- rawToChar(readBin(path, "raw", file.size(path)))
   expect_identical(rendered, golden)
 })

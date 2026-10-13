@@ -129,9 +129,33 @@
   quota, and `Retry-After` dates parse in any locale, where a German or French
   `LC_TIME` made every one `NA`. `scopus_quota()` documents `reset` as the time
   the key's quota resets, not a rate-limit window.
+* The search record dated a harvest by its earliest cell, although PRISMA-S
+  item 13 asks for the date of the last search. Retrievals now carry
+  `retrieved_until` beside `retrieved_at`. For the harvest of a plan, or a set
+  from `scopus_combine()`, it holds the latest of its parts' times, as
+  `retrieved_at` holds the earliest. A search run over several sessions, or a
+  baseline merged with its update, is now dated from its first retrieval to
+  its last, item 13 gives the date of the last search, and the methods
+  paragraph says the literature was searched between the two dates. Stamps on
+  one UTC day give the single date they always gave.
+* A set without a plan no longer says "no year limit" when its limit is only
+  unrecorded, and no longer lists item 8 of PRISMA-S as supplied.
+  `scopus_fetch()` now attaches the one-cell plan it ran, so its record states
+  the field tag and the years. A one-cell plan supplied for a set without
+  per-cell counts keeps the set's own counts, which the record used to call
+  unrecorded. Year cells with gaps between them are listed, as in "2015, 2020
+  and 2025", where the record gave one span that claimed the years between.
+  Item 2, on databases searched together on one platform, is now supplied,
+  since the API searches Scopus alone.
 
 ## Documentation
 
+* The help for `scopus_count()`, `scopus_fetch()`, `scopus_intersections()`
+  and `scopus_plan()` now says how `years` is sent. These functions, and a plan
+  with `partition = "none"`, send one inclusive range from the earliest year to
+  the latest, so `c(2015, 2020)` covers every year from 2015 to 2020.
+  `scopus_trend()`, `scopus_compare_topics()` and a plan with
+  `partition = "year"` take each listed year.
 * `citation("scopusflow")`, the website and `CITATION.cff` give the DOI that
   CRAN assigned to the package,
   <https://doi.org/10.32614/CRAN.package.scopusflow>, in place of the Zenodo
