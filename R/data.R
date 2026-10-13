@@ -10,13 +10,19 @@
 #' do not permit redistributing retrieved records, so no package can ship one.
 #' These come instead from OpenAlex, whose metadata is released under CC0 and may
 #' therefore be redistributed, and are reshaped into the schema [scopus_fetch()]
-#' returns. Running the equivalent query against 'Scopus' yields the same kind of
-#' object, with the same columns and the same handling, though not an identical
-#' set of records.
+#' returns. They are the result of OpenAlex's exact-phrase search for "graphene
+#' supercapacitor" in titles and abstracts, limited to journal articles, run on
+#' 22 July 2026. The worked examples send the phrase to 'Scopus' as
+#' `TITLE-ABS-KEY("graphene supercapacitor")`, which also searches keywords and
+#' every document type. That search yields the same kind of object, with the
+#' same columns and the same handling, but a different set of records. Without
+#' the quotation marks the set is far larger, since 'Scopus' joins the words of
+#' an unquoted phrase with AND. In OpenAlex, the unquoted words match about a
+#' hundred times as many records.
 #'
 #' Two properties are worth knowing when reading the examples. The harvest is
 #' complete, so the number of rows per year is the real
-#' number of publications per year for that query, and the trend figures show a
+#' number of publications per year for that search, and the trend figures show a
 #' real publication curve. The gaps are also genuine: eleven records carry no
 #' DOI and two no source title, exactly as they arrive. They are kept because a
 #' real harvest has such gaps, and the reference-set examples are the more
@@ -36,7 +42,7 @@
 #'   \item{date}{Publication date in ISO form.}
 #'   \item{publication}{Source title, missing for two records.}
 #'   \item{citations}{Citation count at the time of retrieval.}
-#'   \item{query}{The search phrase that produced the record.}
+#'   \item{query}{The phrase of the OpenAlex search that produced the record.}
 #' }
 #' @source Retrieved from OpenAlex (<https://openalex.org>) on 2026-07-22: the
 #'   complete result set for the phrase "graphene supercapacitor" in title or

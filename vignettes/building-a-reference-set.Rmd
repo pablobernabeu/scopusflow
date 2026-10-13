@@ -72,7 +72,7 @@ for, so they cost no extra quota. The bundled corpus came from OpenAlex and
 carries none of them, so this step is shown but not run.
 
 ```{r eval = FALSE}
-plan <- scopus_plan("graphene supercapacitor", years = 2015:2024,
+plan <- scopus_plan('"graphene supercapacitor"', years = 2015:2024,
                     field = "TITLE-ABS-KEY", partition = "year")
 records <- scopus_fetch_plan(plan, fields = "extended")
 summary(records)

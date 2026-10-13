@@ -178,7 +178,7 @@ raw <- list(entry = list(
     `citedby-count` = "469"
   )
 ))
-scopus_records(raw, query = "TITLE-ABS-KEY(graphene supercapacitor)")
+scopus_records(raw, query = 'TITLE-ABS-KEY("graphene supercapacitor")')
 
 # Under COMPLETE view an entry may also carry author keywords, which the
 # Search API returns in its own " | "-delimited form. The bundled corpus

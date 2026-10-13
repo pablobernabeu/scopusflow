@@ -74,6 +74,13 @@
 
 ## Bug fixes
 
+* The app's search record no longer gives the bundled corpus's own phrase as
+  the search expression of a demo harvest, in a methods paragraph written to be
+  pasted into a manuscript. In demo mode the record now names no expression,
+  and it opens by saying that the records were replayed and that it describes
+  no search that was run. Where the records came from is fixed when the harvest
+  starts, so switching Demo mode afterwards does not change the record. The
+  Python app does the same.
 * The app's Check size button no longer closes the session on a blank query. The
   handler caught `scopus_error` alone, so the input error escaped it and Shiny
   ended the session. Check size and Fetch now refuse a blank query with a
@@ -204,6 +211,24 @@
   recipe for testing a strategy's relative recall against records known to be
   relevant, with two searches per chain of DOIs (Sampson et al., 2006; Bramer et
   al., 2018). The recipe contacts the API and is not run in the article.
+* The worked examples no longer present `TITLE-ABS-KEY(graphene supercapacitor)`
+  as the search behind the bundled corpus. The corpus came from OpenAlex's
+  exact-phrase search for "graphene supercapacitor" in titles and abstracts,
+  limited to journal articles. 'Scopus' joins the words of an unquoted phrase
+  with AND, so that query is far broader, and in OpenAlex the unquoted words
+  match about a hundred times as many records. The demonstration plan and the
+  live searches shown beside the corpus now quote the phrase, and the help for
+  `example_records` names the query the examples send. The tracking article
+  says that a live comparison needs a baseline of your own, since the bundled
+  one came from OpenAlex. The PRISMA-S demonstrations label their hand-set
+  attributes, the reported totals among them, as illustrative and say that the
+  paragraph they print describes no search that was run.
+* The keywords-and-references article no longer prints invented author
+  keywords, four references for a paper that cites 103 works, authors in a form
+  the parser never writes and an invented quota beneath real calls on a real
+  DOI. The calls are shown without output, the shapes they return are built in
+  view from `example_records`, and keyword stand-ins drawn from its 138 titles
+  are counted in pairs, as in the Python guide.
 
 # scopusflow 0.4.0
 

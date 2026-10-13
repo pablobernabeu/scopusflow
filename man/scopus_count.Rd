@@ -67,14 +67,15 @@ after \code{getOption("scopusflow.timeout", 60)} seconds, the error is
 
 \examples{
 \dontshow{if (scopusflow::scopus_has_key()) withAutoprint(\{ # examplesIf}
-scopus_count("graphene supercapacitor", years = 2015:2024,
+scopus_count('"graphene supercapacitor"', years = 2015:2024,
              field = "TITLE-ABS-KEY")
 \dontshow{\}) # examplesIf}
 # The offline companion, which needs no key: one number with the parsed
 # quota attached. The bundled corpus of real articles is a complete harvest
-# of its own query, so its row count is the total that query returned. The
-# quota attribute is parsed from real response headers by scopus_quota(),
-# so it cannot drift from what a live call attaches.
+# of OpenAlex's exact-phrase search for the same phrase, so its row count is
+# the total of that search. A 'Scopus' count of the phrase would differ. The
+# quota attribute is parsed from real response headers by scopus_quota(), so
+# it cannot drift from what a live call attaches.
 resp <- httr2::response(
   status_code = 200,
   headers = list(

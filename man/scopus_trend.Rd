@@ -56,17 +56,18 @@ internet access; see the \emph{API access} section of \code{\link[=scopus_count]
 
 \examples{
 \dontshow{if (scopusflow::scopus_has_key()) withAutoprint(\{ # examplesIf}
-tr <- scopus_trend("graphene supercapacitor", years = 2015:2024,
+tr <- scopus_trend('"graphene supercapacitor"', years = 2015:2024,
                    field = "TITLE-ABS-KEY")
 tr
 \dontshow{\}) # examplesIf}
 # The offline companion, which needs no key. 'Scopus' records may not be
-# redistributed, so the package bundles a corpus of real articles instead;
-# it is a complete harvest of its own query, so tallying its rows by year
-# reproduces the yearly counts that query returns.
+# redistributed, so the package bundles a corpus of real articles instead.
+# It is a complete harvest of OpenAlex's exact-phrase search for the same
+# phrase, so tallying its rows by year gives the yearly counts of that
+# search. A 'Scopus' count of the phrase would differ.
 by_year <- table(example_records$year)
 tr <- tibble::tibble(
-  query = "TITLE-ABS-KEY(graphene supercapacitor)",
+  query = 'TITLE-ABS-KEY("graphene supercapacitor")',
   year = as.integer(names(by_year)),
   n = as.numeric(by_year)
 )

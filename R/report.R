@@ -118,13 +118,15 @@ scopus_report_months <- function() {
 #' @examples
 #' # A search described but not yet run. The record says so throughout rather
 #' # than implying figures it cannot have.
-#' plan <- scopus_plan("graphene supercapacitor", years = 2015:2024,
+#' plan <- scopus_plan('"graphene supercapacitor"', years = 2015:2024,
 #'                     field = "TITLE-ABS-KEY", partition = "year")
 #' scopus_search_report(plan)
 #'
 #' # The same search after a harvest. The bundled corpus of real articles
 #' # stands in for one, since 'Scopus' records may not be redistributed, so the
-#' # attributes a live retrieval records are set here by hand.
+#' # attributes a live retrieval records are set here by hand. Their values are
+#' # illustrative, and the records came from OpenAlex, so the record below
+#' # describes no search that was run.
 #' recs <- example_records
 #' attr(recs, "plan") <- plan
 #' attr(recs, "retrieved_at") <- as.POSIXct("2026-07-22 09:15:00", tz = "UTC")

@@ -176,6 +176,27 @@ app_demo_records <- function(years, max_per_year = Inf) {
   tibble::new_tibble(as.list(df[cols]), nrow = nrow(df), class = "scopus_records")
 }
 
+# The PRISMA-S search record the Search record button downloads, as Markdown.
+# Replayed demo records are the bundled corpus, whose `query` column holds the
+# phrase of the OpenAlex search that produced it, which is neither what the
+# user typed nor a search sent to 'Scopus'. Carried into the record, it became
+# the search expression of a methods paragraph written to be pasted into a
+# manuscript. A copy with that column blanked goes to the report, so the
+# expression is unrecorded like the retrieval time beside it, and a note opens
+# the file. Mirrors the Python app's _search_record(), note and all.
+app_search_record <- function(records, replayed = FALSE) {
+  if (!isTRUE(replayed)) {
+    return(format(scopus_search_report(records), style = "markdown"))
+  }
+  records$query <- NA_character_
+  note <- paste(
+    "> Demo mode: these records were replayed from the bundled example harvest,",
+    "which came from OpenAlex, and were not retrieved from Scopus. The record",
+    "below describes no search that was run."
+  )
+  paste0(note, "\n\n", format(scopus_search_report(records), style = "markdown"))
+}
+
 # The note shown above the authors plot, or NULL when none is needed. A
 # STANDARD harvest names the first author of each record alone, so its tally
 # counts first authorships and would otherwise be read as a tally of every

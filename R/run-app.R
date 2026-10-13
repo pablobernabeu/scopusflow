@@ -351,6 +351,10 @@ app_server <- function(input, output, session) {
     rv$lines <- character()
     rv$progress <- NULL
     rv$records <- NULL
+    # Where the records about to arrive come from, fixed at launch. Switching
+    # Demo mode during or after the run leaves them on screen, and the search
+    # record has to keep describing them.
+    rv$replayed <- isTRUE(input$demo)
     rv$status <- "running"
     rv$proc <- if (isTRUE(input$demo)) {
       callr::r_bg(
@@ -676,14 +680,15 @@ app_server <- function(input, output, session) {
     }
   )
 
-  # The PRISMA-S search record. In demo mode the records are the bundled corpus
-  # and carry no plan or retrieval time, so the record comes out saying so,
-  # which is the honest answer, and no defect to paper over.
+  # The PRISMA-S search record. Replayed demo records carry no plan or
+  # retrieval time, so the record says those are unrecorded. It names no search
+  # expression either, and opens by saying the records were replayed (see
+  # app_search_record()).
   output$dl_report <- shiny::downloadHandler(
     filename = "scopus-search-record.md",
     content = function(file) {
       shiny::req(rv$records)
-      scopus_search_report(rv$records, file = file)
+      scopus_write_lines(app_search_record(rv$records, rv$replayed), file)
     }
   )
 

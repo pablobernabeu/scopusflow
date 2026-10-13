@@ -52,7 +52,7 @@
 #' [scopus_count()] lists the conditions that may be raised.
 #' @seealso [scopus_fetch_plan()] for cached, resumable, partitioned retrieval.
 #' @examplesIf scopusflow::scopus_has_key()
-#' recs <- scopus_fetch("graphene supercapacitor", field = "TITLE-ABS-KEY",
+#' recs <- scopus_fetch('"graphene supercapacitor"', field = "TITLE-ABS-KEY",
 #'                      max_results = 50)
 #' recs
 #' @examples

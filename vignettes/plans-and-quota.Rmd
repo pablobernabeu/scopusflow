@@ -204,11 +204,17 @@ assembles the record from what the plan and the harvest already carry, so the
 methods section is written from the objects and never from memory.
 
 A plan on its own can be reported before it is run, which is useful when a
-protocol has to be registered in advance. The plan below describes the search
-that produced the bundled corpus, so that the record and the records match.
+protocol has to be registered in advance. The plan below describes a Scopus
+search for the phrase the bundled corpus was drawn on, quoted so that Scopus
+searches the two words as a phrase. The corpus itself came from OpenAlex's
+exact-phrase search for "graphene supercapacitor" in titles and abstracts,
+limited to journal articles, on 22 July 2026. A Scopus run of this plan would
+return a different set of records. Without the quotation marks Scopus would
+join the two words with AND, and in OpenAlex the unquoted words match about a
+hundred times as many records.
 
 ```{r}
-graphene <- scopus_plan("graphene supercapacitor", years = 2015:2024,
+graphene <- scopus_plan('"graphene supercapacitor"', years = 2015:2024,
                         field = "TITLE-ABS-KEY", partition = "year")
 report <- scopus_search_report(graphene)
 report
@@ -227,9 +233,13 @@ the retrieval time, the version, the paging mode and the per-cell accounting, so
 the report has everything it needs and you never set any of it yourself. The
 bundled corpus stands in for a harvest here, since Scopus records may not be
 redistributed, so those attributes are written out below to show what each one
-contributes.
+contributes. Their values are illustrative, so the record they produce
+describes no search that was run. The retrieval time and the version are set by
+hand. Each cell's reported total is the number of bundled records in its year,
+a count from the OpenAlex search that the Scopus API never gave.
 
 ```{r}
+# Illustrative values, set by hand. No Scopus search was run.
 records <- example_records
 attr(records, "plan") <- graphene
 attr(records, "retrieved_at") <- as.POSIXct("2026-07-22 09:15:00", tz = "UTC")

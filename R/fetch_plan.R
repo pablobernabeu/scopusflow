@@ -85,18 +85,20 @@
 #' The *API access* section of [scopus_count()] gives the details.
 #' @seealso [scopus_cache_dir()], [scopus_cache_clear()]
 #' @examplesIf scopusflow::scopus_has_key()
-#' plan <- scopus_plan("graphene supercapacitor", years = 2015:2024,
+#' plan <- scopus_plan('"graphene supercapacitor"', years = 2015:2024,
 #'                     field = "TITLE-ABS-KEY", partition = "year")
 #' dir <- file.path(tempdir(), "graphene-cache")
 #' # `max_results` caps each yearly cell, so the example stays small and
 #' # quota-light; drop it to harvest every record in the plan.
 #' recs <- scopus_fetch_plan(plan, max_results = 25, cache_dir = dir, resume = TRUE)
 #' @examples
-#' # The offline companion, which needs no key: a record set with the plan
-#' # that describes it attached. 'Scopus' records may not be redistributed, so
-#' # the bundled corpus of real articles stands in for the harvest, and the
-#' # plan describes the same search, one cell per year.
-#' plan <- scopus_plan("graphene supercapacitor", years = 2015:2024,
+#' # The offline companion, which needs no key: a record set with a plan
+#' # attached. 'Scopus' records may not be redistributed, so the bundled corpus
+#' # of real articles stands in for the harvest. It came from OpenAlex's
+#' # exact-phrase search for the same phrase, so the plan, one cell per year,
+#' # describes a 'Scopus' search that was not run and would return other
+#' # records.
+#' plan <- scopus_plan('"graphene supercapacitor"', years = 2015:2024,
 #'                     field = "TITLE-ABS-KEY", partition = "year")
 #' recs <- example_records
 #' attr(recs, "plan") <- plan

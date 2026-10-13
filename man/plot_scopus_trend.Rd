@@ -25,11 +25,12 @@ Draws annual record counts over time from the output of \code{\link[=scopus_tren
 \examples{
 \dontshow{if (rlang::is_installed("ggplot2")) withAutoprint(\{ # examplesIf}
 # Drawn from the bundled corpus of real articles, which needs no key. That
-# corpus is a complete harvest, so its rows per year are the publications
-# per year its query returns.
+# corpus is a complete harvest of OpenAlex's exact-phrase search for the
+# phrase below, so its rows per year are the publications per year of that
+# search.
 by_year <- table(example_records$year)
 tr <- tibble::tibble(
-  query = "TITLE-ABS-KEY(graphene supercapacitor)",
+  query = 'TITLE-ABS-KEY("graphene supercapacitor")',
   year = as.integer(names(by_year)),
   n = as.numeric(by_year)
 )

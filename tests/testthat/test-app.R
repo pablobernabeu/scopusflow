@@ -232,6 +232,27 @@ test_that("the authors tab says when a STANDARD harvest names first authors only
   expect_null(app_authors_note(NULL))
 })
 
+test_that("the demo search record names no expression and says it was replayed", {
+  # The bundled corpus carries the phrase of its own OpenAlex search in its
+  # query column, which is neither what the user typed nor a search sent to
+  # 'Scopus'. Carried into the record, it was the search expression of a
+  # methods paragraph written to be pasted into a manuscript. The Python
+  # twin's _search_record() writes the same note.
+  recs <- app_demo_records(2019:2020)
+  replayed <- app_search_record(recs, replayed = TRUE)
+  expect_true(startsWith(
+    replayed, "> Demo mode: these records were replayed from the bundled example harvest"
+  ))
+  expect_match(gsub("\\s+", " ", replayed), "describes no search that was run", fixed = TRUE)
+  expect_match(replayed, "Search expression: unrecorded", fixed = TRUE)
+  expect_false(grepl("graphene supercapacitor", replayed, fixed = TRUE))
+  # A live harvest's record is the one scopus_search_report() writes, and the
+  # records on screen keep their query column.
+  expect_identical(app_search_record(recs, replayed = FALSE),
+                   format(scopus_search_report(recs), style = "markdown"))
+  expect_false(anyNA(recs$query))
+})
+
 # Inputs for a server test: a key in the box, demo mode off unless asked.
 app_test_inputs <- function(session, query, demo = FALSE, ...) {
   session$setInputs(
@@ -361,5 +382,37 @@ test_that("the Retrieval card shows the cap note after a capped harvest", {
     rv$records <- example_records
     session$flushReact()
     expect_false(grepl("stopped", output$cap_note$html %||% "", fixed = TRUE))
+  })
+})
+
+test_that("Search record downloads the replayed record for demo records", {
+  skip_if_not_installed("shiny")
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = "graphene supercapacitor", demo = TRUE)
+    rv$records <- app_demo_records(2019:2020)
+    rv$replayed <- TRUE
+    # Switching Demo mode off leaves the records on screen, so the record has to
+    # keep describing the harvest that drew them.
+    session$setInputs(demo = FALSE)
+    path <- output$dl_report
+    text <- paste(readLines(path, encoding = "UTF-8", warn = FALSE), collapse = "\n")
+    expect_match(text, "replayed from the bundled example harvest", fixed = TRUE)
+    expect_false(grepl("graphene supercapacitor", text, fixed = TRUE))
+  })
+})
+
+test_that("a demo harvest marks the records it draws as replayed", {
+  skip_if_not_installed("shiny")
+  skip_if_not_installed("callr")
+  # Fetch starts a background R process through callr, so the test stays off
+  # CRAN. Demo mode keeps that process offline, and it is stopped at once.
+  skip_on_cran()
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = "graphene supercapacitor", demo = TRUE)
+    session$setInputs(fetch = 1)
+    proc <- rv$proc
+    if (!is.null(proc)) try(proc$kill(), silent = TRUE)
+    expect_false(is.null(proc))
+    expect_true(isTRUE(rv$replayed))
   })
 })

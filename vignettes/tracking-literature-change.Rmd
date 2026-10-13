@@ -133,10 +133,12 @@ neither, which is why it round-trips identically above.
 
 In a live setting the later retrieval would come from the API, where here it is
 a slice of the bundled corpus, and everything else would be as above. Both pulls
-could then say when they were taken.
+could then say when they were taken. The baseline would be an earlier pull of
+your own, since the bundled one came from OpenAlex and would differ from any
+'Scopus' pull for that reason alone.
 
 ```{r eval = FALSE}
-later <- scopus_fetch("graphene supercapacitor", field = "TITLE-ABS-KEY")
+later <- scopus_fetch('"graphene supercapacitor"', field = "TITLE-ABS-KEY")
 attr(later, "retrieved_at")
 scopus_diff_dois(old = read_scopus_records(path), new = later)
 ```

@@ -15,11 +15,15 @@ knitr::opts_chunk$set(collapse = FALSE, comment = "")
 # alike. The fixed width keeps tibbles inside the documentation column.
 options(cli.num_colors = 1, cli.hyperlink = FALSE, crayon.enabled = FALSE,
         width = 80)
-# Print data frames and tibbles as formatted tables.
+# Print data frames and tibbles as formatted tables. Double quotes are escaped,
+# so pandoc prints a quoted phrase in a query with the straight quotes a search
+# needs, where it would otherwise curl them.
 local({
   kp <- function(x, ...) {
     if (any(vapply(x, is.list, logical(1)))) return(knitr::normal_print(x))
-    knitr::knit_print(knitr::kable(x))
+    tab <- knitr::kable(x)
+    tab[] <- gsub("\"", "\\\"", tab, fixed = TRUE)
+    knitr::knit_print(tab)
   }
   for (cls in c("data.frame", "tbl_df", "tbl")) {
     registerS3method("knit_print", cls, kp, envir = asNamespace("knitr"))
@@ -130,19 +134,23 @@ size of a literature over time. It issues one count request per year, so it need
 the API.
 
 ```{r eval = FALSE}
-tr <- scopus_trend("graphene supercapacitor", years = 2015:2024,
+tr <- scopus_trend('"graphene supercapacitor"', years = 2015:2024,
                    field = "TITLE-ABS-KEY")
 plot_scopus_trend(tr)
 ```
 
 The offline equivalent costs no requests at all. A complete harvest already
-contains its own yearly counts, so tallying the records by year gives what a
-count per year would have returned, in the shape `scopus_trend()` returns it.
+contains its own yearly counts, and the bundled corpus is a complete harvest of
+OpenAlex's exact-phrase search for the same phrase. Tallying its records by year
+therefore gives the yearly counts of that search, in the shape `scopus_trend()`
+returns. A Scopus count would give different figures, since the two databases
+do not index the same records and the Scopus query also searches keywords and
+every document type.
 
 ```{r}
 by_year <- table(records$year)
 tr <- tibble::tibble(
-  query = "TITLE-ABS-KEY(graphene supercapacitor)",
+  query = 'TITLE-ABS-KEY("graphene supercapacitor")',
   year  = as.integer(names(by_year)),
   n     = as.numeric(by_year)
 )
@@ -161,9 +169,11 @@ caption is the function's own attribution, since a `scopus_trend` object
 ordinarily comes from the Search API, whereas this one was tallied from the
 bundled stand-in. The
 curve itself is flat because the query is a narrow phrase, some fifteen papers a
-year over a decade. A broader query, 'graphene' on its own, would show the steep
-growth the field is better known for, on a scale that runs into the offset
-ceiling discussed below.
+year over a decade. The quotation marks keep it narrow, since Scopus joins the
+words of an unquoted phrase with AND, and in OpenAlex the two words unquoted
+match about a hundred times as many records. A broader query, 'graphene' on its
+own, would show the steep growth the field is better known for, on a scale that
+runs into the offset ceiling discussed below.
 
 ## Where a niche sits
 

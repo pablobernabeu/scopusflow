@@ -451,6 +451,27 @@ checked one found it mislabelled a real published paper. Restricting the
 examples to key-gated live calls was also rejected, since it would leave every
 reference page showing an unevaluated block and no output at all.
 
+The documentation therefore has to say which search the corpus answers. It
+came from OpenAlex's exact-phrase search for "graphene supercapacitor" in
+titles and abstracts, limited to journal articles. Up to 0.4.0 the worked
+examples gave `TITLE-ABS-KEY(graphene supercapacitor)` as its search, which
+'Scopus' reads as graphene AND supercapacitor, and their PRISMA-S paragraph
+called that search complete at 138 records. In OpenAlex, the two words
+unquoted match about a hundred times as many records as the phrase. The
+demonstration plan now quotes the phrase, under the same field tag. The closest
+'Scopus' form of the OpenAlex search,
+`TITLE-ABS("graphene supercapacitor") AND DOCTYPE(ar)` with no field, was
+considered and set aside. The examples also teach `field`, and no 'Scopus'
+query would return the OpenAlex result set in any case. The search-record
+demonstrations set the retrieval attributes by hand, each cell's reported total
+being its count of bundled records. They therefore call those values
+illustrative and say that the paragraph describes no search that was run. The
+app's demo search record blanks the corpus's `query` column for the same
+reason. The keywords-and-references article builds its offline shapes from the
+corpus in view, as the Python guide does. It used to pair real calls on a real
+DOI with invented keywords and four of the paper's 103 references, which is the
+pairing of genuine identifiers with invented content rejected above.
+
 The non-ASCII characters that survive in the data are deliberate. Accented and
 Cyrillic author names and the en dashes in titles are part of real names and
 real titles, so they are marked UTF-8 and left as they arrived. Transliterating

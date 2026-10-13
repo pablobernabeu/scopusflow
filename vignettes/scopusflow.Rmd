@@ -15,11 +15,15 @@ knitr::opts_chunk$set(collapse = FALSE, comment = "")
 # alike. The fixed width keeps tibbles inside the documentation column.
 options(cli.num_colors = 1, cli.hyperlink = FALSE, crayon.enabled = FALSE,
         width = 80)
-# Print data frames and tibbles as formatted tables.
+# Print data frames and tibbles as formatted tables. Double quotes are escaped,
+# so pandoc prints a quoted phrase in a query with the straight quotes a search
+# needs, where it would otherwise curl them.
 local({
   kp <- function(x, ...) {
     if (any(vapply(x, is.list, logical(1)))) return(knitr::normal_print(x))
-    knitr::knit_print(knitr::kable(x))
+    tab <- knitr::kable(x)
+    tab[] <- gsub("\"", "\\\"", tab, fixed = TRUE)
+    knitr::knit_print(tab)
   }
   for (cls in c("data.frame", "tbl_df", "tbl")) {
     registerS3method("knit_print", cls, kp, envir = asNamespace("knitr"))
@@ -38,11 +42,16 @@ instead. `example_records` holds 138 real journal articles on graphene
 supercapacitors published between 2015 and 2024, with their real titles, DOIs,
 journals, first authors and citation counts. They come from OpenAlex, whose
 metadata is released under CC0, reshaped into the schema a retrieval returns.
-The harvest is complete, so its rows per year are the real number of
-publications per year for that query, and its gaps are real gaps too.
+OpenAlex's exact-phrase search for "graphene supercapacitor" in titles and
+abstracts, limited to journal articles, returned them on 22 July 2026. The
+harvest is complete, so its rows per year are the real number of publications
+per year for that search, and its gaps are real gaps too.
 Eleven records carry no DOI and two no source title, exactly as they arrive.
-Running the equivalent query against Scopus yields the same kind of object, with
-the same columns and the same handling, though not an identical set of records.
+A Scopus search for the same phrase returns the same kind of object, with the
+same columns and the same handling, but a different set of records. Without the
+quotation marks the set is far larger, since Scopus joins the words of an
+unquoted phrase with AND. In OpenAlex, the unquoted words match about a hundred
+times as many records.
 The steps that need the API are shown but not run, each paired with the offline
 equivalent.
 
@@ -53,12 +62,15 @@ saveable and version-controllable, and they can be partitioned, for example by
 year, so that a large retrieval stays under the API's `start < 5000` ceiling and
 can be cached and resumed.
 
-The plan below describes the search the bundled records came from, so the rest
-of the article follows one worked example from description to export.
+The plan below describes a Scopus search for the phrase the bundled records
+were drawn on, and the rest of the article follows it as one worked example
+from description to export. The quotation marks keep the two words together,
+as they were in the OpenAlex search. The plan has not been run, and the bundled
+records did not come from it.
 
 ```{r}
 plan <- scopus_plan(
-  "graphene supercapacitor",
+  '"graphene supercapacitor"',
   years     = 2015:2024,
   field     = "TITLE-ABS-KEY",
   partition = "year"
@@ -93,7 +105,7 @@ re-spending quota. These contact the API, so they are not evaluated here.
 
 ```{r eval = FALSE}
 scopus_count(
-  "graphene supercapacitor",
+  '"graphene supercapacitor"',
   years = 2015:2024,
   field = "TITLE-ABS-KEY"
 )
@@ -139,7 +151,7 @@ raw <- list(entry = list(
        `prism:publicationName` = "ACS Applied Materials & Interfaces",
        `prism:coverDate` = "2015-01-13", `citedby-count` = "469")
 ))
-scopus_records(raw, query = "TITLE-ABS-KEY(graphene supercapacitor)")
+scopus_records(raw, query = 'TITLE-ABS-KEY("graphene supercapacitor")')
 ```
 
 ## Most frequent sources and authors
@@ -238,8 +250,10 @@ A search that is going into a paper has to be reported. `scopus_search_report()`
 assembles that record from the plan and the harvest, to the PRISMA-S standard,
 and formats it as a methods paragraph. It states only what the objects hold, so
 the record below is candid about the bundled corpus carrying no retrieval time
-of its own. The *Search plans and quota-aware retrieval* article works through
-it in full.
+of its own. It pairs the plan above with records that came from OpenAlex, and
+so describes no search that was run. The expression it gives was never sent to
+Scopus, and the 138 records it counts are those of the OpenAlex search. The
+*Search plans and quota-aware retrieval* article works through it in full.
 
 ```{r}
 report <- scopus_search_report(records, plan = plan)
