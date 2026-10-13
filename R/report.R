@@ -181,6 +181,7 @@ scopus_report_build <- function(records, plan) {
   combined <- if (is.null(records)) NULL else attr(records, "combined")
   stamp <- if (is.null(records)) NULL else attr(records, "retrieved_at")
   version <- if (is.null(records)) NULL else attr(records, "scopusflow_version")
+  paging <- if (is.null(records)) NA_character_ else (attr(records, "paging") %||% NA_character_)
 
   out <- list(
     database = "Scopus",
@@ -190,7 +191,7 @@ scopus_report_build <- function(records, plan) {
     expression = scopus_report_expression(records, plan),
     view = if (is.null(plan)) NA_character_ else attr(plan, "view"),
     page_size = if (is.null(plan)) NA_integer_ else as.integer(attr(plan, "page_size")),
-    paging = if (is.null(records)) NA_character_ else (attr(records, "paging") %||% NA_character_),
+    paging = paging,
     partition = if (is.null(plan)) NA_character_ else attr(plan, "partition"),
     n_cells = if (is.null(plan)) NA_integer_ else nrow(plan),
     years = scopus_report_years(cells, plan),
@@ -204,7 +205,7 @@ scopus_report_build <- function(records, plan) {
     records_combined = scopus_report_combined(combined, "n_in"),
     duplicates_removed = scopus_report_combined(combined, "n_removed"),
     deduplicated = if (is.null(combined)) NA else isTRUE(combined$deduplicated),
-    snippet = scopus_report_snippet(plan)
+    snippet = scopus_report_snippet(plan, paging)
   )
   out$prisma <- scopus_report_prisma(out)
   structure(out, class = "scopus_search_report")
@@ -278,8 +279,11 @@ scopus_report_combined <- function(combined, field) {
 # The runnable reproduction. Built from what the plan records, so that
 # evaluating it returns a plan identical to the one the report describes; the
 # package's test suite asserts exactly that over a grid of plans. Without a
-# plan there is nothing to reproduce and the snippet is NA.
-scopus_report_snippet <- function(plan) {
+# plan there is nothing to reproduce and the snippet is NA. The paging mode is
+# settled by the fetch, not the plan, and scopus_fetch_plan() pages by offset
+# unless told otherwise, so a harvest the records say was paged by cursor is
+# reproduced with cursor = TRUE.
+scopus_report_snippet <- function(plan, paging = NA_character_) {
   if (is.null(plan)) {
     return(NA_character_)
   }
@@ -301,13 +305,18 @@ scopus_report_snippet <- function(plan) {
     sprintf("  page_size = %d", as.integer(attr(plan, "page_size"))),
     sprintf("  partition = %s", app_quote(attr(plan, "partition")))
   )
+  fetch <- if (identical(paging, "cursor")) {
+    "records <- scopus_fetch_plan(plan, cursor = TRUE)"
+  } else {
+    "records <- scopus_fetch_plan(plan)"
+  }
   paste(
     c(
       "library(scopusflow)",
       "",
       sprintf("plan <- scopus_plan(\n%s\n)", paste(args, collapse = ",\n")),
       "",
-      "records <- scopus_fetch_plan(plan)"
+      fetch
     ),
     collapse = "\n"
   )

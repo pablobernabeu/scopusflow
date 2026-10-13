@@ -79,9 +79,11 @@ scopus_fetch <- function(query,
 
 # Internal pagination engine shared by scopus_fetch() and scopus_fetch_plan().
 # `wrapped` is the field-wrapped query. `date` is a year-range string or NULL.
+# `caller` names the function the capped warning should send the caller back
+# to, "fetch" or "plan".
 scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
                               cursor = FALSE, api_key = NULL, inst_token = NULL,
-                              verbose = FALSE) {
+                              verbose = FALSE, caller = "fetch") {
   if (isTRUE(cursor)) {
     return(scopus_fetch_cursor(
       wrapped = wrapped, date = date, view = view, page_size = page_size,
@@ -114,12 +116,21 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
   # retrieval was truncated, and to restructure it, would be false.
   capped <- known_total && total > hard_cap && max_results > hard_cap
   if (capped) {
+    # A plan cell is already one partition, a single year under the
+    # partitioning the documentation recommends, so advice to partition by year
+    # would send the caller round in a circle. The plan's own cursor mode
+    # retrieves the whole cell and keeps its checkpoint.
+    remedy <- if (identical(caller, "plan")) {
+      "Use scopus_fetch_plan(plan, cursor = TRUE) to retrieve the whole cell."
+    } else {
+      paste0("Use scopus_fetch(cursor = TRUE), or partition by year with ",
+             "scopus_plan(), to go further.")
+    }
     rlang::warn(
       sprintf(
         paste0("This query matches %s records, but the 'Scopus' API returns at ",
-               "most the first %d under offset paging. Use scopus_fetch(cursor ",
-               "= TRUE), or partition by year with scopus_plan(), to go further."),
-        format(total, big.mark = ","), hard_cap
+               "most the first %d under offset paging. %s"),
+        format(total, big.mark = ","), hard_cap, remedy
       ),
       class = "scopus_warning_capped"
     )

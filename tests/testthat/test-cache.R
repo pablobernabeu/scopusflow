@@ -513,3 +513,148 @@ test_that("a cell shorter than the API reported warns", {
     scopus_fetch_plan(scopus_plan("x", years = 2019L), max_results = 2)
   )
 })
+
+test_that("an offset-paged plan cell stops at the ceiling and the warning names cursor = TRUE", {
+  # The cell is already a single year, so advice to partition by year would
+  # send the caller round in a circle.
+  local_scopus_test_env()
+  withr::local_options(scopusflow.hard_cap = 400L)
+  httr2::local_mocked_responses(mock_paged_corpus(total = 1000L))
+  plan <- scopus_plan("x", years = 2021L, partition = "year")
+
+  capped <- expect_warning(
+    shortfall <- expect_warning(
+      recs <- scopus_fetch_plan(plan),
+      class = "scopus_warning_shortfall"
+    ),
+    class = "scopus_warning_capped"
+  )
+  expect_equal(nrow(recs), 400L)
+  expect_identical(attr(recs, "paging"), "offset")
+  expect_match(conditionMessage(capped),
+               "Use scopus_fetch_plan(plan, cursor = TRUE) to retrieve the whole cell.",
+               fixed = TRUE)
+  expect_false(grepl("partition", conditionMessage(capped), fixed = TRUE))
+  # The shortfall wording is shared with the Python twin and stays as it was.
+  expect_match(conditionMessage(shortfall),
+               "Cell 1 retrieved 400 record(s), but the Scopus API reports 1000",
+               fixed = TRUE)
+
+  # scopus_fetch() keeps its own advice, since a single query can be split.
+  outside <- expect_warning(scopus_fetch("x"), class = "scopus_warning_capped")
+  expect_match(conditionMessage(outside), "Use scopus_fetch(cursor = TRUE)", fixed = TRUE)
+})
+
+test_that("cursor = TRUE retrieves a plan cell above the offset ceiling whole", {
+  local_scopus_test_env()
+  withr::local_options(scopusflow.hard_cap = 400L)
+  httr2::local_mocked_responses(mock_paged_corpus(total = 1000L))
+  plan <- scopus_plan("x", years = 2021L, partition = "year")
+
+  recs <- expect_no_warning(scopus_fetch_plan(plan, cursor = TRUE))
+  expect_equal(nrow(recs), 1000L)
+  expect_equal(recs$entry_number, 1:1000)
+  expect_identical(attr(recs, "paging"), "cursor")
+  expect_equal(attr(recs, "cell_totals")$n_records, 1000L)
+  expect_equal(attr(recs, "total_results"), 1000)
+})
+
+test_that("a checkpoint answers only the paging mode it was fetched under", {
+  # The two modes return different records for a cell above the ceiling, and
+  # a different order below it, and the search record states the mode.
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  calls <- 0L
+  corpus <- mock_paged_corpus(total = 3L)
+  httr2::local_mocked_responses(function(req) {
+    calls <<- calls + 1L
+    corpus(req)
+  })
+  plan <- scopus_plan("x", years = 2020L, partition = "year")
+
+  scopus_fetch_plan(plan, cache_dir = cache)
+  expect_equal(calls, 1L)
+  switched <- expect_warning(
+    recs <- scopus_fetch_plan(plan, cache_dir = cache, cursor = TRUE),
+    class = "scopus_warning_cache_mismatch"
+  )
+  expect_equal(calls, 2L)
+  expect_identical(attr(recs, "paging"), "cursor")
+  # This plan wrote the checkpoint, under the other mode, so the warning says
+  # so and gives no advice about cache directories, which a caller following
+  # the capped warning's advice would otherwise read in every cell.
+  expect_match(conditionMessage(switched),
+               "was fetched under offset paging, not the cursor paging asked for",
+               fixed = TRUE)
+  expect_false(grepl("cache_dir", conditionMessage(switched), fixed = TRUE))
+
+  # The checkpoint written in its place serves cursor requests from then on,
+  # and is a miss for an offset request in turn.
+  resumed <- expect_no_warning(scopus_fetch_plan(plan, cache_dir = cache, cursor = TRUE))
+  expect_equal(calls, 2L)
+  expect_identical(attr(resumed, "paging"), "cursor")
+  back <- expect_warning(scopus_fetch_plan(plan, cache_dir = cache),
+                         class = "scopus_warning_cache_mismatch")
+  expect_equal(calls, 3L)
+  expect_match(conditionMessage(back),
+               "was fetched under cursor paging, not the offset paging asked for",
+               fixed = TRUE)
+
+  # Another plan's checkpoint in the other mode is still another plan's.
+  other <- scopus_plan("y", years = 2020L, partition = "year")
+  foreign <- expect_warning(scopus_fetch_plan(other, cache_dir = cache, cursor = TRUE),
+                            class = "scopus_warning_cache_mismatch")
+  expect_equal(calls, 4L)
+  expect_match(conditionMessage(foreign), "Give each plan its own cache_dir.",
+               fixed = TRUE)
+})
+
+test_that("a checkpoint that records no paging mode counts as offset-paged", {
+  # scopus_fetch_plan() paged by offset alone until it gained `cursor`, so a
+  # manifest written before then, or a checkpoint without one, describes an
+  # offset-paged cell.
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  calls <- 0L
+  corpus <- mock_paged_corpus(total = 2L)
+  httr2::local_mocked_responses(function(req) {
+    calls <<- calls + 1L
+    corpus(req)
+  })
+  plan <- scopus_plan("x", years = 2020L, partition = "year")
+  scopus_fetch_plan(plan, cache_dir = cache)
+  file <- list.files(cache, pattern = "^cell-", full.names = TRUE)
+  expect_identical(attr(readRDS(file), "cache_meta")$paging, "offset")
+
+  for (strip in c("paging", "manifest")) {
+    old <- readRDS(file)
+    if (strip == "paging") {
+      meta <- attr(old, "cache_meta")
+      meta$paging <- NULL
+      attr(old, "cache_meta") <- meta
+    } else {
+      attr(old, "cache_meta") <- NULL
+    }
+    saveRDS(old, file)
+    before <- calls
+    expect_no_warning(scopus_fetch_plan(plan, cache_dir = cache))
+    expect_equal(calls, before)
+    switched <- expect_warning(scopus_fetch_plan(plan, cache_dir = cache, cursor = TRUE),
+                               class = "scopus_warning_cache_mismatch")
+    expect_equal(calls, before + 1L)
+    expect_match(conditionMessage(switched), "was fetched under offset paging",
+                 fixed = TRUE)
+    # Back to an offset checkpoint for the next round.
+    expect_warning(scopus_fetch_plan(plan, cache_dir = cache),
+                   class = "scopus_warning_cache_mismatch")
+  }
+})
+
+test_that("scopus_fetch_plan() takes cursor as TRUE or FALSE", {
+  local_scopus_test_env()
+  httr2::local_mocked_responses(function(req) stop("no request was expected"))
+  plan <- scopus_plan("x", years = 2020L)
+  for (bad in list(NA, "yes", c(TRUE, FALSE), 1, NULL)) {
+    expect_error(scopus_fetch_plan(plan, cursor = bad), class = "scopus_error_bad_input")
+  }
+})

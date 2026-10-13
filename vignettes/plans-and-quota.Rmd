@@ -131,9 +131,9 @@ records
 A cache directory serves one plan. Cells are checkpointed by their position in
 the plan and their year, so a second plan pointed at the same directory could
 otherwise be paired with the first plan's checkpoints. Before loading one,
-`scopus_fetch_plan()` checks that the query, year, view, page size and record
-cap it was written under all match the cell being run, and refetches with a
-warning when they do not. A checkpoint holding more records than the current
+`scopus_fetch_plan()` checks that the query, year, view, page size, paging mode
+and record cap it was written under all match the cell being run, and refetches
+with a warning when they do not. A checkpoint holding more records than the current
 `max_results` asks for is served trimmed to that cap, with the fuller set left
 on disk for a later, wider request. A checkpoint that stopped at a smaller cap
 than is being asked for now is a mismatch, refetched with a warning. One that
@@ -282,6 +282,24 @@ API's cursor in place of an offset and retrieves the whole set in one call, with
 the records arriving in deep-paging order. The *Analysing a literature* article
 weighs the two. A plan gives cached, resumable cells, the cursor a complete set
 in a single pass.
+
+`scopus_fetch_plan(plan, cursor = TRUE)` combines the two remedies. It pages
+every cell of a plan by cursor, so a single year that matches more than 5000
+records is retrieved whole and keeps its checkpoint.
+
+```{r eval = FALSE}
+records <- scopus_fetch_plan(plan, cache_dir = scopus_cache_dir(), cursor = TRUE)
+```
+
+Inside a plan, the warning for a cell that stops at the ceiling names that call,
+since the cell is already partitioned. Plans page by offset unless asked
+otherwise, as they always have, so an existing script returns what it returned
+before. A checkpoint records the mode it was fetched under and serves only a
+request in the same mode, so switching modes fetches each cell again. The Python
+twin's `fetch_plan()` makes the opposite choice of default for the same reason.
+It has always paged by cursor, and pages by offset only when given
+`cursor=False`, the route pybliometrics documents for keys without a Scopus
+subscription.
 
 ## Handling interruptions
 

@@ -787,6 +787,42 @@ leaves a half-written `.rds`, and before this a damaged checkpoint aborted every
 subsequent resume with an untyped error that could only be cleared by finding
 and deleting the file by hand.
 
+## Paging a plan
+
+Up to 0.4.0, a plan could only be paged by offset. A year cell matching more
+than 5000 records therefore stopped at 5000, and both warnings advised
+partitioning by year, which the plan already was. `scopus_fetch_plan()` now
+takes `cursor`, an argument of the fetch and not a field of the plan, for three
+reasons. `scopus_fetch()` already takes `cursor`, and the search record already
+treats the mode as settled when the search is run. A plan field would also have
+changed plan equality, both golden search records and the snippet round trip.
+The default stays `FALSE`, so an existing script fetches what it fetched before
+and its checkpoints stay valid. The Python twin keeps cursor paging as its
+default for the same reason, and both defaults are documented.
+
+The mode joins the checkpoint identity. A manifest written before it was
+recorded, and a checkpoint without a manifest, count as offset, the only mode a
+plan had. Serving either to a cursor request could hand back a cell cut short
+at the ceiling. The audit also proposed setting `complete = FALSE` on an
+offset cell stopped at the ceiling. That was dropped, because an offset refetch
+stops at the same record and the mode in the identity already keeps such a
+checkpoint from a cursor request. A checkpoint that differs from the request
+in its mode alone was written by the same plan, and the warning for it names
+both modes. It leaves out the advice to give each plan its own `cache_dir`,
+which a caller switching modes on the capped warning's advice would otherwise
+read in every cell. Inside a plan, the capped warning names
+`scopus_fetch_plan(plan, cursor = TRUE)`. The shortfall warning keeps its
+wording, which the Python twin shares word for word. The reproduction snippet
+adds `cursor = TRUE` when the records say they were paged by cursor.
+
+The Python twin used to send `cursor=True` to pybliometrics, which reads
+`cursor` as an alias for `subscriber` and lets it win, so a caller's
+`subscriber=False` was ignored and `cursor=False` raised a `TypeError`. It now
+sends `subscriber`, the documented name, alone. Where this package stops an
+offset-paged cell at 5000 records with a warning, pybliometrics refuses a search
+above 5000 matches with `ScopusQueryError`, which that twin raises again with
+the cell named.
+
 ## Dating a retrieval
 
 `citations` is a snapshot value that moves continuously, and the

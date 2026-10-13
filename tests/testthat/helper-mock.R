@@ -94,6 +94,16 @@ mock_cursor_corpus <- function(total) {
   }
 }
 
+# A corpus served under either paging mode: by cursor when a request carries
+# one, by offset otherwise. A plan can then be fetched both ways from one mock.
+mock_paged_corpus <- function(total) {
+  by_offset <- mock_corpus(total)
+  by_cursor <- mock_cursor_corpus(total)
+  function(req) {
+    if (is.null(httr2::url_parse(req$url)$query$cursor)) by_offset(req) else by_cursor(req)
+  }
+}
+
 # A misbehaving cursor mock that NEVER signals the end: every page is full and
 # carries a fresh, ever-advancing `@next`, and no total is reported. Only the
 # package's own page ceiling can stop a fetch against this.

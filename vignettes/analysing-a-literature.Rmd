@@ -284,4 +284,5 @@ year-partitioned plan in the *Search plans and quota-aware retrieval* article. A
 plan keeps each cell under the ceiling and preserves relevance order, whereas
 `cursor = TRUE` harvests the whole set in a single pass. Reach for the plan when
 you want cached, resumable cells and the cursor when you want the complete set
-at once.
+at once. `scopus_fetch_plan(plan, cursor = TRUE)` gives both, at the cost of
+the deep-paging order.

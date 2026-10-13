@@ -11,7 +11,8 @@ scopus_fetch_plan(
   resume = TRUE,
   api_key = NULL,
   inst_token = NULL,
-  verbose = FALSE
+  verbose = FALSE,
+  cursor = FALSE
 )
 }
 \arguments{
@@ -26,9 +27,10 @@ scopus_fetch_plan(
 argument. A cache directory serves one plan: cells are checkpointed by
 their position in the plan and their year, so give each distinct plan its
 own directory. As a safeguard, a checkpoint is served only when the query,
-year, view and page size it was fetched under all match the plan cell, and
-only when its own \code{max_results} did not truncate it below what is being
-asked for now; anything else is a cache miss, refetched and overwritten.
+year, view, page size and paging mode it was fetched under all match the
+plan cell, and only when its own \code{max_results} did not truncate it below
+what is being asked for now; anything else is a cache miss, refetched and
+overwritten.
 A checkpoint holding more records than the current \code{max_results} asks for
 is served trimmed to that cap, the fuller set staying on disk. A
 checkpoint that cannot be read back, for example one left half-written by
@@ -44,6 +46,17 @@ file already exists is loaded from disk, sparing a second request.}
 \item{api_key, inst_token}{Optional credentials (see \code{\link[=scopus_has_key]{scopus_has_key()}}).}
 
 \item{verbose}{Logical. When \code{TRUE}, per-cell progress is reported.}
+
+\item{cursor}{Logical. When \code{TRUE}, each cell is retrieved with cursor-based
+pagination, which has no 5000-record ceiling, so a cell matching more
+records than that is retrieved whole and still checkpointed. The records
+then arrive in the API's deep-paging order (see \code{\link[=scopus_fetch]{scopus_fetch()}}). The
+default, \code{FALSE}, pages by offset, as plans always have, so a cell stops at
+its first 5000 records with a warning. Checkpoints record the paging mode
+and serve only requests made in the same mode. A checkpoint written before
+the mode was recorded counts as offset-paged. The Python twin's
+\code{fetch_plan()} pages by cursor unless told otherwise, the mode it has
+always used.}
 }
 \value{
 A \link{scopus_records} tibble combining all cells, with the originating

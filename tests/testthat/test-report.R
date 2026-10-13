@@ -250,6 +250,29 @@ test_that("the reproduction snippet rebuilds the plan it describes", {
   }
 })
 
+test_that("the snippet pages the search as the records were paged", {
+  # scopus_fetch_plan() pages by offset unless told otherwise, so only
+  # cursor = TRUE reproduces a harvest paged by cursor.
+  recs <- report_fixture()
+  attr(recs, "paging") <- "cursor"
+  snippet <- scopus_search_report(recs)$snippet
+  expect_true(endsWith(snippet, "\nrecords <- scopus_fetch_plan(plan, cursor = TRUE)"))
+  env <- new.env(parent = globalenv())
+  env$scopus_fetch_plan <- function(p, ...) list(plan = p, args = list(...))
+  eval(parse(text = snippet), envir = env)
+  expect_identical(env$records$plan, attr(recs, "plan"))
+  expect_identical(env$records$args, list(cursor = TRUE))
+
+  # A harvest paged by offset, one that does not record its paging and a plan
+  # not yet run all take the default.
+  offset <- scopus_search_report(report_fixture())$snippet
+  attr(recs, "paging") <- NULL
+  unrecorded <- scopus_search_report(recs)$snippet
+  for (s in list(offset, unrecorded, scopus_search_report(attr(recs, "plan"))$snippet)) {
+    expect_true(endsWith(s, "\nrecords <- scopus_fetch_plan(plan)"))
+  }
+})
+
 test_that("file = writes Markdown, and only when supplied", {
   report <- scopus_search_report(report_fixture())
   path <- withr::local_tempfile(fileext = ".md")

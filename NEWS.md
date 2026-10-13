@@ -1,5 +1,20 @@
 # scopusflow (development version)
 
+## New features
+
+* `scopus_fetch_plan()` gains `cursor`, so a plan cell matching more than 5000
+  records can be retrieved whole and still be checkpointed. The default,
+  `cursor = FALSE`, keeps the offset paging plans have always used. Checkpoints
+  now record the paging mode and serve only a request in the same mode, and one
+  written before the mode was recorded counts as offset-paged. A checkpoint in
+  the other mode is refetched with a warning that names both modes. Inside a
+  plan, the warning for a cell that stops at the offset ceiling now names
+  `scopus_fetch_plan(plan, cursor = TRUE)`. It used to advise partitioning by
+  year, which a year-partitioned plan already does. The search record's
+  reproduction snippet passes `cursor = TRUE` when the records were paged by
+  cursor. The Python twin's `fetch_plan()` gains `cursor` too, and keeps the
+  cursor paging it has always used unless given `cursor=False`.
+
 ## Changed behaviour
 
 * Input errors now inherit `scopus_error`, as the package has always documented.
