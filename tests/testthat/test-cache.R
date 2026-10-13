@@ -180,6 +180,23 @@ test_that("a zero-row checkpoint is not served to a different query", {
   expect_equal(calls, calls_after)
 })
 
+test_that("a plan harvest records the cap it was asked for, once", {
+  # The cells are bound into one set, which carries the cap of this call. A
+  # checkpoint written under a wider cap is served trimmed to this one, so the
+  # set still holds no cell larger than the cap it records.
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  httr2::local_mocked_responses(mock_corpus(total = 5L))
+  plan <- scopus_plan("x", years = 2019:2020, partition = "year")
+
+  wide <- scopus_fetch_plan(plan, max_results = 3, cache_dir = cache)
+  expect_equal(attr(wide, "max_results"), 3)
+  narrow <- scopus_fetch_plan(plan, max_results = 2, cache_dir = cache)
+  expect_equal(attr(narrow, "max_results"), 2)
+  expect_equal(attr(narrow, "cell_totals")$n_records, c(2L, 2L))
+  expect_null(attr(scopus_fetch_plan(plan), "max_results"))
+})
+
 test_that("a cap that never bit leaves the checkpoint usable for any request", {
   # The cell held fewer records than its cap, so nothing was truncated and a
   # later uncapped request must not spend quota refetching it.

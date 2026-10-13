@@ -160,6 +160,14 @@
   and 2025", where the record gave one span that claimed the years between.
   Item 2, on databases searched together on one platform, is now supplied,
   since the API searches Scopus alone.
+* A harvest capped by `max_results` is now recorded as capped: the search
+  record names the cap in the cells, the completeness line and item 9, the
+  reproduction snippet passes it, and `autoplot()` says the bars count
+  retrieved records. The app no longer caps live harvests at 200 records per
+  year by default. Its field, now labelled "Max records per cell", starts
+  blank, and a note in the Retrieval panel says when the cap stopped a cell.
+  `scopus_fetch()` and `scopus_fetch_plan()` keep a finite cap as the
+  `max_results` attribute, which the record reads.
 
 ## Documentation
 

@@ -157,6 +157,31 @@ test_that("the new plots return ggplot objects", {
   expect_true(all(b == round(b), na.rm = TRUE))
 })
 
+test_that("autoplot says when a cap stopped the cells it counts", {
+  skip_if_not_installed("ggplot2")
+  # Under a binding cap the bars count records retrieved, so a figure titled by
+  # year would otherwise be read as publications per year.
+  recs <- example_records
+  attr(recs, "plan") <- scopus_plan("graphene supercapacitor", years = 2015:2024,
+                                    partition = "year")
+  n <- as.integer(table(example_records$year))
+  attr(recs, "cell_totals") <- tibble::tibble(
+    cell = 1:10, date = as.character(2015:2024), n_records = n,
+    reported_total = as.numeric(n) + c(40, rep(0, 9))
+  )
+  attr(recs, "max_results") <- 15L
+  expect_identical(
+    ggplot2::autoplot(recs)$labels$caption,
+    paste("Retrieval capped at 15 records per cell: the bars count records",
+          "retrieved, not publications per year.")
+  )
+
+  # A cap that stopped no cell, and a set without one, leave the figure as it was.
+  attr(recs, "max_results") <- 50L
+  expect_null(ggplot2::autoplot(recs)$labels$caption)
+  expect_null(ggplot2::autoplot(example_records)$labels$caption)
+})
+
 test_that("plot_scopus_top uses whole-number count breaks", {
   skip_if_not_installed("ggplot2")
   # Every author in the fixture appears once, the case that used to produce

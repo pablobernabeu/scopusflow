@@ -26,6 +26,21 @@ test_that("max_results limits retrieval", {
   expect_equal(nrow(recs), 10L)
 })
 
+test_that("a finite max_results travels with the retrieval, under either paging", {
+  # The search record has to name a cap the retrieval stopped at, and it can
+  # only read what the set carries. An uncapped retrieval carries nothing, so
+  # existing sets and the golden search records are unchanged.
+  local_scopus_test_env()
+  httr2::local_mocked_responses(mock_paged_corpus(total = 30L))
+  expect_equal(attr(scopus_fetch("anything", max_results = 10L, page_size = 4L),
+                    "max_results"), 10)
+  expect_equal(attr(scopus_fetch("anything", max_results = 7L, page_size = 5L,
+                                 cursor = TRUE), "max_results"), 7)
+  expect_null(attr(scopus_fetch("anything", page_size = 10L), "max_results"))
+  expect_null(attr(scopus_fetch("anything", page_size = 10L, cursor = TRUE),
+                   "max_results"))
+})
+
 test_that("a max_results past integer range retrieves, rather than coercing to NA", {
   # The validator accepts any finite whole number. as.integer() used to run on
   # the way out, so a cap past 2^31 became NA, every `n >= max_results` after it

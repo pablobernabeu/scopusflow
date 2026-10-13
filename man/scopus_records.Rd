@@ -53,7 +53,8 @@ The coercion methods return a plain \link[tibble:tibble]{tibble} or data
 frame with the same columns and the \code{scopus_records} class removed.
 
 The \code{autoplot()} method returns a \link[ggplot2:ggplot]{ggplot2::ggplot} of the records per
-year.
+year. When a \code{max_results} cap stopped any cell of the retrieval, a caption
+says that the bars count records retrieved, not publications per year.
 
 A tibble of class \code{scopus_records} with the columns
 \code{entry_number} (integer), \code{scopus_id} (character), \code{doi} (character),

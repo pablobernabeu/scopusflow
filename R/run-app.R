@@ -77,8 +77,14 @@ app_ui <- function() {
       ),
       shiny::radioButtons("view", "Detail", inline = TRUE,
                           choices = c("STANDARD", "COMPLETE")),
-      shiny::numericInput("max_results", "Max records per year (blank = all)",
-                          value = 200L, min = 1L),
+      # Blank, so a live harvest is capped only when the user asks for it. The
+      # Python app has no such field and never caps one. Offset paging
+      # already stops a cell at 5000 records, 25 requests under STANDARD and
+      # 200 under COMPLETE. The cap applies per cell, and so to the whole
+      # search when partitioning is off. NA renders as an empty field, and
+      # shiny's number input hands the server NA for it, read as no cap.
+      shiny::numericInput("max_results", "Max records per cell (blank = all)",
+                          value = NA, min = 1L),
       shiny::hr(),
       shiny::actionButton("count", "Check size", class = "btn-outline-primary w-100 mb-2"),
       shiny::actionButton("fetch", "Fetch records",
@@ -91,6 +97,7 @@ app_ui <- function() {
         bslib::card_header("Retrieval"),
         shiny::uiOutput("size_note"),
         shiny::uiOutput("progress_ui"),
+        shiny::uiOutput("cap_note"),
         bslib::accordion(
           open = FALSE,
           bslib::accordion_panel(
@@ -456,6 +463,13 @@ app_server <- function(input, output, session) {
   })
 
   records_r <- shiny::reactive(rv$records)
+
+  # Stays in the Retrieval card for as long as the capped records are on
+  # screen, where a notification would vanish before the By year tab is read.
+  output$cap_note <- shiny::renderUI({
+    note <- app_cap_note(records_r())
+    if (is.null(note)) NULL else shiny::div(class = "alert alert-warning py-2", note)
+  })
 
   output$records_table <- shiny::renderTable({
     recs <- records_r()

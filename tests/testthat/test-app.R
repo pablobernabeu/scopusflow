@@ -175,6 +175,49 @@ test_that("run_app is exported and guarded", {
   expect_true(is.function(run_app))
 })
 
+test_that("the record cap starts blank and is labelled per cell", {
+  # The field used to default to 200 records per year, so every live harvest
+  # was capped unless the user cleared it, and the By year tab then plotted
+  # the cap. With partitioning off it caps the whole search, a single cell.
+  ui <- as.character(app_ui())
+  expect_true(grepl("Max records per cell (blank = all)", ui, fixed = TRUE))
+  expect_false(grepl("Max records per year", ui, fixed = TRUE))
+  input <- regmatches(ui, regexpr("<input id=\"max_results\"[^>]*>", ui))
+  expect_length(input, 1L)
+  # shiny writes a missing value as "NA". A browser shows that as an empty
+  # number field, and shiny's number input hands the server NA for it, read
+  # as no cap.
+  expect_true(grepl("value=\"NA\"", input, fixed = TRUE))
+})
+
+# A two-cell harvest whose first cell stopped at a cap of 15.
+app_capped_records <- function(cap = 15L) {
+  recs <- example_records[1:30, ]
+  attr(recs, "plan") <- scopus_plan("graphene", years = 2019:2020, partition = "year")
+  attr(recs, "cell_totals") <- tibble::tibble(
+    cell = 1:2, date = c("2019", "2020"), n_records = c(15L, 15L),
+    reported_total = c(40, 15)
+  )
+  attr(recs, "max_results") <- cap
+  recs
+}
+
+test_that("the app notes a harvest whose cap stopped a cell", {
+  expect_identical(
+    app_cap_note(app_capped_records()),
+    paste("The cap of 15 records per cell stopped 1 of 2 cells. Each capped cell",
+          "holds only its first 15 matches, so By year counts the records",
+          "retrieved, not publications per year. Clear Max records per cell and",
+          "fetch again to lift the cap.")
+  )
+  # A cap that stopped nothing, an uncapped harvest and the demo replay, which
+  # records no cap, show no note.
+  expect_null(app_cap_note(app_capped_records(cap = 100L)))
+  expect_null(app_cap_note(example_records))
+  expect_null(app_cap_note(app_demo_records(2019:2020, max_per_year = 2)))
+  expect_null(app_cap_note(NULL))
+})
+
 test_that("the authors tab says when a STANDARD harvest names first authors only", {
   standard <- complete <- example_records
   attr(standard, "view") <- "STANDARD"
@@ -306,4 +349,17 @@ test_that("the authors tab notes a STANDARD harvest, and leaves the session's wa
   })
   expect_warning(scopus_top(standard, by = "author"),
                  class = "scopus_warning_first_author_only")
+})
+
+test_that("the Retrieval card shows the cap note after a capped harvest", {
+  skip_if_not_installed("shiny")
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = "graphene")
+    rv$records <- app_capped_records()
+    session$flushReact()
+    expect_match(output$cap_note$html, "stopped 1 of 2 cells", fixed = TRUE)
+    rv$records <- example_records
+    session$flushReact()
+    expect_false(grepl("stopped", output$cap_note$html %||% "", fixed = TRUE))
+  })
 })

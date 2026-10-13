@@ -6,7 +6,9 @@
 #' bound once into a single [scopus_records] tibble.
 #'
 #' @param plan A `scopus_plan` object from [scopus_plan()].
-#' @param max_results Maximum records to retrieve per cell (default `Inf`).
+#' @param max_results Maximum records to retrieve per cell (default `Inf`). A
+#'   finite cap is recorded on the result, and [scopus_search_report()] says
+#'   which cells stopped at it.
 #' @param cache_dir Optional directory for per-cell cache files. The default of
 #'   `NULL` performs no caching. Pass an explicit path you control, or
 #'   `scopus_cache_dir()` to use a managed, clearable cache under
@@ -62,11 +64,14 @@
 #'   looking like a real figure. A cell that comes back shorter than the API
 #'   said it should warns, because a truncated or refused download otherwise
 #'   arrives as a merely small result set; a cell stopped by `max_results` is
-#'   short by request and does not warn. [scopus_search_report()] reads all of
-#'   this back. The `retrieved_at`, `retrieved_until` and
-#'   `scopusflow_version` attributes described in [scopus_fetch()] are carried
-#'   across from the cells. `retrieved_at` is the earliest of their times, since
-#'   a combined set is only as fresh as its oldest cell. `retrieved_until` is
+#'   short by request and does not warn. A finite `max_results` is attached as
+#'   the attribute of that name, the cap of this call: a checkpoint written
+#'   under a wider cap is served trimmed to it, so no cell holds more.
+#'   [scopus_search_report()] reads all of this back. The `retrieved_at`,
+#'   `retrieved_until` and `scopusflow_version` attributes described in
+#'   [scopus_fetch()] are carried across from the cells. `retrieved_at` is the
+#'   earliest of their times, since a combined set is only as fresh as its
+#'   oldest cell. `retrieved_until` is
 #'   the latest, the last search, which the record of a harvest resumed over
 #'   several days has to give. Every version that contributed is listed, since
 #'   resuming an older cache means more than one did. Each is omitted when any
@@ -222,6 +227,10 @@ scopus_fetch_plan <- function(plan,
   # cells that did would understate the search while looking like a real figure,
   # and the report built from this attribute is written for a methods section.
   attr(combined, "total_results") <- if (anyNA(reported)) NA_real_ else sum(reported)
+  # One cap for the whole set, the one this call asked for. Binding drops the
+  # cells' own copies, and a checkpoint written under a wider cap was served
+  # trimmed to this one, so it holds for every cell.
+  if (is.finite(max_results)) attr(combined, "max_results") <- max_results
   combined
 }
 

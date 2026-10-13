@@ -40,7 +40,9 @@
 #'   each records when it was taken, and [scopus_search_report()] reads all of
 #'   them back. `view` records the view, which decides what `authors` holds: the
 #'   first author under `STANDARD` and the author list under `COMPLETE` (see
-#'   [scopus_records()]). `plan` is the one-cell plan the call ran,
+#'   [scopus_records()]). `max_results` records the cap the call was given,
+#'   when it was given one, so the search record can say whether the
+#'   retrieval stopped at it. `plan` is the one-cell plan the call ran,
 #'   `scopus_plan(query, years, field, view, page_size, partition = "none")`, so
 #'   the search record states the field tag and the year limit the request
 #'   carried. These attributes survive a `.rds` round trip through
@@ -194,7 +196,7 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
   records <- scopus_records(list(entry = all_entries), query = wrapped, view = view,
                             fields = fields)
   scopus_attach_provenance(records, total = total, quota = quota, paging = "offset",
-                           view = view)
+                           view = view, max_results = max_results)
 }
 
 # When a retrieval was taken, by which version of the package, and how it was
@@ -209,8 +211,13 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
 # counts first authorships. Attributes, never columns, so the documented schema
 # and the CSV round-trip are untouched. A single retrieval has one time, given
 # as both the earliest and the latest, so that a set bound from several can
-# carry the span its parts were taken over (see scopus_bind_provenance()).
-scopus_attach_provenance <- function(records, total, quota, paging, view) {
+# carry the span its parts were taken over (see scopus_bind_provenance()). A
+# finite `max_results` is kept too. A retrieval that stopped at a cap the
+# caller set holds fewer records than the search matched, and the search
+# record has to say why, as PRISMA-S item 9 asks for every limit. No cap leaves
+# no attribute, so a set retrieved whole carries what it always carried.
+scopus_attach_provenance <- function(records, total, quota, paging, view,
+                                     max_results = Inf) {
   stamp <- Sys.time()
   attr(records, "total_results") <- total
   attr(records, "quota") <- quota
@@ -220,6 +227,7 @@ scopus_attach_provenance <- function(records, total, quota, paging, view) {
     as.character(utils::packageVersion("scopusflow"))
   attr(records, "paging") <- paging
   attr(records, "view") <- view
+  if (is.finite(max_results)) attr(records, "max_results") <- max_results
   records
 }
 
@@ -292,7 +300,7 @@ scopus_fetch_cursor <- function(wrapped, date, view, page_size, max_results,
   records <- scopus_records(list(entry = all_entries), query = wrapped, view = view,
                             fields = fields)
   scopus_attach_provenance(records, total = total, quota = quota, paging = "cursor",
-                           view = view)
+                           view = view, max_results = max_results)
 }
 
 scopus_check_max_results <- function(max_results, call = rlang::caller_env()) {

@@ -19,7 +19,9 @@ scopus_fetch_plan(
 \arguments{
 \item{plan}{A \code{scopus_plan} object from \code{\link[=scopus_plan]{scopus_plan()}}.}
 
-\item{max_results}{Maximum records to retrieve per cell (default \code{Inf}).}
+\item{max_results}{Maximum records to retrieve per cell (default \code{Inf}). A
+finite cap is recorded on the result, and \code{\link[=scopus_search_report]{scopus_search_report()}} says
+which cells stopped at it.}
 
 \item{cache_dir}{Optional directory for per-cell cache files. The default of
 \code{NULL} performs no caching. Pass an explicit path you control, or
@@ -83,11 +85,14 @@ reported one, since a partial sum would understate the search while
 looking like a real figure. A cell that comes back shorter than the API
 said it should warns, because a truncated or refused download otherwise
 arrives as a merely small result set; a cell stopped by \code{max_results} is
-short by request and does not warn. \code{\link[=scopus_search_report]{scopus_search_report()}} reads all of
-this back. The \code{retrieved_at}, \code{retrieved_until} and
-\code{scopusflow_version} attributes described in \code{\link[=scopus_fetch]{scopus_fetch()}} are carried
-across from the cells. \code{retrieved_at} is the earliest of their times, since
-a combined set is only as fresh as its oldest cell. \code{retrieved_until} is
+short by request and does not warn. A finite \code{max_results} is attached as
+the attribute of that name, the cap of this call: a checkpoint written
+under a wider cap is served trimmed to it, so no cell holds more.
+\code{\link[=scopus_search_report]{scopus_search_report()}} reads all of this back. The \code{retrieved_at},
+\code{retrieved_until} and \code{scopusflow_version} attributes described in
+\code{\link[=scopus_fetch]{scopus_fetch()}} are carried across from the cells. \code{retrieved_at} is the
+earliest of their times, since a combined set is only as fresh as its
+oldest cell. \code{retrieved_until} is
 the latest, the last search, which the record of a harvest resumed over
 several days has to give. Every version that contributed is listed, since
 resuming an older cache means more than one did. Each is omitted when any

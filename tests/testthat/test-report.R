@@ -509,3 +509,323 @@ test_that("a merged set's record matches the golden file both twins are pinned t
   golden <- rawToChar(readBin(path, "raw", file.size(path)))
   expect_identical(rendered, golden)
 })
+
+# The report and paragraph renderings, as the golden files hold them.
+render_record <- function(report) {
+  paste0(format(report, style = "report"), "\n\n",
+         format(report, style = "paragraph"), "\n")
+}
+
+read_golden <- function(name) {
+  path <- test_path(name)
+  rawToChar(readBin(path, "raw", file.size(path)))
+}
+
+# A plan harvest stopped by max_results: two year cells for which the API
+# reported 1,532 records each, capped at 200. The rows are the bundled corpus
+# in order, recycled to the 400 the cells held, since the record reads only
+# how many rows there are and how many carry a DOI. The Python suite builds
+# the same set, and its copy of golden-search-record-capped.txt is
+# byte-identical.
+capped_fixture <- function(cap = 200, n_records = c(200L, 200L),
+                           reported = c(1532, 1532)) {
+  recs <- example_records[rep_len(seq_len(nrow(example_records)), sum(n_records)), ]
+  attr(recs, "plan") <- scopus_plan("graphene supercapacitor", years = 2023:2024,
+                                    field = "TITLE-ABS-KEY", partition = "year")
+  attr(recs, "retrieved_at") <- as.POSIXct("2026-07-22 09:15:00", tz = "UTC")
+  attr(recs, "scopusflow_version") <- "0.4.0"
+  attr(recs, "paging") <- "offset"
+  attr(recs, "cell_totals") <- tibble::tibble(
+    cell = 1:2, date = c("2023", "2024"), n_records = as.integer(n_records),
+    reported_total = as.numeric(reported)
+  )
+  attr(recs, "max_results") <- cap
+  recs
+}
+
+test_that("a capped harvest's record matches the golden file both twins are pinned to", {
+  expect_identical(render_record(scopus_search_report(capped_fixture())),
+                   read_golden("golden-search-record-capped.txt"))
+})
+
+test_that("a cell stopped at the cap says so, and the record names the cap", {
+  # The record used to call each cell incomplete, and the harvest incomplete,
+  # without the cap that explained both, and item 9 left the cap out.
+  report <- scopus_search_report(capped_fixture())
+  expect_equal(report$max_results, 200)
+  text <- format(report, style = "report")
+  expect_true(grepl(
+    "  1 (2023): 200 retrieved, 1,532 reported, stopped at the requested cap of 200\n",
+    text, fixed = TRUE
+  ))
+  expect_true(grepl(paste0(
+    "Completeness: 400 of the 3,064 records reported as matching were retrieved, ",
+    "a shortfall due to the requested cap of 200 records per cell\n"
+  ), text, fixed = TRUE))
+  expect_equal(report$prisma$source[9], "record")
+  expect_equal(report$prisma$note[9], paste(
+    "Publication years 2023 to 2024. Records per cell were capped at 200.",
+    "scopusflow applies no document type, language or subject area limit of its own."
+  ))
+  expect_true(grepl("| 1 | 2023 | 200 | 1,532 | capped at 200 |",
+                    format(report, style = "markdown"), fixed = TRUE))
+  expect_true(grepl(paste(
+    "so the harvest is incomplete. Records per cell were capped at 200, which",
+    "accounts for the whole shortfall."
+  ), format(report, style = "paragraph"), fixed = TRUE))
+})
+
+test_that("a cap that never bound is named, and nothing is called capped", {
+  report <- scopus_search_report(
+    capped_fixture(cap = 2000, n_records = c(150L, 120L), reported = c(150, 120))
+  )
+  text <- format(report, style = "report")
+  expect_true(grepl("  1 (2023): 150 retrieved, 150 reported, complete\n", text, fixed = TRUE))
+  expect_true(grepl("Completeness: every record the API reported as matching was retrieved\n",
+                    text, fixed = TRUE))
+  expect_false(grepl("stopped at", text, fixed = TRUE))
+  expect_equal(report$prisma$note[9], paste(
+    "Publication years 2023 to 2024. A cap of 2,000 records per cell was set and",
+    "did not bind. scopusflow applies no document type, language or subject area",
+    "limit of its own."
+  ))
+  expect_true(grepl("A cap of 2,000 records per cell was set and did not bind.",
+                    format(report, style = "paragraph"), fixed = TRUE))
+})
+
+test_that("a shortfall the cap explains only in part counts the capped cells", {
+  # The second cell came back short of its total without reaching the cap, so
+  # the cap is not the whole story.
+  report <- scopus_search_report(
+    capped_fixture(n_records = c(200L, 150L), reported = c(1532, 160))
+  )
+  text <- format(report, style = "report")
+  expect_true(grepl("  2 (2024): 150 retrieved, 160 reported, incomplete\n", text, fixed = TRUE))
+  expect_true(grepl(paste0(
+    "Completeness: 350 of the 1,692 records reported as matching were retrieved, ",
+    "and 1 of 2 cells stopped at the requested cap of 200\n"
+  ), text, fixed = TRUE))
+  expect_true(grepl("Records per cell were capped at 200, and 1 of 2 cells stopped at that cap.",
+                    format(report, style = "paragraph"), fixed = TRUE))
+})
+
+test_that("a cell at the cap without a reported total still stopped at the cap", {
+  report <- scopus_search_report(capped_fixture(reported = c(NA, NA)))
+  text <- format(report, style = "report")
+  expect_true(grepl(paste0(
+    "  1 (2023): 200 retrieved, reported total unrecorded, stopped at the ",
+    "requested cap of 200\n"
+  ), text, fixed = TRUE))
+  expect_true(grepl(paste0(
+    "Completeness: unrecorded, since the number of records the API reported as ",
+    "matching is not known, and 2 of 2 cells stopped at the requested cap of 200\n"
+  ), text, fixed = TRUE))
+})
+
+test_that("a single search stopped at its cap is written up as capped", {
+  # What scopus_fetch(max_results = 25) returns against 500 matches: one cell,
+  # with no year limit.
+  recs <- example_records[1:25, ]
+  attr(recs, "plan") <- scopus_plan("graphene supercapacitor", field = "TITLE-ABS-KEY")
+  attr(recs, "total_results") <- 500
+  attr(recs, "max_results") <- 25L
+  report <- scopus_search_report(recs)
+  expect_true(grepl(
+    "  1 (no year limit): 25 retrieved, 500 reported, stopped at the requested cap of 25\n",
+    format(report, style = "report"), fixed = TRUE
+  ))
+  expect_equal(report$prisma$note[9], paste(
+    "No year limit was applied. Records per cell were capped at 25. scopusflow",
+    "applies no document type, language or subject area limit of its own."
+  ))
+})
+
+test_that("the snippet passes the cap the harvest was run under", {
+  snippet <- scopus_search_report(capped_fixture())$snippet
+  expect_true(endsWith(snippet, "\nrecords <- scopus_fetch_plan(plan, max_results = 200)"))
+  env <- new.env(parent = globalenv())
+  env$scopus_fetch_plan <- function(p, ...) list(plan = p, args = list(...))
+  eval(parse(text = snippet), envir = env)
+  expect_identical(env$records$args, list(max_results = 200))
+
+  recs <- capped_fixture(cap = 1e10)
+  attr(recs, "paging") <- "cursor"
+  expect_true(endsWith(
+    scopus_search_report(recs)$snippet,
+    "\nrecords <- scopus_fetch_plan(plan, max_results = 10000000000, cursor = TRUE)"
+  ))
+})
+
+test_that("a capped plan harvest is written up as capped, end to end", {
+  local_scopus_test_env()
+  httr2::local_mocked_responses(mock_corpus(total = 30L))
+  plan <- scopus_plan("graphene", years = 2023:2024, partition = "year")
+  recs <- expect_no_warning(scopus_fetch_plan(plan, max_results = 10))
+  report <- scopus_search_report(recs)
+  text <- format(report, style = "report")
+  expect_true(grepl("  1 (2023): 10 retrieved, 30 reported, stopped at the requested cap of 10\n",
+                    text, fixed = TRUE))
+  expect_true(grepl("a shortfall due to the requested cap of 10 records per cell", text,
+                    fixed = TRUE))
+  expect_true(endsWith(report$snippet, "\nrecords <- scopus_fetch_plan(plan, max_results = 10)"))
+})
+
+# A harvest stopped after two of its five year cells, as the Python twin's
+# fetch_plan() records one when its should_stop callable, which the app's Cancel
+# sets, returns True. This twin has no partial-return path, since the app's
+# Cancel kills the background worker, so the branch is dormant here and the
+# attributes are set by hand. It is kept so that the two renderers stay one
+# function. The Python suite builds the same set, and its copy of
+# golden-search-record-stopped.txt is byte-identical. A harvest stopped before
+# its first cell records no time and no version, as the Python twin's does not.
+stopped_fixture <- function(run = 2L) {
+  years <- 2015L + seq_len(run)
+  recs <- example_records[example_records$year %in% years, ]
+  n <- as.integer(table(factor(recs$year, levels = years)))
+  attr(recs, "plan") <- scopus_plan("graphene supercapacitor", years = 2016:2020,
+                                    field = "TITLE-ABS-KEY", partition = "year")
+  if (run > 0L) {
+    attr(recs, "retrieved_at") <- as.POSIXct("2026-07-22 09:15:00", tz = "UTC")
+    attr(recs, "scopusflow_version") <- "0.4.0"
+  }
+  attr(recs, "paging") <- "cursor"
+  attr(recs, "cell_totals") <- tibble::tibble(
+    cell = seq_len(run), date = as.character(years), n_records = n,
+    reported_total = as.numeric(n)
+  )
+  attr(recs, "stopped_early") <- TRUE
+  attr(recs, "cells_planned") <- 5L
+  attr(recs, "cells_run") <- run
+  recs
+}
+
+test_that("a stopped harvest's record matches the golden file both twins are pinned to", {
+  expect_identical(render_record(scopus_search_report(stopped_fixture())),
+                   read_golden("golden-search-record-stopped.txt"))
+})
+
+test_that("a stopped harvest says how many cells ran, and which years", {
+  report <- scopus_search_report(stopped_fixture())
+  expect_true(report$stopped_early)
+  expect_identical(report$cells_run, 2L)
+  expect_identical(report$cells_planned, 5L)
+  expect_identical(report$not_run, 3:5)
+  expect_equal(report$years, "2016 to 2020")
+  expect_equal(report$years_run, "2016 to 2017")
+  text <- format(report, style = "report")
+  expect_true(grepl("Years: 2016 to 2017, of 2016 to 2020 planned\n", text, fixed = TRUE))
+  expect_true(grepl(paste0(
+    "Records reported as matching: not counted for the 3 cells not run, so no ",
+    "overall figure is given\n"
+  ), text, fixed = TRUE))
+  expect_true(grepl("Completeness: incomplete, the harvest was stopped after 2 of 5 cells\n",
+                    text, fixed = TRUE))
+  expect_true(grepl("  1 (2016): 9 retrieved, 9 reported, complete\n", text, fixed = TRUE))
+  expect_true(grepl("  3 (2018): not run\n", text, fixed = TRUE))
+  expect_true(grepl("| 3 | 2018 | not run | not run | no |",
+                    format(report, style = "markdown"), fixed = TRUE))
+  expect_equal(report$prisma$note[9], paste(
+    "Publication years 2016 to 2020. Of the 5 cells planned, 2 were retrieved",
+    "before the harvest was stopped (2016 to 2017). scopusflow applies no document",
+    "type, language or subject area limit of its own."
+  ))
+  expect_equal(report$prisma$note[15], paste(
+    "19 records retrieved from Scopus before the harvest was stopped after 2 of 5",
+    "cells."
+  ))
+  para <- format(report, style = "paragraph")
+  expect_true(grepl("one per year, each to be retrieved through the STANDARD view", para,
+                    fixed = TRUE))
+  expect_false(grepl("each retrieved through", para, fixed = TRUE))
+  expect_true(grepl(paste(
+    "Of the 5 cells planned, 2 were retrieved before the harvest was stopped",
+    "(2016 to 2017), so the harvest is incomplete. The search retrieved 19 records."
+  ), para, fixed = TRUE))
+})
+
+test_that("a harvest stopped before its first cell claims no search", {
+  report <- scopus_search_report(stopped_fixture(run = 0L))
+  expect_identical(report$not_run, 1:5)
+  text <- format(report, style = "report")
+  expect_true(grepl("Years: none, of 2016 to 2020 planned\n", text, fixed = TRUE))
+  expect_true(grepl("Date searched: none, the harvest was stopped before its first cell\n",
+                    text, fixed = TRUE))
+  expect_true(grepl("Completeness: incomplete, the harvest was stopped after 0 of 5 cells\n",
+                    text, fixed = TRUE))
+  expect_true(grepl("  1 (2016): not run\n", text, fixed = TRUE))
+  expect_equal(report$prisma$note[9], paste(
+    "Publication years 2016 to 2020. Of the 5 cells planned, none was retrieved",
+    "before the harvest was stopped. scopusflow applies no document type, language",
+    "or subject area limit of its own."
+  ))
+  para <- format(report, style = "paragraph")
+  expect_true(startsWith(
+    para, "The literature was to be searched in Scopus, on the Elsevier Scopus Search API."
+  ))
+  expect_false(grepl("The literature was searched", para, fixed = TRUE))
+  expect_true(grepl(paste(
+    "Of the 5 cells planned, none was retrieved before the harvest was stopped,",
+    "so the harvest is incomplete."
+  ), para, fixed = TRUE))
+})
+
+test_that("a cap is not said to have held on a harvest stopped before its first cell", {
+  # No cell ran, so nothing was retrieved under the cap, and "did not bind"
+  # would describe a retrieval that never happened.
+  recs <- stopped_fixture(run = 0L)
+  attr(recs, "max_results") <- 50L
+  report <- scopus_search_report(recs)
+  expect_equal(report$prisma$note[9], paste(
+    "Publication years 2016 to 2020. A cap of 50 records per cell was set. Of the",
+    "5 cells planned, none was retrieved before the harvest was stopped. scopusflow",
+    "applies no document type, language or subject area limit of its own."
+  ))
+  for (style in c("report", "paragraph", "markdown")) {
+    expect_false(grepl("did not bind", format(report, style = style), fixed = TRUE))
+  }
+  expect_true(grepl("The search retrieved 0 records. A cap of 50 records per cell was set.",
+                    format(report, style = "paragraph"), fixed = TRUE))
+})
+
+test_that("a stopped set without its plan still says it was stopped", {
+  recs <- stopped_fixture()
+  attr(recs, "plan") <- NULL
+  report <- scopus_search_report(recs)
+  text <- format(report, style = "report")
+  expect_true(grepl("Completeness: incomplete, the harvest was stopped after 2 of 5 cells\n",
+                    text, fixed = TRUE))
+  expect_true(grepl(paste(
+    "Of the 5 cells planned, 2 were retrieved before the harvest was stopped, so",
+    "the harvest is incomplete."
+  ), format(report, style = "paragraph"), fixed = TRUE))
+})
+
+test_that("a plan that is not the one a stopped harvest ran leaves its cells unrecorded", {
+  # Three cells where the harvest planned five: the recorded counts cannot be
+  # placed on this plan's cells, so none is marked as run or not run.
+  other <- scopus_plan("graphene supercapacitor", years = 2016:2018, partition = "year")
+  report <- scopus_search_report(stopped_fixture(), plan = other)
+  expect_true(all(is.na(report$cells$n_records)))
+  expect_length(report$not_run, 0L)
+  text <- format(report, style = "report")
+  expect_true(grepl("  1 (2016): retrieved records unrecorded\n", text, fixed = TRUE))
+  expect_false(grepl("not run\n", text, fixed = TRUE))
+  expect_true(grepl("Years: 2016 to 2018\n", text, fixed = TRUE))
+  expect_true(grepl("Completeness: incomplete, the harvest was stopped after 2 of 5 cells\n",
+                    text, fixed = TRUE))
+})
+
+test_that("a harvest neither capped nor stopped reads as it always has", {
+  # The golden test above pins the whole record. The new attributes, absent,
+  # leave nothing behind in any rendering.
+  report <- scopus_search_report(report_fixture())
+  expect_true(is.na(report$max_results))
+  expect_false(report$stopped_early)
+  expect_length(report$not_run, 0L)
+  for (style in c("report", "paragraph", "markdown")) {
+    text <- format(report, style = style)
+    expect_false(grepl("capped|cap of", text))
+    expect_false(grepl("stopped", text, fixed = TRUE))
+    expect_false(grepl("not run", text, fixed = TRUE))
+  }
+})

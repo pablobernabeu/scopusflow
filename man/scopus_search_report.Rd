@@ -41,10 +41,13 @@ A list of class \code{scopus_search_report}, returned invisibly when
 \code{file} is written. Its elements are the fields the record is built from:
 \code{database}, \code{platform}, \code{query} (the base query), \code{field}, \code{expression}
 (the field-wrapped query of each cell), \code{view}, \code{page_size}, \code{paging},
-\code{partition}, \code{n_cells}, \code{years}, \code{cells} (a tibble of \code{cell}, \code{limit},
-\code{n_records} and \code{reported_total}), \code{searched_at} and \code{searched_until} (the
-earliest and latest retrieval times), \code{version}, \code{n_records},
-\code{n_with_doi}, \code{reported_total}, \code{records_combined}, \code{duplicates_removed},
+\code{max_results} (the cap on records per cell), \code{partition}, \code{n_cells},
+\code{years}, \code{years_run} (the years of the cells a stopped harvest ran),
+\code{cells} (a tibble of \code{cell}, \code{limit}, \code{n_records} and \code{reported_total}),
+\code{searched_at} and \code{searched_until} (the earliest and latest retrieval
+times), \code{version}, \code{n_records}, \code{n_with_doi}, \code{reported_total},
+\code{stopped_early}, \code{cells_planned}, \code{cells_run}, \code{not_run} (the cells a
+stopped harvest never reached), \code{records_combined}, \code{duplicates_removed},
 \code{deduplicated}, \code{snippet} and \code{prisma} (a tibble of \code{item}, \code{name},
 \code{source} and \code{note}). A field the objects do not record is \code{NA}.
 
@@ -79,6 +82,19 @@ bundled corpus, and for a cell resumed from a checkpoint written before these
 attributes existed, the record says the field is unrecorded and fills
 nothing in. This matters most for completeness: a harvest whose reported
 total is unknown is never described as exhaustive.
+
+A harvest capped by \code{max_results} says so. A cell that holds as many
+records as the cap allowed, where the API reported more or reported
+nothing, reads "stopped at the requested cap". The completeness line puts
+the shortfall down to the cap when every cell that fell short stopped at it,
+and otherwise counts the cells that did. Item 9 names the cap, or says that
+it did not bind, and the reproduction snippet passes it. The Python twin's
+\code{fetch_plan()} can also be stopped between cells, as its app's Cancel stops
+it. Its record then says how many of the planned cells ran, the years they
+covered and that the harvest is incomplete, and it marks the rest "not run".
+This package's harvests cannot stop part-way, but a set carrying those
+attributes is described the same way, so that the two records stay one
+rendering.
 
 The PRISMA-S map is decided the same way. Items the package holds evidence
 for (the database and platform, that Scopus was searched on its own, the

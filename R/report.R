@@ -58,10 +58,13 @@ scopus_report_months <- function() {
 #'   `file` is written. Its elements are the fields the record is built from:
 #'   `database`, `platform`, `query` (the base query), `field`, `expression`
 #'   (the field-wrapped query of each cell), `view`, `page_size`, `paging`,
-#'   `partition`, `n_cells`, `years`, `cells` (a tibble of `cell`, `limit`,
-#'   `n_records` and `reported_total`), `searched_at` and `searched_until` (the
-#'   earliest and latest retrieval times), `version`, `n_records`,
-#'   `n_with_doi`, `reported_total`, `records_combined`, `duplicates_removed`,
+#'   `max_results` (the cap on records per cell), `partition`, `n_cells`,
+#'   `years`, `years_run` (the years of the cells a stopped harvest ran),
+#'   `cells` (a tibble of `cell`, `limit`, `n_records` and `reported_total`),
+#'   `searched_at` and `searched_until` (the earliest and latest retrieval
+#'   times), `version`, `n_records`, `n_with_doi`, `reported_total`,
+#'   `stopped_early`, `cells_planned`, `cells_run`, `not_run` (the cells a
+#'   stopped harvest never reached), `records_combined`, `duplicates_removed`,
 #'   `deduplicated`, `snippet` and `prisma` (a tibble of `item`, `name`,
 #'   `source` and `note`). A field the objects do not record is `NA`.
 #' @details
@@ -84,6 +87,19 @@ scopus_report_months <- function() {
 #' attributes existed, the record says the field is unrecorded and fills
 #' nothing in. This matters most for completeness: a harvest whose reported
 #' total is unknown is never described as exhaustive.
+#'
+#' A harvest capped by `max_results` says so. A cell that holds as many
+#' records as the cap allowed, where the API reported more or reported
+#' nothing, reads "stopped at the requested cap". The completeness line puts
+#' the shortfall down to the cap when every cell that fell short stopped at it,
+#' and otherwise counts the cells that did. Item 9 names the cap, or says that
+#' it did not bind, and the reproduction snippet passes it. The Python twin's
+#' `fetch_plan()` can also be stopped between cells, as its app's Cancel stops
+#' it. Its record then says how many of the planned cells ran, the years they
+#' covered and that the harvest is incomplete, and it marks the rest "not run".
+#' This package's harvests cannot stop part-way, but a set carrying those
+#' attributes is described the same way, so that the two records stay one
+#' rendering.
 #'
 #' The PRISMA-S map is decided the same way. Items the package holds evidence
 #' for (the database and platform, that Scopus was searched on its own, the
@@ -180,7 +196,8 @@ print.scopus_search_report <- function(x, ...) {
 # Field extraction ----------------------------------------------------------
 
 scopus_report_build <- function(records, plan) {
-  cells <- scopus_report_cells(records, plan)
+  stoppage <- scopus_report_stop(records, plan)
+  cells <- scopus_report_cells(records, plan, joined = stoppage$joined)
   reported <- cells$reported_total
   n_cells_reported <- sum(!is.na(reported))
   total <- if (nrow(cells) > 0L && n_cells_reported == nrow(cells)) {
@@ -199,6 +216,14 @@ scopus_report_build <- function(records, plan) {
   }
   version <- if (is.null(records)) NULL else attr(records, "scopusflow_version")
   paging <- if (is.null(records)) NA_character_ else (attr(records, "paging") %||% NA_character_)
+  cap <- scopus_report_cap(records)
+  # The years of the cells a stopped harvest ran, read from their limits as
+  # the years of the plan are.
+  years_run <- if (stoppage$joined) {
+    scopus_report_years(cells[!(cells$cell %in% stoppage$not_run), ], plan)
+  } else {
+    NA_character_
+  }
 
   out <- list(
     database = "Scopus",
@@ -209,9 +234,11 @@ scopus_report_build <- function(records, plan) {
     view = if (is.null(plan)) NA_character_ else attr(plan, "view"),
     page_size = if (is.null(plan)) NA_integer_ else as.integer(attr(plan, "page_size")),
     paging = paging,
+    max_results = cap,
     partition = if (is.null(plan)) NA_character_ else attr(plan, "partition"),
     n_cells = if (is.null(plan)) NA_integer_ else nrow(plan),
     years = scopus_report_years(cells, plan),
+    years_run = years_run,
     cells = cells,
     searched_at = if (is.null(stamp)) NA else min(stamp),
     searched_until = if (is.null(until)) NA else until,
@@ -220,13 +247,101 @@ scopus_report_build <- function(records, plan) {
     n_with_doi = if (is.null(records)) NA_integer_ else sum(!is.na(records$doi)),
     reported_total = total,
     cells_reported = n_cells_reported,
+    stopped_early = stoppage$stopped,
+    cells_planned = stoppage$cells_planned,
+    cells_run = stoppage$cells_run,
+    not_run = stoppage$not_run,
     records_combined = scopus_report_combined(combined, "n_in"),
     duplicates_removed = scopus_report_combined(combined, "n_removed"),
     deduplicated = if (is.null(combined)) NA else isTRUE(combined$deduplicated),
-    snippet = scopus_report_snippet(plan, paging)
+    snippet = scopus_report_snippet(plan, paging, cap)
   )
   out$prisma <- scopus_report_prisma(out)
   structure(out, class = "scopus_search_report")
+}
+
+# What the records say about a harvest stopped before its last cell. Only the
+# Python twin's fetch_plan() stops part-way, when its should_stop callable
+# returns TRUE, as the Cancel button of its app arranges, and it records
+# `stopped_early`, `cells_planned` and `cells_run`. This twin's app cancels by
+# killing its background worker, so no set this package builds carries them,
+# and the branch is dormant here. It is kept so that the two renderings stay
+# one function, pinned by a shared golden file.
+#
+# The recorded cells are placed on the plan's cells only when the plan is the
+# one the harvest ran. It must hold as many cells as were planned, the recorded
+# ones among them. A plan passed by hand that does not leaves the cells
+# unrecorded, as before, while the set still says that it was stopped.
+scopus_report_stop <- function(records, plan) {
+  out <- list(stopped = FALSE, cells_planned = NA_integer_,
+              cells_run = NA_integer_, joined = FALSE, not_run = integer())
+  if (is.null(records) || !isTRUE(attr(records, "stopped_early"))) {
+    return(out)
+  }
+  counts <- attr(records, "cell_totals")
+  recorded <- if (is.data.frame(counts)) as.integer(counts$cell) else NULL
+  run <- scopus_report_whole(attr(records, "cells_run"))
+  if (is.na(run) && !is.null(recorded)) run <- length(recorded)
+  planned <- scopus_report_whole(attr(records, "cells_planned"))
+  if (is.na(planned) && !is.null(plan)) planned <- nrow(plan)
+  if (is.na(run) || is.na(planned)) {
+    return(out)
+  }
+  joined <- !is.null(plan) && !is.null(recorded) && nrow(plan) == planned &&
+    !anyDuplicated(recorded) && all(recorded %in% as.integer(plan$cell))
+  list(
+    stopped = TRUE, cells_planned = planned, cells_run = run, joined = joined,
+    not_run = if (joined) setdiff(as.integer(plan$cell), recorded) else integer()
+  )
+}
+
+# Turns a count recorded as an attribute into an integer, giving NA for
+# anything but one whole number.
+scopus_report_whole <- function(x) {
+  if (is.numeric(x) && length(x) == 1L && is.finite(x) && x >= 0 && x == round(x)) {
+    as.integer(x)
+  } else {
+    NA_integer_
+  }
+}
+
+# The cap on records per cell a set was retrieved under, as scopus_fetch() and
+# scopus_fetch_plan() record it when one was set, or NA. A plan not yet run
+# has none to report. The cap is a whole number, as scopus_check_max_results()
+# demands, and anything else is read as no cap, as the Python twin reads it.
+scopus_report_cap <- function(records) {
+  cap <- if (is.null(records)) NULL else attr(records, "max_results")
+  if (is.numeric(cap) && length(cap) == 1L && is.finite(cap) && cap >= 1 &&
+      cap == round(cap)) {
+    as.numeric(cap)
+  } else {
+    NA_real_
+  }
+}
+
+# Which cells stopped at the cap: those holding as many records as it allowed,
+# where the API reported more or reported nothing. A cell holding all the
+# records the API reported is complete, whatever the cap.
+scopus_report_capped <- function(cells, cap) {
+  n <- cells$n_records
+  reported <- cells$reported_total
+  !is.na(cap) & !is.na(n) & n >= cap & (is.na(reported) | reported > n)
+}
+
+# The cap a record set was retrieved under, with how many of its cells stopped
+# at it and how many ran, or NULL when the set records no cap. autoplot() and
+# the app read the cells as the search record does.
+scopus_records_cap <- function(records) {
+  cap <- scopus_report_cap(records)
+  if (is.na(cap)) {
+    return(NULL)
+  }
+  plan <- attr(records, "plan")
+  if (!is_scopus_plan(plan)) plan <- NULL
+  stoppage <- scopus_report_stop(records, plan)
+  cells <- scopus_report_cells(records, plan, joined = stoppage$joined)
+  list(cap = cap, capped = sum(scopus_report_capped(cells, cap)),
+       cells = nrow(cells) - length(stoppage$not_run))
 }
 
 # The per-cell table. A plan supplies the cells and their year limits; the
@@ -234,10 +349,12 @@ scopus_report_build <- function(records, plan) {
 # stay NA when the set never carried one (a CSV round trip, the bundled corpus,
 # a set assembled by hand). A set from a single search, as scopus_fetch()
 # returns, carries no cell counts, only its own total, so a plan with one cell,
-# which stands for that search, takes the set's figures. Without a plan the
-# whole retrieval is treated as one cell, so the rest of the code has a single
-# shape to render.
-scopus_report_cells <- function(records, plan) {
+# which stands for that search, takes the set's figures. A harvest stopped
+# part-way recorded only the cells it ran. When `joined` says the plan is the
+# one it ran (see scopus_report_stop()), those cells take their counts and the
+# rest stay NA, to be read as not run. Without a plan the whole retrieval is
+# treated as one cell, so the rest of the code has a single shape to render.
+scopus_report_cells <- function(records, plan, joined = FALSE) {
   counts <- if (is.null(records)) NULL else attr(records, "cell_totals")
   if (!is.null(plan)) {
     out <- tibble::tibble(
@@ -250,6 +367,10 @@ scopus_report_cells <- function(records, plan) {
         identical(as.integer(counts$cell), out$cell)) {
       out$n_records <- as.integer(counts$n_records)
       out$reported_total <- as.numeric(counts$reported_total)
+    } else if (joined) {
+      at <- match(as.integer(counts$cell), out$cell)
+      out$n_records[at] <- as.integer(counts$n_records)
+      out$reported_total[at] <- as.numeric(counts$reported_total)
     } else if (nrow(out) == 1L && !is.null(records)) {
       out$n_records <- nrow(records)
       out$reported_total <- scopus_report_total_results(records)
@@ -331,8 +452,11 @@ scopus_report_combined <- function(combined, field) {
 # plan there is nothing to reproduce and the snippet is NA. The paging mode is
 # settled by the fetch, not the plan, and scopus_fetch_plan() pages by offset
 # unless told otherwise, so a harvest the records say was paged by cursor is
-# reproduced with cursor = TRUE.
-scopus_report_snippet <- function(plan, paging = NA_character_) {
+# reproduced with cursor = TRUE. A cap is an argument of the fetch too, passed
+# whenever the set records one, whether or not it stopped a cell, since the
+# harvest was run under it.
+scopus_report_snippet <- function(plan, paging = NA_character_,
+                                  max_results = NA_real_) {
   if (is.null(plan)) {
     return(NA_character_)
   }
@@ -354,11 +478,16 @@ scopus_report_snippet <- function(plan, paging = NA_character_) {
     sprintf("  page_size = %d", as.integer(attr(plan, "page_size"))),
     sprintf("  partition = %s", app_quote(attr(plan, "partition")))
   )
-  fetch <- if (identical(paging, "cursor")) {
-    "records <- scopus_fetch_plan(plan, cursor = TRUE)"
-  } else {
-    "records <- scopus_fetch_plan(plan)"
+  fetch_args <- "plan"
+  if (!is.na(max_results)) {
+    # format(), as in the app's code mirror, so a cap past 2^31 is written out
+    # in full and never as NA or in scientific notation.
+    fetch_args <- c(fetch_args, sprintf(
+      "max_results = %s", format(max_results, scientific = FALSE, trim = TRUE)
+    ))
   }
+  if (identical(paging, "cursor")) fetch_args <- c(fetch_args, "cursor = TRUE")
+  fetch <- sprintf("records <- scopus_fetch_plan(%s)", paste(fetch_args, collapse = ", "))
   paste(
     c(
       "library(scopusflow)",
@@ -411,13 +540,18 @@ scopus_report_prisma <- function(x) {
   }
 
   if (!is.na(x$partition)) {
-    notes[9] <- if (is.na(x$years)) {
-      "No year limit was applied, and scopusflow applies no document type, language or subject area limit of its own."
+    # A cap and a stop are limits on what was retrieved, so each is named
+    # between the year limit and the limits scopusflow never applies.
+    own <- "scopusflow applies no document type, language or subject area limit of its own."
+    stop_clause <- scopus_report_stop_clause(x)
+    extra <- c(scopus_report_cap_sentence(x),
+               if (!is.null(stop_clause)) paste0(stop_clause, "."))
+    notes[9] <- if (!is.na(x$years)) {
+      paste(c(sprintf("Publication years %s.", x$years), extra, own), collapse = " ")
+    } else if (length(extra) > 0L) {
+      paste(c("No year limit was applied.", extra, own), collapse = " ")
     } else {
-      sprintf(
-        "Publication years %s. scopusflow applies no document type, language or subject area limit of its own.",
-        x$years
-      )
+      "No year limit was applied, and scopusflow applies no document type, language or subject area limit of its own."
     }
     supplied <- c(supplied, 9L)
   } else {
@@ -449,7 +583,10 @@ scopus_report_prisma <- function(x) {
   notes[14] <- "Whether the strategy was peer reviewed, and by whom."
 
   if (!is.na(x$n_records)) {
-    notes[15] <- if (is.na(x$reported_total)) {
+    notes[15] <- if (isTRUE(x$stopped_early)) {
+      sprintf("%s records retrieved from Scopus before %s.",
+              scopus_report_count(x$n_records), scopus_report_stop_phrase(x))
+    } else if (is.na(x$reported_total)) {
       sprintf("%s records retrieved from Scopus. The API's own count of matching records is unrecorded.",
               scopus_report_count(x$n_records))
     } else {
@@ -519,6 +656,107 @@ scopus_report_spans_days <- function(x) {
 
 scopus_report_run <- function(x) !is.na(x$n_records)
 
+# A number of cells, as the record states it.
+scopus_report_cells_text <- function(n) {
+  sprintf("%s %s", scopus_report_count(n), if (n == 1) "cell" else "cells")
+}
+
+# How far a stopped harvest got, for the completeness line and item 15.
+scopus_report_stop_phrase <- function(x) {
+  sprintf("the harvest was stopped after %s of %s",
+          scopus_report_count(x$cells_run), scopus_report_cells_text(x$cells_planned))
+}
+
+# The cells a stopped harvest planned and retrieved, and the years those
+# covered, as one clause that item 9 and the paragraph each finish in their
+# own way. NULL when the harvest ran every cell. The years are given only
+# where the cells could be placed on the plan the harvest ran.
+scopus_report_stop_clause <- function(x) {
+  if (!isTRUE(x$stopped_early)) {
+    return(NULL)
+  }
+  k <- x$cells_run
+  if (x$cells_planned == 1L && k == 0L) {
+    return("The single cell planned was not retrieved before the harvest was stopped")
+  }
+  retrieved <- if (k == 0L) {
+    "none was"
+  } else {
+    paste(scopus_report_count(k), if (k == 1L) "was" else "were")
+  }
+  sprintf("Of the %s planned, %s retrieved before the harvest was stopped%s",
+          scopus_report_cells_text(x$cells_planned), retrieved,
+          if (is.na(x$years_run)) "" else sprintf(" (%s)", x$years_run))
+}
+
+# How many cells stopped at the cap, and how many fell short of the total the
+# API reported for them. A capped cell with a known total counts in both.
+scopus_report_cap_counts <- function(x) {
+  n <- x$cells$n_records
+  reported <- x$cells$reported_total
+  list(capped = sum(scopus_report_capped(x$cells, x$max_results)),
+       short = sum(!is.na(n) & !is.na(reported) & n < reported))
+}
+
+# Whether the cap stopped any cell ("bound") or stopped none of the cells that
+# ran, every one of them counted ("unbound"). It cannot be judged ("unknown")
+# where a cell's count is unrecorded or no cell ran. A harvest stopped before
+# its first cell retrieved nothing under the cap, and saying that the cap did
+# not bind would describe a retrieval that never happened. NA when no cap was
+# set.
+scopus_report_cap_status <- function(x) {
+  if (is.na(x$max_results)) {
+    return(NA_character_)
+  }
+  ran <- !(x$cells$cell %in% x$not_run)
+  if (scopus_report_cap_counts(x)$capped > 0L) {
+    "bound"
+  } else if (any(ran) && !anyNA(x$cells$n_records[ran])) {
+    "unbound"
+  } else {
+    "unknown"
+  }
+}
+
+# The cap as item 9 states it, a limit on the search like the years. NULL when
+# no cap was set.
+scopus_report_cap_sentence <- function(x) {
+  status <- scopus_report_cap_status(x)
+  if (is.na(status)) {
+    return(NULL)
+  }
+  cap <- scopus_report_count(x$max_results)
+  switch(
+    status,
+    bound = sprintf("Records per cell were capped at %s.", cap),
+    unbound = sprintf("A cap of %s records per cell was set and did not bind.", cap),
+    unknown = sprintf("A cap of %s records per cell was set.", cap)
+  )
+}
+
+# The cap as the paragraph states it. A cap that stopped a cell is set beside
+# the shortfall. It explains the shortfall in full only when every cell that
+# fell short stopped at it.
+scopus_report_cap_paragraph <- function(x) {
+  status <- scopus_report_cap_status(x)
+  if (is.na(status)) {
+    return(NULL)
+  }
+  if (!identical(status, "bound")) {
+    return(scopus_report_cap_sentence(x))
+  }
+  cap <- scopus_report_count(x$max_results)
+  counts <- scopus_report_cap_counts(x)
+  if (!is.na(x$reported_total) && x$n_records < x$reported_total &&
+      counts$capped == counts$short) {
+    sprintf("Records per cell were capped at %s, which accounts for the whole shortfall.", cap)
+  } else {
+    sprintf("Records per cell were capped at %s, and %s of %s stopped at that cap.",
+            cap, scopus_report_count(counts$capped),
+            scopus_report_cells_text(nrow(x$cells) - length(x$not_run)))
+  }
+}
+
 # The label/value pairs the readable record and the Markdown share, so the two
 # renderings can never drift apart in substance.
 scopus_report_pairs <- function(x) {
@@ -533,7 +771,15 @@ scopus_report_pairs <- function(x) {
   } else {
     x$field
   }
-  years <- if (!is.na(x$years)) x$years else if (!is.na(x$partition)) {
+  stopped <- isTRUE(x$stopped_early)
+  # A stopped harvest searched only the years of the cells it ran. The line
+  # gives those first, beside the years the plan set.
+  years <- if (!is.na(x$years) && length(x$not_run) > 0L) {
+    sprintf("%s, of %s planned", if (is.na(x$years_run)) "none" else x$years_run,
+            x$years)
+  } else if (!is.na(x$years)) {
+    x$years
+  } else if (!is.na(x$partition)) {
     "no year limit was applied"
   } else {
     "unrecorded"
@@ -552,6 +798,8 @@ scopus_report_pairs <- function(x) {
   paging <- if (is.na(x$paging)) "unrecorded" else x$paging
   searched <- if (!run) {
     not_run
+  } else if (stopped && identical(x$cells_run, 0L)) {
+    "none, the harvest was stopped before its first cell"
   } else if (is.na(x$searched_at)) {
     "unrecorded, this set does not carry the time it was retrieved"
   } else if (scopus_report_spans_days(x)) {
@@ -566,8 +814,13 @@ scopus_report_pairs <- function(x) {
     scopus_report_count(x$n_records)
   }
   missing_cells <- nrow(x$cells) - x$cells_reported
+  # The cells a stopped harvest never reached were never counted, which is not
+  # the same as a count that failed to travel.
   reported <- if (!run) {
     not_run
+  } else if (stopped) {
+    sprintf("not counted for the %s not run, so no overall figure is given",
+            scopus_report_cells_text(x$cells_planned - x$cells_run))
   } else if (!is.na(x$reported_total)) {
     scopus_report_count(x$reported_total)
   } else if (x$cells_reported > 0L) {
@@ -576,15 +829,33 @@ scopus_report_pairs <- function(x) {
   } else {
     "unrecorded, the API's own count did not travel with this set"
   }
+  # A cap explains the shortfall in full only when every cell that fell short
+  # stopped at it. Otherwise, the cells that did are counted, so the rest of
+  # the shortfall stays visible.
+  cap <- scopus_report_count(x$max_results)
+  cap_counts <- scopus_report_cap_counts(x)
+  capped_cells <- sprintf("%s of %s stopped at the requested cap of %s",
+                          scopus_report_count(cap_counts$capped),
+                          scopus_report_cells_text(nrow(x$cells)), cap)
   completeness <- if (!run) {
     not_run
+  } else if (stopped) {
+    paste("incomplete,", scopus_report_stop_phrase(x))
   } else if (is.na(x$reported_total)) {
-    "unrecorded, since the number of records the API reported as matching is not known"
+    unknown <- "unrecorded, since the number of records the API reported as matching is not known"
+    if (cap_counts$capped > 0L) paste0(unknown, ", and ", capped_cells) else unknown
   } else if (x$n_records >= x$reported_total) {
     "every record the API reported as matching was retrieved"
   } else {
-    sprintf("%s of the %s records reported as matching were retrieved",
-            scopus_report_count(x$n_records), scopus_report_count(x$reported_total))
+    short <- sprintf("%s of the %s records reported as matching were retrieved",
+                     scopus_report_count(x$n_records), scopus_report_count(x$reported_total))
+    if (cap_counts$capped > 0L && cap_counts$capped == cap_counts$short) {
+      sprintf("%s, a shortfall due to the requested cap of %s records per cell", short, cap)
+    } else if (cap_counts$capped > 0L) {
+      paste0(short, ", and ", capped_cells)
+    } else {
+      short
+    }
   }
   duplicates <- if (!run) {
     not_run
@@ -633,23 +904,37 @@ scopus_report_limit <- function(x, limit) {
   }
 }
 
-# One line per cell for the readable record.
+# One line per cell for the readable record. A cell a stopped harvest never
+# reached reads "not run". One that stopped at the cap names it where it would
+# read "incomplete", since the cap is why it holds fewer records.
 scopus_report_cell_lines <- function(x) {
   cells <- x$cells
+  capped <- scopus_report_capped(cells, x$max_results)
   vapply(seq_len(nrow(cells)), function(i) {
     limit <- scopus_report_limit(x, cells$limit[i])
     n <- cells$n_records[i]
     reported <- cells$reported_total[i]
-    tail <- if (is.na(n)) {
+    counted <- function() {
+      if (is.na(reported)) {
+        sprintf("%s retrieved, reported total unrecorded", scopus_report_count(n))
+      } else {
+        sprintf("%s retrieved, %s reported", scopus_report_count(n),
+                scopus_report_count(reported))
+      }
+    }
+    tail <- if (cells$cell[i] %in% x$not_run) {
+      "not run"
+    } else if (is.na(n)) {
       "retrieved records unrecorded"
+    } else if (capped[i]) {
+      sprintf("%s, stopped at the requested cap of %s", counted(),
+              scopus_report_count(x$max_results))
     } else if (is.na(reported)) {
-      sprintf("%s retrieved, reported total unrecorded", scopus_report_count(n))
+      counted()
     } else if (n >= reported) {
-      sprintf("%s retrieved, %s reported, complete", scopus_report_count(n),
-              scopus_report_count(reported))
+      paste0(counted(), ", complete")
     } else {
-      sprintf("%s retrieved, %s reported, incomplete", scopus_report_count(n),
-              scopus_report_count(reported))
+      paste0(counted(), ", incomplete")
     }
     sprintf("  %s (%s): %s", scopus_report_count(cells$cell[i]), limit, tail)
   }, character(1))
@@ -658,19 +943,25 @@ scopus_report_cell_lines <- function(x) {
 # The same cells as a Markdown table.
 scopus_report_cell_table <- function(x) {
   cells <- x$cells
+  capped <- scopus_report_capped(cells, x$max_results)
   rows <- vapply(seq_len(nrow(cells)), function(i) {
     limit <- scopus_report_limit(x, cells$limit[i])
     n <- cells$n_records[i]
     reported <- cells$reported_total[i]
-    complete <- if (is.na(n) || is.na(reported)) {
+    unrun <- cells$cell[i] %in% x$not_run
+    complete <- if (unrun) {
+      "no"
+    } else if (capped[i]) {
+      sprintf("capped at %s", scopus_report_count(x$max_results))
+    } else if (is.na(n) || is.na(reported)) {
       "unrecorded"
     } else if (n >= reported) "yes" else "no"
+    shown <- function(v) {
+      if (unrun) "not run" else if (is.na(v)) "unrecorded" else scopus_report_count(v)
+    }
     sprintf(
       "| %s | %s | %s | %s | %s |",
-      scopus_report_count(cells$cell[i]), limit,
-      if (is.na(n)) "unrecorded" else scopus_report_count(n),
-      if (is.na(reported)) "unrecorded" else scopus_report_count(reported),
-      complete
+      scopus_report_count(cells$cell[i]), limit, shown(n), shown(reported), complete
     )
   }, character(1))
   c("| Cell | Limit | Retrieved | Reported | Complete |",
@@ -804,10 +1095,15 @@ scopus_report_markdown <- function(x) {
 # each of its numerals from the object independently.
 scopus_report_paragraph <- function(x) {
   run <- scopus_report_run(x)
+  stopped <- isTRUE(x$stopped_early)
   sentences <- character()
 
+  # A harvest stopped before its first cell searched nothing, so the opening
+  # says what was to be searched and the stop is explained below.
   opening <- if (!run) {
     "The search described here has not been run."
+  } else if (stopped && identical(x$cells_run, 0L)) {
+    "The literature was to be searched in Scopus, on the Elsevier Scopus Search API."
   } else if (is.na(x$searched_at)) {
     "The literature was searched in Scopus, on the Elsevier Scopus Search API, on a date this record does not carry."
   } else if (scopus_report_spans_days(x)) {
@@ -844,15 +1140,23 @@ scopus_report_paragraph <- function(x) {
     # A record of a completed search reads in the past tense, while a plan that has
     # not run describes what it would do, or this sentence contradicts the opening.
     # "each" distributes over cells, so it belongs only to the partitioned form.
-    retrieval_verb <- if (run) "was" else "would be"
+    # A stopped harvest was partitioned all the same, but its cells were only
+    # to be retrieved, since some of them never were.
+    plan_verb <- if (run) "was" else "would be"
     partitioned <- identical(x$partition, "year")
     how <- if (partitioned) {
       sprintf("It %s partitioned into %s cells, one per year",
-              retrieval_verb, scopus_report_count(x$n_cells))
+              plan_verb, scopus_report_count(x$n_cells))
     } else {
-      sprintf("It %s retrieved as a single search", retrieval_verb)
+      sprintf("It %s retrieved as a single search", if (stopped) "was to be" else plan_verb)
     }
-    through <- if (partitioned) ", each retrieved through" else " through"
+    through <- if (!partitioned) {
+      " through"
+    } else if (stopped) {
+      ", each to be retrieved through"
+    } else {
+      ", each retrieved through"
+    }
     if (known && !is.na(x$paging)) {
       how <- sprintf("%s%s the %s view in pages of %s records under %s paging.",
                      how, through, x$view, scopus_report_count(x$page_size), x$paging)
@@ -874,7 +1178,15 @@ scopus_report_paragraph <- function(x) {
   }
 
   if (run) {
-    counts <- if (!is.na(x$reported_total) && x$n_records >= x$reported_total) {
+    # How far a stopped harvest got comes before what it retrieved, which then
+    # needs no word on completeness.
+    if (stopped) {
+      sentences <- c(sentences,
+                     paste0(scopus_report_stop_clause(x), ", so the harvest is incomplete."))
+    }
+    counts <- if (stopped) {
+      sprintf("The search retrieved %s records.", scopus_report_count(x$n_records))
+    } else if (!is.na(x$reported_total) && x$n_records >= x$reported_total) {
       sprintf("The search retrieved %s records, matching the %s the API reported, so every reported record was retrieved.",
               scopus_report_count(x$n_records), scopus_report_count(x$reported_total))
     } else if (!is.na(x$reported_total)) {
@@ -892,7 +1204,7 @@ scopus_report_paragraph <- function(x) {
     # Named outright. "Of these" would, in the branches above, end up next to
     # the cells or the matching records and so point at the wrong noun.
     sentences <- c(
-      sentences, counts,
+      sentences, counts, scopus_report_cap_paragraph(x),
       sprintf("Of the records retrieved, %s carry a DOI.",
               scopus_report_count(x$n_with_doi))
     )

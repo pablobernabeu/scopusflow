@@ -969,6 +969,40 @@ searches several at once. Scopus is searched on its own, so the record supplies
 the item, as it supplies the platform for item 1. Any other database a review
 searched is the author's to name under item 1.
 
+Two ways of retrieving less than the search matched are recorded on the set,
+so the record can say why it holds fewer records. `scopus_attach_provenance()`
+keeps a finite `max_results` as an attribute, for `scopus_fetch()` and for
+every cell alike. `scopus_fetch_plan()` carries the one cap of its call, since
+a checkpoint written under a wider cap is served trimmed to it. No cap leaves
+no attribute, so existing sets and the first golden file are unchanged. A cell
+stopped at the cap is one holding as many records as the cap allowed where the
+API reported more or nothing. The completeness line puts the whole shortfall
+down to the cap only when every cell that fell short stopped at it. Otherwise,
+it counts the cells that did, so a shortfall the cap does not explain stays
+visible. Item 9 names the cap, or says it did not bind, because PRISMA-S asks
+for every limit, and the snippet passes it. `autoplot()` captions a set whose
+cap bound, since its bars then count the cap.
+
+The Python twin's `fetch_plan()` can stop between cells through `should_stop`,
+set by its app's Cancel, and it records `stopped_early`, `cells_planned` and
+`cells_run`. Its record joins the cells that ran onto the plan, marks the rest
+"not run", gives the years searched beside the years planned and calls the
+harvest incomplete. A plan passed by hand that is not the one the harvest ran,
+with a different number of cells or cells the harvest never had, keeps the
+cells unrecorded as before. This package has no partial-return path, since the
+app cancels by killing its background worker, and that twin's `fetch_plan()`
+takes no cap. Each branch is ported to the other twin all the same, dormant
+there, so that the two renderers stay one function, held to the shared golden
+files `golden-search-record-capped.txt` and `golden-search-record-stopped.txt`.
+Two simpler options were rejected. A Python-only wording for the stop would
+have split the renderers, and a cap recorded only in `cell_totals` would have
+missed `scopus_fetch()`, whose set has no cells to record it in. The app's cap
+field defaulted to 200 records per year, so every live harvest was capped
+unless the user cleared it. It now starts blank, and a harvest is capped only
+on request. The Python app has no cap field and never caps one. A blank field
+risks no unbounded spend, since offset paging stops a cell at 5000 records, 25
+requests under `STANDARD` and 200 under `COMPLETE`.
+
 ## Tested version floors
 
 `R (>= 4.1.0)` was an untested claim: the check matrix reached only `oldrel-1`,

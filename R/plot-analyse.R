@@ -123,7 +123,8 @@ plot_scopus_top <- function(x, ...) {
 #' @rdname scopus_records
 #' @param object A [scopus_records] object (for the `autoplot()` method).
 #' @return The `autoplot()` method returns a [ggplot2::ggplot] of the records per
-#'   year.
+#'   year. When a `max_results` cap stopped any cell of the retrieval, a caption
+#'   says that the bars count records retrieved, not publications per year.
 #' @exportS3Method ggplot2::autoplot
 autoplot.scopus_records <- function(object, ...) {
   rlang::check_installed("ggplot2", reason = "to plot records")
@@ -131,13 +132,25 @@ autoplot.scopus_records <- function(object, ...) {
   if (nrow(yc) == 0L) {
     scopus_abort_bad_input("The records have no years to plot.")
   }
-  ggplot2::ggplot(yc, ggplot2::aes(x = .data$year, y = .data$n)) +
+  p <- ggplot2::ggplot(yc, ggplot2::aes(x = .data$year, y = .data$n)) +
     ggplot2::geom_col(fill = "#31688E", width = 0.8) +
     ggplot2::scale_x_continuous(breaks = scopus_year_breaks(yc$year), minor_breaks = NULL) +
     ggplot2::scale_y_continuous(limits = c(0, NA),
                                 expand = ggplot2::expansion(mult = c(0, 0.06))) +
     ggplot2::labs(x = NULL, y = "Records", title = "Records by year") +
     scopus_minimal_theme()
+  # Under a cap that stopped a cell, the bars reach the cap, and a figure of
+  # records by year would be read as publications per year. The cells are read
+  # as the search record reads them.
+  cap <- scopus_records_cap(object)
+  if (!is.null(cap) && cap$capped > 0L) {
+    p <- p + ggplot2::labs(caption = sprintf(
+      paste("Retrieval capped at %s records per cell: the bars count records",
+            "retrieved, not publications per year."),
+      scopus_report_count(cap$cap)
+    ))
+  }
+  p
 }
 
 #' @rdname plot_scopus_trend

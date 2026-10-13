@@ -188,6 +188,30 @@ app_authors_note <- function(records) {
   "STANDARD view: first authors only. Choose COMPLETE under Detail to tally every author."
 }
 
+# The note shown after a harvest whose record cap stopped at least one cell, or
+# NULL when none is needed. A capped cell holds only the first records the API
+# returned, so the By year chart counts what was retrieved. The search record
+# and autoplot() say the same from the same attributes. The demo replays the
+# bundled corpus without recording a cap, so it shows no note, even where a
+# cap entered in demo mode trims a year. Clearing the cap lifts it, but a cell
+# above the offset ceiling still stops at 5000 records, so the note promises
+# no more than that.
+app_cap_note <- function(records) {
+  cap <- if (is.null(records)) NULL else scopus_records_cap(records)
+  if (is.null(cap) || cap$capped == 0L) {
+    return(NULL)
+  }
+  amount <- scopus_report_count(cap$cap)
+  sprintf(
+    paste("The cap of %s records per cell stopped %s of %s. Each capped cell",
+          "holds only its first %s matches, so By year counts the records",
+          "retrieved, not publications per year. Clear Max records per cell and",
+          "fetch again to lift the cap."),
+    amount, scopus_report_count(cap$capped), scopus_report_cells_text(cap$cells),
+    amount
+  )
+}
+
 # Synthesise a plausible topic comparison so the compare flow works offline,
 # mirroring the Python app's _demo_comparison. Each term is given a different base
 # share and growth rate; the rows are built and sorted exactly as

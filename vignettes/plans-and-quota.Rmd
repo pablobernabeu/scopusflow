@@ -249,7 +249,9 @@ The completeness lines are worth a moment. Each cell is shown against the number
 of records the API reported for it, so a cell that came back short stays visible
 where a total would have hidden it, and the overall figure is given only because
 every cell reported one. Drop any of those attributes and the corresponding line says
-so instead.
+so instead. A harvest run with `max_results` records its cap. A cell that
+stopped at the cap says so, the completeness line says how much of the
+shortfall the cap explains, item 9 names the cap and the snippet passes it.
 
 The methods paragraph is the same record as prose, ready to paste into a
 manuscript and edit.

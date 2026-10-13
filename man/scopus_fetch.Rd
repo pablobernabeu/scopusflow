@@ -82,7 +82,9 @@ snapshot value that keeps moving, so two saved sets are only comparable if
 each records when it was taken, and \code{\link[=scopus_search_report]{scopus_search_report()}} reads all of
 them back. \code{view} records the view, which decides what \code{authors} holds: the
 first author under \code{STANDARD} and the author list under \code{COMPLETE} (see
-\code{\link[=scopus_records]{scopus_records()}}). \code{plan} is the one-cell plan the call ran,
+\code{\link[=scopus_records]{scopus_records()}}). \code{max_results} records the cap the call was given,
+when it was given one, so the search record can say whether the
+retrieval stopped at it. \code{plan} is the one-cell plan the call ran,
 \code{scopus_plan(query, years, field, view, page_size, partition = "none")}, so
 the search record states the field tag and the year limit the request
 carried. These attributes survive a \code{.rds} round trip through
