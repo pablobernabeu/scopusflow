@@ -2,6 +2,64 @@
 # reactive code so the script generation, progress parsing and log rendering can
 # be unit-tested without launching a server.
 
+# Where a browser session keeps its checkpoints, under the `root` that every
+# session of one running app shares. The tabs of an app are sessions of one R
+# process, so they share tempdir(). The session's token names a directory of
+# its own, the one its onSessionEnded() handler removes, so closing a tab never
+# deletes another tab's checkpoints mid-harvest, as removing the shared root
+# did. Within it, `key` names the search, so fetching the same search again in
+# the same tab, after Cancel or a failure, resumes from its own checkpoints.
+# Without `key`, the session's own directory is returned.
+app_session_cache_dir <- function(root, token, key = NULL) {
+  base <- file.path(root, token)
+  if (is.null(key)) base else file.path(base, key)
+}
+
+# The directory under scopus_cache_dir() in which the generated script keeps its
+# plan's checkpoints. A cache directory serves one plan, since checkpoints are
+# named by their cell's position and year. The script used to send every plan to
+# the managed cache's root, where one plan overwrote another's cells and each
+# rerun paid for them again. The name opens with the query's words and the
+# years, so the directories can be told apart by eye. It ends with eight
+# hexadecimal digits of a hash over the query, field, view, partition and years,
+# which together shape the cells. The record cap stays out of it. A checkpoint
+# records whether a cap stopped it, and one that ran to the end serves a later,
+# wider request, so a rerun without the cap pays only for the cells it cut
+# short.
+app_plan_cache_name <- function(query, years = NULL, field = NULL,
+                                view = "STANDARD", partition = "none") {
+  years <- sort(unique(as.integer(years[!is.na(years)])))
+  # ASCII letters and digits only, with everything else turned into hyphens, so
+  # a name reads the same on every platform and in every locale. chartr()
+  # lowers the ASCII capitals alone, where tolower() follows the locale, and a
+  # Turkish one can lower a capital I to a dotless i.
+  words <- gsub("[^A-Za-z0-9]+", "-", query, perl = TRUE)
+  words <- chartr(paste(LETTERS, collapse = ""), paste(letters, collapse = ""),
+                  words)
+  words <- gsub("^-+|-+$", "", words)
+  # At most 40 characters, cut between words where the query has more than one.
+  if (nchar(words) > 40L) {
+    cut <- substr(words, 1L, 40L)
+    if (substr(words, 41L, 41L) != "-" && grepl("-", cut, fixed = TRUE)) {
+      cut <- sub("-[^-]*$", "", cut)
+    }
+    words <- cut
+  }
+  span <- if (length(years) == 0L) {
+    NULL
+  } else if (length(years) == 1L) {
+    as.character(years)
+  } else {
+    sprintf("%d-%d", years[1L], years[length(years)])
+  }
+  identity <- paste(c(query, field %||% "", view, partition,
+                      paste(years, collapse = ",")), collapse = "\n")
+  # Hashed as UTF-8 bytes, so the encoding a string happens to be marked with
+  # cannot change the name.
+  hash <- substr(rlang::hash(charToRaw(enc2utf8(identity))), 1L, 8L)
+  paste(c(if (nzchar(words)) words, span, hash), collapse = "-")
+}
+
 # Quote a string for insertion into generated R code.
 app_quote <- function(x) {
   encodeString(x, quote = "\"")
@@ -29,6 +87,14 @@ app_years_code <- function(years) {
 # is the teaching artefact, so it is assembled by hand (not shinymeta) to stay
 # exactly runnable and to keep the key out of it: the generated fetch reads the
 # key from the environment, never from a literal.
+#
+# The script opens with the version that wrote it, so a downloaded file records
+# which release its behaviour belongs to, as the Python twin's does. With `demo`
+# true, it says next that the records on screen were replayed from the bundled
+# corpus. A panel headed "Reproducible code" would otherwise hand a demo session
+# the script of a harvest it never ran. `compare_years` is the span the app
+# compares over, which it supplies when the partition is off and the plan has no
+# years of its own.
 app_code_mirror <- function(query,
                             years = NULL,
                             field = NULL,
@@ -37,18 +103,21 @@ app_code_mirror <- function(query,
                             max_results = Inf,
                             by = "source",
                             compare_terms = NULL,
+                            compare_years = NULL,
                             highlight = NULL,
                             interval = TRUE,
-                            pub_count_in_legend = TRUE) {
+                            pub_count_in_legend = TRUE,
+                            demo = FALSE) {
   query <- if (is.null(query) || !nzchar(trimws(query))) "your query" else trimws(query)
   years_code <- app_years_code(years)
   has_field <- !is.null(field) && nzchar(field)
+  by_year <- identical(partition, "year") && !is.null(years_code)
 
   plan_args <- app_quote(query)
   if (!is.null(years_code)) plan_args <- c(plan_args, sprintf("years = %s", years_code))
   if (has_field) plan_args <- c(plan_args, sprintf("field = %s", app_quote(field)))
   if (identical(view, "COMPLETE")) plan_args <- c(plan_args, "view = \"COMPLETE\"")
-  if (identical(partition, "year") && !is.null(years_code)) {
+  if (by_year) {
     plan_args <- c(plan_args, "partition = \"year\"")
   }
 
@@ -66,9 +135,34 @@ app_code_mirror <- function(query,
       "max_results = %s", format(max_results, scientific = FALSE, trim = TRUE)
     ))
   }
-  fetch_args <- c(fetch_args, "cache_dir = scopus_cache_dir()", "resume = TRUE")
+  cache_name <- app_plan_cache_name(
+    query, years, field = if (has_field) field else NULL,
+    view = if (identical(view, "COMPLETE")) "COMPLETE" else "STANDARD",
+    partition = if (by_year) "year" else "none"
+  )
+  fetch_args <- c(
+    fetch_args,
+    sprintf("cache_dir = file.path(scopus_cache_dir(), %s)", app_quote(cache_name)),
+    "resume = TRUE"
+  )
 
+  header <- sprintf("# scopusflow %s", utils::packageVersion("scopusflow"))
+  if (isTRUE(demo)) {
+    header <- c(
+      header,
+      "# Demo mode was on, so the records shown in the app were replayed from",
+      "# example_records, the bundled corpus of real published articles.",
+      "# Nothing was retrieved. The script below is the live equivalent, which",
+      "# harvests from Scopus and needs a key."
+    )
+  }
+
+  # Everything is saved before anything is plotted. autoplot() needs ggplot2,
+  # which scopusflow only suggests, so a script that plotted first stopped on a
+  # machine without it before saving the records it had paid for.
   lines <- c(
+    header,
+    "",
     "library(scopusflow)",
     "",
     "# Describe the search as an inspectable, reproducible plan.",
@@ -79,11 +173,8 @@ app_code_mirror <- function(query,
     "",
     "# Retrieve, caching each cell so an interrupted run resumes. The key is read",
     "# from the SCOPUS_API_KEY environment variable, never written into this script.",
+    "# The checkpoints go to a directory of this plan's own in the managed cache.",
     sprintf("records <- scopus_fetch_plan(%s)", app_args(fetch_args)),
-    "",
-    "# Inspect the most frequent values and the records per year.",
-    sprintf("scopus_top(records, by = %s)", app_quote(by)),
-    "ggplot2::autoplot(records)",
     "",
     "# Save the records and a clean, de-duplicated DOI list.",
     "write_scopus_records(records, \"scopus-records.rds\")",
@@ -93,19 +184,27 @@ app_code_mirror <- function(query,
     "as_bibtex(records, file = \"scopus-records.bib\")",
     "",
     "# Write the search up for the methods section, to the PRISMA-S standard.",
-    "scopus_search_report(records, file = \"scopus-search-record.md\")"
+    "scopus_search_report(records, file = \"scopus-search-record.md\")",
+    "",
+    "# Inspect the most frequent values, and plot the records per year when",
+    "# ggplot2 is installed.",
+    sprintf("scopus_top(records, by = %s)", app_quote(by)),
+    "if (requireNamespace(\"ggplot2\", quietly = TRUE)) ggplot2::autoplot(records)"
   )
 
-  # When comparison terms are set (and a year span is available), append a
-  # runnable topic-comparison block reflecting the chosen terms and toggles.
+  # When comparison terms are set and a span is available, append a runnable
+  # topic-comparison block reflecting the chosen terms and toggles. The span is
+  # the one the app compares over, so with the partition off the block still
+  # appears, over `compare_years`.
   terms <- if (is.null(compare_terms)) character() else trimws(compare_terms)
   terms <- terms[nzchar(terms)]
-  if (length(terms) > 0L && !is.null(years_code)) {
+  cmp_years_code <- app_years_code(compare_years) %||% years_code
+  if (length(terms) > 0L && !is.null(cmp_years_code)) {
     cmp_args <- c(
       app_quote(query),
       sprintf("comparison_terms = c(%s)",
               paste(vapply(terms, app_quote, character(1)), collapse = ", ")),
-      sprintf("years = %s", years_code)
+      sprintf("years = %s", cmp_years_code)
     )
     if (has_field) cmp_args <- c(cmp_args, sprintf("field = %s", app_quote(field)))
     if (identical(view, "COMPLETE")) cmp_args <- c(cmp_args, "view = \"COMPLETE\"")
@@ -121,7 +220,8 @@ app_code_mirror <- function(query,
       lines,
       "",
       "# Compare how sub-topics co-occur with the search over time, as a share",
-      "# of it (one count request per term per year).",
+      "# of it (one count request per term per year, plus one per year for the",
+      "# reference topic).",
       sprintf("cmp <- scopus_compare_topics(%s)", app_args(cmp_args)),
       sprintf("plot_scopus_comparison(%s)", paste(plot_args, collapse = ", "))
     )
@@ -153,8 +253,14 @@ app_args <- function(args) {
 # avoid the double-counting that padding a missing year with a neighbour's rows
 # would cause, and each half's app article states its own rule. Keep the two
 # descriptions in step if either rule changes.
+#
+# The corpus is read through `::`. A lazy-loaded dataset is found by its bare
+# name only through the attached package, so scopusflow::run_app() in a fresh
+# session, which loads the package without attaching it, stopped here with
+# "object 'example_records' not found".
 app_demo_records <- function(years, max_per_year = Inf) {
-  span <- range(example_records$year)
+  corpus <- scopusflow::example_records
+  span <- range(corpus$year)
   years <- if (is.null(years) || length(years) == 0L) span[2L] else as.integer(years)
   years <- sort(unique(pmin(pmax(years, span[1L]), span[2L])))
   # Left as a double. head() takes one, and as.integer() would silently turn a
@@ -166,7 +272,7 @@ app_demo_records <- function(years, max_per_year = Inf) {
     NA_real_
   }
   parts <- lapply(years, function(y) {
-    cell <- example_records[example_records$year == y, , drop = FALSE]
+    cell <- corpus[corpus$year == y, , drop = FALSE]
     if (is.na(n_max)) cell else utils::head(cell, n_max)
   })
   df <- do.call(rbind, lapply(parts, as.data.frame))
@@ -231,6 +337,42 @@ app_cap_note <- function(records) {
     amount, scopus_report_count(cap$capped), scopus_report_cells_text(cap$cells),
     amount
   )
+}
+
+# The count requests a topic comparison makes. scopus_compare_topics() counts
+# the reference in every year as well as each term, so `n_terms` terms over
+# `n_years` years cost (n_terms + 1) * n_years requests.
+app_comparison_cost <- function(n_terms, n_years) {
+  (n_terms + 1L) * n_years
+}
+
+# The cost note on the Compare topics tab, with advice to trim once the count
+# passes 80 requests. The note used to multiply the terms by the years alone,
+# so it understated every comparison by a year's worth of requests and gave
+# its advice late.
+app_comparison_note <- function(n_terms, n_years) {
+  n <- app_comparison_cost(n_terms, n_years)
+  sprintf(
+    "(%d term%s + the reference) x %d year%s = %d count requests.%s",
+    n_terms, if (n_terms == 1L) "" else "s",
+    n_years, if (n_years == 1L) "" else "s", n,
+    if (n > 80L) " Consider fewer terms or years." else ""
+  )
+}
+
+# The notification for a harvest whose background worker failed. callr wraps
+# the worker's error in one of its own, whose message opens with "in callr
+# subprocess" and a deparsed call, and keeps the worker's condition as its
+# parent. That condition's message is the one worth reading, marked "Scopus:"
+# when it is one of the package's own, as the size check and the comparison
+# mark theirs.
+app_fetch_failure_message <- function(err) {
+  cond <- if (inherits(err$parent, "condition")) err$parent else err
+  if (inherits(cond, "scopus_error")) {
+    paste("Scopus:", conditionMessage(cond))
+  } else {
+    paste("Retrieval did not complete:", conditionMessage(cond))
+  }
 }
 
 # Synthesise a plausible topic comparison so the compare flow works offline,

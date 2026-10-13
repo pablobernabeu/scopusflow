@@ -582,6 +582,29 @@ window in the process environment without a net gain on a single-user machine.
 The app's interface packages (`shiny`, `bslib`, `callr`, `fansi`) stay in
 Suggests and are required only inside `run_app()`.
 
+The app's checkpoints live in `tempdir()`, under a directory named by the
+browser session's token, and a session's end removes that directory alone.
+Every tab of one running app is a session of the same R process, so they share
+`tempdir()`. The first design keyed checkpoints by search only, and its
+end-of-session handler removed the shared root, so closing any tab deleted
+every other tab's checkpoints mid-harvest. Keeping the checkpoints in the
+managed cache, so that a later session could resume them, was rejected. Search
+terms would then outlive the app, contrary to its promise that none linger on
+disk, and the cache would be written without the user opting in. Resuming
+therefore works within a tab, after Cancel or a failure, and a harvest that has
+to outlast the session is the generated script's work. Naming checkpoints by a
+hash of each cell's identity, which would let one directory hold many plans,
+was deferred. It changes the cache layout of both twins and would force a
+second refetch of every cache soon after 0.4.0's.
+
+The script gives its plan a directory of its own under `scopus_cache_dir()`.
+The name holds the query's words and the years, and ends in eight hexadecimal
+digits of a hash over the query, field, view, partition and years. Pointing
+every plan at the managed cache's root made one plan's cells overwrite
+another's, since a cache directory serves one plan. The record cap is left out
+of the hash on purpose. A checkpoint records whether a cap stopped it, so a
+rerun without the cap refetches only the cells the cap cut short.
+
 ## Version 0.2.0 (continued): author keywords, references and a minimal corpus
 
 A downstream consumer (theoryforge) needed a keywords list and a references
@@ -719,8 +742,9 @@ checkpointed `NA` row would have hidden the document for good.
 concepts and their intersections, the magnitude snapshot that introduces where
 a study or a niche sits within a wider literature. The pair stands apart from
 `scopus_compare_topics()` because it answers a different question: the
-comparison tracks topics' shares of a reference over time (one request per term
-per year), whereas this counts each concept and each requested intersection
+comparison tracks topics' shares of a reference over time (one request per year
+for the reference and one per term per year), whereas this counts each concept
+and each requested intersection
 once (one request per row), so a whole landscape costs a handful of count
 requests. The pair was ported from a prototype developed and tested against the
 live API in a real literature review, and two of its details are deliberate

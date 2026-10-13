@@ -117,12 +117,13 @@ scopus_quota(resp)
 `scopus_fetch_plan()` runs each cell in turn. Given a cache directory it writes
 each cell to disk as it completes, so a run interrupted halfway, or stopped by
 the quota, resumes from where it left off and never pays twice for the same
-cell.
+cell. The plan below keeps its cells in a directory of its own inside the
+managed cache, for the reason the next paragraph gives.
 
 ```{r eval = FALSE}
 records <- scopus_fetch_plan(
   plan,
-  cache_dir = scopus_cache_dir(),
+  cache_dir = file.path(scopus_cache_dir(), "language-learning-effect-size"),
   resume = TRUE
 )
 records
@@ -142,8 +143,8 @@ be, because there is nothing further to fetch. The clean arrangement is still a
 separate directory per plan.
 
 The cache lives under `scopus_cache_dir()`. To force a fresh retrieval, empty it
-with `scopus_cache_clear()`. Both are shown but not run, so the article does not
-touch a real cache.
+with `scopus_cache_clear()`, which removes every plan's directory inside it.
+Both are shown but not run, so the article does not touch a real cache.
 
 ```{r eval = FALSE}
 scopus_cache_dir()    # where completed cells are written
@@ -167,7 +168,7 @@ worth doing for a harvest spanning many years.
 ```{r eval = FALSE}
 records <- scopus_fetch_plan(
   plan,
-  cache_dir = scopus_cache_dir(),
+  cache_dir = file.path(scopus_cache_dir(), "language-learning-effect-size"),
   verbose = TRUE
 )
 ```
@@ -300,7 +301,11 @@ every cell of a plan by cursor, so a single year that matches more than 5000
 records is retrieved whole and keeps its checkpoint.
 
 ```{r eval = FALSE}
-records <- scopus_fetch_plan(plan, cache_dir = scopus_cache_dir(), cursor = TRUE)
+records <- scopus_fetch_plan(
+  plan,
+  cache_dir = file.path(scopus_cache_dir(), "language-learning-effect-size"),
+  cursor = TRUE
+)
 ```
 
 Inside a plan, the warning for a cell that stops at the ceiling names that call,
@@ -320,7 +325,10 @@ Network and API problems are raised as typed conditions, all inheriting from
 
 ```{r eval = FALSE}
 result <- tryCatch(
-  scopus_fetch_plan(plan, cache_dir = scopus_cache_dir()),
+  scopus_fetch_plan(
+    plan,
+    cache_dir = file.path(scopus_cache_dir(), "language-learning-effect-size")
+  ),
   scopus_error_rate_limit = function(e) {
     message("Rate limited; the cached cells are safe. Try again later.")
     NULL

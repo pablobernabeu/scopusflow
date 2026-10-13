@@ -9,8 +9,8 @@
 ## usethis namespace: end
 NULL
 
-# Quiet R CMD check for tidy-eval pronouns used in examples/vignettes, and for
-# the lazy-loaded `example_records` dataset, which the app's demo mode reads
-# from the package's own namespace (LazyData is on, so it is bound at run time,
-# but static analysis cannot see that).
-utils::globalVariables(c(".data", "example_records"))
+# Quiet R CMD check for tidy-eval pronouns used in examples/vignettes. The
+# lazy-loaded `example_records` dataset is read in package code as
+# scopusflow::example_records, because a bare name finds it only when the
+# package is attached, so it needs no entry here.
+utils::globalVariables(".data")

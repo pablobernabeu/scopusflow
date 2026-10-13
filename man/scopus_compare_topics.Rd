@@ -57,9 +57,11 @@ growing or shrinking within a literature.
 }
 \section{API access}{
 
-This performs one count request per term per year, so it requires a valid API
-key and internet access. The \emph{API access} section of \code{\link[=scopus_count]{scopus_count()}} gives
-the details. A modest number of terms and years keeps the call within quota.
+This performs one count request per year for the reference topic and one per
+term per year, \code{(length(comparison_terms) + 1) * length(years)} requests in
+all. It therefore requires a valid API key and internet access. The
+\emph{API access} section of \code{\link[=scopus_count]{scopus_count()}} gives the details. A modest number
+of terms and years keeps the call within quota.
 }
 
 \examples{

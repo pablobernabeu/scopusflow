@@ -22,11 +22,123 @@ test_that("app_code_mirror builds a runnable, key-free script", {
   expect_true(grepl('field = "TITLE-ABS-KEY"', code, fixed = TRUE))
   expect_true(grepl("max_results = 200", code, fixed = TRUE))
   expect_true(grepl("scopus_fetch_plan(", code, fixed = TRUE))
-  expect_true(grepl("cache_dir = scopus_cache_dir()", code, fixed = TRUE))
+  expect_true(grepl("cache_dir = file.path(scopus_cache_dir(), ", code, fixed = TRUE))
   expect_true(grepl('scopus_top(records, by = "source")', code, fixed = TRUE))
   # The key handling is documented and the script is parseable R.
   expect_true(grepl("SCOPUS_API_KEY", code))
   expect_silent(parse(text = code))
+})
+
+test_that("app_code_mirror opens with its version and says when demo mode was on", {
+  live <- app_code_mirror(query = "graphene", years = 2018:2020)
+  replayed <- app_code_mirror(query = "graphene", years = 2018:2020, demo = TRUE)
+  # A downloaded script records the release its behaviour belongs to, as the
+  # Python twin's does, whichever mode wrote it.
+  version_line <- sprintf("# scopusflow %s", utils::packageVersion("scopusflow"))
+  expect_identical(strsplit(live, "\n", fixed = TRUE)[[1]][1], version_line)
+  expect_identical(strsplit(replayed, "\n", fixed = TRUE)[[1]][1], version_line)
+  # A demo session retrieved nothing, so its script says that the records were
+  # replayed and that what follows is the live equivalent.
+  expect_match(replayed, "example_records", fixed = TRUE)
+  expect_false(grepl("example_records", live, fixed = TRUE))
+  expect_silent(parse(text = live))
+  expect_silent(parse(text = replayed))
+})
+
+test_that("the generated script saves its results before it plots", {
+  # autoplot() needs ggplot2, which is only suggested, so a script that
+  # plotted first stopped there on a machine without it, before saving the
+  # records it had just paid for.
+  lines <- strsplit(app_code_mirror(query = "x", years = 2018:2020), "\n",
+                    fixed = TRUE)[[1]]
+  plot <- grep("autoplot(records)", lines, fixed = TRUE)
+  expect_length(plot, 1L)
+  expect_match(lines[plot], 'requireNamespace("ggplot2", quietly = TRUE)',
+               fixed = TRUE)
+  saves <- grep("write_scopus_records|scopus_extract_dois|as_bibtex|scopus_search_report",
+                lines)
+  expect_length(saves, 4L)
+  expect_true(all(saves < plot))
+})
+
+# The directory a generated script passes to scopus_fetch_plan() as cache_dir,
+# evaluated as the script would evaluate it.
+script_cache_dir <- function(code) {
+  for (e in as.list(parse(text = code))) {
+    if (is.call(e) && identical(e[[1]], as.name("<-")) && is.call(e[[3]]) &&
+        identical(e[[3]][[1]], as.name("scopus_fetch_plan"))) {
+      return(eval(e[[3]]$cache_dir))
+    }
+  }
+  NULL
+}
+
+# Run the two lines of a generated script that reach the cache, the plan and
+# the fetch. The others size, save, tally or plot.
+run_script_harvest <- function(code) {
+  env <- new.env()
+  for (e in as.list(parse(text = code))) {
+    if (is.call(e) && identical(e[[1]], as.name("<-")) && is.call(e[[3]]) &&
+        as.character(e[[3]][[1]]) %in% c("scopus_plan", "scopus_fetch_plan")) {
+      eval(e, env)
+    }
+  }
+  invisible(env$records)
+}
+
+test_that("the scripts the app writes keep each plan's checkpoints apart", {
+  local_scopus_test_env()
+  withr::local_envvar(R_USER_CACHE_DIR = withr::local_tempdir())
+  requests <- 0L
+  corpus <- mock_corpus(3L)
+  httr2::local_mocked_responses(function(req) {
+    requests <<- requests + 1L
+    corpus(req)
+  })
+  first <- app_code_mirror(query = "graphene", years = 2023:2024)
+  second <- app_code_mirror(query = "perovskite", years = 2023:2024)
+  # Each plan's directory lies under the managed cache, so
+  # scopus_cache_clear() still empties it, and opens with its search.
+  dir <- script_cache_dir(first)
+  expect_identical(dir, file.path(scopus_cache_dir(), basename(dir)))
+  expect_match(basename(dir), "^graphene-2023-2024-[0-9a-f]{8}$")
+
+  run_script_harvest(first)
+  run_script_harvest(second)
+  expect_identical(requests, 4L)
+  # Every script used to pass the cache's root, where the second plan's cells
+  # overwrote the first plan's, so each rerun refetched them with a warning.
+  expect_no_warning(run_script_harvest(first), class = "scopus_warning_cache_mismatch")
+  expect_identical(requests, 4L)
+})
+
+test_that("the script's checkpoint directory changes with the plan and only with it", {
+  name <- function(...) basename(script_cache_dir(app_code_mirror(...)))
+  base <- name(query = "graphene", years = 2018:2022, field = "TITLE-ABS-KEY")
+  # The same search finds its checkpoints again, whatever its record cap,
+  # since a checkpoint records whether a cap stopped it.
+  expect_identical(name(query = "graphene", years = 2018:2022, field = "TITLE-ABS-KEY"),
+                   base)
+  expect_identical(name(query = "graphene", years = 2018:2022, field = "TITLE-ABS-KEY",
+                        max_results = 25), base)
+  # Whatever changes the cells changes the directory.
+  others <- c(
+    name(query = "graphene oxide", years = 2018:2022, field = "TITLE-ABS-KEY"),
+    name(query = "graphene", years = 2019:2022, field = "TITLE-ABS-KEY"),
+    name(query = "graphene", years = 2018:2022, field = "TITLE"),
+    name(query = "graphene", years = 2018:2022, field = "TITLE-ABS-KEY",
+         view = "COMPLETE"),
+    name(query = "graphene", years = 2018:2022, field = "TITLE-ABS-KEY",
+         partition = "none")
+  )
+  expect_false(base %in% others)
+  expect_length(unique(others), length(others))
+  # A query with no ASCII letters or digits is named by its years and hash.
+  expect_match(name(query = "石墨烯", years = 2018:2022),
+               "^2018-2022-[0-9a-f]{8}$")
+  # Capitals fold to their ASCII lower case.
+  expect_match(name(query = "Graphene IN Supercapacitors", years = 2018:2022),
+               "^graphene-in-supercapacitors-2018-2022-[0-9a-f]{8}$")
 })
 
 test_that("app_code_mirror omits absent options", {
@@ -117,13 +229,79 @@ test_that("app_code_mirror appends a comparison block when terms are given", {
   expect_silent(parse(text = code))
 })
 
-test_that("app_code_mirror skips the comparison block without terms or years", {
+test_that("app_code_mirror skips the comparison block only without terms or a span", {
   expect_false(grepl("compare_topics",
                      app_code_mirror(query = "x", years = 2018:2020), fixed = TRUE))
-  # Terms but no year span: skipped, since scopus_compare_topics() needs years.
+  # Terms and no span anywhere: skipped, since scopus_compare_topics() needs
+  # years.
   expect_false(grepl("compare_topics",
                      app_code_mirror(query = "x", years = NULL, partition = "none",
                                      compare_terms = "a"), fixed = TRUE))
+  # An unpartitioned plan has no years, but the app still compares, over the
+  # years it passes as compare_years, so the script names them.
+  code <- app_code_mirror(query = "x", years = NULL, partition = "none",
+                          compare_terms = "a", compare_years = 2021:2026)
+  expect_match(code, "scopus_compare_topics(", fixed = TRUE)
+  expect_match(code, "years = 2021:2026", fixed = TRUE)
+  expect_match(code, 'plan <- scopus_plan("x")', fixed = TRUE)
+  expect_silent(parse(text = code))
+})
+
+test_that("a comparison costs a request per term and one for the reference, every year", {
+  # scopus_compare_topics() counts the reference in each year as well as each
+  # term, so the app's default of two terms over six years makes 18 requests.
+  expect_identical(app_comparison_cost(2L, 6L), 18L)
+  expect_identical(app_comparison_cost(1L, 1L), 2L)
+  expect_identical(app_comparison_note(2L, 6L),
+                   "(2 terms + the reference) x 6 years = 18 count requests.")
+  expect_identical(app_comparison_note(1L, 1L),
+                   "(1 term + the reference) x 1 year = 2 count requests.")
+  # The advice applies above 80 requests, counted the same way.
+  expect_match(app_comparison_note(2L, 27L),
+               "= 81 count requests. Consider fewer terms or years.", fixed = TRUE)
+  expect_false(grepl("Consider", app_comparison_note(3L, 20L), fixed = TRUE))
+})
+
+test_that("each session's checkpoints have a directory of their own", {
+  root <- file.path("tmp", "scopusflow-app")
+  a <- app_session_cache_dir(root, "token-a", "search")
+  b <- app_session_cache_dir(root, "token-b", "search")
+  # The same search in two tabs never shares a directory, while one tab that
+  # fetches it again finds its own checkpoints.
+  expect_false(identical(a, b))
+  expect_identical(app_session_cache_dir(root, "token-a", "search"), a)
+  # Each search sits in its session's base, the directory that session's
+  # cleanup removes.
+  expect_identical(dirname(a), app_session_cache_dir(root, "token-a"))
+  expect_identical(dirname(b), app_session_cache_dir(root, "token-b"))
+  expect_identical(dirname(app_session_cache_dir(root, "token-a")), root)
+})
+
+test_that("a failed harvest is reported in the worker's own words", {
+  skip_if_not_installed("callr")
+  skip_on_cran()
+  # The worker's error reaches the app wrapped by callr, whose message opens
+  # with "in callr subprocess" and a deparsed call. The worker's own condition
+  # is the wrapper's parent.
+  failed <- function(fun) {
+    proc <- callr::r_bg(fun)
+    proc$wait(timeout = 60000)
+    tryCatch(proc$get_result(), error = function(e) e)
+  }
+  res <- failed(function() {
+    rlang::abort("Scopus rejected the API key (HTTP 401).",
+                 class = c("scopus_error_unauthorized", "scopus_error"))
+  })
+  expect_match(conditionMessage(res), "callr subprocess", fixed = TRUE)
+  expect_identical(app_fetch_failure_message(res),
+                   "Scopus: Scopus rejected the API key (HTTP 401).")
+  # Any other failure keeps the retrieval's heading, still without the wrapper.
+  res <- failed(function() stop("disk full"))
+  expect_identical(app_fetch_failure_message(res),
+                   "Retrieval did not complete: disk full")
+  # An error raised in the app's own process has no wrapper to unpick.
+  expect_identical(app_fetch_failure_message(simpleError("no worker")),
+                   "Retrieval did not complete: no worker")
 })
 
 test_that("app_demo_records draws real records spanning the years", {
@@ -175,6 +353,43 @@ test_that("run_app is exported and guarded", {
   expect_true(is.function(run_app))
 })
 
+test_that("the app reads the bundled corpus with scopusflow loaded but not attached", {
+  skip_if_not_installed("callr")
+  skip_if_not_installed("shiny")
+  skip_if_not_installed("bslib")
+  # A second R process, so the test stays off CRAN.
+  skip_on_cran()
+  # scopusflow::run_app() in a fresh session loads the package without
+  # attaching it. Package code then reaches a lazy-loaded dataset through `::`
+  # alone, because a bare name is found through the attached package. Demo
+  # mode's Check size and Fetch records stopped at that lookup, and the year
+  # slider, which opens on the corpus's span, would stop the app at start-up.
+  ns_path <- getNamespaceInfo("scopusflow", "path")
+  # The code under test is the source tree under devtools::test() and the
+  # installed package under R CMD check. pkgload is reached through
+  # getExportedValue(), since only the first of those has it.
+  from_source <- file.exists(file.path(ns_path, "R", "run-app.R"))
+  out <- callr::r(function(ns_path, from_source) {
+    if (from_source) {
+      load_all <- getExportedValue("pkgload", "load_all")
+      suppressMessages(load_all(ns_path, attach = FALSE, export_all = FALSE,
+                                helpers = FALSE, quiet = TRUE))
+    } else {
+      loadNamespace("scopusflow")
+    }
+    ns <- asNamespace("scopusflow")
+    attempt <- function(expr) tryCatch(expr, error = conditionMessage)
+    list(
+      attached = "package:scopusflow" %in% search(),
+      ui = attempt(!is.null(ns$app_ui())),
+      demo = attempt(nrow(ns$app_demo_records(2015:2016)))
+    )
+  }, args = list(ns_path = ns_path, from_source = from_source))
+  expect_false(out$attached)
+  expect_identical(out$ui, TRUE)
+  expect_identical(out$demo, sum(example_records$year %in% 2015:2016))
+})
+
 test_that("the record cap starts blank and is labelled per cell", {
   # The field used to default to 200 records per year, so every live harvest
   # was capped unless the user cleared it, and the By year tab then plotted
@@ -188,6 +403,20 @@ test_that("the record cap starts blank and is labelled per cell", {
   # number field, and shiny's number input hands the server NA for it, read
   # as no cap.
   expect_true(grepl("value=\"NA\"", input, fixed = TRUE))
+})
+
+test_that("the year slider opens on the span of the bundled corpus", {
+  skip_if_not_installed("shiny")
+  skip_if_not_installed("bslib")
+  # Demo mode is on when the app opens and replays the bundled corpus. A window
+  # of the last six calendar years announced cells past the corpus's end, which
+  # the demo harvest folded into its last year.
+  span <- range(example_records$year)
+  ui <- as.character(app_ui())
+  slider <- regmatches(ui, regexpr("<input[^>]*id=\"years\"[^>]*>", ui))
+  expect_length(slider, 1L)
+  expect_match(slider, sprintf("data-from=\"%d\"", span[1L]), fixed = TRUE)
+  expect_match(slider, sprintf("data-to=\"%d\"", span[2L]), fixed = TRUE)
 })
 
 # A two-cell harvest whose first cell stopped at a cap of 15.
@@ -370,6 +599,107 @@ test_that("the authors tab notes a STANDARD harvest, and leaves the session's wa
   })
   expect_warning(scopus_top(standard, by = "author"),
                  class = "scopus_warning_first_author_only")
+})
+
+test_that("a session that ends removes its own checkpoints and no other session's", {
+  skip_if_not_installed("shiny")
+  root <- file.path(tempdir(), "scopusflow-app")
+  # Another tab of the same app, part-way through a harvest. Every tab is a
+  # session of one R process, so they share tempdir().
+  other <- file.path(root, "another-tab", "a-search")
+  dir.create(other, recursive = TRUE, showWarnings = FALSE)
+  withr::defer(unlink(file.path(root, "another-tab"), recursive = TRUE))
+  saveRDS(1L, file.path(other, "cell-001-2024.rds"))
+  own <- NULL
+  shiny::testServer(app_server, {
+    own <<- file.path(root, session$token)
+    dir.create(file.path(own, "a-search"), recursive = TRUE, showWarnings = FALSE)
+    saveRDS(1L, file.path(own, "a-search", "cell-001-2024.rds"))
+  })
+  # testServer() ends the session on its way out, as closing a tab does. The
+  # handler used to remove the whole root, the other tab's checkpoints with it.
+  expect_true(file.exists(file.path(other, "cell-001-2024.rds")))
+  expect_false(dir.exists(own))
+})
+
+test_that("a harvest checkpoints into its own session's directory", {
+  skip_if_not_installed("shiny")
+  skip_if_not_installed("callr")
+  # Fetch starts a background R process through callr, so the test stays off
+  # CRAN. Demo mode keeps that process offline.
+  skip_on_cran()
+  root <- file.path(tempdir(), "scopusflow-app")
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = "graphene", demo = TRUE)
+    session$setInputs(fetch = 1)
+    proc <- rv$proc
+    searches <- list.dirs(file.path(root, session$token), recursive = FALSE)
+    if (!is.null(proc)) try(proc$kill(), silent = TRUE)
+    expect_false(is.null(proc))
+    expect_length(searches, 1L)
+  })
+})
+
+test_that("the Records tab says how many records its table previews", {
+  skip_if_not_installed("shiny")
+  # The table shows the first 25 rows, and the notification that gave the
+  # count fades long before the tab is read.
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = "graphene")
+    rv$records <- example_records
+    session$flushReact()
+    expect_match(output$records_note$html,
+                 sprintf("%d records (showing the first 25)", nrow(example_records)),
+                 fixed = TRUE)
+    rv$records <- utils::head(example_records, 3L)
+    session$flushReact()
+    expect_match(output$records_note$html, "3 records", fixed = TRUE)
+    expect_false(grepl("showing", output$records_note$html, fixed = TRUE))
+  })
+})
+
+test_that("the comparison note counts the reference in every year", {
+  skip_if_not_installed("shiny")
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = "graphene")
+    session$setInputs(cmp_terms = "flexible, energy storage", years = c(2021, 2026))
+    expect_match(output$cmp_note$html,
+                 "(2 terms + the reference) x 6 years = 18 count requests.",
+                 fixed = TRUE)
+    expect_false(grepl("Consider", output$cmp_note$html, fixed = TRUE))
+    # The advice to trim follows the true count: 81 requests here, where the
+    # note used to say 54 and stay quiet.
+    session$setInputs(years = c(2000, 2026))
+    expect_match(output$cmp_note$html, "x 27 years = 81 count requests.",
+                 fixed = TRUE)
+    expect_match(output$cmp_note$html, "Consider fewer terms or years", fixed = TRUE)
+    # Unpartitioned, the comparison covers the last six years.
+    session$setInputs(use_years = FALSE)
+    expect_match(output$cmp_note$html, "x 6 years = 18 count requests.",
+                 fixed = TRUE)
+  })
+})
+
+test_that("the script panel follows demo mode and the years the app compares", {
+  skip_if_not_installed("shiny")
+  this_year <- as.integer(format(Sys.Date(), "%Y"))
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = "graphene", demo = TRUE)
+    expect_match(code_text(), "example_records", fixed = TRUE)
+    session$setInputs(demo = FALSE)
+    expect_false(grepl("example_records", code_text(), fixed = TRUE))
+    # With the partition off, the script still carries the comparison, over
+    # the last six years, which are the ones the app compares.
+    session$setInputs(use_years = FALSE, cmp_terms = "flexible")
+    yrs <- cmp_years_value()
+    expect_identical(yrs, seq(yrs[1L], yrs[1L] + 5L))
+    # The test read the date before the server did, so a new year arriving in
+    # between can only move the server's window on by one.
+    expect_true(yrs[6L] %in% (this_year + 0:1))
+    code <- code_text()
+    expect_match(code, "scopus_compare_topics(", fixed = TRUE)
+    expect_match(code, sprintf("years = %d:%d", yrs[1L], yrs[6L]), fixed = TRUE)
+  })
 })
 
 test_that("the Retrieval card shows the cap note after a capped harvest", {

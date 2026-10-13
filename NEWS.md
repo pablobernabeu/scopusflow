@@ -175,6 +175,41 @@
   blank, and a note in the Retrieval panel says when the cap stopped a cell.
   `scopus_fetch()` and `scopus_fetch_plan()` keep a finite cap as the
   `max_results` attribute, which the record reads.
+* Closing one tab of the app deleted every other tab's checkpoints
+  mid-harvest, because the app kept its checkpoints by search alone and each
+  session's end removed the directory all sessions shared. Each session now
+  keeps them in a temporary directory of its own, removed when that session
+  ends, and a search fetched again in the same tab, after Cancel or a failure,
+  resumes from them. The app article no longer promises that a quota-limited
+  run picks up where it left off, which the temporary directory never allowed
+  across sessions, and points to the generated script for a harvest that has
+  to outlast the session.
+* The script the app writes passed `scopus_cache_dir()` itself to every plan,
+  so one plan's checkpoints overwrote another's and each rerun paid for them
+  again. It now keeps each plan's checkpoints in a directory of their own
+  under `scopus_cache_dir()`, named from the query and the years with a short
+  hash added. The script opens with the scopusflow version that wrote it,
+  notes when demo mode was on, saves the records before it plots and plots
+  only where ggplot2 is installed. A comparison run with Partition by year off,
+  which covers the last six years, was left out of the script and is now
+  written over those years. The README and the articles likewise give each
+  plan a directory of its own under `scopus_cache_dir()`.
+* The request count of a topic comparison was understated in the help for
+  `scopus_compare_topics()`, the app, the generated script and two articles.
+  It is (terms + 1) × years, since the reference is counted in every year
+  too, so the app's default of two terms over six years makes 18 requests,
+  where its note said 12. The app's advice to use fewer terms or years now
+  applies above 80 requests counted this way.
+* The app's Records tab now says how many records the harvest holds and that
+  its table shows the first 25 of them. A failed harvest is reported in the
+  worker's own words, where the notification opened with the "in callr
+  subprocess" wrapper of the background process, and an error raised by
+  scopusflow is marked "Scopus:", as the other panels mark theirs. The year
+  slider opens on 2015 to 2024, the span of the bundled corpus that demo mode
+  replays, as the Python app's slider does. The app reads that corpus as
+  `scopusflow::example_records`, so demo mode works when the app is launched
+  as `scopusflow::run_app()` without attaching the package, where Check size
+  and Fetch records failed with "object 'example_records' not found".
 
 ## Documentation
 

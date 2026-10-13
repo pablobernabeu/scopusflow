@@ -72,8 +72,15 @@ app_ui <- function() {
       shiny::checkboxInput("use_years", "Partition by year (recommended)", value = TRUE),
       shiny::conditionalPanel(
         "input.use_years == true",
+        # Opens on the span of the bundled corpus, as the Python app's slider
+        # does, so demo mode, on from the start, has records for every cell it
+        # announces. The slider still reaches the current year for a live search.
+        # The corpus is read through `::`, which finds lazy-loaded data whether
+        # or not the package is attached. scopusflow::run_app() in a fresh
+        # session leaves it unattached.
         shiny::sliderInput("years", "Years", min = 1960L, max = this_year,
-                           value = c(this_year - 5L, this_year), sep = "")
+                           value = range(scopusflow::example_records$year),
+                           sep = "")
       ),
       shiny::radioButtons("view", "Detail", inline = TRUE,
                           choices = c("STANDARD", "COMPLETE")),
@@ -128,7 +135,8 @@ app_ui <- function() {
     ),
     bslib::navset_card_tab(
       title = "Results",
-      bslib::nav_panel("Records", shiny::tableOutput("records_table")),
+      bslib::nav_panel("Records", shiny::uiOutput("records_note"),
+                       shiny::tableOutput("records_table")),
       bslib::nav_panel("By year", shiny::plotOutput("plot_year", height = "320px")),
       bslib::nav_panel("Top sources", shiny::plotOutput("plot_sources", height = "320px")),
       bslib::nav_panel(
@@ -198,6 +206,10 @@ app_server <- function(input, output, session) {
     progress = NULL, status = "idle", comparison = NULL
   )
 
+  # Checkpoints live under the temporary directory, so no search terms outlive
+  # the app, in a directory of this session's own (see app_session_cache_dir()).
+  app_root <- file.path(tempdir(), "scopusflow-app")
+
   # The key lives only in the session, passed to the worker as an argument.
   api_key <- shiny::reactive({
     k <- trimws(input$api_key %||% "")
@@ -239,8 +251,16 @@ app_server <- function(input, output, session) {
     unique(raw[nzchar(raw)])
   })
 
-  # The live code mirror, rebuilt whenever the plan or comparison inputs change,
-  # and shared by the on-screen panel and the script download.
+  # A comparison always covers a span of years, so with the partition off it
+  # falls back to the last six. Resolved once, so the cost note, the comparison
+  # and the generated script all name the same span.
+  cmp_years_value <- shiny::reactive({
+    this_year <- as.integer(format(Sys.Date(), "%Y"))
+    years_value() %||% seq(this_year - 5L, this_year)
+  })
+
+  # The live code mirror, rebuilt whenever the plan, the comparison inputs or
+  # demo mode change, and shared by the on-screen panel and the script download.
   code_text <- shiny::reactive({
     app_code_mirror(
       query = input$query, years = years_value(),
@@ -248,9 +268,11 @@ app_server <- function(input, output, session) {
       partition = if (isTRUE(input$use_years)) "year" else "none",
       max_results = max_value(),
       compare_terms = cmp_terms_value(),
+      compare_years = cmp_years_value(),
       highlight = if (nzchar(input$cmp_highlight %||% "")) input$cmp_highlight else NULL,
       interval = !identical(input$cmp_interval, FALSE),
-      pub_count_in_legend = !identical(input$cmp_counts, FALSE)
+      pub_count_in_legend = !identical(input$cmp_counts, FALSE),
+      demo = isTRUE(input$demo)
     )
   })
 
@@ -341,7 +363,7 @@ app_server <- function(input, output, session) {
     # share a directory and so each other's checkpoints.
     key <- rlang::hash(list(input$query, input$field, input$view,
                             range(years_value() %||% 0L), max_value()))
-    cache_dir <- file.path(tempdir(), "scopusflow-app", key)
+    cache_dir <- app_session_cache_dir(app_root, session$token, key)
     dir.create(cache_dir, recursive = TRUE, showWarnings = FALSE)
     if (!is.null(rv$logfile) && file.exists(rv$logfile)) unlink(rv$logfile)
     logfile <- tempfile("scopusflow-log-", fileext = ".txt")
@@ -412,7 +434,7 @@ app_server <- function(input, output, session) {
       rv$proc <- NULL
       if (inherits(res, "condition")) {
         rv$status <- "error"
-        shiny::showNotification(paste("Retrieval did not complete:", conditionMessage(res)),
+        shiny::showNotification(app_fetch_failure_message(res),
                                 type = "error", duration = NULL)
       } else {
         rv$records <- res
@@ -475,12 +497,29 @@ app_server <- function(input, output, session) {
     if (is.null(note)) NULL else shiny::div(class = "alert alert-warning py-2", note)
   })
 
+  # The table previews the first rows only, and the notification that gave the
+  # count fades long before the tab is read, so the tab says how many there are.
+  preview_rows <- 25L
+  output$records_note <- shiny::renderUI({
+    recs <- records_r()
+    if (is.null(recs)) {
+      return(NULL)
+    }
+    n <- nrow(recs)
+    note <- if (n > preview_rows) {
+      sprintf("%s records (showing the first %d)", scopus_report_count(n), preview_rows)
+    } else {
+      sprintf("%s record%s", scopus_report_count(n), if (n == 1L) "" else "s")
+    }
+    shiny::p(shiny::tags$small(note))
+  })
+
   output$records_table <- shiny::renderTable({
     recs <- records_r()
     shiny::validate(shiny::need(!is.null(recs), "Fetch records to see them here."))
     out <- as.data.frame(recs)[, intersect(c("title", "year", "publication", "citations"),
                                             names(recs)), drop = FALSE]
-    utils::head(out, 25L)
+    utils::head(out, preview_rows)
   })
 
   output$plot_year <- shiny::renderPlot({
@@ -522,7 +561,8 @@ app_server <- function(input, output, session) {
   )
 
   # Topic comparison. The highlight choices track the entered terms; the note
-  # shows the count-request cost (one per term per year) outside demo mode.
+  # shows the count-request cost (one per term per year, plus one per year for
+  # the reference topic) outside demo mode.
   shiny::observeEvent(cmp_terms_value(), {
     terms <- cmp_terms_value()
     sel <- if (!is.null(input$cmp_highlight) && input$cmp_highlight %in% terms) {
@@ -539,16 +579,9 @@ app_server <- function(input, output, session) {
     if (length(terms) == 0L || isTRUE(input$demo)) {
       return(NULL)
     }
-    this_year <- as.integer(format(Sys.Date(), "%Y"))
-    yrs <- years_value() %||% seq(this_year - 5L, this_year)
-    n <- length(terms) * length(yrs)
-    msg <- sprintf(
-      "%d term%s x %d year%s = %d count requests.%s",
-      length(terms), if (length(terms) == 1L) "" else "s",
-      length(yrs), if (length(yrs) == 1L) "" else "s", n,
-      if (n > 80L) "  Consider fewer terms or years." else ""
-    )
-    shiny::p(shiny::tags$small(msg))
+    shiny::p(shiny::tags$small(
+      app_comparison_note(length(terms), length(cmp_years_value()))
+    ))
   })
 
   shiny::observeEvent(input$compare, {
@@ -574,8 +607,7 @@ app_server <- function(input, output, session) {
                               type = "warning")
       return()
     }
-    this_year <- as.integer(format(Sys.Date(), "%Y"))
-    yrs <- years_value() %||% seq(this_year - 5L, this_year)
+    yrs <- cmp_years_value()
     # One count step per term, plus the reference: drive a live progress bar.
     n_steps <- length(terms) + 1L
 
@@ -692,14 +724,17 @@ app_server <- function(input, output, session) {
     }
   )
 
-  # Stop the worker and clean up the worker's logfile and cache when the browser
-  # session ends, so no search terms linger on disk.
+  # Stop the worker and clean up the worker's logfile and this session's
+  # checkpoints when the browser session ends, so no search terms linger on
+  # disk. Only this session's directory goes, because the other tabs of the app
+  # share the root and removing it deleted their checkpoints mid-harvest.
   session$onSessionEnded(function() {
     p <- shiny::isolate(rv$proc)
     if (!is.null(p) && p$is_alive()) try(p$kill(), silent = TRUE)
     lf <- shiny::isolate(rv$logfile)
     if (!is.null(lf) && file.exists(lf)) try(unlink(lf), silent = TRUE)
-    try(unlink(file.path(tempdir(), "scopusflow-app"), recursive = TRUE), silent = TRUE)
+    try(unlink(app_session_cache_dir(app_root, session$token), recursive = TRUE),
+        silent = TRUE)
   })
 }
 

@@ -101,7 +101,9 @@ scopus_has_key()
 
 With a key configured, you size a search cheaply and then execute the plan,
 optionally caching each cell so that an interrupted run resumes without
-re-spending quota. These contact the API, so they are not evaluated here.
+re-spending quota. A cache directory serves one plan, so the plan gets a
+directory of its own inside the managed cache. These contact the API, so they
+are not evaluated here.
 
 ```{r eval = FALSE}
 scopus_count(
@@ -112,7 +114,7 @@ scopus_count(
 
 records <- scopus_fetch_plan(
   plan,
-  cache_dir = scopus_cache_dir(),
+  cache_dir = file.path(scopus_cache_dir(), "graphene-supercapacitor"),
   resume = TRUE
 )
 ```
@@ -204,7 +206,9 @@ writeLines(head(readLines(out), 5))
 
 `scopus_compare_topics()` measures how the internal emphasis of a literature
 shifts, expressed as each comparison topic's yearly share of the reference
-literature. It issues one count request per term per year, so it needs the API.
+literature. It issues one count request per year for the reference and one per
+term per year, so the call below, with two terms over six years, makes 18
+requests and needs the API.
 
 ```{r eval = FALSE}
 cmp <- scopus_compare_topics(
