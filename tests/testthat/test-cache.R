@@ -725,6 +725,85 @@ test_that("a checkpoint that records no paging mode counts as offset-paged", {
   }
 })
 
+test_that("a core checkpoint is refetched for the extended fields, and an extended one serves both", {
+  # The extended fields change what a checkpoint holds while the search returns
+  # the same records. An extended checkpoint can therefore serve a core request
+  # with its extra columns dropped, while a core one lacks what an extended
+  # request asks for.
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  fx <- extended_fixture()
+  calls <- 0L
+  httr2::local_mocked_responses(function(req) {
+    calls <<- calls + 1L
+    mock_search_results(list(fx$standard), total = 1L)
+  })
+  plan <- scopus_plan("screening", years = 2021L, field = "TITLE")
+  file <- file.path(cache, "cell-001-2021.rds")
+
+  core <- scopus_fetch_plan(plan, cache_dir = cache)
+  expect_identical(names(core), scopusflow:::scopus_records_columns())
+  expect_identical(attr(readRDS(file), "cache_meta")$fields, "core")
+
+  # A checkpoint written before the fields were recorded counts as core, and
+  # still serves a core request at no cost.
+  old <- readRDS(file)
+  meta <- attr(old, "cache_meta")
+  meta$fields <- NULL
+  attr(old, "cache_meta") <- meta
+  saveRDS(old, file)
+  expect_no_warning(scopus_fetch_plan(plan, cache_dir = cache))
+  expect_equal(calls, 1L)
+
+  switched <- expect_warning(
+    extended <- scopus_fetch_plan(plan, cache_dir = cache, fields = "extended"),
+    class = "scopus_warning_cache_mismatch"
+  )
+  expect_equal(calls, 2L)
+  expect_match(conditionMessage(switched),
+               "was fetched with the core fields, not the extended fields asked for",
+               fixed = TRUE)
+  expect_false(grepl("cache_dir", conditionMessage(switched), fixed = TRUE))
+  expect_identical(extended$issn, "00368075")
+  expect_identical(attr(readRDS(file), "cache_meta")$fields, "extended")
+
+  # The extended checkpoint written in its place serves either request.
+  again <- expect_no_warning(
+    scopus_fetch_plan(plan, cache_dir = cache, fields = "extended")
+  )
+  expect_identical(names(again), names(extended))
+  served <- expect_no_warning(scopus_fetch_plan(plan, cache_dir = cache))
+  expect_equal(calls, 2L)
+  expect_identical(names(served), scopusflow:::scopus_records_columns())
+  expect_identical(attr(served, "view"), "STANDARD")
+  expect_s3_class(attr(served, "retrieved_at"), "POSIXct")
+})
+
+test_that("an extended COMPLETE checkpoint serves a core request without its abstract", {
+  # Under COMPLETE the core set already carries authkeywords, and the extended
+  # set adds the abstract after the other extended columns. A core request
+  # served from such a checkpoint has to lose the abstract with the rest and
+  # keep authkeywords.
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  fx <- extended_fixture()
+  calls <- 0L
+  httr2::local_mocked_responses(function(req) {
+    calls <<- calls + 1L
+    mock_search_results(list(fx$complete), total = 1L)
+  })
+  plan <- scopus_plan("screening", years = 2021L, field = "TITLE", view = "COMPLETE")
+  extended <- scopus_fetch_plan(plan, cache_dir = cache, fields = "extended")
+  expect_identical(names(extended), names(fx$expected$complete))
+
+  served <- expect_no_warning(scopus_fetch_plan(plan, cache_dir = cache))
+  expect_equal(calls, 1L)
+  expect_identical(names(served),
+                   c(scopusflow:::scopus_records_columns(), "authkeywords"))
+  expect_identical(served$authkeywords, fx$expected$complete$authkeywords)
+  expect_identical(attr(served, "view"), "COMPLETE")
+})
+
 test_that("scopus_fetch_plan() takes cursor as TRUE or FALSE", {
   local_scopus_test_env()
   httr2::local_mocked_responses(function(req) stop("no request was expected"))

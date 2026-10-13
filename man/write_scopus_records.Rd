@@ -25,11 +25,13 @@ Save a \link{scopus_records} tibble to disk and read it back, with a stable
 round-trip. The file extension selects the format. An \code{.rds} file preserves
 the types and class exactly, while a \code{.csv} file is portable plain text.
 The optional \code{authkeywords} column a \code{view = "COMPLETE"} retrieval adds
-(see \code{\link[=scopus_records]{scopus_records()}}) round-trips through both formats. The attributes a
-live retrieval carries, including \code{retrieved_at} and \code{scopusflow_version}
-(see \code{\link[=scopus_fetch]{scopus_fetch()}}), survive the \code{.rds} form only: \code{.csv} is a table of
-columns and cannot hold them, so save as \code{.rds} when a set is a baseline to
-be compared against later.
+(see \code{\link[=scopus_records]{scopus_records()}}) round-trips through both formats, and so do the
+columns \code{fields = "extended"} adds. A \code{.csv} file reads them back as text,
+apart from the integer \code{open_access}, so an ISSN keeps its leading zeros.
+The attributes a live retrieval carries, including \code{retrieved_at} and
+\code{scopusflow_version} (see \code{\link[=scopus_fetch]{scopus_fetch()}}), survive the \code{.rds} form only:
+\code{.csv} is a table of columns and cannot hold them, so save as \code{.rds} when a
+set is a baseline to be compared against later.
 }
 \examples{
 # A round trip on the bundled corpus of real articles, which stands in for

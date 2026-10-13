@@ -217,6 +217,37 @@ test_that("scopus_fetch(view = 'STANDARD') never carries authkeywords, even if p
   expect_identical(names(recs), scopusflow:::scopus_records_columns())
 })
 
+test_that("scopus_fetch(fields = 'extended') keeps the extended fields under either paging", {
+  local_scopus_test_env()
+  fx <- extended_fixture()
+  httr2::local_mocked_responses(function(req) {
+    mock_search_results(list(fx$complete), total = 1L)
+  })
+  complete <- scopus_fetch("screening", field = "TITLE", view = "COMPLETE",
+                           fields = "extended")
+  expect_record_row(complete, fx$expected$complete)
+  # The default keeps the core fields.
+  expect_identical(names(scopus_fetch("screening", field = "TITLE", view = "COMPLETE")),
+                   c(scopusflow:::scopus_records_columns(), "authkeywords"))
+
+  httr2::local_mocked_responses(function(req) {
+    mock_json_response(list(`search-results` = list(
+      `opensearch:totalResults` = "1", entry = list(fx$standard), cursor = list()
+    )))
+  })
+  standard <- scopus_fetch("screening", field = "TITLE", cursor = TRUE,
+                           fields = "extended")
+  expect_record_row(standard, fx$expected$standard)
+})
+
+test_that("fields is checked before any request", {
+  local_scopus_test_env()
+  httr2::local_mocked_responses(function(req) stop("no request was expected"))
+  expect_error(scopus_fetch("x", fields = "all"), class = "scopus_error_bad_input")
+  expect_error(scopus_fetch_plan(scopus_plan("x", years = 2020L), fields = "all"),
+               class = "scopus_error_bad_input")
+})
+
 test_that("a retrieval is dated and attributed to the version that took it", {
   # `citations` is a snapshot value, and the change-tracking workflow rests on
   # diffing two pulls, so a saved set that cannot say when it was taken cannot

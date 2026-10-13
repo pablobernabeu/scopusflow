@@ -19,6 +19,12 @@
 #'   the original columns exactly, so existing callers that never mention
 #'   `view` see no change at all. [scopus_fetch()] and [scopus_fetch_plan()]
 #'   pass this through automatically.
+#' @param fields `"core"` (the default) builds the columns listed under
+#'   *Value*, exactly as before. `"extended"` also keeps the document type,
+#'   source type, volume, issue, pages, ISSN, PubMed identifier and open-access
+#'   status the Search API sends with every record, and under
+#'   `view = "COMPLETE"` the abstract, at no extra quota (see *Extended
+#'   fields*). [scopus_fetch()] and [scopus_fetch_plan()] pass this through.
 #' @return A tibble of class `scopus_records` with the columns
 #'   `entry_number` (integer), `scopus_id` (character), `doi` (character),
 #'   `title` (character), `authors` (character, the author list under
@@ -32,6 +38,15 @@
 #'   Search API returns under that view, as a single string in 'Scopus'
 #'   own `" | "`-delimited form (`NA` when the document has none, or when the
 #'   API omits the field for a given key's entitlement; see *Details*).
+#'   With `fields = "extended"`, the character columns `doc_type`,
+#'   `doc_type_description`, `source_type`, `volume`, `issue`, `pages`, `issn`
+#'   and `pubmed_id` follow, then the integer `open_access` and, under
+#'   `view = "COMPLETE"`, the character `abstract`. `doc_type` and
+#'   `doc_type_description` hold the document-type code and name 'Scopus' gives
+#'   the record, such as `"ar"` and `"Article"`, and `source_type` holds the
+#'   source type, such as `"Journal"`. `issn` is the print ISSN as 'Scopus'
+#'   writes it, without the hyphen, kept as text so its leading zeros survive.
+#'   `open_access` is the open-access status code (see *Extended fields*).
 #' @details
 #' The 'Scopus' API signals an empty result set with a single sentinel entry that
 #' carries an `error` field and no identifier. This is detected and turned into a
@@ -70,6 +85,49 @@
 #' `NA`, the field is most likely gated by your account's entitlement rather
 #' than genuinely absent, and is worth raising with your 'Scopus'/Elsevier
 #' account contact.
+#' @section Extended fields:
+#' Elsevier's [Search views table](https://dev.elsevier.com/sc_search_views.html)
+#' lists every field `fields = "extended"` reads under both views, except the
+#' abstract (`dc:description`), which only the `COMPLETE` view carries. They
+#' arrive in the responses a retrieval already pays for, so they cost no extra
+#' quota. A `COMPLETE` harvest returns up to 25 abstracts with each request,
+#' while [scopus_abstract()] spends one request per record from the separate
+#' Abstract Retrieval quota.
+#'
+#' `doc_type` holds the code the `DOCTYPE()` search field takes. Elsevier's
+#' [search tips](https://dev.elsevier.com/sc_search_tips.html) list the codes
+#' with their names: `ar` for an article, `re` a review, `cp` a conference
+#' paper, `er` an erratum and others. A retracted item carries `tb`, which that
+#' list leaves out. The 'Scopus' Content Coverage Guide (section 3.1) defines
+#' an erratum as a report of an error, correction or retraction of a previously
+#' published paper, so `er` covers retraction notices as well as corrections.
+#' The guide gives an article the type Retracted once a retraction notice for
+#' it is published. These codes are the labels 'Scopus' assigns, and they do
+#' not screen a set for retractions, since 'Scopus' does not label every
+#' retracted item (Ortega and Delgado-Quirós, 2024). Check a set against the
+#' [Retraction Watch database](https://www.crossref.org/documentation/retrieve-metadata/retraction-watch/),
+#' which Crossref makes openly available, before relying on it.
+#' [summary()][summary.scopus_records()] reports how many records 'Scopus'
+#' labels `er` and `tb`. Errata can also be left out of the search itself with
+#' `AND NOT DOCTYPE(er)`, joined by [scopus_query()], which brackets the rest of
+#' the query first, since 'Scopus' applies AND NOT last (see *Examples*).
+#'
+#' `open_access` holds the code 'Scopus' sends in its `openaccess` field.
+#' Elsevier's Scopus APIs Getting Started Guide (section 17) illustrates its
+#' values with 0 for a record that is not open access, 1 for gold and 2 for
+#' green. The column therefore holds a status code, which can take values
+#' other than 0 and 1.
+#' @references
+#' Elsevier. (2023). *Scopus APIs getting started guide* (Version 1).
+#' <https://dev.elsevier.com/guides/Scopus%20API%20Guide_V1_20230907.pdf>
+#'
+#' Elsevier. (2023). *Scopus content coverage guide*.
+#' <https://supportcontent.elsevier.com/Support%20Hub/Scopus/Scopus_ContentCoverage_Guide_WEB.pdf>
+#'
+#' Ortega, J. L., & Delgado-Quirós, L. (2024). The indexation of retracted
+#' literature in seven principal scholarly databases: A coverage comparison of
+#' Dimensions, OpenAlex, PubMed, Scilit, Scopus, The Lens and Web of Science.
+#' *Scientometrics*, *129*(7), 3769–3785. \doi{10.1007/s11192-024-05034-y}
 #' @examples
 #' # An entry in the shape the Search API returns it. The fields are those of
 #' # a real article, taken from the bundled `example_records`, which stands in
@@ -100,10 +158,39 @@
 #' ))
 #' scopus_records(raw_complete, view = "COMPLETE")
 #'
+#' # fields = "extended" keeps the fields both views send beyond the core ones.
+#' # The volume, issue, pages and print ISSN below are the article's own. The
+#' # document type and source type are illustrative, since the bundled corpus
+#' # came from OpenAlex and records no 'Scopus' labels.
+#' raw_extended <- list(entry = list(
+#'   list(
+#'     `prism:doi` = "10.1021/am509065d",
+#'     `dc:title` = "Flexible and Stackable Laser-Induced Graphene Supercapacitors",
+#'     subtype = "ar",
+#'     subtypeDescription = "Article",
+#'     `prism:aggregationType` = "Journal",
+#'     `prism:volume` = "7",
+#'     `prism:issueIdentifier` = "5",
+#'     `prism:pageRange` = "3414-3419",
+#'     `prism:issn` = "19448244"
+#'   )
+#' ))
+#' extended <- scopus_records(raw_extended, fields = "extended")
+#' as.data.frame(extended)[, c("doc_type", "volume", "issue", "pages", "issn")]
+#'
+#' # Errata can be left out of the search itself. scopus_query() brackets the
+#' # rest of the query, since 'Scopus' applies AND NOT last.
+#' scopus_query(
+#'   scopus_query("graphene", "graphite", .op = "OR", .field = "TITLE-ABS-KEY"),
+#'   "DOCTYPE(er)", .op = "AND NOT"
+#' )
+#'
 #' # An object already in this schema is returned unchanged.
 #' identical(scopus_records(example_records), example_records)
 #' @export
-scopus_records <- function(x, query = NA_character_, view = NULL) {
+scopus_records <- function(x, query = NA_character_, view = NULL,
+                           fields = c("core", "extended")) {
+  fields <- scopus_match_arg(fields, c("core", "extended"))
   if (is_scopus_records(x)) {
     return(x)
   }
@@ -111,12 +198,12 @@ scopus_records <- function(x, query = NA_character_, view = NULL) {
   cols <- scopus_records_columns()
 
   if (length(entries) == 0L) {
-    return(new_scopus_records(cols, view = view))
+    return(new_scopus_records(cols, view = view, fields = fields))
   }
 
   rows <- lapply(
     seq_along(entries),
-    function(i) scopus_entry_to_row(entries[[i]], i, query, view)
+    function(i) scopus_entry_to_row(entries[[i]], i, query, view, fields)
   )
   # Accumulate as a list and bind once (never rbind() inside the loop).
   out <- do.call(rbind, c(rows, list(stringsAsFactors = FALSE)))
@@ -166,10 +253,53 @@ scopus_records_columns <- function() {
     "year", "date", "publication", "citations", "query")
 }
 
+# The columns fields = "extended" adds, in order, as typed empty vectors. Every
+# one but `abstract` comes in both views, and `abstract` follows them under
+# COMPLETE, as `authkeywords` follows the core columns. The Python twin's
+# EXTENDED_COLUMNS lists the same names, and both suites hold the two to
+# tests/testthat/fixtures/extended-entry.json.
+scopus_extended_proto <- function(view = NULL) {
+  proto <- list(
+    doc_type = character(),
+    doc_type_description = character(),
+    source_type = character(),
+    volume = character(),
+    issue = character(),
+    pages = character(),
+    issn = character(),
+    pubmed_id = character(),
+    open_access = integer()
+  )
+  if (identical(view, "COMPLETE")) {
+    proto$abstract <- character()
+  }
+  proto
+}
+
+scopus_extended_columns <- function(view = NULL) {
+  names(scopus_extended_proto(view))
+}
+
+# The Search API field each extended text column is read from. `open_access`
+# comes from `openaccess` and `abstract` from `dc:description`, both handled
+# apart, the first because it is a number and the second because only COMPLETE
+# carries it.
+scopus_extended_sources <- c(
+  doc_type = "subtype",
+  doc_type_description = "subtypeDescription",
+  source_type = "prism:aggregationType",
+  volume = "prism:volume",
+  issue = "prism:issueIdentifier",
+  pages = "prism:pageRange",
+  issn = "prism:issn",
+  pubmed_id = "pubmed-id"
+)
+
 # Build a zero/typed tibble of class scopus_records. `authkeywords` is added
-# only for view = "COMPLETE", so a STANDARD-view (or view-less) empty result
-# keeps exactly the historical column set.
-new_scopus_records <- function(cols, view = NULL) {
+# only for view = "COMPLETE", and the extended columns only for fields =
+# "extended", so a core STANDARD-view (or view-less) empty result keeps exactly
+# the historical column set.
+new_scopus_records <- function(cols, view = NULL, fields = "core") {
   proto <- list(
     entry_number = integer(),
     scopus_id = character(),
@@ -186,13 +316,19 @@ new_scopus_records <- function(cols, view = NULL) {
     proto$authkeywords <- character()
     cols <- union(cols, "authkeywords")
   }
+  if (identical(fields, "extended")) {
+    extended <- scopus_extended_proto(view)
+    proto <- c(proto, extended)
+    cols <- union(cols, names(extended))
+  }
   tibble::new_tibble(proto[cols], nrow = 0L, class = "scopus_records")
 }
 
 # Convert a single entry to a one-row data frame. `authkeywords` is added only
-# for view = "COMPLETE" (see scopus_records()); other views, and the default
-# view = NULL, reproduce the original column set exactly.
-scopus_entry_to_row <- function(entry, i, query, view = NULL) {
+# for view = "COMPLETE" and the extended columns only for fields = "extended"
+# (see scopus_records()). The defaults, view = NULL and fields = "core",
+# reproduce the original column set exactly.
+scopus_entry_to_row <- function(entry, i, query, view = NULL, fields = "core") {
   id_raw <- scopus_field(entry, "dc:identifier")
   scopus_id <- if (is.na(id_raw)) NA_character_ else sub("^SCOPUS_ID:", "", id_raw)
   date <- scopus_field(entry, "prism:coverDate")
@@ -224,6 +360,22 @@ scopus_entry_to_row <- function(entry, i, query, view = NULL) {
   )
   if (identical(view, "COMPLETE")) {
     row$authkeywords <- scopus_field(entry, "authkeywords")
+  }
+  if (identical(fields, "extended")) {
+    for (col in names(scopus_extended_sources)) {
+      row[[col]] <- scopus_field(entry, scopus_extended_sources[[col]])
+    }
+    # Sent as text ("0", "1", "2"), and read as a whole number, as
+    # pybliometrics reads it, so the twins hold the same code.
+    open_access <- scopus_field(entry, "openaccess")
+    row$open_access <- if (is.na(open_access)) {
+      NA_integer_
+    } else {
+      suppressWarnings(as.integer(open_access))
+    }
+    if (identical(view, "COMPLETE")) {
+      row$abstract <- scopus_field(entry, "dc:description")
+    }
   }
   row
 }

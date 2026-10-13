@@ -12,7 +12,8 @@ scopus_fetch_plan(
   api_key = NULL,
   inst_token = NULL,
   verbose = FALSE,
-  cursor = FALSE
+  cursor = FALSE,
+  fields = c("core", "extended")
 )
 }
 \arguments{
@@ -38,7 +39,12 @@ an interrupted run, is also treated as a miss, and never aborts the
 harvest. A \code{COMPLETE} checkpoint written by a release that read \code{authors}
 from the first author alone (0.4.0 and earlier) is a miss as well, and is
 refetched once with a warning. \code{STANDARD} checkpoints from those releases
-are served as before, since their authors were read correctly.}
+are served as before, since their authors were read correctly.
+Checkpoints also record their \code{fields}. One fetched with
+\code{fields = "extended"} serves a core request, with the extra columns
+dropped, while a core one is a miss for an extended request and is
+refetched with a warning. A checkpoint written before the fields were
+recorded counts as core.}
 
 \item{resume}{Logical. When \code{TRUE} and \code{cache_dir} is set, a cell whose cache
 file already exists is loaded from disk, sparing a second request.}
@@ -57,6 +63,15 @@ and serve only requests made in the same mode. A checkpoint written before
 the mode was recorded counts as offset-paged. The Python twin's
 \code{fetch_plan()} pages by cursor unless told otherwise, the mode it has
 always used.}
+
+\item{fields}{\code{"core"} (the default) or \code{"extended"}. \code{"extended"} also keeps
+the document type, source type, volume, issue, pages, ISSN, PubMed
+identifier and open-access status the Search API sends with every record,
+and the abstract under a \code{COMPLETE} plan. They arrive in the responses each
+cell already pays for, so they cost no extra quota. Like \code{cursor}, it is an
+argument of the fetch, since it changes how the records are read while the
+search returns the same records. See the \emph{Extended fields} section of
+\code{\link[=scopus_records]{scopus_records()}}.}
 }
 \value{
 A \link{scopus_records} tibble combining all cells, with the originating

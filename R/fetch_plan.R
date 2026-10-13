@@ -26,6 +26,11 @@
 #'   from the first author alone (0.4.0 and earlier) is a miss as well, and is
 #'   refetched once with a warning. `STANDARD` checkpoints from those releases
 #'   are served as before, since their authors were read correctly.
+#'   Checkpoints also record their `fields`. One fetched with
+#'   `fields = "extended"` serves a core request, with the extra columns
+#'   dropped, while a core one is a miss for an extended request and is
+#'   refetched with a warning. A checkpoint written before the fields were
+#'   recorded counts as core.
 #' @param resume Logical. When `TRUE` and `cache_dir` is set, a cell whose cache
 #'   file already exists is loaded from disk, sparing a second request.
 #' @param api_key,inst_token Optional credentials (see [scopus_has_key()]).
@@ -40,6 +45,14 @@
 #'   the mode was recorded counts as offset-paged. The Python twin's
 #'   `fetch_plan()` pages by cursor unless told otherwise, the mode it has
 #'   always used.
+#' @param fields `"core"` (the default) or `"extended"`. `"extended"` also keeps
+#'   the document type, source type, volume, issue, pages, ISSN, PubMed
+#'   identifier and open-access status the Search API sends with every record,
+#'   and the abstract under a `COMPLETE` plan. They arrive in the responses each
+#'   cell already pays for, so they cost no extra quota. Like `cursor`, it is an
+#'   argument of the fetch, since it changes how the records are read while the
+#'   search returns the same records. See the *Extended fields* section of
+#'   [scopus_records()].
 #' @return A [scopus_records] tibble combining all cells, with the originating
 #'   `plan` attached as the `plan` attribute and the per-cell accounting as
 #'   `cell_totals`, a tibble of `cell`, `date`, `n_records` and
@@ -92,7 +105,8 @@ scopus_fetch_plan <- function(plan,
                               api_key = NULL,
                               inst_token = NULL,
                               verbose = FALSE,
-                              cursor = FALSE) {
+                              cursor = FALSE,
+                              fields = c("core", "extended")) {
   if (!is_scopus_plan(plan)) {
     scopus_abort_bad_input(
       "`plan` must be a `scopus_plan` object from scopus_plan()."
@@ -106,6 +120,7 @@ scopus_fetch_plan <- function(plan,
     scopus_abort_bad_input("`cursor` must be `TRUE` or `FALSE`.")
   }
   paging <- if (cursor) "cursor" else "offset"
+  fields <- scopus_match_arg(fields, c("core", "extended"))
   if (!is.null(cache_dir)) {
     if (!is.character(cache_dir) || length(cache_dir) != 1L || is.na(cache_dir)) {
       scopus_abort_bad_input(
@@ -137,21 +152,26 @@ scopus_fetch_plan <- function(plan,
           ),
           class = "scopus_warning_cache_unreadable"
         )
-      } else if (scopus_cell_cache_matches(cached, cell, max_results, paging)) {
+      } else if (scopus_cell_cache_matches(cached, cell, max_results, paging, fields)) {
         if (verbose) cli::cli_inform("Cell {i}/{nrow(plan)}: loaded from cache.")
-        results[[i]] <- scopus_serve_checkpoint(cached, max_results)
+        results[[i]] <- scopus_serve_checkpoint(cached, max_results, fields)
         reported[i] <- scopus_reported_total(results[[i]])
         next
       } else {
         # A checkpoint that fits the request in every other respect failed on
         # the way its records were built, which no choice of cache_dir avoids,
         # so the usual advice would mislead. The same holds for a checkpoint
-        # this plan wrote under the other paging mode, which a caller who takes
-        # the capped warning's advice meets in every cell.
+        # this plan wrote with the core fields, or under the other paging mode,
+        # which a caller who takes the capped warning's advice meets in every
+        # cell.
         recorded <- scopus_cell_cache_paging(cached)
-        text <- if (scopus_cell_cache_fits(cached, cell, max_results, paging)) {
+        text <- if (scopus_cell_cache_fits(cached, cell, max_results, paging, fields)) {
           paste0("The checkpoint %s was written before COMPLETE-view records ",
                  "carried the author list, so it was discarded and the cell ",
+                 "refetched.")
+        } else if (scopus_cell_cache_fits(cached, cell, max_results, paging)) {
+          paste0("The checkpoint %s was fetched with the core fields, not the ",
+                 "extended fields asked for, so it was discarded and the cell ",
                  "refetched.")
         } else if (isTRUE(recorded %in% c("offset", "cursor")) &&
                    scopus_cell_cache_fits(cached, cell, max_results, recorded)) {
@@ -177,10 +197,11 @@ scopus_fetch_plan <- function(plan,
       wrapped = cell$query, date = date, view = cell$view,
       page_size = cell$page_size, max_results = max_results, cursor = cursor,
       api_key = api_key, inst_token = inst_token, verbose = verbose,
-      caller = "plan"
+      caller = "plan", fields = fields
     )
     if (!is.null(cache_file)) {
-      attr(recs, "cache_meta") <- scopus_cell_cache_meta(cell, max_results, recs, paging)
+      attr(recs, "cache_meta") <- scopus_cell_cache_meta(cell, max_results, recs,
+                                                         paging, fields)
       scopus_write_checkpoint(recs, cache_file)
     }
     reported[i] <- scopus_reported_total(recs)
@@ -262,8 +283,10 @@ scopus_cell_cache_name <- function(cell) {
 # offset-paged cell stops at the API's ceiling where a cursor-paged one does
 # not. The mode is also why `complete` may stand on an offset cell cut short
 # at the ceiling: it cannot serve a cursor request, and an offset refetch would
-# stop at the same place.
-scopus_cell_cache_meta <- function(cell, max_results, recs, paging) {
+# stop at the same place. `fields` records which columns the records carry
+# (see scopus_cell_cache_fields()).
+scopus_cell_cache_meta <- function(cell, max_results, recs, paging,
+                                   fields = "core") {
   total <- attr(recs, "total_results")
   complete <- is.infinite(max_results) || nrow(recs) < max_results ||
     (!is.na(total) && nrow(recs) >= total)
@@ -275,7 +298,8 @@ scopus_cell_cache_meta <- function(cell, max_results, recs, paging) {
     max_results = max_results,
     complete = complete,
     records_schema = scopus_records_schema(),
-    paging = paging
+    paging = paging,
+    fields = fields
   )
 }
 
@@ -290,8 +314,9 @@ scopus_records_schema <- function() 2L
 
 # Whether a cached checkpoint can serve a plan cell: it must fit the request
 # and hold records built the way this release builds them.
-scopus_cell_cache_matches <- function(cached, cell, max_results, paging = "offset") {
-  scopus_cell_cache_fits(cached, cell, max_results, paging) &&
+scopus_cell_cache_matches <- function(cached, cell, max_results, paging = "offset",
+                                      fields = "core") {
+  scopus_cell_cache_fits(cached, cell, max_results, paging, fields) &&
     scopus_cell_cache_current(cached, cell)
 }
 
@@ -320,8 +345,11 @@ scopus_cell_cache_current <- function(cached, cell) {
 # serve any other. A checkpoint carrying neither query nor manifest (one
 # written by an older scopusflow) fits an offset request as before, and
 # scopus_cell_cache_current() then decides whether its records can be used.
-# The paging mode must match too (see scopus_cell_cache_paging()).
-scopus_cell_cache_fits <- function(cached, cell, max_results, paging = "offset") {
+# The paging mode must match too (see scopus_cell_cache_paging()). The fields
+# need only cover the request, since an extended checkpoint can serve a core
+# request with its extra columns dropped (see scopus_serve_checkpoint()).
+scopus_cell_cache_fits <- function(cached, cell, max_results, paging = "offset",
+                                   fields = "core") {
   q <- if (is.data.frame(cached)) cached[["query"]] else NULL
   if (!is.null(q)) {
     q <- unique(q[!is.na(q)])
@@ -330,6 +358,10 @@ scopus_cell_cache_fits <- function(cached, cell, max_results, paging = "offset")
     }
   }
   if (!identical(scopus_cell_cache_paging(cached), paging)) {
+    return(FALSE)
+  }
+  if (identical(fields, "extended") &&
+      !identical(scopus_cell_cache_fields(cached), "extended")) {
     return(FALSE)
   }
   meta <- attr(cached, "cache_meta")
@@ -352,22 +384,41 @@ scopus_cell_cache_paging <- function(cached) {
   attr(cached, "cache_meta")$paging %||% "offset"
 }
 
-# Serve a checkpoint at the cap of the current request. A complete checkpoint
-# matches any max_results, so it can hold more rows than are being asked for
-# now; the surplus is trimmed from the served copy only, leaving the fuller
-# set on disk for a later, wider request. The provenance attributes are
-# restated explicitly, since subsetting cannot be trusted to keep them. A
-# checkpoint written before records carried their view still names it in its
-# manifest, which scopus_cell_cache_fits() has checked against the cell, so the
-# view is restored from there.
-scopus_serve_checkpoint <- function(cached, max_results) {
+# The fields a checkpoint was fetched with. The manifest is an attribute of the
+# same .rds as the records, so the two cannot drift apart. A manifest that
+# names no fields, and a checkpoint without a manifest, were written before
+# fields existed, when every checkpoint held the core columns.
+scopus_cell_cache_fields <- function(cached) {
+  attr(cached, "cache_meta")$fields %||% "core"
+}
+
+# Serve a checkpoint at the cap and with the fields of the current request. A
+# complete checkpoint matches any max_results, so it can hold more rows than
+# are being asked for now; the surplus is trimmed from the served copy only,
+# leaving the fuller set on disk for a later, wider request. An extended
+# checkpoint serves a core request with the extended columns dropped from the
+# served copy, which then holds what a core fetch returns. The provenance
+# attributes are restated explicitly, since subsetting cannot be trusted to
+# keep them. A checkpoint written before records carried their view still
+# names it in its manifest, which scopus_cell_cache_fits() has checked against
+# the cell, so the view is restored from there.
+scopus_serve_checkpoint <- function(cached, max_results, fields = "core") {
   if (is.null(attr(cached, "view"))) {
     attr(cached, "view") <- attr(cached, "cache_meta")$view
   }
-  if (!is.finite(max_results) || nrow(cached) <= max_results) {
+  extra <- if (identical(fields, "core")) {
+    intersect(names(cached), scopus_extended_columns("COMPLETE"))
+  } else {
+    character()
+  }
+  trim <- is.finite(max_results) && nrow(cached) > max_results
+  if (length(extra) == 0L && !trim) {
     return(cached)
   }
-  out <- utils::head(cached, max_results)
+  out <- cached[setdiff(names(cached), extra)]
+  if (trim) {
+    out <- utils::head(out, max_results)
+  }
   for (a in c("total_results", "quota", "retrieved_at", "retrieved_until",
               "scopusflow_version", "paging", "view")) {
     attr(out, a) <- attr(cached, a)

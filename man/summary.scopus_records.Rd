@@ -15,8 +15,16 @@
 A list of class \code{scopus_records_summary}, with elements \code{n_records},
 \code{years} (the earliest and latest year present, each \code{NA} when no year is
 known), \code{n_sources}, \code{n_with_doi}, \code{total_citations}, \code{median_citations},
-\code{top_cited} (the title of the most-cited record) and \code{top_source} (the most
-frequent source title). Printing it produces a short readable report.
+\code{top_cited} (the title of the most-cited record), \code{top_source} (the most
+frequent source title) and \code{doc_types}. \code{doc_types} counts the records of
+each document-type code, most frequent first, for a set retrieved with
+\code{fields = "extended"} (see \code{\link[=scopus_records]{scopus_records()}}), and is \code{NULL} for a set
+without the \code{doc_type} column. Printing it produces a short readable
+report, which for such a set also says how many records 'Scopus' labels
+errata (\code{er}) or retracted (\code{tb}). The counts report the labels 'Scopus'
+assigns, which do not screen a set for retractions. The \emph{Extended fields}
+section of \code{\link[=scopus_records]{scopus_records()}} explains why, and what to check a set
+against.
 }
 \description{
 Gives a compact overview of a \link{scopus_records} object, reporting how many

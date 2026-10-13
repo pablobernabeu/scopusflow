@@ -14,7 +14,8 @@ scopus_fetch(
   cursor = FALSE,
   api_key = NULL,
   inst_token = NULL,
-  verbose = FALSE
+  verbose = FALSE,
+  fields = c("core", "extended")
 )
 }
 \arguments{
@@ -60,6 +61,13 @@ options or environment variables (see \code{\link[=scopus_has_key]{scopus_has_ke
 
 \item{verbose}{Logical. When \code{TRUE}, progress is reported as the retrieval
 proceeds.}
+
+\item{fields}{\code{"core"} (the default) or \code{"extended"}. \code{"extended"} also keeps
+the document type, source type, volume, issue, pages, ISSN, PubMed
+identifier and open-access status the Search API sends with every record,
+and the abstract under \code{view = "COMPLETE"}. They arrive in the same
+responses, so they cost no extra quota. See the \emph{Extended fields} section
+of \code{\link[=scopus_records]{scopus_records()}}.}
 }
 \value{
 A \link{scopus_records} tibble. The reported total and the most recent

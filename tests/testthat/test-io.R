@@ -43,6 +43,25 @@ test_that("a COMPLETE-view authkeywords column survives the CSV round-trip", {
   expect_equal(back$authkeywords, "graphene | supercapacitor")
 })
 
+test_that("an extended record set round-trips through CSV, ISSN zeros and all", {
+  # read_scopus_records() kept the core columns and authkeywords alone, so
+  # every extended column was lost on the way back. The ISSN begins with
+  # zeros, which a reader that inferred types would drop as well.
+  fx <- extended_fixture()
+  recs <- scopus_records(list(entry = list(fx$complete)), query = fx$query,
+                         view = "COMPLETE", fields = "extended")
+  path <- withr::local_tempfile(fileext = ".csv")
+  write_scopus_records(recs, path)
+  back <- read_scopus_records(path)
+  expect_record_row(back, fx$expected$complete)
+  expect_identical(back$issn, "00368075")
+
+  # The .rds form restores the object exactly, as it does for the core fields.
+  rds <- withr::local_tempfile(fileext = ".rds")
+  write_scopus_records(recs, rds)
+  expect_identical(read_scopus_records(rds), recs)
+})
+
 test_that("a title with comma, quote and newline survives CSV round-trip", {
   recs <- scopus_records(list(entry = list(
     list(`dc:identifier` = "SCOPUS_ID:1", `prism:doi` = "10.1/a",

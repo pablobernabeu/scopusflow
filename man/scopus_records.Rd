@@ -14,7 +14,12 @@
 
 \method{autoplot}{scopus_records}(object, ...)
 
-scopus_records(x, query = NA_character_, view = NULL)
+scopus_records(
+  x,
+  query = NA_character_,
+  view = NULL,
+  fields = c("core", "extended")
+)
 
 is_scopus_records(x)
 }
@@ -35,6 +40,13 @@ value, including the default \code{NULL}, reads the first author and reproduces
 the original columns exactly, so existing callers that never mention
 \code{view} see no change at all. \code{\link[=scopus_fetch]{scopus_fetch()}} and \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}
 pass this through automatically.}
+
+\item{fields}{\code{"core"} (the default) builds the columns listed under
+\emph{Value}, exactly as before. \code{"extended"} also keeps the document type,
+source type, volume, issue, pages, ISSN, PubMed identifier and open-access
+status the Search API sends with every record, and under
+\code{view = "COMPLETE"} the abstract, at no extra quota (see \emph{Extended
+fields}). \code{\link[=scopus_fetch]{scopus_fetch()}} and \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} pass this through.}
 }
 \value{
 The coercion methods return a plain \link[tibble:tibble]{tibble} or data
@@ -56,6 +68,15 @@ zero-row tibble with the same columns. When \code{view = "COMPLETE"}, an
 Search API returns under that view, as a single string in 'Scopus'
 own \code{" | "}-delimited form (\code{NA} when the document has none, or when the
 API omits the field for a given key's entitlement; see \emph{Details}).
+With \code{fields = "extended"}, the character columns \code{doc_type},
+\code{doc_type_description}, \code{source_type}, \code{volume}, \code{issue}, \code{pages}, \code{issn}
+and \code{pubmed_id} follow, then the integer \code{open_access} and, under
+\code{view = "COMPLETE"}, the character \code{abstract}. \code{doc_type} and
+\code{doc_type_description} hold the document-type code and name 'Scopus' gives
+the record, such as \code{"ar"} and \code{"Article"}, and \code{source_type} holds the
+source type, such as \code{"Journal"}. \code{issn} is the print ISSN as 'Scopus'
+writes it, without the hyphen, kept as text so its leading zeros survive.
+\code{open_access} is the open-access status code (see \emph{Extended fields}).
 
 \code{is_scopus_records()} returns a length-one logical.
 }
@@ -105,6 +126,41 @@ author keywords in 'Scopus' itself); if your own keywords come back all
 than genuinely absent, and is worth raising with your 'Scopus'/Elsevier
 account contact.
 }
+\section{Extended fields}{
+
+Elsevier's \href{https://dev.elsevier.com/sc_search_views.html}{Search views table}
+lists every field \code{fields = "extended"} reads under both views, except the
+abstract (\code{dc:description}), which only the \code{COMPLETE} view carries. They
+arrive in the responses a retrieval already pays for, so they cost no extra
+quota. A \code{COMPLETE} harvest returns up to 25 abstracts with each request,
+while \code{\link[=scopus_abstract]{scopus_abstract()}} spends one request per record from the separate
+Abstract Retrieval quota.
+
+\code{doc_type} holds the code the \code{DOCTYPE()} search field takes. Elsevier's
+\href{https://dev.elsevier.com/sc_search_tips.html}{search tips} list the codes
+with their names: \code{ar} for an article, \code{re} a review, \code{cp} a conference
+paper, \code{er} an erratum and others. A retracted item carries \code{tb}, which that
+list leaves out. The 'Scopus' Content Coverage Guide (section 3.1) defines
+an erratum as a report of an error, correction or retraction of a previously
+published paper, so \code{er} covers retraction notices as well as corrections.
+The guide gives an article the type Retracted once a retraction notice for
+it is published. These codes are the labels 'Scopus' assigns, and they do
+not screen a set for retractions, since 'Scopus' does not label every
+retracted item (Ortega and Delgado-Quirós, 2024). Check a set against the
+\href{https://www.crossref.org/documentation/retrieve-metadata/retraction-watch/}{Retraction Watch database},
+which Crossref makes openly available, before relying on it.
+\link[=summary.scopus_records]{summary()} reports how many records 'Scopus'
+labels \code{er} and \code{tb}. Errata can also be left out of the search itself with
+\verb{AND NOT DOCTYPE(er)}, joined by \code{\link[=scopus_query]{scopus_query()}}, which brackets the rest of
+the query first, since 'Scopus' applies AND NOT last (see \emph{Examples}).
+
+\code{open_access} holds the code 'Scopus' sends in its \code{openaccess} field.
+Elsevier's Scopus APIs Getting Started Guide (section 17) illustrates its
+values with 0 for a record that is not open access, 1 for gold and 2 for
+green. The column therefore holds a status code, which can take values
+other than 0 and 1.
+}
+
 \examples{
 # An entry in the shape the Search API returns it. The fields are those of
 # a real article, taken from the bundled `example_records`, which stands in
@@ -135,6 +191,45 @@ raw_complete <- list(entry = list(
 ))
 scopus_records(raw_complete, view = "COMPLETE")
 
+# fields = "extended" keeps the fields both views send beyond the core ones.
+# The volume, issue, pages and print ISSN below are the article's own. The
+# document type and source type are illustrative, since the bundled corpus
+# came from OpenAlex and records no 'Scopus' labels.
+raw_extended <- list(entry = list(
+  list(
+    `prism:doi` = "10.1021/am509065d",
+    `dc:title` = "Flexible and Stackable Laser-Induced Graphene Supercapacitors",
+    subtype = "ar",
+    subtypeDescription = "Article",
+    `prism:aggregationType` = "Journal",
+    `prism:volume` = "7",
+    `prism:issueIdentifier` = "5",
+    `prism:pageRange` = "3414-3419",
+    `prism:issn` = "19448244"
+  )
+))
+extended <- scopus_records(raw_extended, fields = "extended")
+as.data.frame(extended)[, c("doc_type", "volume", "issue", "pages", "issn")]
+
+# Errata can be left out of the search itself. scopus_query() brackets the
+# rest of the query, since 'Scopus' applies AND NOT last.
+scopus_query(
+  scopus_query("graphene", "graphite", .op = "OR", .field = "TITLE-ABS-KEY"),
+  "DOCTYPE(er)", .op = "AND NOT"
+)
+
 # An object already in this schema is returned unchanged.
 identical(scopus_records(example_records), example_records)
+}
+\references{
+Elsevier. (2023). \emph{Scopus APIs getting started guide} (Version 1).
+\url{https://dev.elsevier.com/guides/Scopus\%20API\%20Guide_V1_20230907.pdf}
+
+Elsevier. (2023). \emph{Scopus content coverage guide}.
+\url{https://supportcontent.elsevier.com/Support\%20Hub/Scopus/Scopus_ContentCoverage_Guide_WEB.pdf}
+
+Ortega, J. L., & Delgado-Quirós, L. (2024). The indexation of retracted
+literature in seven principal scholarly databases: A coverage comparison of
+Dimensions, OpenAlex, PubMed, Scilit, Scopus, The Lens and Web of Science.
+\emph{Scientometrics}, \emph{129}(7), 3769–3785. \doi{10.1007/s11192-024-05034-y}
 }

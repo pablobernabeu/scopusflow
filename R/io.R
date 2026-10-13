@@ -4,11 +4,13 @@
 #' round-trip. The file extension selects the format. An `.rds` file preserves
 #' the types and class exactly, while a `.csv` file is portable plain text.
 #' The optional `authkeywords` column a `view = "COMPLETE"` retrieval adds
-#' (see [scopus_records()]) round-trips through both formats. The attributes a
-#' live retrieval carries, including `retrieved_at` and `scopusflow_version`
-#' (see [scopus_fetch()]), survive the `.rds` form only: `.csv` is a table of
-#' columns and cannot hold them, so save as `.rds` when a set is a baseline to
-#' be compared against later.
+#' (see [scopus_records()]) round-trips through both formats, and so do the
+#' columns `fields = "extended"` adds. A `.csv` file reads them back as text,
+#' apart from the integer `open_access`, so an ISSN keeps its leading zeros.
+#' The attributes a live retrieval carries, including `retrieved_at` and
+#' `scopusflow_version` (see [scopus_fetch()]), survive the `.rds` form only:
+#' `.csv` is a table of columns and cannot hold them, so save as `.rds` when a
+#' set is a baseline to be compared against later.
 #'
 #' @param x A [scopus_records] tibble to write.
 #' @param path Explicit file path. The functions read from, or write to, exactly
@@ -89,15 +91,19 @@ read_scopus_records <- function(path) {
 
 # Coerce a read-in data frame back to the typed scopus_records schema. A
 # COMPLETE-view record set carries an extra authkeywords column beyond the
-# standard schema; it is kept, so the CSV round-trip is stable for that view
-# too, and the column is never silently dropped on read.
+# standard schema, and a set retrieved with fields = "extended" carries the
+# extended columns. Each one present is kept, in the order the records put it,
+# so the CSV round-trip is stable for every view and set of fields, and no
+# column is silently dropped on read. The file is read as text throughout, so
+# an ISSN or a PubMed identifier keeps any leading zeros.
 scopus_coerce_records <- function(raw) {
   cols <- scopus_records_columns()
   if ("authkeywords" %in% names(raw)) cols <- union(cols, "authkeywords")
+  cols <- union(cols, intersect(scopus_extended_columns("COMPLETE"), names(raw)))
   for (nm in cols) {
     if (is.null(raw[[nm]])) raw[[nm]] <- NA
   }
-  int_cols <- c("entry_number", "year", "citations")
+  int_cols <- intersect(c("entry_number", "year", "citations", "open_access"), cols)
   for (nm in int_cols) {
     raw[[nm]] <- suppressWarnings(as.integer(raw[[nm]]))
   }

@@ -206,3 +206,54 @@ test_that("an empty result under COMPLETE view still types the authkeywords colu
   expect_true("authkeywords" %in% names(recs))
   expect_type(recs$authkeywords, "character")
 })
+
+test_that("extended fields keep what both views send, and the COMPLETE abstract", {
+  # The Search API sends these fields in every response, at no extra quota,
+  # and the records discarded them. The Python suite reads the same fixture
+  # through pybliometrics and must return the same rows.
+  fx <- extended_fixture()
+  standard <- scopus_records(list(entry = list(fx$standard)), query = fx$query,
+                             view = "STANDARD", fields = "extended")
+  expect_record_row(standard, fx$expected$standard)
+  complete <- scopus_records(list(entry = list(fx$complete)), query = fx$query,
+                             view = "COMPLETE", fields = "extended")
+  expect_record_row(complete, fx$expected$complete)
+})
+
+test_that("the core fields stay the default, so existing output is unchanged", {
+  fx <- extended_fixture()
+  core <- scopus_records(list(entry = list(fx$complete)), view = "COMPLETE")
+  expect_identical(names(core),
+                   c(scopusflow:::scopus_records_columns(), "authkeywords"))
+  expect_identical(names(scopus_records(list(entry = list(fx$standard)))),
+                   scopusflow:::scopus_records_columns())
+})
+
+test_that("an empty extended result types every extended column", {
+  fx <- extended_fixture()
+  complete <- scopus_records(list(entry = list()), view = "COMPLETE",
+                             fields = "extended")
+  expect_identical(names(complete), names(fx$expected$complete))
+  expect_type(complete$open_access, "integer")
+  expect_type(complete$issn, "character")
+  expect_type(complete$abstract, "character")
+  standard <- scopus_records(list(entry = list()), fields = "extended")
+  expect_identical(names(standard), names(fx$expected$standard))
+})
+
+test_that("open_access keeps the status code Scopus sends", {
+  # Elsevier's guide gives 0 for not open access, 1 for gold and 2 for green,
+  # so the column holds a status code that can exceed 1, as pybliometrics' int
+  # does.
+  with_status <- function(value) list(`prism:doi` = "10.5555/x", openaccess = value)
+  recs <- scopus_records(
+    list(entry = list(with_status("2"), with_status("0"), list(`prism:doi` = "10.5555/y"))),
+    fields = "extended"
+  )
+  expect_identical(recs$open_access, c(2L, 0L, NA_integer_))
+})
+
+test_that("fields must be core or extended", {
+  expect_error(scopus_records(list(entry = list()), fields = "all"),
+               class = "scopus_error_bad_input")
+})

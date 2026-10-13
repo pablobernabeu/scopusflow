@@ -1,6 +1,6 @@
 # Live integration tests. These are skipped on CRAN and only run when a real key
 # is configured and the user has opted in via NOT_CRAN. They make genuine network
-# requests and consume a small amount of quota: about six 'Scopus' Search
+# requests and consume a small amount of quota: about seven 'Scopus' Search
 # requests and one Abstract Retrieval request, the latter drawing on its own
 # weekly quota, which is the smaller of the two.
 #
@@ -93,4 +93,20 @@ test_that("a live COMPLETE-view fetch adds the authkeywords column", {
   withr::local_options(scopusflow.api_key = NULL)
   recs <- scopus_fetch("TITLE-ABS-KEY(bibliometrics)", years = 2020, max_results = 1, view = "COMPLETE")
   expect_true("authkeywords" %in% names(recs))
+})
+
+test_that("a live fetch with fields = 'extended' keeps populated document types", {
+  # One more Search request. A renamed subtype or aggregationType field would
+  # otherwise arrive as a column of NA values, which the offline mocks cannot
+  # catch.
+  skip_live()
+  withr::local_options(scopusflow.api_key = NULL)
+  recs <- scopus_fetch("TITLE-ABS-KEY(bibliometrics)", years = 2020, max_results = 5,
+                       fields = "extended")
+  expect_equal(names(recs), c(scopusflow:::scopus_records_columns(),
+                              scopusflow:::scopus_extended_columns()))
+  expect_gt(nrow(recs), 0)
+  expect_true(any(!is.na(recs$doc_type)))
+  expect_true(any(!is.na(recs$source_type)))
+  expect_type(recs$open_access, "integer")
 })

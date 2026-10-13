@@ -14,6 +14,19 @@
   reproduction snippet passes `cursor = TRUE` when the records were paged by
   cursor. The Python twin's `fetch_plan()` gains `cursor` too, and keeps the
   cursor paging it has always used unless given `cursor=False`.
+* `scopus_fetch()`, `scopus_fetch_plan()` and `scopus_records()` gain
+  `fields = "extended"`, adding the document type, source type, volume, issue,
+  pages, ISSN, PubMed identifier and open-access status the Search API already
+  returns, and the abstract under the `COMPLETE` view, at no extra quota.
+  `summary()` reports how many records 'Scopus' labels errata or retracted, and
+  the help pages explain why those labels do not screen a set for retractions.
+  Checkpoints record their fields. An extended checkpoint serves a core request
+  with the extra columns dropped. A core checkpoint is a miss for an extended
+  request and is refetched with a warning. `read_scopus_records()` keeps the
+  extended columns of a `.csv` file, as text apart from the integer
+  `open_access`, so an ISSN keeps its leading zeros. The default,
+  `fields = "core"`, returns the columns it always has. The Python twin's
+  `fetch_plan()` and `to_records()` gain `fields` too.
 
 ## Changed behaviour
 

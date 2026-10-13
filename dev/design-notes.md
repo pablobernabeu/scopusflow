@@ -823,6 +823,71 @@ offset-paged cell at 5000 records with a warning, pybliometrics refuses a search
 above 5000 matches with `ScopusQueryError`, which that twin raises again with
 the cell named.
 
+## Extended record fields
+
+Elsevier's Search views table lists, under both views, each record's document
+type (`subtype` and `subtypeDescription`), source type, volume, issue, pages,
+ISSN, PubMed identifier and open-access status, and under `COMPLETE` the
+abstract (`dc:description`). Both twins used to discard all of them. A
+reviewer could not drop errata, flag what 'Scopus' labels retracted or keep the
+articles alone once the harvest was in. A `COMPLETE` harvest also threw away
+the abstracts it had paid for, up to 25 with each request, where Abstract
+Retrieval spends a request on each record from a separate quota. With
+`fields = "extended"`, the records keep every one of these fields.
+
+`fields` is an argument of `scopus_records()`, `scopus_fetch()` and
+`scopus_fetch_plan()`, for the reasons that made `cursor` one (see *Paging a
+plan*). It changes how the records are read while the search returns the same
+records, and a plan field would have changed plan equality, both golden search
+records and the snippet round trip. The default stays `"core"`, so an existing
+script returns what it returned before, and the new columns follow the core ones
+and `authkeywords`, so code that picks columns by position is unaffected. The
+Python twin's `to_records()` and `fetch_plan()` take the same argument and build
+the same columns, both held to `tests/testthat/fixtures/extended-entry.json`.
+`test_pyb.py` also runs the Python copy of that fixture through pybliometrics'
+own parser.
+
+The ISSN is kept as text, since one such as `00368075` begins with zeros that a
+number would lose. R reads every column of a CSV file as text before typing it,
+so `read_scopus_records()` needed only to keep the extended columns, where it
+used to drop them. The Python twin names them among the columns its CSV reader
+must not infer. `open_access` is an integer in both twins, because pybliometrics
+reads `openaccess` as one. Elsevier's Scopus APIs Getting Started Guide (2023,
+section 17) illustrates the field with 0 for not open access, 1 for gold and 2
+for green, so the column is documented as a status code. The audit planned a 0
+or 1 flag, and those values contradict it. The legacy `openaccessFlag`, true
+for gold and empty for other kinds of open access, is not read.
+
+A checkpoint records its fields in its manifest. An extended checkpoint serves a
+core request, the extra columns dropped from the served copy, which then holds
+what a core fetch returns. A core checkpoint is a miss for an extended request.
+A manifest that names no fields, and a checkpoint without a manifest, were
+written when every checkpoint held the core columns, so they count as core and
+go on serving core requests at no cost. The Python twin decides by the
+checkpoint's columns, since its manifest is a separate file that an earlier
+version can leave beside a replaced checkpoint. It records the fields in the
+manifest as well.
+
+`summary()` counts the document types and says how many records 'Scopus' labels
+errata (`er`) or retracted (`tb`). Elsevier's search tips list the `DOCTYPE()`
+codes without `tb`, although retraction studies search with it. Sharma and
+Khurana (2025, arXiv:2502.00673), for example, retrieved 33,188 records of
+document type Retracted with `DOCTYPE(tb)`. The 'Scopus' Content Coverage Guide
+(2023, section 3.1) defines both types. An erratum reports an error, correction
+or retraction of an earlier paper, so retraction notices are errata too, and an
+article becomes Retracted once a retraction notice for it is published. The
+counts are worded as labels, never as a retraction screen. Ortega and
+Delgado-Quirós (2024, Scientometrics, 129(7), 3769-3785) attribute part of
+OpenAlex's wider coverage of retracted literature to inaccurate labelling in
+'Scopus', and the documentation points to the Retraction Watch database, which
+Crossref distributes openly.
+
+One difference between the twins remains. pybliometrics converts HTML
+character references in `dc:title`, `dc:description` and `authkeywords` to the
+characters they stand for, and R keeps the text as the API sends it. The shared
+fixture holds none, so the twins agree on it, and the abstract shares the edge
+the titles already had.
+
 ## Dating a retrieval
 
 `citations` is a snapshot value that moves continuously, and the

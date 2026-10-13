@@ -247,3 +247,28 @@ complete_authors_fixture <- function() {
 parse_entry <- function(json) {
   jsonlite::fromJSON(json, simplifyVector = FALSE)
 }
+
+# One synthetic record as the STANDARD and the COMPLETE view return it, with
+# the row both twins build from it under fields = "extended". The Python suite
+# reads the same file, byte for byte.
+extended_fixture <- function() {
+  jsonlite::fromJSON(test_path("fixtures", "extended-entry.json"),
+                     simplifyVector = FALSE)
+}
+
+# Check a one-row record set against a row read from that fixture: the same
+# columns in the same order, whole numbers as integers and a JSON null as a
+# missing value.
+expect_record_row <- function(recs, expected) {
+  expect_identical(names(recs), names(expected))
+  for (col in names(expected)) {
+    want <- expected[[col]]
+    if (is.null(want)) {
+      expect_true(is.na(recs[[col]]), info = col)
+    } else if (is.numeric(want)) {
+      expect_identical(recs[[col]], as.integer(want), info = col)
+    } else {
+      expect_identical(recs[[col]], want, info = col)
+    }
+  }
+}

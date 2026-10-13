@@ -22,6 +22,12 @@
 #'   that option to `Inf` to remove the ceiling.
 #' @param verbose Logical. When `TRUE`, progress is reported as the retrieval
 #'   proceeds.
+#' @param fields `"core"` (the default) or `"extended"`. `"extended"` also keeps
+#'   the document type, source type, volume, issue, pages, ISSN, PubMed
+#'   identifier and open-access status the Search API sends with every record,
+#'   and the abstract under `view = "COMPLETE"`. They arrive in the same
+#'   responses, so they cost no extra quota. See the *Extended fields* section
+#'   of [scopus_records()].
 #' @return A [scopus_records] tibble. The reported total and the most recent
 #'   parsed quota are attached as the `total_results` and `quota` attributes,
 #'   the harvest is dated by `retrieved_at` (a `POSIXct`) and
@@ -65,8 +71,10 @@ scopus_fetch <- function(query,
                          cursor = FALSE,
                          api_key = NULL,
                          inst_token = NULL,
-                         verbose = FALSE) {
+                         verbose = FALSE,
+                         fields = c("core", "extended")) {
   view <- scopus_match_arg(view, c("STANDARD", "COMPLETE"))
+  fields <- scopus_match_arg(fields, c("core", "extended"))
   field <- scopus_check_field(field)
   scopus_check_query(query, field)
   years <- scopus_check_years(years)
@@ -79,7 +87,8 @@ scopus_fetch <- function(query,
   records <- scopus_fetch_core(
     wrapped = wrapped, date = date, view = view, page_size = page_size,
     max_results = max_results, cursor = isTRUE(cursor),
-    api_key = api_key, inst_token = inst_token, verbose = verbose
+    api_key = api_key, inst_token = inst_token, verbose = verbose,
+    fields = fields
   )
   # The plan this call ran, one cell sending the same query and date. Without
   # it, the search record could not state the field tag or the year limit,
@@ -93,15 +102,16 @@ scopus_fetch <- function(query,
 # Internal pagination engine shared by scopus_fetch() and scopus_fetch_plan().
 # `wrapped` is the field-wrapped query. `date` is a year-range string or NULL.
 # `caller` names the function the capped warning should send the caller back
-# to, "fetch" or "plan".
+# to, "fetch" or "plan". `fields` changes only how the entries are read, never
+# the requests, so it reaches scopus_records() and nothing else.
 scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
                               cursor = FALSE, api_key = NULL, inst_token = NULL,
-                              verbose = FALSE, caller = "fetch") {
+                              verbose = FALSE, caller = "fetch", fields = "core") {
   if (isTRUE(cursor)) {
     return(scopus_fetch_cursor(
       wrapped = wrapped, date = date, view = view, page_size = page_size,
       max_results = max_results, api_key = api_key, inst_token = inst_token,
-      verbose = verbose
+      verbose = verbose, fields = fields
     ))
   }
   # The API refuses start >= 5000; configurable only to keep tests fast.
@@ -181,7 +191,8 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
   # Concatenate entries once, then normalise a single time.
   all_entries <- unlist(pages, recursive = FALSE)
   if (is.null(all_entries)) all_entries <- list()
-  records <- scopus_records(list(entry = all_entries), query = wrapped, view = view)
+  records <- scopus_records(list(entry = all_entries), query = wrapped, view = view,
+                            fields = fields)
   scopus_attach_provenance(records, total = total, quota = quota, paging = "offset",
                            view = view)
 }
@@ -215,7 +226,8 @@ scopus_attach_provenance <- function(records, total, quota, paging, view) {
 # Cursor-based pagination: follow the `@next` cursor the API returns until the
 # result set is exhausted, so there is no 5000-record ceiling.
 scopus_fetch_cursor <- function(wrapped, date, view, page_size, max_results,
-                                api_key = NULL, inst_token = NULL, verbose = FALSE) {
+                                api_key = NULL, inst_token = NULL, verbose = FALSE,
+                                fields = "core") {
   pages <- list()
   fetched <- 0L
   total <- NA_real_
@@ -277,7 +289,8 @@ scopus_fetch_cursor <- function(wrapped, date, view, page_size, max_results,
 
   all_entries <- unlist(pages, recursive = FALSE)
   if (is.null(all_entries)) all_entries <- list()
-  records <- scopus_records(list(entry = all_entries), query = wrapped, view = view)
+  records <- scopus_records(list(entry = all_entries), query = wrapped, view = view,
+                            fields = fields)
   scopus_attach_provenance(records, total = total, quota = quota, paging = "cursor",
                            view = view)
 }
