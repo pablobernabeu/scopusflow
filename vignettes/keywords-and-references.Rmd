@@ -175,11 +175,11 @@ documents, and a study should say which it used.
 
 `scopus_corpus()` combines a search result with this Abstract Retrieval step,
 returning a minimal shape close to what OpenAlex's `works` API already
-returns: `id`, `title`, `year`, `keywords` (a list-column of character
-vectors) and `references` (a list-column of data frames), where bibliometrix
-would give you semicolon-joined citation strings. It does not replace
-[`as_bibliometrix()`], which keeps its own field-mapping convention for users
-who want that.
+returns: `id`, `scopus_id`, `title`, `year`, `keywords` (a list-column of
+character vectors) and `references` (a list-column of data frames), where
+bibliometrix would give you semicolon-joined citation strings. It does not
+replace [`as_bibliometrix()`], which keeps its own field-mapping convention for
+users who want that.
 
 ```{r, eval = FALSE}
 recs <- scopus_fetch("DOI(10.1038/nature14539)", max_results = 1)
@@ -248,3 +248,47 @@ head(cooc, 5)
 
 Each row is one pair of keywords and the number of documents carrying both,
 which is the edge list a co-occurrence network is built from.
+
+## Handing the corpus to theoryforge
+
+theoryforge maps a literature from a corpus file in its own schema, and
+`write_scopus_corpus()` writes one from a `scopus_corpus()` result. The file
+needs a name for the corpus, since the result carries none.
+
+```{r, eval = FALSE}
+write_scopus_corpus(corpus, "corpus.json", id = "graphene-supercapacitors")
+```
+
+theoryforge compares cited works as exact strings, so the writer gives each
+one a single key across the corpus, its 'Scopus' identifier, as
+`scopus:<id>`. 'Scopus' gives a cited work's DOI in some bibliographies only,
+and in different cases. A key built from the DOI wherever there is one would
+therefore split the work into several nodes and lose its co-citation edges. A reference that carries only a DOI takes the identifier that another
+reference pairs with the same DOI, and a DOI that nothing pairs with is keyed
+as `doi:<doi>`, lower-cased. Keywords are lower-cased as well, so the
+`"graphene"` and `"Graphene"` that `keywords = "both"` keeps apart become one.
+The chunk below runs the writer on two bundled records, each made to cite the
+same two others, the second with the DOIs in capitals. Both cite the same two
+keys.
+
+```{r}
+docs <- example_records[!is.na(example_records$doi), ][1:4, ]
+cites <- function(dois) tibble::tibble(id = NA_character_, doi = dois)
+corpus <- tibble::tibble(
+  id = docs$doi[1:2],
+  scopus_id = NA_character_,
+  title = docs$title[1:2],
+  year = docs$year[1:2],
+  keywords = list(c("Graphene", "supercapacitor"), "graphene"),
+  references = list(cites(docs$doi[3:4]), cites(toupper(docs$doi[3:4])))
+)
+doc <- as_theoryforge_corpus(corpus, id = "graphene-supercapacitors")
+doc$records[[1]]$references
+doc$records[[2]]$references
+```
+
+The file also carries a `provenance` block recording the search expression,
+when the search ran and the kind of keyword, with counts of the references
+dropped and of the records without keywords. An entitlement that
+returns no author keywords shows up in that last count, and it leaves
+theoryforge's keyword themes empty whatever the writer does.

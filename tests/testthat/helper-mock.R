@@ -283,6 +283,48 @@ idxterms_fixture <- function() {
                      simplifyVector = FALSE)
 }
 
+# The two-document corpus behind the corpus writer's golden, built in the shape
+# scopus_corpus() returns, with the attributes it attaches. The Python suite
+# reads the same file, byte for byte. A JSON null becomes NA, and each
+# bibliography a data frame of the columns the writer reads.
+corpus_writer_fixture <- function() {
+  fx <- jsonlite::fromJSON(test_path("fixtures", "corpus-writer.json"),
+                           simplifyVector = FALSE)
+  text <- function(x) if (is.null(x)) NA_character_ else x
+  recs <- fx$records
+  corpus <- tibble::tibble(
+    id = vapply(recs, function(r) r$id, character(1)),
+    scopus_id = vapply(recs, function(r) text(r$scopus_id), character(1)),
+    title = vapply(recs, function(r) text(r$title), character(1)),
+    year = vapply(recs, function(r) if (is.null(r$year)) NA_integer_ else as.integer(r$year), integer(1)),
+    keywords = lapply(recs, function(r) as.character(unlist(r$keywords))),
+    references = lapply(recs, function(r) {
+      data.frame(
+        position = vapply(r$references, function(x) x$position, character(1)),
+        id = vapply(r$references, function(x) text(x$id), character(1)),
+        doi = vapply(r$references, function(x) text(x$doi), character(1)),
+        stringsAsFactors = FALSE
+      )
+    })
+  )
+  attr(corpus, "keywords") <- fx$attributes$keywords
+  attr(corpus, "query") <- as.character(unlist(fx$attributes$query))
+  attr(corpus, "retrieved_at") <- as.POSIXct(
+    fx$attributes$retrieved_at, format = "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"
+  )
+  list(id = fx$id, corpus = corpus)
+}
+
+# What write_scopus_corpus() wrote, as the golden holds it: the bytes as text,
+# with the running version replaced by a placeholder so that a version bump
+# leaves the golden alone.
+read_corpus_golden_form <- function(path) {
+  written <- rawToChar(readBin(path, "raw", file.size(path)))
+  Encoding(written) <- "UTF-8"
+  version <- as.character(utils::packageVersion("scopusflow"))
+  sub(paste("scopusflow", version), "scopusflow <version>", written, fixed = TRUE)
+}
+
 # An Abstract Retrieval response for one case of that fixture. A JSON null is
 # written as null, which jsonlite would otherwise write as an empty object, and
 # a case without an idxterms member leaves the element out.

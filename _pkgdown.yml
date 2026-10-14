@@ -183,12 +183,13 @@ reference:
   - plot_scopus_comparison
   - plot_scopus_intersections
 - title: Export and I/O
-  desc: Hand records to bibliometrix, to a reference manager, or to a file on disk.
+  desc: Hand records to bibliometrix, to a reference manager, or to a file on disk, and a corpus to theoryforge.
   contents:
   - as_bibliometrix
   - as_bibtex
   - as_ris
   - write_scopus_records
+  - write_scopus_corpus
 - title: App
   desc: The code-free interface to the same workflow.
   contents:

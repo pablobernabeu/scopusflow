@@ -56,7 +56,10 @@ costs the same request per record.}
 }
 \value{
 A tibble with columns \code{id} (the identifier \code{records} was looked up
-by), \code{title}, \code{year}, \code{keywords} (a list-column: a character vector of
+by), \code{scopus_id} (the document's own 'Scopus' identifier, as Abstract
+Retrieval gives it, or the \code{scopus_id} of \code{records} where the lookup
+failed or the \code{REF} response omitted it, and \code{NA} when neither has one),
+\code{title}, \code{year}, \code{keywords} (a list-column: a character vector of
 the document's keywords of the kind \code{keywords} names, split out of
 \code{\link[=scopus_abstract]{scopus_abstract()}}'s joined \code{authkeywords} and \code{idxterms} strings, empty
 when the document has none, the field is unavailable or \code{view = "REF"})
@@ -64,6 +67,16 @@ and \code{references} (a list-column: each entry is the
 \code{references} data frame \code{\link[=scopus_abstract]{scopus_abstract()}} returns for that document,
 with one row per cited work). A record in \code{records} whose identifier is
 \code{NA} is dropped, with a warning naming how many.
+
+The number of Abstract Retrieval requests made and the most recently
+parsed quota are attached as the \code{n_requests} and \code{quota} attributes, as
+\code{\link[=scopus_abstract]{scopus_abstract()}} attaches them. Three more attributes carry what
+\code{\link[=write_scopus_corpus]{write_scopus_corpus()}} records of the corpus's provenance. \code{query} holds
+the field-wrapped search expression of each cell of the records' plan,
+or, for records without a plan, the distinct values of their own \code{query}
+column. \code{retrieved_at} is when the search that found the records ran, and
+\code{keywords} is the kind of keyword chosen. \code{query} and \code{retrieved_at} are
+absent when \code{records} carries neither.
 }
 \description{
 Takes a \code{\link[=scopus_records]{scopus_records()}} tibble, such as the output of \code{\link[=scopus_fetch]{scopus_fetch()}} or
@@ -100,10 +113,12 @@ corpus$references[[1]]
 # keywords and references as list-columns. The identifiers, titles and
 # years are records of the bundled corpus of real articles, which stands in
 # for a harvest because 'Scopus' records may not be redistributed. It holds
-# neither keywords nor bibliographies, so those are illustrative.
+# no keywords, bibliographies or 'Scopus' identifiers, so the keywords and
+# references are illustrative and the identifiers are left NA.
 docs <- example_records[order(-example_records$citations), ][1:2, ]
 corpus <- tibble::tibble(
   id = docs$doi,
+  scopus_id = NA_character_,
   title = docs$title,
   year = docs$year,
   keywords = list(
@@ -129,5 +144,6 @@ corpus$keywords[[1]]
 corpus$references[[1]]
 }
 \seealso{
-\code{\link[=scopus_abstract]{scopus_abstract()}}, \code{\link[=as_bibliometrix]{as_bibliometrix()}}
+\code{\link[=scopus_abstract]{scopus_abstract()}}, \code{\link[=as_bibliometrix]{as_bibliometrix()}}, and
+\code{\link[=write_scopus_corpus]{write_scopus_corpus()}} to write the corpus for theoryforge.
 }

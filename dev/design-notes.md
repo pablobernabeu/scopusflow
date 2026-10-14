@@ -763,6 +763,82 @@ a default corpus keeps its checkpoint names. Since the include set is part of
 those names, switching an existing corpus to `"index"` or `"both"` spends one
 request per identifier again.
 
+## A corpus for theoryforge
+
+theoryforge reads a literature corpus in its own schema
+(`schema/corpus.schema.json` in its repository), and its documentation showed
+how to convert a `scopus_corpus()` result by hand. That recipe keyed a cited
+work on its DOI where there was one and on its 'Scopus' identifier otherwise.
+'Scopus' gives a cited work's DOI in some bibliographies only, and in different
+cases, so one work became several nodes. Two documents citing the
+same two works gave theoryforge an empty co-citation map, where keying the
+works on their identifiers gave one edge of count 2. `write_scopus_corpus()` and
+`as_theoryforge_corpus()` (Python: `write_corpus()` and
+`to_theoryforge_corpus()`) therefore key every work on its 'Scopus'
+identifier. A map from DOI to identifier, built from every document and
+reference in the corpus carrying both, lends an identifier to a work cited by
+DOI alone. The documents' own pairs count first, since they come from the
+document's own record. A DOI that nothing pairs with keys as `doi:<doi>`, with
+its resolver prefix removed and its ASCII letters lower-cased, since DOI names
+are case-insensitive over ASCII (DOI Handbook, section 2.4). Each document is
+keyed the same way, so a citation of a document in the corpus meets the
+document itself. To that end `scopus_corpus()` gains a `scopus_id` column,
+from Abstract Retrieval and, where a lookup failed, from the records. The
+writer reads a document's DOI from an `id` that has the shape of one, since the
+corpus carries no DOI column of its own. For the same reason it writes no
+record `doi`, which the schema leaves optional.
+
+`id` is required. A corpus carries no plan or query to name it by, and a name
+made up from its contents would change whenever they did.
+
+Keywords are trimmed, lower-cased and made unique. The index-keyword choice
+above rejected folding case because R's `tolower()` and Python's
+`str.lower()` disagree on a few characters. The writer folds all the same,
+with those two functions. theoryforge compares keywords as exact strings, so
+an unfolded `"Graphene"` and `"graphene"` split a keyword theme. The corrected
+recipe prepared for theoryforge's documentation also folds with the same
+functions, so a corpus keeps its labels when a user moves from that recipe to
+the writer. The two functions were compared on every code point from U+0041 to
+U+024F and from U+0370 to U+052F (R 4.6.1 on Windows, Python 3.13). They
+differed only on the Turkish capital I with a dot, and on a capital sigma
+ending a word, which Python writes as a final sigma. The shared golden pins a
+capital accented letter. An ASCII-only fold, which would agree everywhere, was rejected because
+it leaves a capital accented letter, common in French and German keywords,
+apart from its lower-case form.
+
+The file is serialised for byte parity between the twins: sorted keys,
+compact separators, UTF-8 without escaping and a closing line feed. jsonlite
+and Python's `json` escape the same characters, quotation marks, backslashes
+and control characters, and write the same short forms and lower-case `\u`
+sequences, as a check with jsonlite 2.0.0 confirmed. R sorts keys with a radix
+sort, which orders them by byte as Python orders them by code point. `I()`
+keeps a one-element keyword or reference list an array under `auto_unbox`.
+
+A `provenance` object records `source` (the package and its version),
+`query`, `retrieved_at` and `keywords`, with three counts: the documents, the
+references dropped for want of either identifier and the documents without
+keywords. The last is there because an entitlement that returns no author
+keywords empties theoryforge's keyword themes whatever the writer does.
+theoryforge's schema admits the object beside its own fields. The schema's own
+optional `source` object was not reused, since it records theoryforge's
+OpenAlex fetch, with fields such as `per_page` and `sort` that a 'Scopus'
+corpus has no value for. `query` is the field-wrapped
+expression of each cell of the records' plan, as the search record states it.
+The records' `query` column is no substitute where a plan exists, since the
+Python twin writes each cell's year limit into it and R does not, and the twins
+would record different strings. `retrieved_at` is when the search ran, the
+records' own `retrieved_at`, since Abstract Retrieval checkpoints carry no
+time.
+
+The output is validated against a copy of theoryforge's schema in the test
+fixtures, which records the theoryforge commit it was taken from in a
+`$comment`. Python validates with jsonschema, a development dependency only.
+R checks it with a small validator in the tests that covers the keywords the
+schema uses, since `jsonvalidate` would add a JavaScript engine to Suggests
+for one test. Neither validates at run time, which would make jsonschema a
+dependency of the package. The golden replaces the running version in
+`source` with `<version>`, so that a release leaves it alone.
+
 ## Concept and intersection sizing
 
 `scopus_intersections()` and `plot_scopus_intersections()` size a named set of

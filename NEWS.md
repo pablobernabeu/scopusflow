@@ -48,8 +48,31 @@
   on the key's entitlement. In development testing, they arrived on a key whose
   author keywords came back empty. The Python twin's `scopus_abstract()` and
   `corpus()` gain the same options.
+* `write_scopus_corpus()` writes a `scopus_corpus()` result in theoryforge's
+  corpus schema, keying cited works on the 'Scopus' identifier so the same
+  work is one node however its DOI is written. `as_theoryforge_corpus()`
+  returns the same document as a list. A reference that carries only a DOI
+  takes the identifier that another document or reference in the corpus pairs
+  with that DOI, and one with neither is dropped with a warning. Keywords are
+  trimmed, lower-cased and made unique, and a missing year is written as
+  `null`. Keyed on the DOI wherever there was one, as theoryforge's own recipe
+  did, two documents citing the same two works gave no co-citation edge. A
+  `provenance` block records the search expression, when the search ran, the
+  kind of keyword and how many references were dropped and records came
+  without keywords. The Python twin's `write_corpus()` and
+  `to_theoryforge_corpus()` write the same bytes, held to a shared golden file
+  and validated against a copy of theoryforge's schema.
 
 ## Changed behaviour
+
+* `scopus_corpus()` now reports the requests it made and the quota left, in
+  the `n_requests` and `quota` attributes, as the Python twin does, and both
+  twins return each document's 'Scopus' identifier in a new `scopus_id`
+  column, the second. It comes from Abstract Retrieval, or from the records
+  where the lookup failed. Code that selects the corpus's columns by position
+  needs updating. The result also carries the search expression, when the
+  search ran and the kind of keyword, as the attributes `query`,
+  `retrieved_at` and `keywords`, which `write_scopus_corpus()` records.
 
 * Input errors now inherit `scopus_error`, as the package has always documented.
   `scopus_error_bad_input` was raised on its own, so `tryCatch(scopus_error = ...)`
