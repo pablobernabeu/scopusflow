@@ -145,9 +145,9 @@
 #' @examples
 #' # The offline companion, which needs no key. The identifiers, titles,
 #' # sources and citation counts are two records of the bundled corpus of real
-#' # articles; the abstract text is what a live call adds, so it is left unset
-#' # left as a placeholder here, as is the 'Scopus' identifier the corpus does
-#' # not carry.
+#' # articles; the abstract text is what a live call adds, so it is left as a
+#' # placeholder here, as is the 'Scopus' identifier the corpus does not
+#' # carry.
 #' cited <- example_records[order(-example_records$citations), ][1:2, ]
 #' abstracts <- tibble::tibble(
 #'   id = cited$doi,
