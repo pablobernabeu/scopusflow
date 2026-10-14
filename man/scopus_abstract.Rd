@@ -34,9 +34,11 @@ requires \code{view = "FULL"} or \code{view = "REF"}; see \emph{Details} for how
 differ and which to prefer.}
 
 \item{include}{Optional character vector naming extra fields to retrieve in
-the same request: \code{"references"} and/or \code{"keywords"}. \code{"references"}
-requires \code{view = "FULL"} or \code{view = "REF"}, and \code{"keywords"} requires
-\code{view = "FULL"}, since the \code{REF} response carries no author keywords.
+the same request: any of \code{"references"}, \code{"keywords"} (the author
+keywords) and \code{"index_terms"} (the index keywords 'Scopus' assigns).
+\code{"references"} requires \code{view = "FULL"} or \code{view = "REF"}, and
+\code{"keywords"} and \code{"index_terms"} require \code{view = "FULL"}, since the \code{REF}
+response carries neither kind of keyword.
 Either way this is an entitlement that is separate from ordinary abstract
 access and from 'Scopus' Search access, and, per Elsevier's own
 documentation, some fields (notably author keywords) may need to be
@@ -76,6 +78,10 @@ document's author-supplied keywords, joined the same way as \code{authors}
 (\code{"; "}-separated), or \code{NA} when the document has none, or when the API
 omits the field for a given key's entitlement (see \emph{Details}).
 
+When \code{include} names \code{"index_terms"}, an \code{idxterms} column is added after
+any \code{authkeywords}: the index keywords of the document, joined by \code{"; "},
+or \code{NA} when the response carries none. An entry without text is dropped.
+
 When \code{include} names \code{"references"}, a \code{references} list-column is added:
 one data frame per document, with one row per cited work, where a joined
 string would have to be parsed apart again. Its columns are \code{position} (the
@@ -92,8 +98,8 @@ Fetches the abstract text and core metadata for one or more records from the
 Elsevier 'Scopus' Abstract Retrieval API. This complements the Search API used
 elsewhere in the package: a search returns many records with a few fields each,
 whereas this returns the fuller record, including the abstract, for a known
-identifier. Passing \code{include} adds author keywords and/or the document's
-reference list to the same request.
+identifier. Passing \code{include} adds the author keywords, the index keywords
+and the document's reference list, or any of them, to the same request.
 }
 \details{
 Retrieving references needs Abstract Retrieval's \code{FULL} or \code{REF} view, and
@@ -120,6 +126,16 @@ fully-entitled key, on documents that do carry author keywords in 'Scopus'
 itself. If your own keywords come back all \code{NA}, this is most likely an
 entitlement gap specific to that field, worth raising with your
 Scopus/Elsevier account contact. The documents do carry keywords.
+
+Index keywords are the other kind 'Scopus' records. Authors choose their own
+keywords, whereas 'Scopus' chooses the index keywords and standardises them
+to vocabularies derived from thesauri Elsevier owns or licenses, with
+synonyms, spellings and plurals brought together. The two kinds therefore
+give different keyword co-occurrence results, and a study should say which
+it used. Elsevier's guide lists index keywords in the \code{FULL} view as not
+available by default, so whether they arrive depends on your key's
+entitlement as well. In this package's development testing, they did
+arrive on the same key whose author keywords came back empty.
 }
 \section{API access}{
 

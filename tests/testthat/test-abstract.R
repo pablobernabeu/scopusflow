@@ -210,6 +210,89 @@ test_that("include = 'keywords' is NA when the API omits authkeywords", {
   expect_true(is.na(ab$authkeywords))
 })
 
+test_that("include = 'index_terms' under FULL reads each idxterms shape of the shared fixture", {
+  # The Python suite runs the same cases through pybliometrics' own parser.
+  local_scopus_test_env()
+  fixture <- idxterms_fixture()
+  case <- NULL
+  httr2::local_mocked_responses(function(req) mock_abstract_idxterms(case, fixture$doi))
+  for (case in fixture$cases) {
+    ab <- expect_no_warning(
+      scopus_abstract(fixture$doi, view = "FULL", include = "index_terms")
+    )
+    expect_identical(
+      names(ab),
+      c("id", "scopus_id", "doi", "title", "abstract", "publication", "year",
+        "citations", "idxterms"),
+      info = case$name
+    )
+    expected <- if (is.null(case$expected)) NA_character_ else case$expected
+    expect_identical(ab$idxterms, expected, info = case$name)
+  }
+})
+
+test_that("an index term without text is dropped, not taken for a term", {
+  # As for author keywords (pybliometrics issue #436), an entry can carry its
+  # attributes alone.
+  local_scopus_test_env()
+  terms <- NULL
+  httr2::local_mocked_responses(function(req) {
+    mock_abstract_full(core = list(`prism:doi` = "10.1/x"), idxterms = terms)
+  })
+  terms <- list(mainterm = list(
+    list(`$` = "Graphene"), list(`@candidate` = "n"), list(`$` = "")
+  ))
+  ab <- scopus_abstract("10.1/x", view = "FULL", include = "index_terms")
+  expect_identical(ab$idxterms, "Graphene")
+
+  terms <- list(mainterm = list(`@weight` = "a", `@candidate` = "n"))
+  ab <- scopus_abstract("10.1/x", view = "FULL", include = "index_terms")
+  expect_identical(ab$idxterms, NA_character_)
+})
+
+test_that("include = 'index_terms' needs view = 'FULL'", {
+  local_scopus_test_env()
+  for (view in list("META_ABS", "META", "REF", NULL)) {
+    expect_error(
+      scopus_abstract("x", view = view, include = "index_terms"),
+      class = "scopus_error_bad_input",
+      regexp = "index_terms.*FULL"
+    )
+  }
+})
+
+test_that("index terms sit between the author keywords and the references", {
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  httr2::local_mocked_responses(function(req) {
+    doi <- mock_request_doi(req)
+    if (doi == "10.1/missing") return(mock_json_response(list(), status = 404L))
+    mock_abstract_full(
+      core = list(`prism:doi` = doi),
+      authkeywords = list(`author-keyword` = list(list(`$` = "graphene"))),
+      idxterms = list(mainterm = list(list(`$` = "Graphene"), list(`$` = "Electrodes"))),
+      refcount = 0
+    )
+  })
+  expect_warning(
+    ab <- scopus_abstract(
+      c("10.1/x", "10.1/missing"), view = "FULL",
+      include = c("references", "index_terms", "keywords"), cache_dir = cache
+    ),
+    "10.1/missing"
+  )
+  expect_identical(
+    names(ab)[-(1:8)], c("authkeywords", "idxterms", "references")
+  )
+  expect_identical(ab$idxterms, c("Graphene; Electrodes", NA))
+  # The include set is part of the checkpoint's name, sorted.
+  expect_identical(
+    list.files(cache),
+    sprintf("id-FULL-index_terms-keywords-references-%s.rds",
+            scopusflow:::scopus_safe_filename("10.1/x"))
+  )
+})
+
 test_that("include = 'references' under FULL view returns a structured list-column", {
   local_scopus_test_env()
   httr2::local_mocked_responses(function(req) {

@@ -4,8 +4,8 @@
 #' Elsevier 'Scopus' Abstract Retrieval API. This complements the Search API used
 #' elsewhere in the package: a search returns many records with a few fields each,
 #' whereas this returns the fuller record, including the abstract, for a known
-#' identifier. Passing `include` adds author keywords and/or the document's
-#' reference list to the same request.
+#' identifier. Passing `include` adds the author keywords, the index keywords
+#' and the document's reference list, or any of them, to the same request.
 #'
 #' @param ids Character vector of identifiers to look up, either Digital Object
 #'   Identifiers or 'Scopus' record identifiers (with or without the
@@ -21,9 +21,11 @@
 #'   requires `view = "FULL"` or `view = "REF"`; see *Details* for how the two
 #'   differ and which to prefer.
 #' @param include Optional character vector naming extra fields to retrieve in
-#'   the same request: `"references"` and/or `"keywords"`. `"references"`
-#'   requires `view = "FULL"` or `view = "REF"`, and `"keywords"` requires
-#'   `view = "FULL"`, since the `REF` response carries no author keywords.
+#'   the same request: any of `"references"`, `"keywords"` (the author
+#'   keywords) and `"index_terms"` (the index keywords 'Scopus' assigns).
+#'   `"references"` requires `view = "FULL"` or `view = "REF"`, and
+#'   `"keywords"` and `"index_terms"` require `view = "FULL"`, since the `REF`
+#'   response carries neither kind of keyword.
 #'   Either way this is an entitlement that is separate from ordinary abstract
 #'   access and from 'Scopus' Search access, and, per Elsevier's own
 #'   documentation, some fields (notably author keywords) may need to be
@@ -56,6 +58,10 @@
 #'   document's author-supplied keywords, joined the same way as `authors`
 #'   (`"; "`-separated), or `NA` when the document has none, or when the API
 #'   omits the field for a given key's entitlement (see *Details*).
+#'
+#'   When `include` names `"index_terms"`, an `idxterms` column is added after
+#'   any `authkeywords`: the index keywords of the document, joined by `"; "`,
+#'   or `NA` when the response carries none. An entry without text is dropped.
 #'
 #'   When `include` names `"references"`, a `references` list-column is added:
 #'   one data frame per document, with one row per cited work, where a joined
@@ -92,6 +98,16 @@
 #' itself. If your own keywords come back all `NA`, this is most likely an
 #' entitlement gap specific to that field, worth raising with your
 #' Scopus/Elsevier account contact. The documents do carry keywords.
+#'
+#' Index keywords are the other kind 'Scopus' records. Authors choose their own
+#' keywords, whereas 'Scopus' chooses the index keywords and standardises them
+#' to vocabularies derived from thesauri Elsevier owns or licenses, with
+#' synonyms, spellings and plurals brought together. The two kinds therefore
+#' give different keyword co-occurrence results, and a study should say which
+#' it used. Elsevier's guide lists index keywords in the `FULL` view as not
+#' available by default, so whether they arrive depends on your key's
+#' entitlement as well. In this package's development testing, they did
+#' arrive on the same key whose author keywords came back empty.
 #' @section API access:
 #' This performs one request per identifier, or one per page of references
 #' under `view = "REF"` with `include = "references"`, and requires a valid
@@ -192,6 +208,12 @@ scopus_abstract <- function(ids,
   if ("keywords" %in% include && !identical(view, "FULL")) {
     scopus_abort_bad_input(
       "Retrieving `include = \"keywords\"` needs `view = \"FULL\"`."
+    )
+  }
+  # Index keywords come only with FULL too (Scopus API Guide, V1, p. 29).
+  if ("index_terms" %in% include && !identical(view, "FULL")) {
+    scopus_abort_bad_input(
+      "Retrieving `include = \"index_terms\"` needs `view = \"FULL\"`."
     )
   }
   if (!is.character(ids) || length(ids) == 0L || anyNA(ids) ||
@@ -409,10 +431,13 @@ scopus_check_include <- function(include, call = rlang::caller_env()) {
   if (length(include) == 0L) {
     return(character())
   }
-  known <- c("references", "keywords")
+  known <- c("references", "keywords", "index_terms")
   if (!is.character(include) || anyNA(include) || !all(include %in% known)) {
     scopus_abort_bad_input(
-      "`include` must be a character vector made up of \"references\" and/or \"keywords\".",
+      paste0(
+        "`include` must be a character vector naming only \"references\", ",
+        "\"keywords\" and \"index_terms\"."
+      ),
       call = call
     )
   }
@@ -596,6 +621,11 @@ scopus_abstract_row <- function(id, core, full = list(), view = NULL, include = 
       scopus_parse_authkeywords(full), "author keywords"
     )
   }
+  if ("index_terms" %in% include) {
+    row$idxterms <- scopus_parse_optional(
+      scopus_parse_idxterms(full), "index keywords"
+    )
+  }
   if ("references" %in% include) {
     row$references <- list(scopus_parse_optional(
       scopus_parse_references(full, view), "reference list"
@@ -604,8 +634,8 @@ scopus_abstract_row <- function(id, core, full = list(), view = NULL, include = 
   row
 }
 
-# Evaluate the parse of an optional, nested part of a response (the keywords
-# or the references) and re-raise any error as a typed condition. The shape of
+# Evaluate the parse of an optional, nested part of a response (either kind of
+# keyword, or the references) and re-raise any error as a typed condition. The shape of
 # these parts varies with Elsevier's XML-to-JSON conversion. A base R error
 # from a shape not foreseen here escaped scopus_abstract()'s per-identifier
 # handler and aborted the whole batch, and every resume of it. As a
@@ -633,8 +663,26 @@ scopus_parse_optional <- function(parse, what) {
 # field by field, giving the keyword "true".
 scopus_parse_authkeywords <- function(full) {
   ak <- full[["authkeywords"]]
-  items <- scopus_listify(if (is.list(ak)) ak[["author-keyword"]] %||% ak else ak)
-  text <- vapply(items, function(x) {
+  scopus_join_terms(if (is.list(ak)) ak[["author-keyword"]] %||% ak else ak)
+}
+
+# Index keywords from a FULL-view response, joined "; " as the author keywords
+# are. `idxterms` holds `mainterm`, a list of objects whose text is under "$"
+# beside attributes such as "@weight" and "@candidate", or one such object
+# sent bare. pybliometrics reads the same path (AbstractRetrieval.idxterms in
+# its 4.4.1 release). A null or absent `idxterms` gives NA, and an entry without
+# text is dropped, as for the author keywords.
+scopus_parse_idxterms <- function(full) {
+  it <- full[["idxterms"]]
+  scopus_join_terms(if (is.list(it)) it[["mainterm"]] else NULL)
+}
+
+# The text of a list of keyword entries, joined "; ", or NA when none carries
+# any. An entry is an object holding its text under "$", a bare string, or one
+# such object sent bare (see scopus_listify()). Entries without text are
+# dropped.
+scopus_join_terms <- function(items) {
+  text <- vapply(scopus_listify(items), function(x) {
     value <- if (is.list(x)) x[["$"]] else x
     if (length(value) == 1L) as.character(value) else NA_character_
   }, character(1))

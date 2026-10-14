@@ -131,12 +131,14 @@ mock_abstract <- function(core, status = 200L) {
 }
 
 # An Abstract Retrieval response carrying the full top-level shape (coredata
-# plus, optionally, authkeywords and a FULL-view bibliography), for view =
-# "FULL" tests.
+# plus, optionally, authkeywords, idxterms and a FULL-view bibliography), for
+# view = "FULL" tests.
 mock_abstract_full <- function(core = list(), authkeywords = NULL,
-                               references = NULL, refcount = NULL, status = 200L) {
+                               references = NULL, refcount = NULL, status = 200L,
+                               idxterms = NULL) {
   full <- list(coredata = core)
   if (!is.null(authkeywords)) full$authkeywords <- authkeywords
+  if (!is.null(idxterms)) full$idxterms <- idxterms
   if (!is.null(references) || !is.null(refcount)) {
     bib <- list()
     if (!is.null(refcount)) bib[["@refcount"]] <- as.character(refcount)
@@ -271,4 +273,28 @@ expect_record_row <- function(recs, expected) {
       expect_identical(recs[[col]], want, info = col)
     }
   }
+}
+
+# The idxterms shapes of an Abstract Retrieval response under FULL, with the
+# column both twins build from each. The Python suite reads the same file, byte
+# for byte.
+idxterms_fixture <- function() {
+  jsonlite::fromJSON(test_path("fixtures", "abstract-idxterms.json"),
+                     simplifyVector = FALSE)
+}
+
+# An Abstract Retrieval response for one case of that fixture. A JSON null is
+# written as null, which jsonlite would otherwise write as an empty object, and
+# a case without an idxterms member leaves the element out.
+mock_abstract_idxterms <- function(case, doi) {
+  full <- list(coredata = list(`prism:doi` = doi))
+  if ("idxterms" %in% names(case)) full["idxterms"] <- list(case[["idxterms"]])
+  httr2::response(
+    status_code = 200L,
+    headers = list(`Content-Type` = "application/json"),
+    body = charToRaw(jsonlite::toJSON(
+      list(`abstracts-retrieval-response` = full),
+      auto_unbox = TRUE, null = "null"
+    ))
+  )
 }

@@ -1,7 +1,8 @@
 #' Assemble a minimal, cross-tool corpus with keywords and references
 #'
 #' Takes a [scopus_records()] tibble, such as the output of [scopus_fetch()] or
-#' [scopus_fetch_plan()], and enriches it with author keywords and structured
+#' [scopus_fetch_plan()], and enriches it with keywords (the author keywords by
+#' default, or the index keywords 'Scopus' assigns) and structured
 #' references via Abstract Retrieval, returning a minimal, uniform shape close
 #' to what OpenAlex's `works` API already returns: an `id`, `title`, `year`,
 #' `keywords` (a list-column of character vectors) and `references` (a
@@ -21,8 +22,8 @@
 #'   [scopus_abstract()] follows page by page, so a document with *N*
 #'   references costs `ceiling(N / 40)` requests (see its documentation for
 #'   the details and for the entitlement each view needs). The `REF` response
-#'   also carries no author keywords, so under that view only the references
-#'   are requested and `keywords` is empty for every record.
+#'   also carries no keywords of either kind, so under that view only the
+#'   references are requested and `keywords` is empty for every record.
 #' @param cache_dir,resume As in [scopus_abstract()]: an optional directory
 #'   for per-identifier cache files, and whether an existing one is reused.
 #'   Worth setting for anything beyond a handful of records, since this
@@ -30,11 +31,23 @@
 #'   smaller weekly quota.
 #' @param api_key,inst_token Optional credentials (see [scopus_has_key()]).
 #' @param verbose Logical. When `TRUE`, progress is reported.
+#' @param keywords Which keywords fill the `keywords` column: `"author"` (the
+#'   default) for the author keywords, `"index"` for the index keywords
+#'   'Scopus' assigns, or `"both"` for the author keywords followed by each
+#'   index keyword not already among them. The match is on the exact text, so
+#'   a term that differs only in case appears twice. `"index"` and `"both"`
+#'   need `view = "FULL"`, since the `REF` response carries no keywords of
+#'   either kind, and raise a `scopus_error_bad_input` error under `"REF"`
+#'   before any request. Index keywords and author keywords give different
+#'   co-occurrence results, and the *Details* of [scopus_abstract()] describe
+#'   how each is chosen and the entitlement each depends on. Either choice
+#'   costs the same request per record.
 #' @return A tibble with columns `id` (the identifier `records` was looked up
 #'   by), `title`, `year`, `keywords` (a list-column: a character vector of
-#'   the document's author keywords, split out of [scopus_abstract()]'s
-#'   joined `authkeywords` string, empty when the document has none, the
-#'   field is unavailable or `view = "REF"`) and `references` (a list-column: each entry is the
+#'   the document's keywords of the kind `keywords` names, split out of
+#'   [scopus_abstract()]'s joined `authkeywords` and `idxterms` strings, empty
+#'   when the document has none, the field is unavailable or `view = "REF"`)
+#'   and `references` (a list-column: each entry is the
 #'   `references` data frame [scopus_abstract()] returns for that document,
 #'   with one row per cited work). A record in `records` whose identifier is
 #'   `NA` is dropped, with a warning naming how many.
@@ -92,9 +105,22 @@ scopus_corpus <- function(records,
                           resume = TRUE,
                           api_key = NULL,
                           inst_token = NULL,
-                          verbose = FALSE) {
+                          verbose = FALSE,
+                          keywords = c("author", "index", "both")) {
   by <- scopus_match_arg(by, c("doi", "scopus_id"))
   view <- scopus_match_arg(view, c("FULL", "REF"))
+  keywords <- scopus_match_arg(keywords, c("author", "index", "both"))
+  # Checked here, so that the error names this function's own argument, where
+  # scopus_abstract() would name the `include` value it was passed.
+  if (keywords != "author" && view != "FULL") {
+    scopus_abort_bad_input(
+      sprintf(
+        paste0("`keywords = \"%s\"` needs `view = \"FULL\"`, since the REF ",
+               "response carries no index keywords."),
+        keywords
+      )
+    )
+  }
   required <- c(by, "title", "year")
   if (!is.data.frame(records) || !all(required %in% names(records))) {
     scopus_abort_bad_input(
@@ -124,24 +150,45 @@ scopus_corpus <- function(records,
 
   # The REF response carries no author keywords (scopus_abstract() rejects the
   # combination), so under that view only the references are requested and
-  # every record's keywords come back empty.
-  include <- if (identical(view, "FULL")) c("references", "keywords") else "references"
+  # every record's keywords come back empty. Under FULL, only the kinds of
+  # keyword asked for are included, which keeps the checkpoints of a default
+  # corpus named as before.
+  include <- "references"
+  if (identical(view, "FULL")) {
+    if (keywords %in% c("author", "both")) include <- c(include, "keywords")
+    if (keywords %in% c("index", "both")) include <- c(include, "index_terms")
+  }
   ab <- scopus_abstract(
     ids[keep], by = by, view = view, include = include,
     cache_dir = cache_dir, resume = resume,
     api_key = api_key, inst_token = inst_token, verbose = verbose
   )
 
-  authkeywords <- ab[["authkeywords"]] %||% rep(NA_character_, nrow(ab))
-  keywords <- lapply(authkeywords, function(x) {
-    if (length(x) != 1L || is.na(x)) character() else trimws(strsplit(x, ";", fixed = TRUE)[[1]])
-  })
+  author <- scopus_split_terms(ab[["authkeywords"]], nrow(ab))
+  index <- scopus_split_terms(ab[["idxterms"]], nrow(ab))
+  terms <- switch(keywords,
+    author = author,
+    index = index,
+    # unique() keeps the first of each repeated text, so the author keywords
+    # come first and an index keyword they already hold is not repeated.
+    both = Map(function(a, i) unique(c(a, i)), author, index)
+  )
 
   tibble::tibble(
     id = ab$id,
     title = records$title,
     year = records$year,
-    keywords = keywords,
+    keywords = unname(terms),
     references = ab$references
   )
+}
+
+# Split a joined keyword column ("; "-separated, see scopus_abstract()) into
+# one character vector per row, empty for NA or for a column the request did
+# not include.
+scopus_split_terms <- function(joined, n) {
+  joined <- joined %||% rep(NA_character_, n)
+  lapply(joined, function(x) {
+    if (length(x) != 1L || is.na(x)) character() else trimws(strsplit(x, ";", fixed = TRUE)[[1]])
+  })
 }

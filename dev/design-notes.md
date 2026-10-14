@@ -736,6 +736,33 @@ any failed retrieval. A resumed run therefore spends one request to retry the
 identifier, which a corrected parser in a later release can then read, where a
 checkpointed `NA` row would have hidden the document for good.
 
+## Index keywords
+
+`include = "index_terms"` reads the `FULL` view's `idxterms`, which the Scopus
+API Guide (V1, p. 29) lists as not available by default, and which carried
+terms on the development key when `authkeywords` came back empty (see the
+0.2.0 section above). The column takes the response's own name, `idxterms`, as
+`authkeywords` does, and sits between `authkeywords` and `references` in both
+twins. The parser follows the author keywords' rule: `mainterm` passes through
+`scopus_listify()`, and an entry without text is dropped. pybliometrics'
+`idxterms` raises `KeyError` on such an entry, so the Python twin leaves that
+document's index keywords `NA` with a warning, where R keeps the other terms.
+Reading the response past pybliometrics to match R was rejected, since it would
+rest on a private attribute.
+
+`scopus_corpus()` gains `keywords` as its last argument, so a call that passes
+`cache_dir` by position keeps working. The Python twin puts it after `resume`,
+ahead of the arguments passed on to pybliometrics. `"both"` puts the author
+keywords first and adds each index keyword not already among them, matching on
+the exact text. Folding case was rejected even though index terms are
+capitalised where author keywords often are not, since R's `tolower()` and
+Python's `str.lower()` do not agree on every character, and the twins could
+then return different lists.
+The corpus asks `scopus_abstract()` only for the kinds of keyword it needs, so
+a default corpus keeps its checkpoint names. Since the include set is part of
+those names, switching an existing corpus to `"index"` or `"both"` spends one
+request per identifier again.
+
 ## Concept and intersection sizing
 
 `scopus_intersections()` and `plot_scopus_intersections()` size a named set of

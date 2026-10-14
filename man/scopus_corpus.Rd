@@ -12,7 +12,8 @@ scopus_corpus(
   resume = TRUE,
   api_key = NULL,
   inst_token = NULL,
-  verbose = FALSE
+  verbose = FALSE,
+  keywords = c("author", "index", "both")
 )
 }
 \arguments{
@@ -28,8 +29,8 @@ one request. \code{"REF"} serves it about 40 references per request, which
 \code{\link[=scopus_abstract]{scopus_abstract()}} follows page by page, so a document with \emph{N}
 references costs \code{ceiling(N / 40)} requests (see its documentation for
 the details and for the entitlement each view needs). The \code{REF} response
-also carries no author keywords, so under that view only the references
-are requested and \code{keywords} is empty for every record.}
+also carries no keywords of either kind, so under that view only the
+references are requested and \code{keywords} is empty for every record.}
 
 \item{cache_dir, resume}{As in \code{\link[=scopus_abstract]{scopus_abstract()}}: an optional directory
 for per-identifier cache files, and whether an existing one is reused.
@@ -40,20 +41,34 @@ smaller weekly quota.}
 \item{api_key, inst_token}{Optional credentials (see \code{\link[=scopus_has_key]{scopus_has_key()}}).}
 
 \item{verbose}{Logical. When \code{TRUE}, progress is reported.}
+
+\item{keywords}{Which keywords fill the \code{keywords} column: \code{"author"} (the
+default) for the author keywords, \code{"index"} for the index keywords
+'Scopus' assigns, or \code{"both"} for the author keywords followed by each
+index keyword not already among them. The match is on the exact text, so
+a term that differs only in case appears twice. \code{"index"} and \code{"both"}
+need \code{view = "FULL"}, since the \code{REF} response carries no keywords of
+either kind, and raise a \code{scopus_error_bad_input} error under \code{"REF"}
+before any request. Index keywords and author keywords give different
+co-occurrence results, and the \emph{Details} of \code{\link[=scopus_abstract]{scopus_abstract()}} describe
+how each is chosen and the entitlement each depends on. Either choice
+costs the same request per record.}
 }
 \value{
 A tibble with columns \code{id} (the identifier \code{records} was looked up
 by), \code{title}, \code{year}, \code{keywords} (a list-column: a character vector of
-the document's author keywords, split out of \code{\link[=scopus_abstract]{scopus_abstract()}}'s
-joined \code{authkeywords} string, empty when the document has none, the
-field is unavailable or \code{view = "REF"}) and \code{references} (a list-column: each entry is the
+the document's keywords of the kind \code{keywords} names, split out of
+\code{\link[=scopus_abstract]{scopus_abstract()}}'s joined \code{authkeywords} and \code{idxterms} strings, empty
+when the document has none, the field is unavailable or \code{view = "REF"})
+and \code{references} (a list-column: each entry is the
 \code{references} data frame \code{\link[=scopus_abstract]{scopus_abstract()}} returns for that document,
 with one row per cited work). A record in \code{records} whose identifier is
 \code{NA} is dropped, with a warning naming how many.
 }
 \description{
 Takes a \code{\link[=scopus_records]{scopus_records()}} tibble, such as the output of \code{\link[=scopus_fetch]{scopus_fetch()}} or
-\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}, and enriches it with author keywords and structured
+\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}, and enriches it with keywords (the author keywords by
+default, or the index keywords 'Scopus' assigns) and structured
 references via Abstract Retrieval, returning a minimal, uniform shape close
 to what OpenAlex's \code{works} API already returns: an \code{id}, \code{title}, \code{year},
 \code{keywords} (a list-column of character vectors) and \code{references} (a

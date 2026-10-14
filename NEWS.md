@@ -37,6 +37,17 @@
   one RIS `KW` line each, with or without the extended fields. A value the
   record lacks is left out. The Python twin's `to_ris()` and `to_bibtex()` do
   the same, held to a shared golden file.
+* `scopus_abstract(include = "index_terms")` returns the index keywords
+  'Scopus' assigns, in an `idxterms` column joined by `"; "`, under
+  `view = "FULL"`. `scopus_corpus()` can use them, alone or with the author
+  keywords, through its new `keywords` argument, `"index"` or `"both"`, and
+  refuses either under `view = "REF"` before any request. The default,
+  `keywords = "author"`, keeps the author keywords alone. 'Scopus' chooses
+  index keywords from standard vocabularies, so they give different
+  co-occurrence results from author keywords, and whether they arrive depends
+  on the key's entitlement. In development testing, they arrived on a key whose
+  author keywords came back empty. The Python twin's `scopus_abstract()` and
+  `corpus()` gain the same options.
 
 ## Changed behaviour
 

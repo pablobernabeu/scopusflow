@@ -81,6 +81,71 @@ test_that("a lone reference or a keyword without text no longer aborts the corpu
   expect_equal(corpus$references[[2]]$title, "A lone reference")
 })
 
+test_that("keywords = 'index' and 'both' draw on the index keywords", {
+  local_scopus_test_env()
+  records <- tibble::tibble(doi = "10.1/a", title = "A study", year = 2020L)
+  httr2::local_mocked_responses(function(req) {
+    mock_abstract_full(
+      core = list(`prism:doi` = "10.1/a"),
+      authkeywords = list(`author-keyword` = list(
+        list(`$` = "graphene"), list(`$` = "Supercapacitors")
+      )),
+      idxterms = list(mainterm = list(
+        list(`$` = "Supercapacitors"), list(`$` = "Graphene"), list(`$` = "Electrodes")
+      )),
+      refcount = 0
+    )
+  })
+  # The default is unchanged: the author keywords alone.
+  expect_identical(scopus_corpus(records)$keywords[[1]], c("graphene", "Supercapacitors"))
+  expect_identical(
+    scopus_corpus(records, keywords = "index")$keywords[[1]],
+    c("Supercapacitors", "Graphene", "Electrodes")
+  )
+  # Author keywords first, then each index keyword not already among them. The
+  # match is on the exact text, so "graphene" and "Graphene" are both kept.
+  expect_identical(
+    scopus_corpus(records, keywords = "both")$keywords[[1]],
+    c("graphene", "Supercapacitors", "Graphene", "Electrodes")
+  )
+})
+
+test_that("each keywords choice asks scopus_abstract() for what it needs", {
+  local_scopus_test_env()
+  records <- tibble::tibble(doi = "10.1/a", title = "A study", year = 2020L)
+  cache <- withr::local_tempdir()
+  httr2::local_mocked_responses(function(req) {
+    mock_abstract_full(core = list(`prism:doi` = "10.1/a"), refcount = 0)
+  })
+  for (k in c("author", "index", "both")) {
+    scopus_corpus(records, cache_dir = cache, keywords = k)
+  }
+  expect_setequal(
+    sub("-10_1_a\\.rds$", "", list.files(cache)),
+    c("id-FULL-keywords-references", "id-FULL-index_terms-references",
+      "id-FULL-index_terms-keywords-references")
+  )
+})
+
+test_that("index keywords need view = 'FULL', and REF refuses them before a request", {
+  local_scopus_test_env()
+  records <- tibble::tibble(doi = "10.1/a", title = "A study", year = 2020L)
+  httr2::local_mocked_responses(function(req) {
+    stop("no request should be made", call. = FALSE)
+  })
+  for (k in c("index", "both")) {
+    expect_error(
+      scopus_corpus(records, view = "REF", keywords = k),
+      class = "scopus_error_bad_input",
+      regexp = "FULL"
+    )
+  }
+  expect_error(
+    scopus_corpus(records, keywords = "authors"),
+    class = "scopus_error_bad_input"
+  )
+})
+
 test_that("records with a missing identifier are dropped with a warning", {
   local_scopus_test_env()
   records <- tibble::tibble(doi = c("10.1/a", NA), title = c("A", "B"), year = c(2020L, 2021L))
