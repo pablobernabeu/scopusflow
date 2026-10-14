@@ -62,6 +62,15 @@
   without keywords. The Python twin's `write_corpus()` and
   `to_theoryforge_corpus()` write the same bytes, held to a shared golden file
   and validated against a copy of theoryforge's schema.
+* `scopus_diff_records()` compares two harvests record by record, matching on
+  the 'Scopus' identifier and, where a record lacks one, on the DOI, as
+  `scopus_combine(dedupe = TRUE)` matches records. Each row gives the record's
+  citation counts in both harvests beside its status, identifier, DOI, title
+  and year. A record in one harvest only whose DOI the other harvest gives to
+  a different record is marked `conflict` for you to check, since it may have
+  been re-indexed under a new identifier or may be a distinct paper sharing
+  the DOI. Records with neither key are counted and left out. The Python
+  twin's `diff_records()` returns the same rows, held to a shared fixture.
 
 ## Changed behaviour
 
@@ -278,6 +287,15 @@
   `scopusflow::example_records`, so demo mode works when the app is launched
   as `scopusflow::run_app()` without attaching the package, where Check size
   and Fetch records failed with "object 'example_records' not found".
+* `scopus_diff_dois()` now says how many records it could not compare for want
+  of a DOI, in the attributes `n_old_without_doi` and `n_new_without_doi` and
+  on its printed line. Such records, 11 of the 138 in the bundled corpus, used
+  to vanish from the diff without a count. It also orders its rows the same
+  way on every machine, in byte order as the Python twin does, where it
+  followed the locale's collation and an English locale put `10.1016/j.cell`
+  before `10.1016/S0140`. The tracking article advised preferring the 'Scopus'
+  identifier, which no function supported, and now points to
+  `scopus_diff_records()`.
 
 ## Documentation
 

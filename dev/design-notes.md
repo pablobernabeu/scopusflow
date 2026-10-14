@@ -12,7 +12,8 @@ Search API. A search is first described as a reproducible plan with
 with `scopus_fetch()` or `scopus_fetch_plan()`, which handle pagination,
 rate-limit responses, retry with back-off and optional resumable caching. Results
 are normalised to a stable tidy schema by `scopus_records()`, from which DOIs can
-be extracted and tracked over time (`scopus_extract_dois()`, `scopus_diff_dois()`),
+be extracted and tracked over time (`scopus_extract_dois()`, `scopus_diff_dois()`,
+`scopus_diff_records()`),
 topics compared (`scopus_compare_topics()`, `plot_scopus_comparison()`) and
 output exported for downstream tools (`as_bibliometrix()`,
 `write_scopus_records()`, `read_scopus_records()`). The package refactors the
@@ -1235,6 +1236,40 @@ two new rules a blank identifier counts as none, because `read.csv()` reads an
 empty field of a character column as `""`. The Python twin computes the same group keys, and both
 suites assert the same kept rows and the same item 16 wording on the
 byte-identical fixture `dedupe-fixture.csv`.
+
+## Change tracking: what a diff can and cannot compare
+
+`scopus_diff_dois()` compares DOIs alone, so a record without one dropped out
+of its rows without a trace, 11 of the 138 records in the bundled corpus.
+'Scopus' gives no DOI to a share of what it indexes, more of it in the arts
+and humanities and among books and proceedings (Gorraiz et al., 2016, Journal
+of Informetrics, 10(1), 98–109). The diff now counts those records on each
+side, in the attributes `n_old_without_doi` and `n_new_without_doi`, and its
+printed line names them. It orders its rows with `method = "radix"`, as
+`scopus_top()` already did, since the default order followed the locale's
+collation and the Python twin compares code points. testthat runs every test
+under the C collation, which is why no test had caught the difference, and the
+order tests now set an English collation explicitly.
+
+Adding `by = "scopus_id"` to `scopus_diff_dois()` was rejected. It would have
+returned identifiers from a function and in a column named for DOIs. The new
+`scopus_diff_records()` compares records under the default rule of
+`scopus_combine()`, applied across the two pulls, so a diff and a merge of the
+same two sets agree on which records are one. A record found in one pull only
+whose DOI the other pull gives to a different record is a `conflict`. It may
+have been re-indexed under a new identifier or may be a distinct paper sharing
+the DOI, and counting it as added or removed would claim more than the records
+show. Records sharing a DOI within one pull are not in conflict, since nothing
+in the other pull makes their status uncertain. The identifier reported is the
+one in the group key, so a record matched through a copy without an
+identifier keeps its identifier. The other values come from the later pull
+where it gives them, since a later record carries 'Scopus' corrections.
+
+Two further additions were deferred. One is a helper that re-runs a saved
+plan and attaches the previous provenance and the diff, which would let the
+search record supply PRISMA-S item 12. The other is an opt-in fallback that
+matches records on title and year. Both twins assert the same rows and counts
+on the byte-identical fixture `diff-fixture.csv`.
 
 ## Tested version floors
 

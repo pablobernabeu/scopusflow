@@ -12,23 +12,42 @@ representing the earlier (\code{old}) and later (\code{new}) retrievals.}
 }
 \value{
 A tibble of class \code{scopus_doi_diff} with columns \code{doi} and \code{status},
-where \code{status} is an ordered factor with levels \code{"added"} (in \code{new} only),
+where \code{status} is a factor with levels \code{"added"} (in \code{new} only),
 \code{"removed"} (in \code{old} only) and \code{"unchanged"} (in both). Rows are sorted by
-status then DOI, and printing shows the counts in each category.
+status then DOI, in byte order, so the order is the same under every
+locale and in the Python twin. The integer attributes \code{n_old_without_doi}
+and \code{n_new_without_doi} count the records (or vector elements) on each
+side that had no DOI and so were not compared. Printing shows the counts
+in each category, and those records where there are any.
 }
 \description{
 Identifies which DOIs were added, removed or unchanged between an earlier and
 a later retrieval. This supports change tracking: re-running a search later
 and seeing exactly what is new.
 }
+\details{
+A record without a DOI cannot be compared this way, and 'Scopus' gives no
+DOI to a share of what it indexes, more of it in the arts and humanities and
+among books and proceedings (Gorraiz et al., 2016). Such records are left out
+of the rows and counted in the attributes \code{n_old_without_doi} and
+\code{n_new_without_doi} and on the printed line. \code{\link[=scopus_diff_records]{scopus_diff_records()}}
+compares the records themselves, matching on the 'Scopus' identifier.
+}
 \examples{
 # A baseline retrieval and the same search re-run a year later, both taken
 # from the bundled corpus of real articles: the second pull has gained the
-# 2024 records and lost the first one to re-indexing.
+# 2024 records and lost the first one to re-indexing. Eleven records in each
+# pull carry no DOI, and the printed line says so.
 baseline <- example_records[example_records$year <= 2023, ]
 later <- example_records[-1, ]
 scopus_diff_dois(old = baseline, new = later)
 }
+\references{
+Gorraiz, J., Melero-Fuentes, D., Gumpenberger, C., & Valderrama-Zurián,
+J.-C. (2016). Availability of digital object identifiers (DOIs) in Web of
+Science and Scopus. \emph{Journal of Informetrics}, \emph{10}(1), 98–109.
+\doi{10.1016/j.joi.2015.11.008}
+}
 \seealso{
-\code{\link[=scopus_extract_dois]{scopus_extract_dois()}}
+\code{\link[=scopus_extract_dois]{scopus_extract_dois()}}, \code{\link[=scopus_diff_records]{scopus_diff_records()}}
 }

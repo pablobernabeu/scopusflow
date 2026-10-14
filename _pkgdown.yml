@@ -171,6 +171,7 @@ reference:
   contents:
   - scopus_extract_dois
   - scopus_diff_dois
+  - scopus_diff_records
 - title: Analyse and visualise
   desc: Summarise a literature over time and by source, compare topics within it, and plot the result.
   contents:

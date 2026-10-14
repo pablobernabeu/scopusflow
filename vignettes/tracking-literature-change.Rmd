@@ -76,14 +76,37 @@ The newly indexed papers come back as `added`, the records present both times as
 work out at fourteen added, one removed and 112 unchanged. Fourteen are added
 because that is how many of the 2024 papers carry a DOI, and the re-indexed
 record takes the unchanged count from 113 down to 112. Records without a DOI
-cannot be tracked this way at all, which is one reason to prefer the 'Scopus'
-identifier when there is one.
+cannot be tracked this way at all. There are eleven in each pull here, and the
+printed line counts them, as do the attributes `n_old_without_doi` and
+`n_new_without_doi`.
 
 To act on one category, filter the table, which is an ordinary tibble.
 
 ```{r}
 head(changes[changes$status == "added", ])
 ```
+
+## Comparing records
+
+`scopus_diff_records()` compares the records themselves, matching them as
+`scopus_combine()` de-duplicates them by default: on a shared 'Scopus'
+identifier, or on a shared DOI where one of the two records lacks an identifier.
+A record without a DOI is then tracked by its identifier, and each row carries
+the record's title and year and its citation counts in both pulls. Where a
+record is found in one pull only and the other pull gives its DOI to a
+different record, it is marked `conflict`. It may have been re-indexed under a
+new identifier or may be a distinct paper sharing the DOI, and only the records
+themselves can tell. The bundled records carry no identifier, so here they are
+matched on their DOIs, and the eleven without one in each pull cannot be
+compared.
+
+```{r}
+records_changed <- scopus_diff_records(old = baseline, new = later)
+print(records_changed)
+```
+
+The citation columns show how far each record's count moved between the two
+pulls. They are equal here, because both pulls were cut from one snapshot.
 
 ## Merging without duplicates
 
@@ -141,10 +164,12 @@ In a live setting the later retrieval would come from the API, where here it is
 a slice of the bundled corpus, and everything else would be as above. Both pulls
 could then say when they were taken. The baseline would be an earlier pull of
 your own, since the bundled one came from OpenAlex and would differ from any
-'Scopus' pull for that reason alone.
+'Scopus' pull for that reason alone. Both pulls would carry a 'Scopus'
+identifier on every record, so `scopus_diff_records()` could compare them all.
 
 ```{r eval = FALSE}
 later <- scopus_fetch('"graphene supercapacitor"', field = "TITLE-ABS-KEY")
 attr(later, "retrieved_at")
 scopus_diff_dois(old = read_scopus_records(path), new = later)
+scopus_diff_records(old = read_scopus_records(path), new = later)
 ```

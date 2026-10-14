@@ -36,6 +36,8 @@ print_fixtures <- function() {
       intersections = list(c("A", "B"))
     ),
     scopus_plan = scopus_plan("x", years = 2018:2019, partition = "year"),
+    scopus_record_diff = scopus_diff_records(example_records[1:3, ],
+                                             example_records[3:4, ]),
     scopus_records = example_records,
     scopus_records_summary = summary(example_records),
     scopus_search_report = scopus_search_report(
@@ -71,6 +73,8 @@ test_that("every print method puts its header on standard output", {
   expect_match(on_stdout[["scopus_comparison"]], "2 topics")
   expect_match(on_stdout[["scopus_intersections"]], "2 concepts, 1 intersection")
   expect_match(on_stdout[["scopus_plan"]], "2 cells")
+  expect_match(on_stdout[["scopus_record_diff"]],
+               "1 added, 1 removed, 0 in conflict, 1 unchanged")
   expect_match(on_stdout[["scopus_records"]], "138 records")
   expect_match(on_stdout[["scopus_records_summary"]], "138 records")
   expect_match(on_stdout[["scopus_search_report"]], "Search strategy record")

@@ -87,3 +87,50 @@ test_that("diff accepts scopus_records on either side", {
   d <- scopus_diff_dois(old, new)
   expect_setequal(d$doi, c("10.1/a", "10.1/b"))
 })
+
+test_that("the diff counts the records it could not compare for want of a DOI", {
+  # The records without a DOI used to vanish from the diff without a count.
+  # The Python suite asserts the same rows and counts on the same fixture.
+  fx <- diff_fixture()
+  d <- scopus_diff_dois(fx$old, fx$new)
+  expect_identical(d$doi, c(
+    "10.5555/new.8", "10.5555/new.9", "10.5555/gone.2",
+    "10.5555/JOINED.5", "10.5555/SIX.6", "10.5555/kept.1", "10.5555/moved"
+  ))
+  expect_identical(as.character(d$status),
+                   rep(c("added", "removed", "unchanged"), c(2L, 1L, 4L)))
+  expect_identical(attr(d, "n_old_without_doi"), 2L)
+  expect_identical(attr(d, "n_new_without_doi"), 2L)
+  expect_match(printed(d), paste("2 added, 1 removed, 4 unchanged, 2 earlier and 2",
+                                 "later records without a DOI not compared"), fixed = TRUE)
+})
+
+test_that("the diff names only the side that lacks DOIs, and nothing when neither does", {
+  d <- scopus_diff_dois(c("10.1/a", NA), c("10.1/a", ""))
+  expect_identical(attr(d, "n_old_without_doi"), 1L)
+  expect_identical(attr(d, "n_new_without_doi"), 1L)
+  expect_match(printed(d), "1 earlier and 1 later records without a DOI not compared",
+               fixed = TRUE)
+
+  later_only <- scopus_diff_dois("10.1/a", c("10.1/a", NA))
+  expect_match(printed(later_only), "1 unchanged, 1 later record without a DOI not compared",
+               fixed = TRUE)
+
+  complete <- scopus_diff_dois("10.1/a", "10.1/a")
+  expect_identical(attr(complete, "n_old_without_doi"), 0L)
+  expect_no_match(printed(complete), "not compared", fixed = TRUE)
+})
+
+test_that("the diff orders its rows in byte order whatever the collation", {
+  # R's order() follows the locale's collation, under which an English locale
+  # sorts "10.5555/kept.1" before "10.5555/SIX.6". Python compares code points,
+  # so the twins listed the same rows in different orders.
+  loc <- case_blind_collation()
+  skip_if(is.null(loc), "no case-blind collation is available")
+  fx <- diff_fixture()
+  in_c <- withr::with_collate("C", scopus_diff_dois(fx$old, fx$new))
+  in_locale <- withr::with_collate(loc, scopus_diff_dois(fx$old, fx$new))
+  expect_identical(in_locale$doi, in_c$doi)
+  expect_identical(in_locale$doi[4:7], c("10.5555/JOINED.5", "10.5555/SIX.6",
+                                         "10.5555/kept.1", "10.5555/moved"))
+})
