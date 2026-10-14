@@ -261,17 +261,21 @@ delegating to the plots above.</p>
 each year, which is the size of a literature over time. It issues one
 count request per year, so it needs the API.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">tr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_trend.html">scopus_trend</a></span><span class="op">(</span><span class="st">"graphene supercapacitor"</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2024</span>,</span>
+<code class="sourceCode R"><span><span class="va">tr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_trend.html">scopus_trend</a></span><span class="op">(</span><span class="st">'"graphene supercapacitor"'</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2024</span>,</span>
 <span>                   field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_scopus_trend.html">plot_scopus_trend</a></span><span class="op">(</span><span class="va">tr</span><span class="op">)</span></span></code></pre></div>
 <p>The offline equivalent costs no requests at all. A complete harvest
-already contains its own yearly counts, so tallying the records by year
-gives what a count per year would have returned, in the shape
-<code><a href="../reference/scopus_trend.html">scopus_trend()</a></code> returns it.</p>
+already contains its own yearly counts, and the bundled corpus is a
+complete harvest of OpenAlex’s exact-phrase search for the same phrase.
+Tallying its records by year therefore gives the yearly counts of that
+search, in the shape <code><a href="../reference/scopus_trend.html">scopus_trend()</a></code> returns. A Scopus count
+would give different figures, since the two databases do not index the
+same records and the Scopus query also searches keywords and every
+document type.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">by_year</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">records</span><span class="op">$</span><span class="va">year</span><span class="op">)</span></span>
 <span><span class="va">tr</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
-<span>  query <span class="op">=</span> <span class="st">"TITLE-ABS-KEY(graphene supercapacitor)"</span>,</span>
+<span>  query <span class="op">=</span> <span class="st">'TITLE-ABS-KEY("graphene supercapacitor")'</span>,</span>
 <span>  year  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">by_year</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  n     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">by_year</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
@@ -285,52 +289,52 @@ gives what a count per year would have returned, in the shape
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left">TITLE-ABS-KEY(graphene supercapacitor)</td>
+<td align="left">TITLE-ABS-KEY("graphene supercapacitor")</td>
 <td align="right">2015</td>
 <td align="right">15</td>
 </tr>
 <tr class="even">
-<td align="left">TITLE-ABS-KEY(graphene supercapacitor)</td>
+<td align="left">TITLE-ABS-KEY("graphene supercapacitor")</td>
 <td align="right">2016</td>
 <td align="right">9</td>
 </tr>
 <tr class="odd">
-<td align="left">TITLE-ABS-KEY(graphene supercapacitor)</td>
+<td align="left">TITLE-ABS-KEY("graphene supercapacitor")</td>
 <td align="right">2017</td>
 <td align="right">10</td>
 </tr>
 <tr class="even">
-<td align="left">TITLE-ABS-KEY(graphene supercapacitor)</td>
+<td align="left">TITLE-ABS-KEY("graphene supercapacitor")</td>
 <td align="right">2018</td>
 <td align="right">15</td>
 </tr>
 <tr class="odd">
-<td align="left">TITLE-ABS-KEY(graphene supercapacitor)</td>
+<td align="left">TITLE-ABS-KEY("graphene supercapacitor")</td>
 <td align="right">2019</td>
 <td align="right">19</td>
 </tr>
 <tr class="even">
-<td align="left">TITLE-ABS-KEY(graphene supercapacitor)</td>
+<td align="left">TITLE-ABS-KEY("graphene supercapacitor")</td>
 <td align="right">2020</td>
 <td align="right">13</td>
 </tr>
 <tr class="odd">
-<td align="left">TITLE-ABS-KEY(graphene supercapacitor)</td>
+<td align="left">TITLE-ABS-KEY("graphene supercapacitor")</td>
 <td align="right">2021</td>
 <td align="right">13</td>
 </tr>
 <tr class="even">
-<td align="left">TITLE-ABS-KEY(graphene supercapacitor)</td>
+<td align="left">TITLE-ABS-KEY("graphene supercapacitor")</td>
 <td align="right">2022</td>
 <td align="right">15</td>
 </tr>
 <tr class="odd">
-<td align="left">TITLE-ABS-KEY(graphene supercapacitor)</td>
+<td align="left">TITLE-ABS-KEY("graphene supercapacitor")</td>
 <td align="right">2023</td>
 <td align="right">15</td>
 </tr>
 <tr class="even">
-<td align="left">TITLE-ABS-KEY(graphene supercapacitor)</td>
+<td align="left">TITLE-ABS-KEY("graphene supercapacitor")</td>
 <td align="right">2024</td>
 <td align="right">14</td>
 </tr>
@@ -346,9 +350,12 @@ query whose records you never download. The caption is the function’s
 own attribution, since a <code>scopus_trend</code> object ordinarily
 comes from the Search API, whereas this one was tallied from the bundled
 stand-in. The curve itself is flat because the query is a narrow phrase,
-some fifteen papers a year over a decade. A broader query, ‘graphene’ on
-its own, would show the steep growth the field is better known for, on a
-scale that runs into the offset ceiling discussed below.</p>
+some fifteen papers a year over a decade. The quotation marks keep it
+narrow, since Scopus joins the words of an unquoted phrase with AND, and
+in OpenAlex the two words unquoted match about a hundred times as many
+records. A broader query, ‘graphene’ on its own, would show the steep
+growth the field is better known for, on a scale that runs into the
+offset ceiling discussed below.</p>
 </div>
 <div class="section level2">
 <h2 id="where-a-niche-sits">Where a niche sits<a class="anchor" aria-label="anchor" href="#where-a-niche-sits"></a>
@@ -494,7 +501,9 @@ plans and quota-aware retrieval</em> article. A plan keeps each cell
 under the ceiling and preserves relevance order, whereas
 <code>cursor = TRUE</code> harvests the whole set in a single pass.
 Reach for the plan when you want cached, resumable cells and the cursor
-when you want the complete set at once.</p>
+when you want the complete set at once.
+<code>scopus_fetch_plan(plan, cursor = TRUE)</code> gives both, at the
+cost of the deep-paging order.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

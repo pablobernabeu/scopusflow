@@ -137,17 +137,18 @@ internet access; see the <em>API access</em> section of <code><a href="scopus_co
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># scopusflow::scopus_has_key()</span></span></span>
-<span class="r-in"><span><span class="va">tr</span> <span class="op">&lt;-</span> <span class="fu">scopus_trend</span><span class="op">(</span><span class="st">"graphene supercapacitor"</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2024</span>,</span></span>
+<span class="r-in"><span><span class="va">tr</span> <span class="op">&lt;-</span> <span class="fu">scopus_trend</span><span class="op">(</span><span class="st">'"graphene supercapacitor"'</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2024</span>,</span></span>
 <span class="r-in"><span>                   field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">tr</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span><span class="co"># The offline companion, which needs no key. 'Scopus' records may not be</span></span></span>
-<span class="r-in"><span><span class="co"># redistributed, so the package bundles a corpus of real articles instead;</span></span></span>
-<span class="r-in"><span><span class="co"># it is a complete harvest of its own query, so tallying its rows by year</span></span></span>
-<span class="r-in"><span><span class="co"># reproduces the yearly counts that query returns.</span></span></span>
+<span class="r-in"><span><span class="co"># redistributed, so the package bundles a corpus of real articles instead.</span></span></span>
+<span class="r-in"><span><span class="co"># It is a complete harvest of OpenAlex's exact-phrase search for the same</span></span></span>
+<span class="r-in"><span><span class="co"># phrase, so tallying its rows by year gives the yearly counts of that</span></span></span>
+<span class="r-in"><span><span class="co"># search. A 'Scopus' count of the phrase would differ.</span></span></span>
 <span class="r-in"><span><span class="va">by_year</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">$</span><span class="va">year</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">tr</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  query <span class="op">=</span> <span class="st">"TITLE-ABS-KEY(graphene supercapacitor)"</span>,</span></span>
+<span class="r-in"><span>  query <span class="op">=</span> <span class="st">'TITLE-ABS-KEY("graphene supercapacitor")'</span>,</span></span>
 <span class="r-in"><span>  year <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">by_year</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">by_year</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
@@ -155,18 +156,18 @@ internet access; see the <em>API access</em> section of <code><a href="scopus_co
 <span class="r-in"><span><span class="va">tr</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #0000BB;">&lt;scopus_trend&gt;</span> (10 years, 138 records)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 10 × 3</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    query                                   year     n</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> TITLE-ABS-KEY(graphene supercapacitor)  <span style="text-decoration: underline;">2</span>015    15</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> TITLE-ABS-KEY(graphene supercapacitor)  <span style="text-decoration: underline;">2</span>016     9</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> TITLE-ABS-KEY(graphene supercapacitor)  <span style="text-decoration: underline;">2</span>017    10</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> TITLE-ABS-KEY(graphene supercapacitor)  <span style="text-decoration: underline;">2</span>018    15</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> TITLE-ABS-KEY(graphene supercapacitor)  <span style="text-decoration: underline;">2</span>019    19</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> TITLE-ABS-KEY(graphene supercapacitor)  <span style="text-decoration: underline;">2</span>020    13</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> TITLE-ABS-KEY(graphene supercapacitor)  <span style="text-decoration: underline;">2</span>021    13</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> TITLE-ABS-KEY(graphene supercapacitor)  <span style="text-decoration: underline;">2</span>022    15</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> TITLE-ABS-KEY(graphene supercapacitor)  <span style="text-decoration: underline;">2</span>023    15</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> TITLE-ABS-KEY(graphene supercapacitor)  <span style="text-decoration: underline;">2</span>024    14</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    query                                         year     n</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                                        <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> <span style="color: #949494;">"</span>TITLE-ABS-KEY(\"graphene supercapacitor\")<span style="color: #949494;">"</span>  <span style="text-decoration: underline;">2</span>015    15</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> <span style="color: #949494;">"</span>TITLE-ABS-KEY(\"graphene supercapacitor\")<span style="color: #949494;">"</span>  <span style="text-decoration: underline;">2</span>016     9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> <span style="color: #949494;">"</span>TITLE-ABS-KEY(\"graphene supercapacitor\")<span style="color: #949494;">"</span>  <span style="text-decoration: underline;">2</span>017    10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> <span style="color: #949494;">"</span>TITLE-ABS-KEY(\"graphene supercapacitor\")<span style="color: #949494;">"</span>  <span style="text-decoration: underline;">2</span>018    15</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> <span style="color: #949494;">"</span>TITLE-ABS-KEY(\"graphene supercapacitor\")<span style="color: #949494;">"</span>  <span style="text-decoration: underline;">2</span>019    19</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> <span style="color: #949494;">"</span>TITLE-ABS-KEY(\"graphene supercapacitor\")<span style="color: #949494;">"</span>  <span style="text-decoration: underline;">2</span>020    13</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> <span style="color: #949494;">"</span>TITLE-ABS-KEY(\"graphene supercapacitor\")<span style="color: #949494;">"</span>  <span style="text-decoration: underline;">2</span>021    13</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> <span style="color: #949494;">"</span>TITLE-ABS-KEY(\"graphene supercapacitor\")<span style="color: #949494;">"</span>  <span style="text-decoration: underline;">2</span>022    15</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> <span style="color: #949494;">"</span>TITLE-ABS-KEY(\"graphene supercapacitor\")<span style="color: #949494;">"</span>  <span style="text-decoration: underline;">2</span>023    15</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> <span style="color: #949494;">"</span>TITLE-ABS-KEY(\"graphene supercapacitor\")<span style="color: #949494;">"</span>  <span style="text-decoration: underline;">2</span>024    14</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

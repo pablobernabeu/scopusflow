@@ -92,11 +92,12 @@
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Drawn from the bundled corpus of real articles, which needs no key. That</span></span></span>
-<span class="r-in"><span><span class="co"># corpus is a complete harvest, so its rows per year are the publications</span></span></span>
-<span class="r-in"><span><span class="co"># per year its query returns.</span></span></span>
+<span class="r-in"><span><span class="co"># corpus is a complete harvest of OpenAlex's exact-phrase search for the</span></span></span>
+<span class="r-in"><span><span class="co"># phrase below, so its rows per year are the publications per year of that</span></span></span>
+<span class="r-in"><span><span class="co"># search.</span></span></span>
 <span class="r-in"><span><span class="va">by_year</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">$</span><span class="va">year</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">tr</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  query <span class="op">=</span> <span class="st">"TITLE-ABS-KEY(graphene supercapacitor)"</span>,</span></span>
+<span class="r-in"><span>  query <span class="op">=</span> <span class="st">'TITLE-ABS-KEY("graphene supercapacitor")'</span>,</span></span>
 <span class="r-in"><span>  year <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">by_year</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">by_year</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>

@@ -92,10 +92,13 @@ or year filters (these are added through <code>field</code> and <code>years</cod
 
 
 <dt id="arg-years">years<a class="anchor" aria-label="anchor" href="#arg-years"></a></dt>
-<dd><p>Optional integer vector of publication years to restrict to, for
-example <code>2015:2020</code>. When <code>partition = "year"</code>, one plan cell is created for
-each distinct year. Otherwise the minimum and maximum define a single date
-range.</p></dd>
+<dd><p>Optional integer vector of publication years, for example
+<code>2015:2020</code>. When <code>partition = "year"</code>, one plan cell is created for each
+distinct year, so <code>c(2015, 2020)</code> searches those two years alone, as
+<code><a href="scopus_trend.html">scopus_trend()</a></code> and <code><a href="scopus_compare_topics.html">scopus_compare_topics()</a></code> do. Otherwise, the plan sends
+one inclusive range from the earliest year to the latest, so <code>c(2015, 2020)</code>
+covers every year from 2015 to 2020, as in <code><a href="scopus_count.html">scopus_count()</a></code>,
+<code><a href="scopus_fetch.html">scopus_fetch()</a></code> and <code><a href="scopus_intersections.html">scopus_intersections()</a></code>.</p></dd>
 
 
 <dt id="arg-field">field<a class="anchor" aria-label="anchor" href="#arg-field"></a></dt>

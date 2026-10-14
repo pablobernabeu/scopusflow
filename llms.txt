@@ -82,9 +82,13 @@ q <- scopus_query("perovskite", "solar cell", .field = "TITLE-ABS-KEY")
 plan <- scopus_plan(q, years = 2012:2022, partition = "year")
 
 # Size the search before spending quota, then execute, caching each year
-# so an interrupted run can resume.
+# in a directory of the plan's own so an interrupted run can resume.
 scopus_count(q, years = 2012:2022)
-records <- scopus_fetch_plan(plan, cache_dir = scopus_cache_dir(), resume = TRUE)
+records <- scopus_fetch_plan(
+  plan,
+  cache_dir = file.path(scopus_cache_dir(), "perovskite-solar-cell"),
+  resume = TRUE
+)
 
 # Save a clean DOI list, or export the records for a reference manager
 # (Zotero, EndNote, Mendeley) or a LaTeX bibliography.
@@ -187,6 +191,10 @@ the reference and its BibTeX entry.
 
 citation("scopusflow")
 ```
+
+The DOI that CRAN assigned to the package is
+<https://doi.org/10.32614/CRAN.package.scopusflow>, and it covers every
+version.
 
 The [About
 page](https://pablobernabeu.github.io/scopusflow/articles/about.html)

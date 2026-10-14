@@ -79,7 +79,12 @@ all consume it.</p>
 <span><span class="co"># S3 method for class 'scopus_records'</span></span>
 <span><span class="fu">autoplot</span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">scopus_records</span><span class="op">(</span><span class="va">x</span>, query <span class="op">=</span> <span class="cn">NA_character_</span>, view <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
+<span><span class="fu">scopus_records</span><span class="op">(</span></span>
+<span>  <span class="va">x</span>,</span>
+<span>  query <span class="op">=</span> <span class="cn">NA_character_</span>,</span>
+<span>  view <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"core"</span>, <span class="st">"extended"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">is_scopus_records</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -114,13 +119,23 @@ the original columns exactly, so existing callers that never mention
 <code>view</code> see no change at all. <code><a href="scopus_fetch.html">scopus_fetch()</a></code> and <code><a href="scopus_fetch_plan.html">scopus_fetch_plan()</a></code>
 pass this through automatically.</p></dd>
 
+
+<dt id="arg-fields">fields<a class="anchor" aria-label="anchor" href="#arg-fields"></a></dt>
+<dd><p><code>"core"</code> (the default) builds the columns listed under
+<em>Value</em>, exactly as before. <code>"extended"</code> also keeps the document type,
+source type, volume, issue, pages, ISSN, PubMed identifier and open-access
+status the Search API sends with every record, and under
+<code>view = "COMPLETE"</code> the abstract, at no extra quota (see <em>Extended
+fields</em>). <code><a href="scopus_fetch.html">scopus_fetch()</a></code> and <code><a href="scopus_fetch_plan.html">scopus_fetch_plan()</a></code> pass this through.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>The coercion methods return a plain <a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a> or data
 frame with the same columns and the <code>scopus_records</code> class removed.</p>
 <p>The <code>autoplot()</code> method returns a <a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot2::ggplot</a> of the records per
-year.</p>
+year. When a <code>max_results</code> cap stopped any cell of the retrieval, a caption
+says that the bars count records retrieved, not publications per year.</p>
 <p>A tibble of class <code>scopus_records</code> with the columns
 <code>entry_number</code> (integer), <code>scopus_id</code> (character), <code>doi</code> (character),
 <code>title</code> (character), <code>authors</code> (character, the author list under
@@ -133,7 +148,16 @@ zero-row tibble with the same columns. When <code>view = "COMPLETE"</code>, an
 <code>authkeywords</code> column is added: the author-supplied keywords the 'Scopus'
 Search API returns under that view, as a single string in 'Scopus'
 own <code>" | "</code>-delimited form (<code>NA</code> when the document has none, or when the
-API omits the field for a given key's entitlement; see <em>Details</em>).</p>
+API omits the field for a given key's entitlement; see <em>Details</em>).
+With <code>fields = "extended"</code>, the character columns <code>doc_type</code>,
+<code>doc_type_description</code>, <code>source_type</code>, <code>volume</code>, <code>issue</code>, <code>pages</code>, <code>issn</code>
+and <code>pubmed_id</code> follow, then the integer <code>open_access</code> and, under
+<code>view = "COMPLETE"</code>, the character <code>abstract</code>. <code>doc_type</code> and
+<code>doc_type_description</code> hold the document-type code and name 'Scopus' gives
+the record, such as <code>"ar"</code> and <code>"Article"</code>, and <code>source_type</code> holds the
+source type, such as <code>"Journal"</code>. <code>issn</code> is the print ISSN as 'Scopus'
+writes it, without the hyphen, kept as text so its leading zeros survive.
+<code>open_access</code> is the open-access status code (see <em>Extended fields</em>).</p>
 <p><code>is_scopus_records()</code> returns a length-one logical.</p>
     </div>
     <div class="section level2">
@@ -174,6 +198,51 @@ author keywords in 'Scopus' itself); if your own keywords come back all
 than genuinely absent, and is worth raising with your 'Scopus'/Elsevier
 account contact.</p>
     </div>
+    <div class="section level2">
+    <h2 id="extended-fields">Extended fields<a class="anchor" aria-label="anchor" href="#extended-fields"></a></h2>
+
+
+<p>Elsevier's <a href="https://dev.elsevier.com/sc_search_views.html" class="external-link">Search views table</a>
+lists every field <code>fields = "extended"</code> reads under both views, except the
+abstract (<code>dc:description</code>), which only the <code>COMPLETE</code> view carries. They
+arrive in the responses a retrieval already pays for, so they cost no extra
+quota. A <code>COMPLETE</code> harvest returns up to 25 abstracts with each request,
+while <code><a href="scopus_abstract.html">scopus_abstract()</a></code> spends one request per record from the separate
+Abstract Retrieval quota.</p>
+<p><code>doc_type</code> holds the code the <code>DOCTYPE()</code> search field takes. Elsevier's
+<a href="https://dev.elsevier.com/sc_search_tips.html" class="external-link">search tips</a> list the codes
+with their names: <code>ar</code> for an article, <code>re</code> a review, <code>cp</code> a conference
+paper, <code>er</code> an erratum and others. A retracted item carries <code>tb</code>, which that
+list leaves out. The 'Scopus' Content Coverage Guide (section 3.1) defines
+an erratum as a report of an error, correction or retraction of a previously
+published paper, so <code>er</code> covers retraction notices as well as corrections.
+The guide gives an article the type Retracted once a retraction notice for
+it is published. These codes are the labels 'Scopus' assigns, and they do
+not screen a set for retractions, since 'Scopus' does not label every
+retracted item (Ortega and Delgado-Quirós, 2024). Check a set against the
+<a href="https://www.crossref.org/documentation/retrieve-metadata/retraction-watch/" class="external-link">Retraction Watch database</a>,
+which Crossref makes openly available, before relying on it.
+<a href="summary.scopus_records.html">summary()</a> reports how many records 'Scopus'
+labels <code>er</code> and <code>tb</code>. Errata can also be left out of the search itself with
+<code>AND NOT DOCTYPE(er)</code>, joined by <code><a href="scopus_query.html">scopus_query()</a></code>, which brackets the rest of
+the query first, since 'Scopus' applies AND NOT last (see <em>Examples</em>).</p>
+<p><code>open_access</code> holds the code 'Scopus' sends in its <code>openaccess</code> field.
+Elsevier's Scopus APIs Getting Started Guide (section 17) illustrates its
+values with 0 for a record that is not open access, 1 for gold and 2 for
+green. The column therefore holds a status code, which can take values
+other than 0 and 1.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
+    <p>Elsevier. (2023). <em>Scopus APIs getting started guide</em> (Version 1).
+<a href="https://dev.elsevier.com/guides/Scopus%20API%20Guide_V1_20230907.pdf" class="external-link">https://dev.elsevier.com/guides/Scopus%20API%20Guide_V1_20230907.pdf</a></p>
+<p>Elsevier. (2023). <em>Scopus content coverage guide</em>.
+<a href="https://supportcontent.elsevier.com/Support%20Hub/Scopus/Scopus_ContentCoverage_Guide_WEB.pdf" class="external-link">https://supportcontent.elsevier.com/Support%20Hub/Scopus/Scopus_ContentCoverage_Guide_WEB.pdf</a></p>
+<p>Ortega, J. L., &amp; Delgado-Quirós, L. (2024). The indexation of retracted
+literature in seven principal scholarly databases: A coverage comparison of
+Dimensions, OpenAlex, PubMed, Scilit, Scopus, The Lens and Web of Science.
+<em>Scientometrics</em>, <em>129</em>(7), 3769–3785. <a href="https://doi.org/10.1007/s11192-024-05034-y" class="external-link">doi:10.1007/s11192-024-05034-y</a></p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
@@ -192,9 +261,9 @@ account contact.</p>
 <span class="r-in"><span>    `citedby-count` <span class="op">=</span> <span class="st">"469"</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">scopus_records</span><span class="op">(</span><span class="va">raw</span>, query <span class="op">=</span> <span class="st">"TITLE-ABS-KEY(graphene supercapacitor)"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">scopus_records</span><span class="op">(</span><span class="va">raw</span>, query <span class="op">=</span> <span class="st">'TITLE-ABS-KEY("graphene supercapacitor")'</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;scopus_records&gt; 1 record</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> query: <span style="color: #0000BB;">"TITLE-ABS-KEY(graphene supercapacitor)"</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> query: <span style="color: #0000BB;">"TITLE-ABS-KEY(\"graphene supercapacitor\")"</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 1 × 9</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   entry_number scopus_id doi     title authors  year date  publication citations</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span>
@@ -217,6 +286,36 @@ account contact.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span>            1 <span style="color: #BB0000;">NA</span>        10.102… Flex… <span style="color: #BB0000;">NA</span>         <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>                 <span style="color: #BB0000;">NA</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 2 more variables: query &lt;chr&gt;, authkeywords &lt;chr&gt;</span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># fields = "extended" keeps the fields both views send beyond the core ones.</span></span></span>
+<span class="r-in"><span><span class="co"># The volume, issue, pages and print ISSN below are the article's own. The</span></span></span>
+<span class="r-in"><span><span class="co"># document type and source type are illustrative, since the bundled corpus</span></span></span>
+<span class="r-in"><span><span class="co"># came from OpenAlex and records no 'Scopus' labels.</span></span></span>
+<span class="r-in"><span><span class="va">raw_extended</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>entry <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    `prism:doi` <span class="op">=</span> <span class="st">"10.1021/am509065d"</span>,</span></span>
+<span class="r-in"><span>    `dc:title` <span class="op">=</span> <span class="st">"Flexible and Stackable Laser-Induced Graphene Supercapacitors"</span>,</span></span>
+<span class="r-in"><span>    subtype <span class="op">=</span> <span class="st">"ar"</span>,</span></span>
+<span class="r-in"><span>    subtypeDescription <span class="op">=</span> <span class="st">"Article"</span>,</span></span>
+<span class="r-in"><span>    `prism:aggregationType` <span class="op">=</span> <span class="st">"Journal"</span>,</span></span>
+<span class="r-in"><span>    `prism:volume` <span class="op">=</span> <span class="st">"7"</span>,</span></span>
+<span class="r-in"><span>    `prism:issueIdentifier` <span class="op">=</span> <span class="st">"5"</span>,</span></span>
+<span class="r-in"><span>    `prism:pageRange` <span class="op">=</span> <span class="st">"3414-3419"</span>,</span></span>
+<span class="r-in"><span>    `prism:issn` <span class="op">=</span> <span class="st">"19448244"</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">extended</span> <span class="op">&lt;-</span> <span class="fu">scopus_records</span><span class="op">(</span><span class="va">raw_extended</span>, fields <span class="op">=</span> <span class="st">"extended"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">extended</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"doc_type"</span>, <span class="st">"volume"</span>, <span class="st">"issue"</span>, <span class="st">"pages"</span>, <span class="st">"issn"</span><span class="op">)</span><span class="op">]</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   doc_type volume issue     pages     issn</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1       ar      7     5 3414-3419 19448244</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Errata can be left out of the search itself. scopus_query() brackets the</span></span></span>
+<span class="r-in"><span><span class="co"># rest of the query, since 'Scopus' applies AND NOT last.</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="scopus_query.html">scopus_query</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"graphene"</span>, <span class="st">"graphite"</span>, .op <span class="op">=</span> <span class="st">"OR"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  <span class="st">"DOCTYPE(er)"</span>, .op <span class="op">=</span> <span class="st">"AND NOT"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "(TITLE-ABS-KEY(graphene) OR TITLE-ABS-KEY(graphite)) AND NOT DOCTYPE(er)"</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># An object already in this schema is returned unchanged.</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu">scopus_records</span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span>, <span class="va">example_records</span><span class="op">)</span></span></span>

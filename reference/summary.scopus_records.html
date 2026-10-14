@@ -91,8 +91,16 @@ any closer analysis.</p>
     <p>A list of class <code>scopus_records_summary</code>, with elements <code>n_records</code>,
 <code>years</code> (the earliest and latest year present, each <code>NA</code> when no year is
 known), <code>n_sources</code>, <code>n_with_doi</code>, <code>total_citations</code>, <code>median_citations</code>,
-<code>top_cited</code> (the title of the most-cited record) and <code>top_source</code> (the most
-frequent source title). Printing it produces a short readable report.</p>
+<code>top_cited</code> (the title of the most-cited record), <code>top_source</code> (the most
+frequent source title) and <code>doc_types</code>. <code>doc_types</code> counts the records of
+each document-type code, most frequent first, for a set retrieved with
+<code>fields = "extended"</code> (see <code><a href="scopus_records.html">scopus_records()</a></code>), and is <code>NULL</code> for a set
+without the <code>doc_type</code> column. Printing it produces a short readable
+report, which for such a set also says how many records 'Scopus' labels
+errata (<code>er</code>) or retracted (<code>tb</code>). The counts report the labels 'Scopus'
+assigns, which do not screen a set for retractions. The <em>Extended fields</em>
+section of <code><a href="scopus_records.html">scopus_records()</a></code> explains why, and what to check a set
+against.</p>
     </div>
 
     <div class="section level2">

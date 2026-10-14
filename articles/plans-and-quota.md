@@ -157,13 +157,14 @@ scopus_quota(resp)
 runs each cell in turn. Given a cache directory it writes each cell to
 disk as it completes, so a run interrupted halfway, or stopped by the
 quota, resumes from where it left off and never pays twice for the same
-cell.
+cell. The plan below keeps its cells in a directory of its own inside
+the managed cache, for the reason the next paragraph gives.
 
 ``` r
 
 records <- scopus_fetch_plan(
   plan,
-  cache_dir = scopus_cache_dir(),
+  cache_dir = file.path(scopus_cache_dir(), "language-learning-effect-size"),
   resume = TRUE
 )
 records
@@ -174,22 +175,23 @@ position in the plan and their year, so a second plan pointed at the
 same directory could otherwise be paired with the first plan’s
 checkpoints. Before loading one,
 [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
-checks that the query, year, view, page size and record cap it was
-written under all match the cell being run, and refetches with a warning
-when they do not. A checkpoint holding more records than the current
-`max_results` asks for is served trimmed to that cap, with the fuller
-set left on disk for a later, wider request. A checkpoint that stopped
-at a smaller cap than is being asked for now is a mismatch, refetched
-with a warning. One that ran to the end of its result set is not,
-however few records that turned out to be, because there is nothing
+checks that the query, year, view, page size, paging mode and record cap
+it was written under all match the cell being run, and refetches with a
+warning when they do not. A checkpoint holding more records than the
+current `max_results` asks for is served trimmed to that cap, with the
+fuller set left on disk for a later, wider request. A checkpoint that
+stopped at a smaller cap than is being asked for now is a mismatch,
+refetched with a warning. One that ran to the end of its result set is
+not, however few records that turned out to be, because there is nothing
 further to fetch. The clean arrangement is still a separate directory
 per plan.
 
 The cache lives under
 [`scopus_cache_dir()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_dir.md).
 To force a fresh retrieval, empty it with
-[`scopus_cache_clear()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_clear.md).
-Both are shown but not run, so the article does not touch a real cache.
+[`scopus_cache_clear()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_clear.md),
+which removes every plan’s directory inside it. Both are shown but not
+run, so the article does not touch a real cache.
 
 ``` r
 
@@ -226,7 +228,7 @@ Per-cell progress is silent by default and switched on with
 
 records <- scopus_fetch_plan(
   plan,
-  cache_dir = scopus_cache_dir(),
+  cache_dir = file.path(scopus_cache_dir(), "language-learning-effect-size"),
   verbose = TRUE
 )
 ```
@@ -272,13 +274,18 @@ so the methods section is written from the objects and never from
 memory.
 
 A plan on its own can be reported before it is run, which is useful when
-a protocol has to be registered in advance. The plan below describes the
-search that produced the bundled corpus, so that the record and the
-records match.
+a protocol has to be registered in advance. The plan below describes a
+Scopus search for the phrase the bundled corpus was drawn on, quoted so
+that Scopus searches the two words as a phrase. The corpus itself came
+from OpenAlex’s exact-phrase search for “graphene supercapacitor” in
+titles and abstracts, limited to journal articles, on 22 July 2026. A
+Scopus run of this plan would return a different set of records. Without
+the quotation marks Scopus would join the two words with AND, and in
+OpenAlex the unquoted words match about a hundred times as many records.
 
 ``` r
 
-graphene <- scopus_plan("graphene supercapacitor", years = 2015:2024,
+graphene <- scopus_plan('"graphene supercapacitor"', years = 2015:2024,
                         field = "TITLE-ABS-KEY", partition = "year")
 report <- scopus_search_report(graphene)
 report
@@ -287,7 +294,7 @@ report
     Search strategy record (PRISMA-S)
 
     Database: Scopus, on the Elsevier Scopus Search API
-    Search expression: TITLE-ABS-KEY(graphene supercapacitor)
+    Search expression: TITLE-ABS-KEY("graphene supercapacitor")
     Field tag: TITLE-ABS-KEY
     Years: 2015 to 2024
     Partition: one cell per year, 10 cells
@@ -320,11 +327,11 @@ report
 
     PRISMA-S items this record supplies
       1 Database name. Scopus, searched on the Elsevier Scopus Search API.
+      2 Multi-database searching. Scopus is searched on its own, not as one of several databases searched together on one platform.
       8 Full search strategies. The search expression, field tag and year limit of every cell, as the plan sends them.
       9 Limits and restrictions. Publication years 2015 to 2024. scopusflow applies no document type, language or subject area limit of its own.
 
     PRISMA-S items only you can supply
-      2 Multi-database searching. Whether any database besides Scopus was searched, and how the strategy was translated for it.
       3 Study registries. Any trial or study registry searched.
       4 Online resources and browsing. Any web site, table of contents or other source searched or browsed by hand.
       5 Citation searching. Any backward or forward citation searching.
@@ -357,10 +364,15 @@ attaches the plan, the retrieval time, the version, the paging mode and
 the per-cell accounting, so the report has everything it needs and you
 never set any of it yourself. The bundled corpus stands in for a harvest
 here, since Scopus records may not be redistributed, so those attributes
-are written out below to show what each one contributes.
+are written out below to show what each one contributes. Their values
+are illustrative, so the record they produce describes no search that
+was run. The retrieval time and the version are set by hand. Each cell’s
+reported total is the number of bundled records in its year, a count
+from the OpenAlex search that the Scopus API never gave.
 
 ``` r
 
+# Illustrative values, set by hand. No Scopus search was run.
 records <- example_records
 attr(records, "plan") <- graphene
 attr(records, "retrieved_at") <- as.POSIXct("2026-07-22 09:15:00", tz = "UTC")
@@ -379,7 +391,7 @@ report
     Search strategy record (PRISMA-S)
 
     Database: Scopus, on the Elsevier Scopus Search API
-    Search expression: TITLE-ABS-KEY(graphene supercapacitor)
+    Search expression: TITLE-ABS-KEY("graphene supercapacitor")
     Field tag: TITLE-ABS-KEY
     Years: 2015 to 2024
     Partition: one cell per year, 10 cells
@@ -412,13 +424,13 @@ report
 
     PRISMA-S items this record supplies
       1 Database name. Scopus, searched on the Elsevier Scopus Search API.
+      2 Multi-database searching. Scopus was searched on its own, not as one of several databases searched together on one platform.
       8 Full search strategies. The search expression, field tag and year limit of every cell, as the plan sends them.
       9 Limits and restrictions. Publication years 2015 to 2024. scopusflow applies no document type, language or subject area limit of its own.
       13 Dates of searches. 2026-07-22 09:15:00 UTC.
       15 Total records. 138 records retrieved from Scopus, of 138 the API reported as matching.
 
     PRISMA-S items only you can supply
-      2 Multi-database searching. Whether any database besides Scopus was searched, and how the strategy was translated for it.
       3 Study registries. Any trial or study registry searched.
       4 Online resources and browsing. Any web site, table of contents or other source searched or browsed by hand.
       5 Citation searching. Any backward or forward citation searching.
@@ -438,7 +450,10 @@ The completeness lines are worth a moment. Each cell is shown against
 the number of records the API reported for it, so a cell that came back
 short stays visible where a total would have hidden it, and the overall
 figure is given only because every cell reported one. Drop any of those
-attributes and the corresponding line says so instead.
+attributes and the corresponding line says so instead. A harvest run
+with `max_results` records its cap. A cell that stopped at the cap says
+so, the completeness line says how much of the shortfall the cap
+explains, item 9 names the cap and the snippet passes it.
 
 The methods paragraph is the same record as prose, ready to paste into a
 manuscript and edit.
@@ -448,7 +463,7 @@ manuscript and edit.
 cat(format(report, style = "paragraph"))
 ```
 
-    The literature was searched in Scopus, on the Elsevier Scopus Search API, on 22 July 2026. The search expression was TITLE-ABS-KEY(graphene supercapacitor), limited to publication years 2015 to 2024. It was partitioned into 10 cells, one per year, each retrieved through the STANDARD view in pages of 200 records under offset paging. The search retrieved 138 records, matching the 138 the API reported, so every reported record was retrieved. Of the records retrieved, 127 carry a DOI. No de-duplication step was recorded for this set. The search was run with scopusflow 0.3.0. The PRISMA-S items this record cannot supply, among them peer review of the strategy, grey literature and any other database searched, remain yours to report.
+    The literature was searched in Scopus, on the Elsevier Scopus Search API, on 22 July 2026. The search expression was TITLE-ABS-KEY("graphene supercapacitor"), limited to publication years 2015 to 2024. It was partitioned into 10 cells, one per year, each retrieved through the STANDARD view in pages of 200 records under offset paging. The search retrieved 138 records, matching the 138 the API reported, so every reported record was retrieved. Of the records retrieved, 127 carry a DOI. No de-duplication step was recorded for this set. The search was run with scopusflow 0.3.0. The PRISMA-S items this record cannot supply, among them peer review of the strategy, grey literature and any other database searched, remain yours to report.
 
 Supplying a `file` writes the whole record as Markdown, including a
 runnable snippet that rebuilds the plan, which makes a natural
@@ -459,13 +474,13 @@ supplementary file.
 scopus_search_report(records, file = "search-record.md")
 ```
 
-Five of the sixteen PRISMA-S items are answered here from the objects,
-and a sixth, de-duplication, would be too had these records been merged
-with
+Six of the sixteen PRISMA-S items are answered here from the objects,
+and a seventh, de-duplication, would be too had these records been
+merged with
 [`scopus_combine()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md).
-The rest, among them peer review of the strategy, grey literature and
-any other database searched, are listed as yours to supply, because the
-package has no way to know them.
+The rest, among them peer review of the strategy and grey literature,
+are listed as yours to supply, because the package has no way to know
+them. Any other database the review searched is yours to name as well.
 
 ## When the ceiling bites
 
@@ -483,6 +498,29 @@ arriving in deep-paging order. The *Analysing a literature* article
 weighs the two. A plan gives cached, resumable cells, the cursor a
 complete set in a single pass.
 
+`scopus_fetch_plan(plan, cursor = TRUE)` combines the two remedies. It
+pages every cell of a plan by cursor, so a single year that matches more
+than 5000 records is retrieved whole and keeps its checkpoint.
+
+``` r
+
+records <- scopus_fetch_plan(
+  plan,
+  cache_dir = file.path(scopus_cache_dir(), "language-learning-effect-size"),
+  cursor = TRUE
+)
+```
+
+Inside a plan, the warning for a cell that stops at the ceiling names
+that call, since the cell is already partitioned. Plans page by offset
+unless asked otherwise, as they always have, so an existing script
+returns what it returned before. A checkpoint records the mode it was
+fetched under and serves only a request in the same mode, so switching
+modes fetches each cell again. The Python twin’s `fetch_plan()` makes
+the opposite choice of default for the same reason. It has always paged
+by cursor, and pages by offset only when given `cursor=False`, the route
+pybliometrics documents for keys without a Scopus subscription.
+
 ## Handling interruptions
 
 Network and API problems are raised as typed conditions, all inheriting
@@ -491,7 +529,10 @@ from `scopus_error`, so a long retrieval can catch them and carry on.
 ``` r
 
 result <- tryCatch(
-  scopus_fetch_plan(plan, cache_dir = scopus_cache_dir()),
+  scopus_fetch_plan(
+    plan,
+    cache_dir = file.path(scopus_cache_dir(), "language-learning-effect-size")
+  ),
   scopus_error_rate_limit = function(e) {
     message("Rate limited; the cached cells are safe. Try again later.")
     NULL

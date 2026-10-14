@@ -262,17 +262,58 @@ Supercapacitors</td>
 </table>
 </div>
 <div class="section level2">
+<h2 id="document-types-errata-and-retractions">Document types, errata and retractions<a class="anchor" aria-label="anchor" href="#document-types-errata-and-retractions"></a>
+</h2>
+<p>A harvest can keep more than the columns above. With
+<code>fields = "extended"</code>, <code><a href="../reference/scopus_fetch.html">scopus_fetch()</a></code> and
+<code><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan()</a></code> also keep the document type, source
+type, volume, issue, pages, ISSN, PubMed identifier and open-access
+status the Search API sends with every record. Under the
+<code>COMPLETE</code> view, they keep the abstract too. These fields
+arrive in the responses the harvest already pays for, so they cost no
+extra quota. The bundled corpus came from OpenAlex and carries none of
+them, so this step is shown but not run.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="st">'"graphene supercapacitor"'</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2024</span>,</span>
+<span>                    field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span>, partition <span class="op">=</span> <span class="st">"year"</span><span class="op">)</span></span>
+<span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan</a></span><span class="op">(</span><span class="va">plan</span>, fields <span class="op">=</span> <span class="st">"extended"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span>
+<span><span class="va">articles</span> <span class="op">&lt;-</span> <span class="va">records</span><span class="op">[</span><span class="va">records</span><span class="op">$</span><span class="va">doc_type</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ar"</span>, <span class="st">"re"</span><span class="op">)</span>, <span class="op">]</span></span></code></pre></div>
+<p><code>doc_type</code> holds the code ‘Scopus’ gives a record’s
+document type, such as <code>ar</code> for an article, <code>re</code> a
+review or <code>cp</code> a conference paper. For a set retrieved this
+way, <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> also counts the document types and reports
+how many records ‘Scopus’ labels errata (<code>er</code>) or retracted
+(<code>tb</code>). In ‘Scopus’, an erratum covers retraction notices as
+well as corrections. Such labels do not screen a set for retractions,
+since ‘Scopus’ does not label every retracted item (<a href="https://doi.org/10.1007/s11192-024-05034-y" class="external-link">Ortega &amp;
+Delgado-Quirós, 2024</a>). A review should still check its included
+records against the <a href="https://www.crossref.org/documentation/retrieve-metadata/retraction-watch/" class="external-link">Retraction
+Watch database</a>.</p>
+<p>Errata can also be left out of the search itself.
+<code><a href="../reference/scopus_query.html">scopus_query()</a></code> brackets the rest of the query before it
+adds <code>AND NOT DOCTYPE(er)</code>, so the exclusion applies to the
+whole of it under either operator order that
+<code><a href="../articles/designing-queries.html">vignette("designing-queries")</a></code> describes.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"graphene"</span>, <span class="st">"graphite"</span>, .op <span class="op">=</span> <span class="st">"OR"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span>,</span>
+<span>  <span class="st">"DOCTYPE(er)"</span>, .op <span class="op">=</span> <span class="st">"AND NOT"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<pre><code>[1] "(TITLE-ABS-KEY(graphene) OR TITLE-ABS-KEY(graphite)) AND NOT DOCTYPE(er)"</code></pre>
+</div>
+<div class="section level2">
 <h2 id="a-clean-deduplicated-doi-list">A clean, deduplicated DOI list<a class="anchor" aria-label="anchor" href="#a-clean-deduplicated-doi-list"></a>
 </h2>
 <p>Reference managers such as Zotero import most reliably from DOIs.
 <code><a href="../reference/scopus_extract_dois.html">scopus_extract_dois()</a></code> pulls them out, normalises them and
 removes duplicates, so the same article imports once even when its DOI
 was stored with a resolver prefix or in a different case.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dois</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">dois</span><span class="op">)</span></span></code></pre></div>
 <pre><code>[1] 127</code></pre>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dois</span>, <span class="fl">6</span><span class="op">)</span></span></code></pre></div>
 <pre><code>[1] "10.15541/jim20140527"            "10.1021/am509065d"              
 [3] "10.1016/j.electacta.2015.02.019" "10.1002/smll.201403383"         
@@ -282,17 +323,17 @@ so the first two entries below collapse to one because comparison
 ignores case and resolver prefixes, while <code>dedupe = FALSE</code>
 keeps every occurrence, for instance to count how often a DOI recurs
 across retrievals.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"https://doi.org/10.1/A"</span>, <span class="st">"doi: 10.1/a"</span>, <span class="st">"10.2/B"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code>[1] "10.1/A" "10.2/B"</code></pre>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"https://doi.org/10.1/A"</span>, <span class="st">"doi: 10.1/a"</span>, <span class="st">"10.2/B"</span><span class="op">)</span>,</span>
 <span>                    dedupe <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <pre><code>[1] "10.1/A" "10.1/a" "10.2/B"</code></pre>
 <p>The list can be written to a single-column CSV at a path you choose.
 Nothing is written unless a path is given. Here are the first few lines
 of the file, which holds a header and one DOI per line.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"reference-set.csv"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">example_records</span>, file <span class="op">=</span> <span class="va">out</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html" class="external-link">writeLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span>, <span class="fl">6</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -311,7 +352,7 @@ carries more. <code><a href="../reference/as_bibtex.html">as_ris()</a></code> an
 the set in the two interchange formats that reference managers read, so
 a search moves straight into Zotero, EndNote or a LaTeX bibliography.
 Each record becomes one entry, with its authors split out.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ris</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/as_bibtex.html">as_ris</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/strsplit.html" class="external-link">strsplit</a></span><span class="op">(</span><span class="va">ris</span>, <span class="st">"\n\n"</span>, fixed <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span>, sep <span class="op">=</span> <span class="st">"\n\n"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>TY  - JOUR
@@ -340,7 +381,7 @@ Zhang as the family name. Nearly all the bundled records give names
 first, and those are written as they stand.</p>
 <p>Pass a <code>file</code> to write the whole set. Nothing is written
 without one.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bib</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"reference-set.bib"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/as_bibtex.html">as_bibtex</a></span><span class="op">(</span><span class="va">example_records</span>, file <span class="op">=</span> <span class="va">bib</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -350,7 +391,7 @@ without one.</p>
 <p><code><a href="../reference/as_bibliometrix.html">as_bibliometrix()</a></code> re-maps the records to the tagged
 column layout that the <a href="https://www.bibliometrix.org" class="external-link">bibliometrix</a> package and the
 wider ISI convention expect.</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">m</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/as_bibliometrix.html">as_bibliometrix</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">m</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"AU"</span>, <span class="st">"TI"</span>, <span class="st">"PY"</span>, <span class="st">"SO"</span>, <span class="st">"TC"</span>, <span class="st">"DB"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
@@ -431,7 +472,7 @@ VACUUM-ASSISTED THERMAL PROCESS FOR ELECTROCHEMICAL ENERGY STORAGE</td>
 </table>
 <p>From there the usual bibliometrix entry points apply. This step needs
 that package, so it is shown but not run.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"bibliometrix"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">bibliometrix</span><span class="fu">::</span><span class="fu">biblioAnalysis</span><span class="op">(</span><span class="va">m</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">results</span>, k <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
@@ -447,7 +488,7 @@ or BibTeX export read with <code>bibliometrix::convert2df()</code>.</p>
 <p>To pick the work up in a later session, save the records and read
 them back. The <code>.rds</code> form preserves the types and class
 exactly, while <code>.csv</code> is portable plain text.</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"records.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/write_scopus_records.html">write_scopus_records</a></span><span class="op">(</span><span class="va">example_records</span>, <span class="va">path</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="../reference/write_scopus_records.html">read_scopus_records</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span>, <span class="va">example_records</span><span class="op">)</span></span></code></pre></div>

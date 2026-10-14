@@ -29,7 +29,17 @@ scopus_count(
 
 - years:
 
-  Optional integer vector of publication years to restrict to.
+  Optional integer vector of publication years. `scopus_count()`,
+  [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
+  and
+  [`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md)
+  send one inclusive range from the earliest year to the latest, as a
+  [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md)
+  with `partition = "none"` does, so `c(2015, 2020)` covers every year
+  from 2015 to 2020.
+  [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md),
+  [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
+  and a plan with `partition = "year"` take each listed year.
 
 - field:
 
@@ -83,14 +93,15 @@ is `scopus_error_timeout`, a subclass of `scopus_error_offline`.
 
 ``` r
 if (FALSE) { # scopusflow::scopus_has_key()
-scopus_count("graphene supercapacitor", years = 2015:2024,
+scopus_count('"graphene supercapacitor"', years = 2015:2024,
              field = "TITLE-ABS-KEY")
 }
 # The offline companion, which needs no key: one number with the parsed
 # quota attached. The bundled corpus of real articles is a complete harvest
-# of its own query, so its row count is the total that query returned. The
-# quota attribute is parsed from real response headers by scopus_quota(),
-# so it cannot drift from what a live call attaches.
+# of OpenAlex's exact-phrase search for the same phrase, so its row count is
+# the total of that search. A 'Scopus' count of the phrase would differ. The
+# quota attribute is parsed from real response headers by scopus_quota(), so
+# it cannot drift from what a live call attaches.
 resp <- httr2::response(
   status_code = 200,
   headers = list(

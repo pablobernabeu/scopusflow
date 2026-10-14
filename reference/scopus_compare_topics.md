@@ -74,8 +74,10 @@ available). Comparison rows are sorted by descending average percentage.
 
 ## API access
 
-This performs one count request per term per year, so it requires a
-valid API key and internet access. The *API access* section of
+This performs one count request per year for the reference topic and one
+per term per year, `(length(comparison_terms) + 1) * length(years)`
+requests in all. It therefore requires a valid API key and internet
+access. The *API access* section of
 [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md)
 gives the details. A modest number of terms and years keeps the call
 within quota.

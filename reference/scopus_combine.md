@@ -40,11 +40,16 @@ c(x, ...)
 
 A
 [scopus_records](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
-tibble. Per-retrieval attributes such as `total_results` are not carried
-over, since they describe a single fetch. The merge itself is recorded
-in the `combined` attribute, a list of `n_in` (records supplied),
-`n_out` (records kept), `n_removed` and `deduplicated`, which is what
-lets
+tibble. Per-retrieval attributes such as `total_results` and `plan` are
+not carried over, since they describe a single fetch. The provenance a
+merge leaves true is kept, as
+[`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
+keeps it for plan cells. `retrieved_at` is the earliest of the inputs'
+times and `retrieved_until` the latest, so a baseline merged with its
+update is dated from one to the other. Every contributing
+`scopusflow_version` is listed. The merge itself is recorded in the
+`combined` attribute, a list of `n_in` (records supplied), `n_out`
+(records kept), `n_removed` and `deduplicated`, which is what lets
 [`scopus_search_report()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_search_report.md)
 state how many duplicates were removed, so the PRISMA-S item is
 answered.

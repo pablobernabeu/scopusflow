@@ -6,15 +6,15 @@ keywords, and its own reference list. This walks through retrieving
 both, what each costs, and what your ‘Scopus’ entitlement needs to
 cover.
 
-The API calls below are shown exactly as you would run them with a
-configured key. No key is available when the site and the package are
-built, and Elsevier’s terms do not permit redistributing retrieved
-records in any case, so each call is paired with its output assembled
-offline from one representative example, the 2015 *Nature* review ‘Deep
-learning’. The corpus of real articles that the other articles run on
-carries neither author keywords nor reference lists, the two fields this
-one is about, so it cannot stand in here. The vignette therefore renders
-the same with or without a key, and
+The API calls below are shown as you would run them with a configured
+key, and they are not run here, so no output appears beneath them. No
+key is available when the site and the package are built, and Elsevier’s
+terms do not permit redistributing retrieved records in any case. The
+shapes the calls return are built in view from `example_records`, the
+corpus of real articles the other articles run on. That corpus carries
+neither author keywords nor reference lists, so its records and titles
+are relabelled into those shapes, and the text says each time what
+stands in for what.
 [`scopus_has_key()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_has_key.md)
 is the switch you would use to run the calls for real.
 
@@ -37,19 +37,13 @@ recs <- scopus_fetch("DOI(10.1038/nature14539)", view = "COMPLETE")
 recs$authkeywords
 ```
 
-``` r
-
-recs$authkeywords
-```
-
-    [1] "deep learning | neural networks | representation learning | backpropagation"
-
-In development, this field came back `NA` even on a live, otherwise
-fully-entitled key, for documents that do carry author keywords in
-‘Scopus’ itself. Those documents do have keywords, so what this points
-to is an entitlement gap specific to this one field. If your own
-keywords come back all `NA`, it is worth raising with your
-Scopus/Elsevier account contact.
+The column holds one string per record, with the keywords joined by
+`" | "`, the form the Search API sends. In development, this field came
+back `NA` even on a live, otherwise fully-entitled key, for documents
+that do carry author keywords in ‘Scopus’ itself. Those documents do
+have keywords, so what this points to is an entitlement gap specific to
+this one field. If your own keywords come back all `NA`, it is worth
+raising with your Scopus/Elsevier account contact.
 
 ## References via Abstract Retrieval
 
@@ -70,17 +64,41 @@ ab <- scopus_abstract(
 ab$references[[1]][, c("title", "authors", "source", "year")]
 ```
 
+`include = "keywords"` adds an `authkeywords` column, with the keywords
+joined by `"; "` as the `authors` column joins names. The `references`
+list-column holds one data frame per document, with the columns
+`position`, `id`, `doi`, `title`, `authors`, `source`, `year` and
+`citedbycount`. To show that shape offline, the chunk below relabels
+three bundled records into those columns, as though they were works
+cited by a fourth document. They are not the reference list of the
+document above, or of any other. Under `FULL`, a live result writes each
+cited work’s authors as surname and initials, such as `"Doe, A."`,
+joined by `"; "`. These records carry only each paper’s first author,
+written as OpenAlex gives the name. `id` holds a cited work’s ‘Scopus’
+identifier, absent from the bundled records, and `citedbycount` is `NA`
+under `FULL`, so both are left `NA`.
+
 ``` r
 
-ab$references[[1]][, c("title", "authors", "source", "year")]
+cited <- example_records[1:3, ]
+refs <- tibble::tibble(
+  position = as.character(seq_len(nrow(cited))),
+  id = NA_character_,
+  doi = cited$doi,
+  title = cited$title,
+  authors = cited$authors,
+  source = cited$publication,
+  year = cited$year,
+  citedbycount = NA_integer_
+)
+refs[, c("title", "authors", "source", "year")]
 ```
 
 | title | authors | source | year |
 |:---|:---|:---|---:|
-| Gradient-based learning applied to document recognition | LeCun Y.; Bottou L.; Bengio Y.; Haffner P. | Proceedings of the IEEE | 1998 |
-| Human-level control through deep reinforcement learning | Mnih V.; Kavukcuoglu K.; Silver D. | Nature | 2015 |
-| ImageNet classification with deep convolutional neural networks | Krizhevsky A.; Sutskever I.; Hinton G. | Advances in Neural Information Processing Systems | 2012 |
-| Learning representations by back-propagating errors | Rumelhart D.; Hinton G.; Williams R. | Nature | 1986 |
+| Enhanced Capacitive Properties of All-solid-state Symmetric Graphene Supercapacitors by Incorporating Nitrogen-doping and SnO2 Nanoparticles | Jianhua Yu | Journal of Inorganic Materials | 2015 |
+| Fabrication and Characterization of a Vertically-Oriented Graphene Supercapacitor | Patrick R Rice | DigitalCommons - CalPoly (California State Polytechnic University) | 2015 |
+| Flexible and Stackable Laser-Induced Graphene Supercapacitors | Zhiwei Peng | ACS Applied Materials & Interfaces | 2015 |
 
 `view = "FULL"` is the recommended default, since it returns the whole
 bibliography in one request. `view = "REF"` serves it about 40
@@ -101,16 +119,8 @@ smaller quota that is easy to exhaust unnoticed.
 ``` r
 
 attr(ab, "n_requests")        # requests spent so far
-```
-
-    [1] 1
-
-``` r
-
 attr(ab, "quota")$remaining   # Abstract Retrieval quota left
 ```
-
-    [1] 24999
 
 A key or subscription tier that does not cover the requested view raises
 a `scopus_error_forbidden` condition that names the view, where a
@@ -149,35 +159,68 @@ corpus$keywords[[1]]
 nrow(corpus$references[[1]])
 ```
 
-``` r
-
-corpus$keywords[[1]]
-```
-
-    [1] "deep learning"           "neural networks"        
-    [3] "representation learning" "backpropagation"        
-
-``` r
-
-nrow(corpus$references[[1]])
-```
-
-    [1] 4
-
-The keywords list-column is ready for the co-occurrence analysis this
-article is named for, unnested and tallied into a per-keyword document
-count across the corpus.
-
-``` r
-
-sort(table(unlist(corpus$keywords)), decreasing = TRUE)
-```
-
-
-            backpropagation           deep learning         neural networks 
-                          1                       1                       1 
-    representation learning 
-                          1 
-
 This costs one Abstract Retrieval request per record in `recs`, on top
-of whatever retrieved `recs` in the first place.
+of whatever retrieved `recs` in the first place. The `keywords` column,
+split from the joined `authkeywords` string, holds a character vector
+per record, which is the shape co-occurrence analysis wants. Counting
+every unordered pair of keywords within each document gives the
+co-occurrence table the article opened on, and base R is enough for it.
+
+Author keywords are one of the fields that cannot travel with the
+package. The corpus below stands them in from each bundled record’s own
+title, keeping a fixed vocabulary of terms and recording those a title
+mentions. That is a cruder signal than a real keyword list, but the
+counting is identical and it runs over 138 published titles.
+
+``` r
+
+vocabulary <- c("graphene", "supercapacitor", "electrode", "energy storage",
+                "flexible", "electrochemical")
+corpus <- tibble::tibble(
+  id = example_records$doi,
+  title = example_records$title,
+  year = example_records$year,
+  keywords = lapply(tolower(example_records$title), function(title) {
+    vocabulary[vapply(vocabulary, grepl, logical(1), x = title, fixed = TRUE)]
+  })
+)
+several <- corpus[lengths(corpus$keywords) > 1L, ]
+head(data.frame(
+  title = several$title,
+  keywords = vapply(several$keywords, paste, character(1), collapse = "; ")
+), 3)
+```
+
+| title | keywords |
+|:---|:---|
+| Enhanced Capacitive Properties of All-solid-state Symmetric Graphene Supercapacitors by Incorporating Nitrogen-doping and SnO2 Nanoparticles | graphene; supercapacitor |
+| Fabrication and Characterization of a Vertically-Oriented Graphene Supercapacitor | graphene; supercapacitor |
+| Flexible and Stackable Laser-Induced Graphene Supercapacitors | graphene; supercapacitor; flexible |
+
+``` r
+
+# Each unordered pair once per document, sorted in byte order, so the pairs and
+# the order of tied counts do not depend on the locale.
+pairs <- do.call(rbind, lapply(corpus$keywords, function(keywords) {
+  if (length(keywords) < 2L) return(NULL)
+  t(utils::combn(sort(keywords, method = "radix"), 2L))
+}))
+cooc <- as.data.frame(table(pairs[, 1], pairs[, 2]), stringsAsFactors = FALSE)
+names(cooc) <- c("keyword A", "keyword B", "documents")
+cooc <- cooc[cooc$documents > 0L, ]
+cooc <- cooc[order(-cooc$documents, cooc[["keyword A"]], cooc[["keyword B"]],
+                   method = "radix"), ]
+rownames(cooc) <- NULL
+head(cooc, 5)
+```
+
+| keyword A | keyword B      | documents |
+|:----------|:---------------|----------:|
+| graphene  | supercapacitor |       105 |
+| electrode | supercapacitor |        23 |
+| electrode | graphene       |        22 |
+| flexible  | supercapacitor |        18 |
+| flexible  | graphene       |        17 |
+
+Each row is one pair of keywords and the number of documents carrying
+both, which is the edge list a co-occurrence network is built from.

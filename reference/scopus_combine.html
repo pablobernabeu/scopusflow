@@ -93,8 +93,13 @@ failing that a DOI (compared case-insensitively), are kept once.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A <a href="scopus_records.html">scopus_records</a> tibble. Per-retrieval attributes such as
-<code>total_results</code> are not carried over, since they describe a single fetch.
-The merge itself is recorded in the <code>combined</code> attribute, a list of <code>n_in</code>
+<code>total_results</code> and <code>plan</code> are not carried over, since they describe a
+single fetch. The provenance a merge leaves true is kept, as
+<code><a href="scopus_fetch_plan.html">scopus_fetch_plan()</a></code> keeps it for plan cells. <code>retrieved_at</code> is the
+earliest of the inputs' times and <code>retrieved_until</code> the latest, so a
+baseline merged with its update is dated from one to the other. Every
+contributing <code>scopusflow_version</code> is listed. The merge itself is recorded
+in the <code>combined</code> attribute, a list of <code>n_in</code>
 (records supplied), <code>n_out</code> (records kept), <code>n_removed</code> and <code>deduplicated</code>,
 which is what lets <code><a href="scopus_search_report.html">scopus_search_report()</a></code> state how many duplicates were
 removed, so the PRISMA-S item is answered.</p>

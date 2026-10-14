@@ -19,7 +19,8 @@ scopus_fetch(
   cursor = FALSE,
   api_key = NULL,
   inst_token = NULL,
-  verbose = FALSE
+  verbose = FALSE,
+  fields = c("core", "extended")
 )
 ```
 
@@ -67,7 +68,17 @@ scopus_fetch(
 
 - years:
 
-  Optional integer vector of publication years to restrict to.
+  Optional integer vector of publication years.
+  [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md),
+  `scopus_fetch()` and
+  [`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md)
+  send one inclusive range from the earliest year to the latest, as a
+  [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md)
+  with `partition = "none"` does, so `c(2015, 2020)` covers every year
+  from 2015 to 2020.
+  [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md),
+  [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
+  and a plan with `partition = "year"` take each listed year.
 
 - cursor:
 
@@ -89,6 +100,16 @@ scopus_fetch(
 
   Logical. When `TRUE`, progress is reported as the retrieval proceeds.
 
+- fields:
+
+  `"core"` (the default) or `"extended"`. `"extended"` also keeps the
+  document type, source type, volume, issue, pages, ISSN, PubMed
+  identifier and open-access status the Search API sends with every
+  record, and the abstract under `view = "COMPLETE"`. They arrive in the
+  same responses, so they cost no extra quota. See the *Extended fields*
+  section of
+  [`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md).
+
 ## Value
 
 A
@@ -96,16 +117,23 @@ A
 tibble. The reported total and the most recent parsed quota are attached
 as the `total_results` and `quota` attributes, the harvest is dated by
 `retrieved_at` (a `POSIXct`) and `scopusflow_version`, and `paging`
-records whether it was retrieved by offset or by cursor. The date and
-version matter because `citations` is a snapshot value that keeps
-moving, so two saved sets are only comparable if each records when it
-was taken, and
+records whether it was retrieved by offset or by cursor.
+`retrieved_until` gives the same time as `retrieved_at` for a single
+search. A set combined from several keeps the earliest of their times as
+`retrieved_at` and the latest as `retrieved_until`. The date and version
+matter because `citations` is a snapshot value that keeps moving, so two
+saved sets are only comparable if each records when it was taken, and
 [`scopus_search_report()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_search_report.md)
 reads all of them back. `view` records the view, which decides what
 `authors` holds: the first author under `STANDARD` and the author list
 under `COMPLETE` (see
 [`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)).
-These attributes survive a `.rds` round trip through
+`max_results` records the cap the call was given, when it was given one,
+so the search record can say whether the retrieval stopped at it. `plan`
+is the one-cell plan the call ran,
+`scopus_plan(query, years, field, view, page_size, partition = "none")`,
+so the search record states the field tag and the year limit the request
+carried. These attributes survive a `.rds` round trip through
 [`write_scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_records.md)
 but not a `.csv` one, which carries columns only.
 
@@ -125,7 +153,7 @@ for cached, resumable, partitioned retrieval.
 
 ``` r
 if (FALSE) { # scopusflow::scopus_has_key()
-recs <- scopus_fetch("graphene supercapacitor", field = "TITLE-ABS-KEY",
+recs <- scopus_fetch('"graphene supercapacitor"', field = "TITLE-ABS-KEY",
                      max_results = 50)
 recs
 }

@@ -58,7 +58,17 @@ scopus_intersections(
 
 - years:
 
-  Optional integer vector of publication years to restrict to.
+  Optional integer vector of publication years.
+  [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md),
+  [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
+  and `scopus_intersections()` send one inclusive range from the
+  earliest year to the latest, as a
+  [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md)
+  with `partition = "none"` does, so `c(2015, 2020)` covers every year
+  from 2015 to 2020.
+  [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md),
+  [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
+  and a plan with `partition = "year"` take each listed year.
 
 - field:
 

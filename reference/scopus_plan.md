@@ -31,10 +31,19 @@ is_scopus_plan(x)
 
 - years:
 
-  Optional integer vector of publication years to restrict to, for
-  example `2015:2020`. When `partition = "year"`, one plan cell is
-  created for each distinct year. Otherwise the minimum and maximum
-  define a single date range.
+  Optional integer vector of publication years, for example `2015:2020`.
+  When `partition = "year"`, one plan cell is created for each distinct
+  year, so `c(2015, 2020)` searches those two years alone, as
+  [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md)
+  and
+  [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
+  do. Otherwise, the plan sends one inclusive range from the earliest
+  year to the latest, so `c(2015, 2020)` covers every year from 2015 to
+  2020, as in
+  [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md),
+  [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
+  and
+  [`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md).
 
 - field:
 

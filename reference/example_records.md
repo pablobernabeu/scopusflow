@@ -59,7 +59,7 @@ tibble with 138 rows and the standard schema:
 
 - query:
 
-  The search phrase that produced the record.
+  The phrase of the OpenAlex search that produced the record.
 
 ## Source
 
@@ -77,13 +77,20 @@ ship one. These come instead from OpenAlex, whose metadata is released
 under CC0 and may therefore be redistributed, and are reshaped into the
 schema
 [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
-returns. Running the equivalent query against 'Scopus' yields the same
-kind of object, with the same columns and the same handling, though not
-an identical set of records.
+returns. They are the result of OpenAlex's exact-phrase search for
+"graphene supercapacitor" in titles and abstracts, limited to journal
+articles, run on 22 July 2026. The worked examples send the phrase to
+'Scopus' as `TITLE-ABS-KEY("graphene supercapacitor")`, which also
+searches keywords and every document type. That search yields the same
+kind of object, with the same columns and the same handling, but a
+different set of records. Without the quotation marks the set is far
+larger, since 'Scopus' joins the words of an unquoted phrase with AND.
+In OpenAlex, the unquoted words match about a hundred times as many
+records.
 
 Two properties are worth knowing when reading the examples. The harvest
 is complete, so the number of rows per year is the real number of
-publications per year for that query, and the trend figures show a real
+publications per year for that search, and the trend figures show a real
 publication curve. The gaps are also genuine: eleven records carry no
 DOI and two no source title, exactly as they arrive. They are kept
 because a real harvest has such gaps, and the reference-set examples are

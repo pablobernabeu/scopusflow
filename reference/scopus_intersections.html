@@ -126,7 +126,12 @@ Defaults to a multiplication sign between spaces.</p></dd>
 
 
 <dt id="arg-years">years<a class="anchor" aria-label="anchor" href="#arg-years"></a></dt>
-<dd><p>Optional integer vector of publication years to restrict to.</p></dd>
+<dd><p>Optional integer vector of publication years. <code><a href="scopus_count.html">scopus_count()</a></code>,
+<code><a href="scopus_fetch.html">scopus_fetch()</a></code> and <code>scopus_intersections()</code> send one inclusive range from
+the earliest year to the latest, as a <code><a href="scopus_plan.html">scopus_plan()</a></code> with
+<code>partition = "none"</code> does, so <code>c(2015, 2020)</code> covers every year from 2015
+to 2020. <code><a href="scopus_trend.html">scopus_trend()</a></code>, <code><a href="scopus_compare_topics.html">scopus_compare_topics()</a></code> and a plan with
+<code>partition = "year"</code> take each listed year.</p></dd>
 
 
 <dt id="arg-field">field<a class="anchor" aria-label="anchor" href="#arg-field"></a></dt>

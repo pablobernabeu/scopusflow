@@ -87,7 +87,12 @@ before any request (see the <em>Query checks</em> section of <code><a href="scop
 
 
 <dt id="arg-years">years<a class="anchor" aria-label="anchor" href="#arg-years"></a></dt>
-<dd><p>Optional integer vector of publication years to restrict to.</p></dd>
+<dd><p>Optional integer vector of publication years. <code>scopus_count()</code>,
+<code><a href="scopus_fetch.html">scopus_fetch()</a></code> and <code><a href="scopus_intersections.html">scopus_intersections()</a></code> send one inclusive range from
+the earliest year to the latest, as a <code><a href="scopus_plan.html">scopus_plan()</a></code> with
+<code>partition = "none"</code> does, so <code>c(2015, 2020)</code> covers every year from 2015
+to 2020. <code><a href="scopus_trend.html">scopus_trend()</a></code>, <code><a href="scopus_compare_topics.html">scopus_compare_topics()</a></code> and a plan with
+<code>partition = "year"</code> take each listed year.</p></dd>
 
 
 <dt id="arg-field">field<a class="anchor" aria-label="anchor" href="#arg-field"></a></dt>
@@ -137,14 +142,15 @@ after <code>getOption("scopusflow.timeout", 60)</code> seconds, the error is
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># scopusflow::scopus_has_key()</span></span></span>
-<span class="r-in"><span><span class="fu">scopus_count</span><span class="op">(</span><span class="st">"graphene supercapacitor"</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2024</span>,</span></span>
+<span class="r-in"><span><span class="fu">scopus_count</span><span class="op">(</span><span class="st">'"graphene supercapacitor"'</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2024</span>,</span></span>
 <span class="r-in"><span>             field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span><span class="co"># The offline companion, which needs no key: one number with the parsed</span></span></span>
 <span class="r-in"><span><span class="co"># quota attached. The bundled corpus of real articles is a complete harvest</span></span></span>
-<span class="r-in"><span><span class="co"># of its own query, so its row count is the total that query returned. The</span></span></span>
-<span class="r-in"><span><span class="co"># quota attribute is parsed from real response headers by scopus_quota(),</span></span></span>
-<span class="r-in"><span><span class="co"># so it cannot drift from what a live call attaches.</span></span></span>
+<span class="r-in"><span><span class="co"># of OpenAlex's exact-phrase search for the same phrase, so its row count is</span></span></span>
+<span class="r-in"><span><span class="co"># the total of that search. A 'Scopus' count of the phrase would differ. The</span></span></span>
+<span class="r-in"><span><span class="co"># quota attribute is parsed from real response headers by scopus_quota(), so</span></span></span>
+<span class="r-in"><span><span class="co"># it cannot drift from what a live call attaches.</span></span></span>
 <span class="r-in"><span><span class="va">resp</span> <span class="op">&lt;-</span> <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/response.html" class="external-link">response</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  status_code <span class="op">=</span> <span class="fl">200</span>,</span></span>
 <span class="r-in"><span>  headers <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>

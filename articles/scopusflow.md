@@ -12,14 +12,18 @@ licensed stand-in instead. `example_records` holds 138 real journal
 articles on graphene supercapacitors published between 2015 and 2024,
 with their real titles, DOIs, journals, first authors and citation
 counts. They come from OpenAlex, whose metadata is released under CC0,
-reshaped into the schema a retrieval returns. The harvest is complete,
-so its rows per year are the real number of publications per year for
-that query, and its gaps are real gaps too. Eleven records carry no DOI
-and two no source title, exactly as they arrive. Running the equivalent
-query against Scopus yields the same kind of object, with the same
-columns and the same handling, though not an identical set of records.
-The steps that need the API are shown but not run, each paired with the
-offline equivalent.
+reshaped into the schema a retrieval returns. OpenAlex’s exact-phrase
+search for “graphene supercapacitor” in titles and abstracts, limited to
+journal articles, returned them on 22 July 2026. The harvest is
+complete, so its rows per year are the real number of publications per
+year for that search, and its gaps are real gaps too. Eleven records
+carry no DOI and two no source title, exactly as they arrive. A Scopus
+search for the same phrase returns the same kind of object, with the
+same columns and the same handling, but a different set of records.
+Without the quotation marks the set is far larger, since Scopus joins
+the words of an unquoted phrase with AND. In OpenAlex, the unquoted
+words match about a hundred times as many records. The steps that need
+the API are shown but not run, each paired with the offline equivalent.
 
 ## Describing a search as a plan
 
@@ -28,14 +32,16 @@ inspectable, saveable and version-controllable, and they can be
 partitioned, for example by year, so that a large retrieval stays under
 the API’s `start < 5000` ceiling and can be cached and resumed.
 
-The plan below describes the search the bundled records came from, so
-the rest of the article follows one worked example from description to
-export.
+The plan below describes a Scopus search for the phrase the bundled
+records were drawn on, and the rest of the article follows it as one
+worked example from description to export. The quotation marks keep the
+two words together, as they were in the OpenAlex search. The plan has
+not been run, and the bundled records did not come from it.
 
 ``` r
 
 plan <- scopus_plan(
-  "graphene supercapacitor",
+  '"graphene supercapacitor"',
   years     = 2015:2024,
   field     = "TITLE-ABS-KEY",
   partition = "year"
@@ -43,18 +49,18 @@ plan <- scopus_plan(
 plan
 ```
 
-| cell | query                                  | date | year | view     | page_size |
-|-----:|:---------------------------------------|:-----|-----:|:---------|----------:|
-|    1 | TITLE-ABS-KEY(graphene supercapacitor) | 2015 | 2015 | STANDARD |       200 |
-|    2 | TITLE-ABS-KEY(graphene supercapacitor) | 2016 | 2016 | STANDARD |       200 |
-|    3 | TITLE-ABS-KEY(graphene supercapacitor) | 2017 | 2017 | STANDARD |       200 |
-|    4 | TITLE-ABS-KEY(graphene supercapacitor) | 2018 | 2018 | STANDARD |       200 |
-|    5 | TITLE-ABS-KEY(graphene supercapacitor) | 2019 | 2019 | STANDARD |       200 |
-|    6 | TITLE-ABS-KEY(graphene supercapacitor) | 2020 | 2020 | STANDARD |       200 |
-|    7 | TITLE-ABS-KEY(graphene supercapacitor) | 2021 | 2021 | STANDARD |       200 |
-|    8 | TITLE-ABS-KEY(graphene supercapacitor) | 2022 | 2022 | STANDARD |       200 |
-|    9 | TITLE-ABS-KEY(graphene supercapacitor) | 2023 | 2023 | STANDARD |       200 |
-|   10 | TITLE-ABS-KEY(graphene supercapacitor) | 2024 | 2024 | STANDARD |       200 |
+| cell | query                                    | date | year | view     | page_size |
+|-----:|:-----------------------------------------|:-----|-----:|:---------|----------:|
+|    1 | TITLE-ABS-KEY("graphene supercapacitor") | 2015 | 2015 | STANDARD |       200 |
+|    2 | TITLE-ABS-KEY("graphene supercapacitor") | 2016 | 2016 | STANDARD |       200 |
+|    3 | TITLE-ABS-KEY("graphene supercapacitor") | 2017 | 2017 | STANDARD |       200 |
+|    4 | TITLE-ABS-KEY("graphene supercapacitor") | 2018 | 2018 | STANDARD |       200 |
+|    5 | TITLE-ABS-KEY("graphene supercapacitor") | 2019 | 2019 | STANDARD |       200 |
+|    6 | TITLE-ABS-KEY("graphene supercapacitor") | 2020 | 2020 | STANDARD |       200 |
+|    7 | TITLE-ABS-KEY("graphene supercapacitor") | 2021 | 2021 | STANDARD |       200 |
+|    8 | TITLE-ABS-KEY("graphene supercapacitor") | 2022 | 2022 | STANDARD |       200 |
+|    9 | TITLE-ABS-KEY("graphene supercapacitor") | 2023 | 2023 | STANDARD |       200 |
+|   10 | TITLE-ABS-KEY("graphene supercapacitor") | 2024 | 2024 | STANDARD |       200 |
 
 Each row is one query cell. Field tags wrap the query and years become a
 date filter.
@@ -97,20 +103,21 @@ scopus_has_key()
 
 With a key configured, you size a search cheaply and then execute the
 plan, optionally caching each cell so that an interrupted run resumes
-without re-spending quota. These contact the API, so they are not
-evaluated here.
+without re-spending quota. A cache directory serves one plan, so the
+plan gets a directory of its own inside the managed cache. These contact
+the API, so they are not evaluated here.
 
 ``` r
 
 scopus_count(
-  "graphene supercapacitor",
+  '"graphene supercapacitor"',
   years = 2015:2024,
   field = "TITLE-ABS-KEY"
 )
 
 records <- scopus_fetch_plan(
   plan,
-  cache_dir = scopus_cache_dir(),
+  cache_dir = file.path(scopus_cache_dir(), "graphene-supercapacitor"),
   resume = TRUE
 )
 ```
@@ -177,12 +184,12 @@ raw <- list(entry = list(
        `prism:publicationName` = "ACS Applied Materials & Interfaces",
        `prism:coverDate` = "2015-01-13", `citedby-count` = "469")
 ))
-scopus_records(raw, query = "TITLE-ABS-KEY(graphene supercapacitor)")
+scopus_records(raw, query = 'TITLE-ABS-KEY("graphene supercapacitor")')
 ```
 
 | entry_number | scopus_id | doi | title | authors | year | date | publication | citations | query |
 |---:|:---|:---|:---|:---|---:|:---|:---|---:|:---|
-| 1 | NA | 10.1021/am509065d | Flexible and Stackable Laser-Induced Graphene Supercapacitors | Zhiwei Peng | 2015 | 2015-01-13 | ACS Applied Materials & Interfaces | 469 | TITLE-ABS-KEY(graphene supercapacitor) |
+| 1 | NA | 10.1021/am509065d | Flexible and Stackable Laser-Induced Graphene Supercapacitors | Zhiwei Peng | 2015 | 2015-01-13 | ACS Applied Materials & Interfaces | 469 | TITLE-ABS-KEY("graphene supercapacitor") |
 
 ## Most frequent sources and authors
 
@@ -286,7 +293,9 @@ writeLines(head(readLines(out), 5))
 [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
 measures how the internal emphasis of a literature shifts, expressed as
 each comparison topic’s yearly share of the reference literature. It
-issues one count request per term per year, so it needs the API.
+issues one count request per year for the reference and one per term per
+year, so the call below, with two terms over six years, makes 18
+requests and needs the API.
 
 ``` r
 
@@ -354,8 +363,11 @@ A search that is going into a paper has to be reported.
 assembles that record from the plan and the harvest, to the PRISMA-S
 standard, and formats it as a methods paragraph. It states only what the
 objects hold, so the record below is candid about the bundled corpus
-carrying no retrieval time of its own. The *Search plans and quota-aware
-retrieval* article works through it in full.
+carrying no retrieval time of its own. It pairs the plan above with
+records that came from OpenAlex, and so describes no search that was
+run. The expression it gives was never sent to Scopus, and the 138
+records it counts are those of the OpenAlex search. The *Search plans
+and quota-aware retrieval* article works through it in full.
 
 ``` r
 
@@ -363,7 +375,7 @@ report <- scopus_search_report(records, plan = plan)
 cat(format(report, style = "paragraph"))
 ```
 
-    The literature was searched in Scopus, on the Elsevier Scopus Search API, on a date this record does not carry. The search expression was TITLE-ABS-KEY(graphene supercapacitor), limited to publication years 2015 to 2024. It was partitioned into 10 cells, one per year, each retrieved through the STANDARD view in pages of 200 records, under a paging mode this record does not carry. The search retrieved 138 records. The API's own count of matching records was not recorded, so the harvest cannot be shown to be complete. Of the records retrieved, 127 carry a DOI. No de-duplication step was recorded for this set. The version of scopusflow that produced this set is unrecorded. The PRISMA-S items this record cannot supply, among them peer review of the strategy, grey literature and any other database searched, remain yours to report.
+    The literature was searched in Scopus, on the Elsevier Scopus Search API, on a date this record does not carry. The search expression was TITLE-ABS-KEY("graphene supercapacitor"), limited to publication years 2015 to 2024. It was partitioned into 10 cells, one per year, each retrieved through the STANDARD view in pages of 200 records, under a paging mode this record does not carry. The search retrieved 138 records. The API's own count of matching records was not recorded, so the harvest cannot be shown to be complete. Of the records retrieved, 127 carry a DOI. No de-duplication step was recorded for this set. The version of scopusflow that produced this set is unrecorded. The PRISMA-S items this record cannot supply, among them peer review of the strategy, grey literature and any other database searched, remain yours to report.
 
 ## Handling failures
 

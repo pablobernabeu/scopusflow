@@ -7,8 +7,11 @@ extension selects the format. An `.rds` file preserves the types and
 class exactly, while a `.csv` file is portable plain text. The optional
 `authkeywords` column a `view = "COMPLETE"` retrieval adds (see
 [`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md))
-round-trips through both formats. The attributes a live retrieval
-carries, including `retrieved_at` and `scopusflow_version` (see
+round-trips through both formats, and so do the columns
+`fields = "extended"` adds. A `.csv` file reads them back as text, apart
+from the integer `open_access`, so an ISSN keeps its leading zeros. The
+attributes a live retrieval carries, including `retrieved_at` and
+`scopusflow_version` (see
 [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)),
 survive the `.rds` form only: `.csv` is a table of columns and cannot
 hold them, so save as `.rds` when a set is a baseline to be compared

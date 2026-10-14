@@ -39,10 +39,12 @@ print(x, ...)
   Optional
   [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md)
   describing `x`. Supply it when a record set does not carry one, for
-  example one retrieved with
+  example one read back from a `.csv`, a merged set, or one saved by
   [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
-  or read back from a `.csv`. An explicit plan takes precedence over the
-  one `x` carries.
+  in scopusflow 0.4.0 or earlier, which attached none. An explicit plan
+  takes precedence over the one `x` carries. A one-cell plan supplied
+  for a set without per-cell counts takes the set's own row count and
+  `total_results`.
 
 - file:
 
@@ -68,9 +70,13 @@ A list of class `scopus_search_report`, returned invisibly when `file`
 is written. Its elements are the fields the record is built from:
 `database`, `platform`, `query` (the base query), `field`, `expression`
 (the field-wrapped query of each cell), `view`, `page_size`, `paging`,
-`partition`, `n_cells`, `years`, `cells` (a tibble of `cell`, `limit`,
-`n_records` and `reported_total`), `searched_at`, `version`,
-`n_records`, `n_with_doi`, `reported_total`, `records_combined`,
+`max_results` (the cap on records per cell), `partition`, `n_cells`,
+`years`, `years_run` (the years of the cells a stopped harvest ran),
+`cells` (a tibble of `cell`, `limit`, `n_records` and `reported_total`),
+`searched_at` and `searched_until` (the earliest and latest retrieval
+times), `version`, `n_records`, `n_with_doi`, `reported_total`,
+`stopped_early`, `cells_planned`, `cells_run`, `not_run` (the cells a
+stopped harvest never reached), `records_combined`,
 `duplicates_removed`, `deduplicated`, `snippet` and `prisma` (a tibble
 of `item`, `name`, `source` and `note`). A field the objects do not
 record is `NA`.
@@ -80,15 +86,21 @@ character string.
 
 ## Details
 
-Everything in the record comes from the objects handed to it. The date
-of the search is the `retrieved_at` attribute
+Everything in the record comes from the objects handed to it. The dates
+of the search are the `retrieved_at` and `retrieved_until` attributes
 [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
-attaches, never the current time; the number of records the API reported
-as matching is what the cells recorded (the `cell_totals` attribute
+attaches, never the current time. A harvest resumed over several days,
+or a baseline merged with its update, is dated from its first retrieval
+to its last. PRISMA-S item 13 then gives the date of the last search, as
+the checklist asks. Stamps that fall on one UTC day give that single
+date. The years are those the cells' limits sent, and years with gaps
+between them are listed, since a span would claim years no cell
+searched. The number of records the API reported as matching is what the
+cells recorded (the `cell_totals` attribute
 [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
-attaches, or `total_results` for a set retrieved without a plan), never
-an inference from the number of rows, and it is given overall only when
-every cell reported one; and the duplicates removed are those
+attaches, or, for a set from a single search, its `total_results`),
+never an inference from the number of rows, and it is given overall only
+when every cell reported one; and the duplicates removed are those
 [`scopus_combine()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md)
 recorded removing. Where an attribute is absent, as it is for a set read
 back from a `.csv`, for the bundled corpus, and for a cell resumed from
@@ -97,12 +109,27 @@ the field is unrecorded and fills nothing in. This matters most for
 completeness: a harvest whose reported total is unknown is never
 described as exhaustive.
 
+A harvest capped by `max_results` says so. A cell that holds as many
+records as the cap allowed, where the API reported more or reported
+nothing, reads "stopped at the requested cap". The completeness line
+puts the shortfall down to the cap when every cell that fell short
+stopped at it, and otherwise counts the cells that did. Item 9 names the
+cap, or says that it did not bind, and the reproduction snippet passes
+it. The Python twin's `fetch_plan()` can also be stopped between cells,
+as its app's Cancel stops it. Its record then says how many of the
+planned cells ran, the years they covered and that the harvest is
+incomplete, and it marks the rest "not run". This package's harvests
+cannot stop part-way, but a set carrying those attributes is described
+the same way, so that the two records stay one rendering.
+
 The PRISMA-S map is decided the same way. Items the package holds
-evidence for (the database and platform, the full strategy, the limits,
-the date, the totals, and de-duplication where it was performed) are
-listed as supplied. The rest, among them peer review of the strategy,
-grey literature, other databases and citation searching, are listed as
-the author's to supply, because the package has no way to know them.
+evidence for (the database and platform, that Scopus was searched on its
+own, the full strategy and the limits where a plan records them, the
+date, the totals, and de-duplication where it was performed) are listed
+as supplied. Without a plan, the year limit is unrecorded, not absent,
+and the record says so. The rest, among them peer review of the
+strategy, grey literature and citation searching, are listed as the
+author's to supply, because the package has no way to know them.
 
 ## References
 
@@ -123,13 +150,13 @@ Reviews. *Systematic Reviews*, *10*, 39.
 ``` r
 # A search described but not yet run. The record says so throughout rather
 # than implying figures it cannot have.
-plan <- scopus_plan("graphene supercapacitor", years = 2015:2024,
+plan <- scopus_plan('"graphene supercapacitor"', years = 2015:2024,
                     field = "TITLE-ABS-KEY", partition = "year")
 scopus_search_report(plan)
 #> Search strategy record (PRISMA-S)
 #> 
 #> Database: Scopus, on the Elsevier Scopus Search API
-#> Search expression: TITLE-ABS-KEY(graphene supercapacitor)
+#> Search expression: TITLE-ABS-KEY("graphene supercapacitor")
 #> Field tag: TITLE-ABS-KEY
 #> Years: 2015 to 2024
 #> Partition: one cell per year, 10 cells
@@ -162,11 +189,11 @@ scopus_search_report(plan)
 #> 
 #> PRISMA-S items this record supplies
 #>   1 Database name. Scopus, searched on the Elsevier Scopus Search API.
+#>   2 Multi-database searching. Scopus is searched on its own, not as one of several databases searched together on one platform.
 #>   8 Full search strategies. The search expression, field tag and year limit of every cell, as the plan sends them.
 #>   9 Limits and restrictions. Publication years 2015 to 2024. scopusflow applies no document type, language or subject area limit of its own.
 #> 
 #> PRISMA-S items only you can supply
-#>   2 Multi-database searching. Whether any database besides Scopus was searched, and how the strategy was translated for it.
 #>   3 Study registries. Any trial or study registry searched.
 #>   4 Online resources and browsing. Any web site, table of contents or other source searched or browsed by hand.
 #>   5 Citation searching. Any backward or forward citation searching.
@@ -186,7 +213,9 @@ scopus_search_report(plan)
 
 # The same search after a harvest. The bundled corpus of real articles
 # stands in for one, since 'Scopus' records may not be redistributed, so the
-# attributes a live retrieval records are set here by hand.
+# attributes a live retrieval records are set here by hand. Their values are
+# illustrative, and the records came from OpenAlex, so the record below
+# describes no search that was run.
 recs <- example_records
 attr(recs, "plan") <- plan
 attr(recs, "retrieved_at") <- as.POSIXct("2026-07-22 09:15:00", tz = "UTC")
@@ -196,7 +225,7 @@ report
 #> Search strategy record (PRISMA-S)
 #> 
 #> Database: Scopus, on the Elsevier Scopus Search API
-#> Search expression: TITLE-ABS-KEY(graphene supercapacitor)
+#> Search expression: TITLE-ABS-KEY("graphene supercapacitor")
 #> Field tag: TITLE-ABS-KEY
 #> Years: 2015 to 2024
 #> Partition: one cell per year, 10 cells
@@ -229,13 +258,13 @@ report
 #> 
 #> PRISMA-S items this record supplies
 #>   1 Database name. Scopus, searched on the Elsevier Scopus Search API.
+#>   2 Multi-database searching. Scopus was searched on its own, not as one of several databases searched together on one platform.
 #>   8 Full search strategies. The search expression, field tag and year limit of every cell, as the plan sends them.
 #>   9 Limits and restrictions. Publication years 2015 to 2024. scopusflow applies no document type, language or subject area limit of its own.
 #>   13 Dates of searches. 2026-07-22 09:15:00 UTC.
 #>   15 Total records. 138 records retrieved from Scopus. The API's own count of matching records is unrecorded.
 #> 
 #> PRISMA-S items only you can supply
-#>   2 Multi-database searching. Whether any database besides Scopus was searched, and how the strategy was translated for it.
 #>   3 Study registries. Any trial or study registry searched.
 #>   4 Online resources and browsing. Any web site, table of contents or other source searched or browsed by hand.
 #>   5 Citation searching. Any backward or forward citation searching.
@@ -253,7 +282,7 @@ report
 
 # The methods paragraph, and the Markdown record for a supplementary file.
 cat(format(report, style = "paragraph"))
-#> The literature was searched in Scopus, on the Elsevier Scopus Search API, on 22 July 2026. The search expression was TITLE-ABS-KEY(graphene supercapacitor), limited to publication years 2015 to 2024. It was partitioned into 10 cells, one per year, each retrieved through the STANDARD view in pages of 200 records, under a paging mode this record does not carry. The search retrieved 138 records. The API's own count of matching records was not recorded, so the harvest cannot be shown to be complete. Of the records retrieved, 127 carry a DOI. No de-duplication step was recorded for this set. The search was run with scopusflow 0.3.0. The PRISMA-S items this record cannot supply, among them peer review of the strategy, grey literature and any other database searched, remain yours to report.
+#> The literature was searched in Scopus, on the Elsevier Scopus Search API, on 22 July 2026. The search expression was TITLE-ABS-KEY("graphene supercapacitor"), limited to publication years 2015 to 2024. It was partitioned into 10 cells, one per year, each retrieved through the STANDARD view in pages of 200 records, under a paging mode this record does not carry. The search retrieved 138 records. The API's own count of matching records was not recorded, so the harvest cannot be shown to be complete. Of the records retrieved, 127 carry a DOI. No de-duplication step was recorded for this set. The search was run with scopusflow 0.3.0. The PRISMA-S items this record cannot supply, among them peer review of the strategy, grey literature and any other database searched, remain yours to report.
 path <- tempfile(fileext = ".md")
 scopus_search_report(recs, file = path)
 ```

@@ -82,17 +82,18 @@ and internet access; see the *API access* section of
 
 ``` r
 if (FALSE) { # scopusflow::scopus_has_key()
-tr <- scopus_trend("graphene supercapacitor", years = 2015:2024,
+tr <- scopus_trend('"graphene supercapacitor"', years = 2015:2024,
                    field = "TITLE-ABS-KEY")
 tr
 }
 # The offline companion, which needs no key. 'Scopus' records may not be
-# redistributed, so the package bundles a corpus of real articles instead;
-# it is a complete harvest of its own query, so tallying its rows by year
-# reproduces the yearly counts that query returns.
+# redistributed, so the package bundles a corpus of real articles instead.
+# It is a complete harvest of OpenAlex's exact-phrase search for the same
+# phrase, so tallying its rows by year gives the yearly counts of that
+# search. A 'Scopus' count of the phrase would differ.
 by_year <- table(example_records$year)
 tr <- tibble::tibble(
-  query = "TITLE-ABS-KEY(graphene supercapacitor)",
+  query = 'TITLE-ABS-KEY("graphene supercapacitor")',
   year = as.integer(names(by_year)),
   n = as.numeric(by_year)
 )
@@ -100,16 +101,16 @@ class(tr) <- c("scopus_trend", class(tr))
 tr
 #> <scopus_trend> (10 years, 138 records)
 #> # A tibble: 10 × 3
-#>    query                                   year     n
-#>    <chr>                                  <int> <dbl>
-#>  1 TITLE-ABS-KEY(graphene supercapacitor)  2015    15
-#>  2 TITLE-ABS-KEY(graphene supercapacitor)  2016     9
-#>  3 TITLE-ABS-KEY(graphene supercapacitor)  2017    10
-#>  4 TITLE-ABS-KEY(graphene supercapacitor)  2018    15
-#>  5 TITLE-ABS-KEY(graphene supercapacitor)  2019    19
-#>  6 TITLE-ABS-KEY(graphene supercapacitor)  2020    13
-#>  7 TITLE-ABS-KEY(graphene supercapacitor)  2021    13
-#>  8 TITLE-ABS-KEY(graphene supercapacitor)  2022    15
-#>  9 TITLE-ABS-KEY(graphene supercapacitor)  2023    15
-#> 10 TITLE-ABS-KEY(graphene supercapacitor)  2024    14
+#>    query                                         year     n
+#>    <chr>                                        <int> <dbl>
+#>  1 "TITLE-ABS-KEY(\"graphene supercapacitor\")"  2015    15
+#>  2 "TITLE-ABS-KEY(\"graphene supercapacitor\")"  2016     9
+#>  3 "TITLE-ABS-KEY(\"graphene supercapacitor\")"  2017    10
+#>  4 "TITLE-ABS-KEY(\"graphene supercapacitor\")"  2018    15
+#>  5 "TITLE-ABS-KEY(\"graphene supercapacitor\")"  2019    19
+#>  6 "TITLE-ABS-KEY(\"graphene supercapacitor\")"  2020    13
+#>  7 "TITLE-ABS-KEY(\"graphene supercapacitor\")"  2021    13
+#>  8 "TITLE-ABS-KEY(\"graphene supercapacitor\")"  2022    15
+#>  9 "TITLE-ABS-KEY(\"graphene supercapacitor\")"  2023    15
+#> 10 "TITLE-ABS-KEY(\"graphene supercapacitor\")"  2024    14
 ```

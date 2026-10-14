@@ -99,14 +99,19 @@ openly licensed stand-in instead. <code>example_records</code> holds 138
 real journal articles on graphene supercapacitors published between 2015
 and 2024, with their real titles, DOIs, journals, first authors and
 citation counts. They come from OpenAlex, whose metadata is released
-under CC0, reshaped into the schema a retrieval returns. The harvest is
-complete, so its rows per year are the real number of publications per
-year for that query, and its gaps are real gaps too. Eleven records
-carry no DOI and two no source title, exactly as they arrive. Running
-the equivalent query against Scopus yields the same kind of object, with
-the same columns and the same handling, though not an identical set of
-records. The steps that need the API are shown but not run, each paired
-with the offline equivalent.</p>
+under CC0, reshaped into the schema a retrieval returns. OpenAlex’s
+exact-phrase search for “graphene supercapacitor” in titles and
+abstracts, limited to journal articles, returned them on 22 July 2026.
+The harvest is complete, so its rows per year are the real number of
+publications per year for that search, and its gaps are real gaps too.
+Eleven records carry no DOI and two no source title, exactly as they
+arrive. A Scopus search for the same phrase returns the same kind of
+object, with the same columns and the same handling, but a different set
+of records. Without the quotation marks the set is far larger, since
+Scopus joins the words of an unquoted phrase with AND. In OpenAlex, the
+unquoted words match about a hundred times as many records. The steps
+that need the API are shown but not run, each paired with the offline
+equivalent.</p>
 <div class="section level2">
 <h2 id="describing-a-search-as-a-plan">Describing a search as a plan<a class="anchor" aria-label="anchor" href="#describing-a-search-as-a-plan"></a>
 </h2>
@@ -115,21 +120,23 @@ inspectable, saveable and version-controllable, and they can be
 partitioned, for example by year, so that a large retrieval stays under
 the API’s <code>start &lt; 5000</code> ceiling and can be cached and
 resumed.</p>
-<p>The plan below describes the search the bundled records came from, so
-the rest of the article follows one worked example from description to
-export.</p>
+<p>The plan below describes a Scopus search for the phrase the bundled
+records were drawn on, and the rest of the article follows it as one
+worked example from description to export. The quotation marks keep the
+two words together, as they were in the OpenAlex search. The plan has
+not been run, and the bundled records did not come from it.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span></span>
-<span>  <span class="st">"graphene supercapacitor"</span>,</span>
+<span>  <span class="st">'"graphene supercapacitor"'</span>,</span>
 <span>  years     <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2024</span>,</span>
 <span>  field     <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span>,</span>
 <span>  partition <span class="op">=</span> <span class="st">"year"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">plan</span></span></code></pre></div>
-<table class="table">
+<table style="width:100%;" class="table">
 <colgroup>
 <col width="6%">
-<col width="53%">
+<col width="54%">
 <col width="6%">
 <col width="6%">
 <col width="12%">
@@ -146,7 +153,7 @@ export.</p>
 <tbody>
 <tr class="odd">
 <td align="right">1</td>
-<td align="left">TITLE-ABS-KEY(graphene supercapacitor)</td>
+<td align="left">TITLE-ABS-KEY("graphene supercapacitor")</td>
 <td align="left">2015</td>
 <td align="right">2015</td>
 <td align="left">STANDARD</td>
@@ -154,7 +161,7 @@ export.</p>
 </tr>
 <tr class="even">
 <td align="right">2</td>
-<td align="left">TITLE-ABS-KEY(graphene supercapacitor)</td>
+<td align="left">TITLE-ABS-KEY("graphene supercapacitor")</td>
 <td align="left">2016</td>
 <td align="right">2016</td>
 <td align="left">STANDARD</td>
@@ -162,7 +169,7 @@ export.</p>
 </tr>
 <tr class="odd">
 <td align="right">3</td>
-<td align="left">TITLE-ABS-KEY(graphene supercapacitor)</td>
+<td align="left">TITLE-ABS-KEY("graphene supercapacitor")</td>
 <td align="left">2017</td>
 <td align="right">2017</td>
 <td align="left">STANDARD</td>
@@ -170,7 +177,7 @@ export.</p>
 </tr>
 <tr class="even">
 <td align="right">4</td>
-<td align="left">TITLE-ABS-KEY(graphene supercapacitor)</td>
+<td align="left">TITLE-ABS-KEY("graphene supercapacitor")</td>
 <td align="left">2018</td>
 <td align="right">2018</td>
 <td align="left">STANDARD</td>
@@ -178,7 +185,7 @@ export.</p>
 </tr>
 <tr class="odd">
 <td align="right">5</td>
-<td align="left">TITLE-ABS-KEY(graphene supercapacitor)</td>
+<td align="left">TITLE-ABS-KEY("graphene supercapacitor")</td>
 <td align="left">2019</td>
 <td align="right">2019</td>
 <td align="left">STANDARD</td>
@@ -186,7 +193,7 @@ export.</p>
 </tr>
 <tr class="even">
 <td align="right">6</td>
-<td align="left">TITLE-ABS-KEY(graphene supercapacitor)</td>
+<td align="left">TITLE-ABS-KEY("graphene supercapacitor")</td>
 <td align="left">2020</td>
 <td align="right">2020</td>
 <td align="left">STANDARD</td>
@@ -194,7 +201,7 @@ export.</p>
 </tr>
 <tr class="odd">
 <td align="right">7</td>
-<td align="left">TITLE-ABS-KEY(graphene supercapacitor)</td>
+<td align="left">TITLE-ABS-KEY("graphene supercapacitor")</td>
 <td align="left">2021</td>
 <td align="right">2021</td>
 <td align="left">STANDARD</td>
@@ -202,7 +209,7 @@ export.</p>
 </tr>
 <tr class="even">
 <td align="right">8</td>
-<td align="left">TITLE-ABS-KEY(graphene supercapacitor)</td>
+<td align="left">TITLE-ABS-KEY("graphene supercapacitor")</td>
 <td align="left">2022</td>
 <td align="right">2022</td>
 <td align="left">STANDARD</td>
@@ -210,7 +217,7 @@ export.</p>
 </tr>
 <tr class="odd">
 <td align="right">9</td>
-<td align="left">TITLE-ABS-KEY(graphene supercapacitor)</td>
+<td align="left">TITLE-ABS-KEY("graphene supercapacitor")</td>
 <td align="left">2023</td>
 <td align="right">2023</td>
 <td align="left">STANDARD</td>
@@ -218,7 +225,7 @@ export.</p>
 </tr>
 <tr class="even">
 <td align="right">10</td>
-<td align="left">TITLE-ABS-KEY(graphene supercapacitor)</td>
+<td align="left">TITLE-ABS-KEY("graphene supercapacitor")</td>
 <td align="left">2024</td>
 <td align="right">2024</td>
 <td align="left">STANDARD</td>
@@ -251,18 +258,19 @@ reproducible script.</p>
 <pre><code>[1] FALSE</code></pre>
 <p>With a key configured, you size a search cheaply and then execute the
 plan, optionally caching each cell so that an interrupted run resumes
-without re-spending quota. These contact the API, so they are not
-evaluated here.</p>
+without re-spending quota. A cache directory serves one plan, so the
+plan gets a directory of its own inside the managed cache. These contact
+the API, so they are not evaluated here.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_count.html">scopus_count</a></span><span class="op">(</span></span>
-<span>  <span class="st">"graphene supercapacitor"</span>,</span>
+<span>  <span class="st">'"graphene supercapacitor"'</span>,</span>
 <span>  years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2024</span>,</span>
 <span>  field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan</a></span><span class="op">(</span></span>
 <span>  <span class="va">plan</span>,</span>
-<span>  cache_dir <span class="op">=</span> <span class="fu"><a href="../reference/scopus_cache_dir.html">scopus_cache_dir</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  cache_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="../reference/scopus_cache_dir.html">scopus_cache_dir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"graphene-supercapacitor"</span><span class="op">)</span>,</span>
 <span>  resume <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Without a key, the bundled corpus stands in for the result of that
@@ -412,10 +420,10 @@ bundled corpus, in the form the API returns them.</p>
 <span>       `prism:publicationName` <span class="op">=</span> <span class="st">"ACS Applied Materials &amp; Interfaces"</span>,</span>
 <span>       `prism:coverDate` <span class="op">=</span> <span class="st">"2015-01-13"</span>, `citedby-count` <span class="op">=</span> <span class="st">"469"</span><span class="op">)</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/scopus_records.html">scopus_records</a></span><span class="op">(</span><span class="va">raw</span>, query <span class="op">=</span> <span class="st">"TITLE-ABS-KEY(graphene supercapacitor)"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/scopus_records.html">scopus_records</a></span><span class="op">(</span><span class="va">raw</span>, query <span class="op">=</span> <span class="st">'TITLE-ABS-KEY("graphene supercapacitor")'</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
-<col width="6%">
+<col width="5%">
 <col width="4%">
 <col width="8%">
 <col width="28%">
@@ -449,7 +457,7 @@ Supercapacitors</td>
 <td align="left">2015-01-13</td>
 <td align="left">ACS Applied Materials &amp; Interfaces</td>
 <td align="right">469</td>
-<td align="left">TITLE-ABS-KEY(graphene supercapacitor)</td>
+<td align="left">TITLE-ABS-KEY("graphene supercapacitor")</td>
 </tr></tbody>
 </table>
 </div>
@@ -569,7 +577,8 @@ to see exactly what lands on disk.</p>
 <p><code><a href="../reference/scopus_compare_topics.html">scopus_compare_topics()</a></code> measures how the internal
 emphasis of a literature shifts, expressed as each comparison topic’s
 yearly share of the reference literature. It issues one count request
-per term per year, so it needs the API.</p>
+per year for the reference and one per term per year, so the call below,
+with two terms over six years, makes 18 requests and needs the API.</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_compare_topics.html">scopus_compare_topics</a></span><span class="op">(</span></span>
 <span>  reference_query  <span class="op">=</span> <span class="st">"language learning"</span>,</span>
@@ -686,12 +695,15 @@ VACUUM-ASSISTED THERMAL PROCESS FOR ELECTROCHEMICAL ENERGY STORAGE</td>
 and the harvest, to the PRISMA-S standard, and formats it as a methods
 paragraph. It states only what the objects hold, so the record below is
 candid about the bundled corpus carrying no retrieval time of its own.
-The <em>Search plans and quota-aware retrieval</em> article works
-through it in full.</p>
+It pairs the plan above with records that came from OpenAlex, and so
+describes no search that was run. The expression it gives was never sent
+to Scopus, and the 138 records it counts are those of the OpenAlex
+search. The <em>Search plans and quota-aware retrieval</em> article
+works through it in full.</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_search_report.html">scopus_search_report</a></span><span class="op">(</span><span class="va">records</span>, plan <span class="op">=</span> <span class="va">plan</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span><span class="va">report</span>, style <span class="op">=</span> <span class="st">"paragraph"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code>The literature was searched in Scopus, on the Elsevier Scopus Search API, on a date this record does not carry. The search expression was TITLE-ABS-KEY(graphene supercapacitor), limited to publication years 2015 to 2024. It was partitioned into 10 cells, one per year, each retrieved through the STANDARD view in pages of 200 records, under a paging mode this record does not carry. The search retrieved 138 records. The API's own count of matching records was not recorded, so the harvest cannot be shown to be complete. Of the records retrieved, 127 carry a DOI. No de-duplication step was recorded for this set. The version of scopusflow that produced this set is unrecorded. The PRISMA-S items this record cannot supply, among them peer review of the strategy, grey literature and any other database searched, remain yours to report.</code></pre>
+<pre><code>The literature was searched in Scopus, on the Elsevier Scopus Search API, on a date this record does not carry. The search expression was TITLE-ABS-KEY("graphene supercapacitor"), limited to publication years 2015 to 2024. It was partitioned into 10 cells, one per year, each retrieved through the STANDARD view in pages of 200 records, under a paging mode this record does not carry. The search retrieved 138 records. The API's own count of matching records was not recorded, so the harvest cannot be shown to be complete. Of the records retrieved, 127 carry a DOI. No de-duplication step was recorded for this set. The version of scopusflow that produced this set is unrecorded. The PRISMA-S items this record cannot supply, among them peer review of the strategy, grey literature and any other database searched, remain yours to report.</code></pre>
 </div>
 <div class="section level2">
 <h2 id="handling-failures">Handling failures<a class="anchor" aria-label="anchor" href="#handling-failures"></a>

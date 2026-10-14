@@ -95,15 +95,15 @@ something the Search API alone does not return: a document’s
 author-supplied keywords, and its own reference list. This walks through
 retrieving both, what each costs, and what your ‘Scopus’ entitlement
 needs to cover.</p>
-<p>The API calls below are shown exactly as you would run them with a
-configured key. No key is available when the site and the package are
-built, and Elsevier’s terms do not permit redistributing retrieved
-records in any case, so each call is paired with its output assembled
-offline from one representative example, the 2015 <em>Nature</em> review
-‘Deep learning’. The corpus of real articles that the other articles run
-on carries neither author keywords nor reference lists, the two fields
-this one is about, so it cannot stand in here. The vignette therefore
-renders the same with or without a key, and
+<p>The API calls below are shown as you would run them with a configured
+key, and they are not run here, so no output appears beneath them. No
+key is available when the site and the package are built, and Elsevier’s
+terms do not permit redistributing retrieved records in any case. The
+shapes the calls return are built in view from
+<code>example_records</code>, the corpus of real articles the other
+articles run on. That corpus carries neither author keywords nor
+reference lists, so its records and titles are relabelled into those
+shapes, and the text says each time what stands in for what.
 <code><a href="../reference/scopus_has_key.html">scopus_has_key()</a></code> is the switch you would use to run the
 calls for real.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
@@ -120,15 +120,14 @@ quota, for the same number of records.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">recs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch.html">scopus_fetch</a></span><span class="op">(</span><span class="st">"DOI(10.1038/nature14539)"</span>, view <span class="op">=</span> <span class="st">"COMPLETE"</span><span class="op">)</span></span>
 <span><span class="va">recs</span><span class="op">$</span><span class="va">authkeywords</span></span></code></pre></div>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">recs</span><span class="op">$</span><span class="va">authkeywords</span></span></code></pre></div>
-<pre><code>[1] "deep learning | neural networks | representation learning | backpropagation"</code></pre>
-<p>In development, this field came back <code>NA</code> even on a live,
-otherwise fully-entitled key, for documents that do carry author
-keywords in ‘Scopus’ itself. Those documents do have keywords, so what
-this points to is an entitlement gap specific to this one field. If your
-own keywords come back all <code>NA</code>, it is worth raising with
-your Scopus/Elsevier account contact.</p>
+<p>The column holds one string per record, with the keywords joined by
+<code>" | "</code>, the form the Search API sends. In development, this
+field came back <code>NA</code> even on a live, otherwise fully-entitled
+key, for documents that do carry author keywords in ‘Scopus’ itself.
+Those documents do have keywords, so what this points to is an
+entitlement gap specific to this one field. If your own keywords come
+back all <code>NA</code>, it is worth raising with your Scopus/Elsevier
+account contact.</p>
 </div>
 <div class="section level2">
 <h2 id="references-via-abstract-retrieval">References via Abstract Retrieval<a class="anchor" aria-label="anchor" href="#references-via-abstract-retrieval"></a>
@@ -141,20 +140,48 @@ access. This is a per-document endpoint, so retrieving references for
 against Abstract Retrieval’s own, smaller weekly quota, separate from
 Search’s. Each row of the returned <code>references</code> data frame is
 one cited work.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ab</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_abstract.html">scopus_abstract</a></span><span class="op">(</span></span>
 <span>  <span class="st">"10.1038/nature14539"</span>,</span>
 <span>  view <span class="op">=</span> <span class="st">"FULL"</span>, include <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"references"</span>, <span class="st">"keywords"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">ab</span><span class="op">$</span><span class="va">references</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"title"</span>, <span class="st">"authors"</span>, <span class="st">"source"</span>, <span class="st">"year"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">ab</span><span class="op">$</span><span class="va">references</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"title"</span>, <span class="st">"authors"</span>, <span class="st">"source"</span>, <span class="st">"year"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
+<p><code>include = "keywords"</code> adds an <code>authkeywords</code>
+column, with the keywords joined by <code>"; "</code> as the
+<code>authors</code> column joins names. The <code>references</code>
+list-column holds one data frame per document, with the columns
+<code>position</code>, <code>id</code>, <code>doi</code>,
+<code>title</code>, <code>authors</code>, <code>source</code>,
+<code>year</code> and <code>citedbycount</code>. To show that shape
+offline, the chunk below relabels three bundled records into those
+columns, as though they were works cited by a fourth document. They are
+not the reference list of the document above, or of any other. Under
+<code>FULL</code>, a live result writes each cited work’s authors as
+surname and initials, such as <code>"Doe, A."</code>, joined by
+<code>"; "</code>. These records carry only each paper’s first author,
+written as OpenAlex gives the name. <code>id</code> holds a cited work’s
+‘Scopus’ identifier, absent from the bundled records, and
+<code>citedbycount</code> is <code>NA</code> under <code>FULL</code>, so
+both are left <code>NA</code>.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cited</span> <span class="op">&lt;-</span> <span class="va">example_records</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="op">]</span></span>
+<span><span class="va">refs</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
+<span>  position <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">cited</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  id <span class="op">=</span> <span class="cn">NA_character_</span>,</span>
+<span>  doi <span class="op">=</span> <span class="va">cited</span><span class="op">$</span><span class="va">doi</span>,</span>
+<span>  title <span class="op">=</span> <span class="va">cited</span><span class="op">$</span><span class="va">title</span>,</span>
+<span>  authors <span class="op">=</span> <span class="va">cited</span><span class="op">$</span><span class="va">authors</span>,</span>
+<span>  source <span class="op">=</span> <span class="va">cited</span><span class="op">$</span><span class="va">publication</span>,</span>
+<span>  year <span class="op">=</span> <span class="va">cited</span><span class="op">$</span><span class="va">year</span>,</span>
+<span>  citedbycount <span class="op">=</span> <span class="cn">NA_integer_</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">refs</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"title"</span>, <span class="st">"authors"</span>, <span class="st">"source"</span>, <span class="st">"year"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
 <table class="table">
 <colgroup>
-<col width="39%">
-<col width="26%">
-<col width="30%">
-<col width="3%">
+<col width="61%">
+<col width="6%">
+<col width="29%">
+<col width="2%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">title</th>
@@ -164,32 +191,27 @@ one cited work.</p>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left">Gradient-based learning applied to document
-recognition</td>
-<td align="left">LeCun Y.; Bottou L.; Bengio Y.; Haffner P.</td>
-<td align="left">Proceedings of the IEEE</td>
-<td align="right">1998</td>
+<td align="left">Enhanced Capacitive Properties of All-solid-state
+Symmetric Graphene Supercapacitors by Incorporating Nitrogen-doping and
+SnO2 Nanoparticles</td>
+<td align="left">Jianhua Yu</td>
+<td align="left">Journal of Inorganic Materials</td>
+<td align="right">2015</td>
 </tr>
 <tr class="even">
-<td align="left">Human-level control through deep reinforcement
-learning</td>
-<td align="left">Mnih V.; Kavukcuoglu K.; Silver D.</td>
-<td align="left">Nature</td>
+<td align="left">Fabrication and Characterization of a
+Vertically-Oriented Graphene Supercapacitor</td>
+<td align="left">Patrick R Rice</td>
+<td align="left">DigitalCommons - CalPoly (California State Polytechnic
+University)</td>
 <td align="right">2015</td>
 </tr>
 <tr class="odd">
-<td align="left">ImageNet classification with deep convolutional neural
-networks</td>
-<td align="left">Krizhevsky A.; Sutskever I.; Hinton G.</td>
-<td align="left">Advances in Neural Information Processing Systems</td>
-<td align="right">2012</td>
-</tr>
-<tr class="even">
-<td align="left">Learning representations by back-propagating
-errors</td>
-<td align="left">Rumelhart D.; Hinton G.; Williams R.</td>
-<td align="left">Nature</td>
-<td align="right">1986</td>
+<td align="left">Flexible and Stackable Laser-Induced Graphene
+Supercapacitors</td>
+<td align="left">Zhiwei Peng</td>
+<td align="left">ACS Applied Materials &amp; Interfaces</td>
+<td align="right">2015</td>
 </tr>
 </tbody>
 </table>
@@ -205,12 +227,9 @@ count, so a partial list never arrives unannounced.</p>
 <p>The number of requests spent and the remaining Abstract Retrieval
 quota are attached as attributes, since this endpoint draws on a
 separate, smaller quota that is easy to exhaust unnoticed.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">ab</span>, <span class="st">"n_requests"</span><span class="op">)</span>        <span class="co"># requests spent so far</span></span></code></pre></div>
-<pre><code>[1] 1</code></pre>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">ab</span>, <span class="st">"quota"</span><span class="op">)</span><span class="op">$</span><span class="va">remaining</span>   <span class="co"># Abstract Retrieval quota left</span></span></code></pre></div>
-<pre><code>[1] 24999</code></pre>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">ab</span>, <span class="st">"n_requests"</span><span class="op">)</span>        <span class="co"># requests spent so far</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">ab</span>, <span class="st">"quota"</span><span class="op">)</span><span class="op">$</span><span class="va">remaining</span>   <span class="co"># Abstract Retrieval quota left</span></span></code></pre></div>
 <p>A key or subscription tier that does not cover the requested view
 raises a <code>scopus_error_forbidden</code> condition that names the
 view, where a generic HTTP failure would leave you guessing. It stops
@@ -219,7 +238,7 @@ the same refusal would only recur on every remaining identifier.</p>
 <p>For more than a handful of identifiers, pass <code>cache_dir</code>
 so an interrupted or quota-limited batch resumes without re-spending
 quota already spent.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ab</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_abstract.html">scopus_abstract</a></span><span class="op">(</span></span>
 <span>  <span class="va">dois</span>, view <span class="op">=</span> <span class="st">"FULL"</span>, include <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"references"</span>, <span class="st">"keywords"</span><span class="op">)</span>,</span>
 <span>  cache_dir <span class="op">=</span> <span class="st">"abstract-cache"</span></span>
@@ -237,31 +256,117 @@ list-column of data frames), where bibliometrix would give you
 semicolon-joined citation strings. It does not replace
 [<code><a href="../reference/as_bibliometrix.html">as_bibliometrix()</a></code>], which keeps its own field-mapping
 convention for users who want that.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">recs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch.html">scopus_fetch</a></span><span class="op">(</span><span class="st">"DOI(10.1038/nature14539)"</span>, max_results <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">corpus</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_corpus.html">scopus_corpus</a></span><span class="op">(</span><span class="va">recs</span>, view <span class="op">=</span> <span class="st">"FULL"</span><span class="op">)</span></span>
 <span><span class="va">corpus</span><span class="op">$</span><span class="va">keywords</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">corpus</span><span class="op">$</span><span class="va">references</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">corpus</span><span class="op">$</span><span class="va">keywords</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span></code></pre></div>
-<pre><code>[1] "deep learning"           "neural networks"        
-[3] "representation learning" "backpropagation"        </code></pre>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">corpus</span><span class="op">$</span><span class="va">references</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
-<pre><code>[1] 4</code></pre>
-<p>The keywords list-column is ready for the co-occurrence analysis this
-article is named for, unnested and tallied into a per-keyword document
-count across the corpus.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">corpus</span><span class="op">$</span><span class="va">keywords</span><span class="op">)</span><span class="op">)</span>, decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<pre><code>
-        backpropagation           deep learning         neural networks 
-                      1                       1                       1 
-representation learning 
-                      1 </code></pre>
 <p>This costs one Abstract Retrieval request per record in
 <code>recs</code>, on top of whatever retrieved <code>recs</code> in the
-first place.</p>
+first place. The <code>keywords</code> column, split from the joined
+<code>authkeywords</code> string, holds a character vector per record,
+which is the shape co-occurrence analysis wants. Counting every
+unordered pair of keywords within each document gives the co-occurrence
+table the article opened on, and base R is enough for it.</p>
+<p>Author keywords are one of the fields that cannot travel with the
+package. The corpus below stands them in from each bundled record’s own
+title, keeping a fixed vocabulary of terms and recording those a title
+mentions. That is a cruder signal than a real keyword list, but the
+counting is identical and it runs over 138 published titles.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">vocabulary</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"graphene"</span>, <span class="st">"supercapacitor"</span>, <span class="st">"electrode"</span>, <span class="st">"energy storage"</span>,</span>
+<span>                <span class="st">"flexible"</span>, <span class="st">"electrochemical"</span><span class="op">)</span></span>
+<span><span class="va">corpus</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
+<span>  id <span class="op">=</span> <span class="va">example_records</span><span class="op">$</span><span class="va">doi</span>,</span>
+<span>  title <span class="op">=</span> <span class="va">example_records</span><span class="op">$</span><span class="va">title</span>,</span>
+<span>  year <span class="op">=</span> <span class="va">example_records</span><span class="op">$</span><span class="va">year</span>,</span>
+<span>  keywords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/chartr.html" class="external-link">tolower</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">$</span><span class="va">title</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">title</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">vocabulary</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="va">vocabulary</span>, <span class="va">grepl</span>, <span class="fu"><a href="https://rdrr.io/r/base/logical.html" class="external-link">logical</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>, x <span class="op">=</span> <span class="va">title</span>, fixed <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">]</span></span>
+<span>  <span class="op">}</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">several</span> <span class="op">&lt;-</span> <span class="va">corpus</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/lengths.html" class="external-link">lengths</a></span><span class="op">(</span><span class="va">corpus</span><span class="op">$</span><span class="va">keywords</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">1L</span>, <span class="op">]</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  title <span class="op">=</span> <span class="va">several</span><span class="op">$</span><span class="va">title</span>,</span>
+<span>  keywords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply</a></span><span class="op">(</span><span class="va">several</span><span class="op">$</span><span class="va">keywords</span>, <span class="va">paste</span>, <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>, collapse <span class="op">=</span> <span class="st">"; "</span><span class="op">)</span></span>
+<span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<colgroup>
+<col width="80%">
+<col width="19%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">title</th>
+<th align="left">keywords</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Enhanced Capacitive Properties of All-solid-state
+Symmetric Graphene Supercapacitors by Incorporating Nitrogen-doping and
+SnO2 Nanoparticles</td>
+<td align="left">graphene; supercapacitor</td>
+</tr>
+<tr class="even">
+<td align="left">Fabrication and Characterization of a
+Vertically-Oriented Graphene Supercapacitor</td>
+<td align="left">graphene; supercapacitor</td>
+</tr>
+<tr class="odd">
+<td align="left">Flexible and Stackable Laser-Induced Graphene
+Supercapacitors</td>
+<td align="left">graphene; supercapacitor; flexible</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Each unordered pair once per document, sorted in byte order, so the pairs and</span></span>
+<span><span class="co"># the order of tied counts do not depend on the locale.</span></span>
+<span><span class="va">pairs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">corpus</span><span class="op">$</span><span class="va">keywords</span>, <span class="kw">function</span><span class="op">(</span><span class="va">keywords</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">keywords</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">2L</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="cn">NULL</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu">utils</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/utils/combn.html" class="external-link">combn</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="va">keywords</span>, method <span class="op">=</span> <span class="st">"radix"</span><span class="op">)</span>, <span class="fl">2L</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">cooc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">pairs</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, <span class="va">pairs</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span><span class="op">)</span>, stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">cooc</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"keyword A"</span>, <span class="st">"keyword B"</span>, <span class="st">"documents"</span><span class="op">)</span></span>
+<span><span class="va">cooc</span> <span class="op">&lt;-</span> <span class="va">cooc</span><span class="op">[</span><span class="va">cooc</span><span class="op">$</span><span class="va">documents</span> <span class="op">&gt;</span> <span class="fl">0L</span>, <span class="op">]</span></span>
+<span><span class="va">cooc</span> <span class="op">&lt;-</span> <span class="va">cooc</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="op">-</span><span class="va">cooc</span><span class="op">$</span><span class="va">documents</span>, <span class="va">cooc</span><span class="op">[[</span><span class="st">"keyword A"</span><span class="op">]</span><span class="op">]</span>, <span class="va">cooc</span><span class="op">[[</span><span class="st">"keyword B"</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>                   method <span class="op">=</span> <span class="st">"radix"</span><span class="op">)</span>, <span class="op">]</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">cooc</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="cn">NULL</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">cooc</span>, <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<thead><tr class="header">
+<th align="left">keyword A</th>
+<th align="left">keyword B</th>
+<th align="right">documents</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">graphene</td>
+<td align="left">supercapacitor</td>
+<td align="right">105</td>
+</tr>
+<tr class="even">
+<td align="left">electrode</td>
+<td align="left">supercapacitor</td>
+<td align="right">23</td>
+</tr>
+<tr class="odd">
+<td align="left">electrode</td>
+<td align="left">graphene</td>
+<td align="right">22</td>
+</tr>
+<tr class="even">
+<td align="left">flexible</td>
+<td align="left">supercapacitor</td>
+<td align="right">18</td>
+</tr>
+<tr class="odd">
+<td align="left">flexible</td>
+<td align="left">graphene</td>
+<td align="right">17</td>
+</tr>
+</tbody>
+</table>
+<p>Each row is one pair of keywords and the number of documents carrying
+both, which is the edge list a co-occurrence network is built from.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

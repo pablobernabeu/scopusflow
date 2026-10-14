@@ -21,7 +21,12 @@ as.data.frame(x, ...)
 # S3 method for class 'scopus_records'
 autoplot(object, ...)
 
-scopus_records(x, query = NA_character_, view = NULL)
+scopus_records(
+  x,
+  query = NA_character_,
+  view = NULL,
+  fields = c("core", "extended")
+)
 
 is_scopus_records(x)
 ```
@@ -58,6 +63,19 @@ is_scopus_records(x)
   [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
   pass this through automatically.
 
+- fields:
+
+  `"core"` (the default) builds the columns listed under *Value*,
+  exactly as before. `"extended"` also keeps the document type, source
+  type, volume, issue, pages, ISSN, PubMed identifier and open-access
+  status the Search API sends with every record, and under
+  `view = "COMPLETE"` the abstract, at no extra quota (see *Extended
+  fields*).
+  [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
+  and
+  [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
+  pass this through.
+
 ## Value
 
 The coercion methods return a plain
@@ -66,7 +84,9 @@ frame with the same columns and the `scopus_records` class removed.
 
 The `autoplot()` method returns a
 [ggplot2::ggplot](https://ggplot2.tidyverse.org/reference/ggplot.html)
-of the records per year.
+of the records per year. When a `max_results` cap stopped any cell of
+the retrieval, a caption says that the bars count records retrieved, not
+publications per year.
 
 A tibble of class `scopus_records` with the columns `entry_number`
 (integer), `scopus_id` (character), `doi` (character), `title`
@@ -80,7 +100,17 @@ with the same columns. When `view = "COMPLETE"`, an `authkeywords`
 column is added: the author-supplied keywords the 'Scopus' Search API
 returns under that view, as a single string in 'Scopus' own
 `" | "`-delimited form (`NA` when the document has none, or when the API
-omits the field for a given key's entitlement; see *Details*).
+omits the field for a given key's entitlement; see *Details*). With
+`fields = "extended"`, the character columns `doc_type`,
+`doc_type_description`, `source_type`, `volume`, `issue`, `pages`,
+`issn` and `pubmed_id` follow, then the integer `open_access` and, under
+`view = "COMPLETE"`, the character `abstract`. `doc_type` and
+`doc_type_description` hold the document-type code and name 'Scopus'
+gives the record, such as `"ar"` and `"Article"`, and `source_type`
+holds the source type, such as `"Journal"`. `issn` is the print ISSN as
+'Scopus' writes it, without the hyphen, kept as text so its leading
+zeros survive. `open_access` is the open-access status code (see
+*Extended fields*).
 
 `is_scopus_records()` returns a length-one logical.
 
@@ -130,6 +160,60 @@ keywords come back all `NA`, the field is most likely gated by your
 account's entitlement rather than genuinely absent, and is worth raising
 with your 'Scopus'/Elsevier account contact.
 
+## Extended fields
+
+Elsevier's [Search views
+table](https://dev.elsevier.com/sc_search_views.html) lists every field
+`fields = "extended"` reads under both views, except the abstract
+(`dc:description`), which only the `COMPLETE` view carries. They arrive
+in the responses a retrieval already pays for, so they cost no extra
+quota. A `COMPLETE` harvest returns up to 25 abstracts with each
+request, while
+[`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+spends one request per record from the separate Abstract Retrieval
+quota.
+
+`doc_type` holds the code the `DOCTYPE()` search field takes. Elsevier's
+[search tips](https://dev.elsevier.com/sc_search_tips.html) list the
+codes with their names: `ar` for an article, `re` a review, `cp` a
+conference paper, `er` an erratum and others. A retracted item carries
+`tb`, which that list leaves out. The 'Scopus' Content Coverage Guide
+(section 3.1) defines an erratum as a report of an error, correction or
+retraction of a previously published paper, so `er` covers retraction
+notices as well as corrections. The guide gives an article the type
+Retracted once a retraction notice for it is published. These codes are
+the labels 'Scopus' assigns, and they do not screen a set for
+retractions, since 'Scopus' does not label every retracted item (Ortega
+and Delgado-Quirós, 2024). Check a set against the [Retraction Watch
+database](https://www.crossref.org/documentation/retrieve-metadata/retraction-watch/),
+which Crossref makes openly available, before relying on it.
+[summary()](https://pablobernabeu.github.io/scopusflow/reference/summary.scopus_records.md)
+reports how many records 'Scopus' labels `er` and `tb`. Errata can also
+be left out of the search itself with `AND NOT DOCTYPE(er)`, joined by
+[`scopus_query()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_query.md),
+which brackets the rest of the query first, since 'Scopus' applies AND
+NOT last (see *Examples*).
+
+`open_access` holds the code 'Scopus' sends in its `openaccess` field.
+Elsevier's Scopus APIs Getting Started Guide (section 17) illustrates
+its values with 0 for a record that is not open access, 1 for gold and 2
+for green. The column therefore holds a status code, which can take
+values other than 0 and 1.
+
+## References
+
+Elsevier. (2023). *Scopus APIs getting started guide* (Version 1).
+<https://dev.elsevier.com/guides/Scopus%20API%20Guide_V1_20230907.pdf>
+
+Elsevier. (2023). *Scopus content coverage guide*.
+<https://supportcontent.elsevier.com/Support%20Hub/Scopus/Scopus_ContentCoverage_Guide_WEB.pdf>
+
+Ortega, J. L., & Delgado-Quirós, L. (2024). The indexation of retracted
+literature in seven principal scholarly databases: A coverage comparison
+of Dimensions, OpenAlex, PubMed, Scilit, Scopus, The Lens and Web of
+Science. *Scientometrics*, *129*(7), 3769–3785.
+[doi:10.1007/s11192-024-05034-y](https://doi.org/10.1007/s11192-024-05034-y)
+
 ## Examples
 
 ``` r
@@ -148,9 +232,9 @@ raw <- list(entry = list(
     `citedby-count` = "469"
   )
 ))
-scopus_records(raw, query = "TITLE-ABS-KEY(graphene supercapacitor)")
+scopus_records(raw, query = 'TITLE-ABS-KEY("graphene supercapacitor")')
 #> <scopus_records> 1 record
-#> query: "TITLE-ABS-KEY(graphene supercapacitor)"
+#> query: "TITLE-ABS-KEY(\"graphene supercapacitor\")"
 #> # A tibble: 1 × 9
 #>   entry_number scopus_id doi     title authors  year date  publication citations
 #>          <int> <chr>     <chr>   <chr> <chr>   <int> <chr> <chr>           <int>
@@ -173,6 +257,36 @@ scopus_records(raw_complete, view = "COMPLETE")
 #>          <int> <chr>     <chr>   <chr> <chr>   <int> <chr> <chr>           <int>
 #> 1            1 NA        10.102… Flex… NA         NA NA    NA                 NA
 #> # ℹ 2 more variables: query <chr>, authkeywords <chr>
+
+# fields = "extended" keeps the fields both views send beyond the core ones.
+# The volume, issue, pages and print ISSN below are the article's own. The
+# document type and source type are illustrative, since the bundled corpus
+# came from OpenAlex and records no 'Scopus' labels.
+raw_extended <- list(entry = list(
+  list(
+    `prism:doi` = "10.1021/am509065d",
+    `dc:title` = "Flexible and Stackable Laser-Induced Graphene Supercapacitors",
+    subtype = "ar",
+    subtypeDescription = "Article",
+    `prism:aggregationType` = "Journal",
+    `prism:volume` = "7",
+    `prism:issueIdentifier` = "5",
+    `prism:pageRange` = "3414-3419",
+    `prism:issn` = "19448244"
+  )
+))
+extended <- scopus_records(raw_extended, fields = "extended")
+as.data.frame(extended)[, c("doc_type", "volume", "issue", "pages", "issn")]
+#>   doc_type volume issue     pages     issn
+#> 1       ar      7     5 3414-3419 19448244
+
+# Errata can be left out of the search itself. scopus_query() brackets the
+# rest of the query, since 'Scopus' applies AND NOT last.
+scopus_query(
+  scopus_query("graphene", "graphite", .op = "OR", .field = "TITLE-ABS-KEY"),
+  "DOCTYPE(er)", .op = "AND NOT"
+)
+#> [1] "(TITLE-ABS-KEY(graphene) OR TITLE-ABS-KEY(graphite)) AND NOT DOCTYPE(er)"
 
 # An object already in this schema is returned unchanged.
 identical(scopus_records(example_records), example_records)

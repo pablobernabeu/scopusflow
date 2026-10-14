@@ -145,22 +145,26 @@ needs the API.
 
 ``` r
 
-tr <- scopus_trend("graphene supercapacitor", years = 2015:2024,
+tr <- scopus_trend('"graphene supercapacitor"', years = 2015:2024,
                    field = "TITLE-ABS-KEY")
 plot_scopus_trend(tr)
 ```
 
 The offline equivalent costs no requests at all. A complete harvest
-already contains its own yearly counts, so tallying the records by year
-gives what a count per year would have returned, in the shape
+already contains its own yearly counts, and the bundled corpus is a
+complete harvest of OpenAlex’s exact-phrase search for the same phrase.
+Tallying its records by year therefore gives the yearly counts of that
+search, in the shape
 [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md)
-returns it.
+returns. A Scopus count would give different figures, since the two
+databases do not index the same records and the Scopus query also
+searches keywords and every document type.
 
 ``` r
 
 by_year <- table(records$year)
 tr <- tibble::tibble(
-  query = "TITLE-ABS-KEY(graphene supercapacitor)",
+  query = 'TITLE-ABS-KEY("graphene supercapacitor")',
   year  = as.integer(names(by_year)),
   n     = as.numeric(by_year)
 )
@@ -168,18 +172,18 @@ class(tr) <- c("scopus_trend", class(tr))
 tr
 ```
 
-| query                                  | year |   n |
-|:---------------------------------------|-----:|----:|
-| TITLE-ABS-KEY(graphene supercapacitor) | 2015 |  15 |
-| TITLE-ABS-KEY(graphene supercapacitor) | 2016 |   9 |
-| TITLE-ABS-KEY(graphene supercapacitor) | 2017 |  10 |
-| TITLE-ABS-KEY(graphene supercapacitor) | 2018 |  15 |
-| TITLE-ABS-KEY(graphene supercapacitor) | 2019 |  19 |
-| TITLE-ABS-KEY(graphene supercapacitor) | 2020 |  13 |
-| TITLE-ABS-KEY(graphene supercapacitor) | 2021 |  13 |
-| TITLE-ABS-KEY(graphene supercapacitor) | 2022 |  15 |
-| TITLE-ABS-KEY(graphene supercapacitor) | 2023 |  15 |
-| TITLE-ABS-KEY(graphene supercapacitor) | 2024 |  14 |
+| query                                    | year |   n |
+|:-----------------------------------------|-----:|----:|
+| TITLE-ABS-KEY("graphene supercapacitor") | 2015 |  15 |
+| TITLE-ABS-KEY("graphene supercapacitor") | 2016 |   9 |
+| TITLE-ABS-KEY("graphene supercapacitor") | 2017 |  10 |
+| TITLE-ABS-KEY("graphene supercapacitor") | 2018 |  15 |
+| TITLE-ABS-KEY("graphene supercapacitor") | 2019 |  19 |
+| TITLE-ABS-KEY("graphene supercapacitor") | 2020 |  13 |
+| TITLE-ABS-KEY("graphene supercapacitor") | 2021 |  13 |
+| TITLE-ABS-KEY("graphene supercapacitor") | 2022 |  15 |
+| TITLE-ABS-KEY("graphene supercapacitor") | 2023 |  15 |
+| TITLE-ABS-KEY("graphene supercapacitor") | 2024 |  14 |
 
 ``` r
 
@@ -198,10 +202,12 @@ can find out for a query whose records you never download. The caption
 is the function’s own attribution, since a `scopus_trend` object
 ordinarily comes from the Search API, whereas this one was tallied from
 the bundled stand-in. The curve itself is flat because the query is a
-narrow phrase, some fifteen papers a year over a decade. A broader
-query, ‘graphene’ on its own, would show the steep growth the field is
-better known for, on a scale that runs into the offset ceiling discussed
-below.
+narrow phrase, some fifteen papers a year over a decade. The quotation
+marks keep it narrow, since Scopus joins the words of an unquoted phrase
+with AND, and in OpenAlex the two words unquoted match about a hundred
+times as many records. A broader query, ‘graphene’ on its own, would
+show the steep growth the field is better known for, on a scale that
+runs into the offset ceiling discussed below.
 
 ## Where a niche sits
 
@@ -348,4 +354,5 @@ plans and quota-aware retrieval* article. A plan keeps each cell under
 the ceiling and preserves relevance order, whereas `cursor = TRUE`
 harvests the whole set in a single pass. Reach for the plan when you
 want cached, resumable cells and the cursor when you want the complete
-set at once.
+set at once. `scopus_fetch_plan(plan, cursor = TRUE)` gives both, at the
+cost of the deep-paging order.

@@ -47,13 +47,12 @@ and is not affiliated with or endorsed by Elsevier.
 ## Versioning and archival
 
 CRAN assigned the package the DOI
-[10.32614/CRAN.package.scopusflow](https://doi.org/10.32614/CRAN.package.scopusflow)
-on publication. It names the package across all its versions, so the
-version in the citation identifies the release used. Releases are also
-tagged on GitHub and archived on Zenodo, where the concept DOI
-[10.5281/zenodo.21252669](https://doi.org/10.5281/zenodo.21252669)
-resolves to the latest archived release and each release has a DOI of
-its own. The
+<https://doi.org/10.32614/CRAN.package.scopusflow> on publication. It
+names the package across all its versions, so the version in the
+citation identifies the release used. Releases are also tagged on GitHub
+and archived on Zenodo, where the concept DOI
+<https://doi.org/10.5281/zenodo.21252669> resolves to the latest
+archived release and each release has a DOI of its own. The
 [changelog](https://pablobernabeu.github.io/scopusflow/news/index.html)
 records what changed in each release.
 

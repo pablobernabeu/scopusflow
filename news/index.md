@@ -2,6 +2,43 @@
 
 ## scopusflow (development version)
 
+### New features
+
+- [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
+  gains `cursor`, so a plan cell matching more than 5000 records can be
+  retrieved whole and still be checkpointed. The default,
+  `cursor = FALSE`, keeps the offset paging plans have always used.
+  Checkpoints now record the paging mode and serve only a request in the
+  same mode, and one written before the mode was recorded counts as
+  offset-paged. A checkpoint in the other mode is refetched with a
+  warning that names both modes. Inside a plan, the warning for a cell
+  that stops at the offset ceiling now names
+  `scopus_fetch_plan(plan, cursor = TRUE)`. It used to advise
+  partitioning by year, which a year-partitioned plan already does. The
+  search record’s reproduction snippet passes `cursor = TRUE` when the
+  records were paged by cursor. The Python twin’s `fetch_plan()` gains
+  `cursor` too, and keeps the cursor paging it has always used unless
+  given `cursor=False`.
+- [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md),
+  [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
+  and
+  [`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
+  gain `fields = "extended"`, adding the document type, source type,
+  volume, issue, pages, ISSN, PubMed identifier and open-access status
+  the Search API already returns, and the abstract under the `COMPLETE`
+  view, at no extra quota.
+  [`summary()`](https://rdrr.io/r/base/summary.html) reports how many
+  records ‘Scopus’ labels errata or retracted, and the help pages
+  explain why those labels do not screen a set for retractions.
+  Checkpoints record their fields. An extended checkpoint serves a core
+  request with the extra columns dropped. A core checkpoint is a miss
+  for an extended request and is refetched with a warning.
+  [`read_scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_records.md)
+  keeps the extended columns of a `.csv` file, as text apart from the
+  integer `open_access`, so an ISSN keeps its leading zeros. The
+  default, `fields = "core"`, returns the columns it always has. The
+  Python twin’s `fetch_plan()` and `to_records()` gain `fields` too.
+
 ### Changed behaviour
 
 - Input errors now inherit `scopus_error`, as the package has always
@@ -63,6 +100,14 @@
 
 ### Bug fixes
 
+- The app’s search record no longer gives the bundled corpus’s own
+  phrase as the search expression of a demo harvest, in a methods
+  paragraph written to be pasted into a manuscript. In demo mode the
+  record now names no expression, and it opens by saying that the
+  records were replayed and that it describes no search that was run.
+  Where the records came from is fixed when the harvest starts, so
+  switching Demo mode afterwards does not change the record. The Python
+  app does the same.
 - The app’s Check size button no longer closes the session on a blank
   query. The handler caught `scopus_error` alone, so the input error
   escaped it and Shiny ended the session. Check size and Fetch now
@@ -156,16 +201,110 @@
   [`scopus_quota()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_quota.md)
   documents `reset` as the time the key’s quota resets, not a rate-limit
   window.
+- The search record dated a harvest by its earliest cell, although
+  PRISMA-S item 13 asks for the date of the last search. Retrievals now
+  carry `retrieved_until` beside `retrieved_at`. For the harvest of a
+  plan, or a set from
+  [`scopus_combine()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md),
+  it holds the latest of its parts’ times, as `retrieved_at` holds the
+  earliest. A search run over several sessions, or a baseline merged
+  with its update, is now dated from its first retrieval to its last,
+  item 13 gives the date of the last search, and the methods paragraph
+  says the literature was searched between the two dates. Stamps on one
+  UTC day give the single date they always gave.
+- A set without a plan no longer says “no year limit” when its limit is
+  only unrecorded, and no longer lists item 8 of PRISMA-S as supplied.
+  [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
+  now attaches the one-cell plan it ran, so its record states the field
+  tag and the years. A one-cell plan supplied for a set without per-cell
+  counts keeps the set’s own counts, which the record used to call
+  unrecorded. Year cells with gaps between them are listed, as in “2015,
+  2020 and 2025”, where the record gave one span that claimed the years
+  between. Item 2, on databases searched together on one platform, is
+  now supplied, since the API searches Scopus alone.
+- A harvest capped by `max_results` is now recorded as capped: the
+  search record names the cap in the cells, the completeness line and
+  item 9, the reproduction snippet passes it, and `autoplot()` says the
+  bars count retrieved records. The app no longer caps live harvests at
+  200 records per year by default. Its field, now labelled “Max records
+  per cell”, starts blank, and a note in the Retrieval panel says when
+  the cap stopped a cell.
+  [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
+  and
+  [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
+  keep a finite cap as the `max_results` attribute, which the record
+  reads.
+- Closing one tab of the app deleted every other tab’s checkpoints
+  mid-harvest, because the app kept its checkpoints by search alone and
+  each session’s end removed the directory all sessions shared. Each
+  session now keeps them in a temporary directory of its own, removed
+  when that session ends, and a search fetched again in the same tab,
+  after Cancel or a failure, resumes from them. The app article no
+  longer promises that a quota-limited run picks up where it left off,
+  which the temporary directory never allowed across sessions, and
+  points to the generated script for a harvest that has to outlast the
+  session.
+- The script the app writes passed
+  [`scopus_cache_dir()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_dir.md)
+  itself to every plan, so one plan’s checkpoints overwrote another’s
+  and each rerun paid for them again. It now keeps each plan’s
+  checkpoints in a directory of their own under
+  [`scopus_cache_dir()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_dir.md),
+  named from the query and the years with a short hash added. The script
+  opens with the scopusflow version that wrote it, notes when demo mode
+  was on, saves the records before it plots and plots only where ggplot2
+  is installed. A comparison run with Partition by year off, which
+  covers the last six years, was left out of the script and is now
+  written over those years. The README and the articles likewise give
+  each plan a directory of its own under
+  [`scopus_cache_dir()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_dir.md).
+- The request count of a topic comparison was understated in the help
+  for
+  [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md),
+  the app, the generated script and two articles. It is (terms + 1) ×
+  years, since the reference is counted in every year too, so the app’s
+  default of two terms over six years makes 18 requests, where its note
+  said 12. The app’s advice to use fewer terms or years now applies
+  above 80 requests counted this way.
+- The app’s Records tab now says how many records the harvest holds and
+  that its table shows the first 25 of them. A failed harvest is
+  reported in the worker’s own words, where the notification opened with
+  the “in callr subprocess” wrapper of the background process, and an
+  error raised by scopusflow is marked “Scopus:”, as the other panels
+  mark theirs. The year slider opens on 2015 to 2024, the span of the
+  bundled corpus that demo mode replays, as the Python app’s slider
+  does. The app reads that corpus as
+  [`scopusflow::example_records`](https://pablobernabeu.github.io/scopusflow/reference/example_records.md),
+  so demo mode works when the app is launched as
+  [`scopusflow::run_app()`](https://pablobernabeu.github.io/scopusflow/reference/run_app.md)
+  without attaching the package, where Check size and Fetch records
+  failed with “object ‘example_records’ not found”.
 
 ### Documentation
 
+- The help for
+  [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md),
+  [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md),
+  [`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md)
+  and
+  [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md)
+  now says how `years` is sent. These functions, and a plan with
+  `partition = "none"`, send one inclusive range from the earliest year
+  to the latest, so `c(2015, 2020)` covers every year from 2015 to 2020.
+  [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md),
+  [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
+  and a plan with `partition = "year"` take each listed year.
 - `citation("scopusflow")`, the website and `CITATION.cff` give the DOI
-  that CRAN assigned to the package, 10.32614/CRAN.package.scopusflow,
-  in place of the Zenodo concept DOI. It names the R package across all
-  its versions, and it is the DOI that the CRAN page and the citation R
-  generates for a CRAN package already gave, so the package no longer
-  circulates under two. Zenodo still archives every GitHub release, and
-  `CITATION.cff` lists both identifiers.
+  that CRAN assigned to the package,
+  <https://doi.org/10.32614/CRAN.package.scopusflow>, in place of the
+  Zenodo concept DOI. It names the R package across all its versions,
+  and it is the DOI that the CRAN page and the citation R generates for
+  a CRAN package already gave, so the package no longer circulates under
+  two. Zenodo still archives every GitHub release, and `CITATION.cff`
+  lists both identifiers. The CRAN DOI and the Zenodo DOI are shown as
+  full links on the website and in the README, and the sidebar of the
+  home page shows the CRAN DOI once: the DOI badge in the README no
+  longer appears there a second time.
 - The README no longer names the version CRAN carries. The README inside
   the 0.4.0 tarball said CRAN carried 0.1.0, because the figure was
   typed by hand and a README is built before CRAN accepts a submission.
@@ -187,6 +326,27 @@
   records known to be relevant, with two searches per chain of DOIs
   (Sampson et al., 2006; Bramer et al., 2018). The recipe contacts the
   API and is not run in the article.
+- The worked examples no longer present
+  `TITLE-ABS-KEY(graphene supercapacitor)` as the search behind the
+  bundled corpus. The corpus came from OpenAlex’s exact-phrase search
+  for “graphene supercapacitor” in titles and abstracts, limited to
+  journal articles. ‘Scopus’ joins the words of an unquoted phrase with
+  AND, so that query is far broader, and in OpenAlex the unquoted words
+  match about a hundred times as many records. The demonstration plan
+  and the live searches shown beside the corpus now quote the phrase,
+  and the help for `example_records` names the query the examples send.
+  The tracking article says that a live comparison needs a baseline of
+  your own, since the bundled one came from OpenAlex. The PRISMA-S
+  demonstrations label their hand-set attributes, the reported totals
+  among them, as illustrative and say that the paragraph they print
+  describes no search that was run.
+- The keywords-and-references article no longer prints invented author
+  keywords, four references for a paper that cites 103 works, authors in
+  a form the parser never writes and an invented quota beneath real
+  calls on a real DOI. The calls are shown without output, the shapes
+  they return are built in view from `example_records`, and keyword
+  stand-ins drawn from its 138 titles are counted in pairs, as in the
+  Python guide.
 
 ## scopusflow 0.4.0
 

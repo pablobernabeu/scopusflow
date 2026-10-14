@@ -67,6 +67,60 @@ as.data.frame(example_records)[1:3, c("title", "year")]
 | Fabrication and Characterization of a Vertically-Oriented Graphene Supercapacitor | 2015 |
 | Flexible and Stackable Laser-Induced Graphene Supercapacitors | 2015 |
 
+## Document types, errata and retractions
+
+A harvest can keep more than the columns above. With
+`fields = "extended"`,
+[`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
+and
+[`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
+also keep the document type, source type, volume, issue, pages, ISSN,
+PubMed identifier and open-access status the Search API sends with every
+record. Under the `COMPLETE` view, they keep the abstract too. These
+fields arrive in the responses the harvest already pays for, so they
+cost no extra quota. The bundled corpus came from OpenAlex and carries
+none of them, so this step is shown but not run.
+
+``` r
+
+plan <- scopus_plan('"graphene supercapacitor"', years = 2015:2024,
+                    field = "TITLE-ABS-KEY", partition = "year")
+records <- scopus_fetch_plan(plan, fields = "extended")
+summary(records)
+articles <- records[records$doc_type %in% c("ar", "re"), ]
+```
+
+`doc_type` holds the code ‘Scopus’ gives a record’s document type, such
+as `ar` for an article, `re` a review or `cp` a conference paper. For a
+set retrieved this way,
+[`summary()`](https://rdrr.io/r/base/summary.html) also counts the
+document types and reports how many records ‘Scopus’ labels errata
+(`er`) or retracted (`tb`). In ‘Scopus’, an erratum covers retraction
+notices as well as corrections. Such labels do not screen a set for
+retractions, since ‘Scopus’ does not label every retracted item ([Ortega
+& Delgado-Quirós, 2024](https://doi.org/10.1007/s11192-024-05034-y)). A
+review should still check its included records against the [Retraction
+Watch
+database](https://www.crossref.org/documentation/retrieve-metadata/retraction-watch/).
+
+Errata can also be left out of the search itself.
+[`scopus_query()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_query.md)
+brackets the rest of the query before it adds `AND NOT DOCTYPE(er)`, so
+the exclusion applies to the whole of it under either operator order
+that
+[`vignette("designing-queries")`](https://pablobernabeu.github.io/scopusflow/articles/designing-queries.md)
+describes.
+
+``` r
+
+scopus_query(
+  scopus_query("graphene", "graphite", .op = "OR", .field = "TITLE-ABS-KEY"),
+  "DOCTYPE(er)", .op = "AND NOT"
+)
+```
+
+    [1] "(TITLE-ABS-KEY(graphene) OR TITLE-ABS-KEY(graphite)) AND NOT DOCTYPE(er)"
+
 ## A clean, deduplicated DOI list
 
 Reference managers such as Zotero import most reliably from DOIs.

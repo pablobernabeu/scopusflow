@@ -74,7 +74,9 @@ bound once into a single <a href="scopus_records.html">scopus_records</a> tibble
 <span>  resume <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  api_key <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  inst_token <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  cursor <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"core"</span>, <span class="st">"extended"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -87,7 +89,9 @@ bound once into a single <a href="scopus_records.html">scopus_records</a> tibble
 
 
 <dt id="arg-max-results">max_results<a class="anchor" aria-label="anchor" href="#arg-max-results"></a></dt>
-<dd><p>Maximum records to retrieve per cell (default <code>Inf</code>).</p></dd>
+<dd><p>Maximum records to retrieve per cell (default <code>Inf</code>). A
+finite cap is recorded on the result, and <code><a href="scopus_search_report.html">scopus_search_report()</a></code> says
+which cells stopped at it.</p></dd>
 
 
 <dt id="arg-cache-dir">cache_dir<a class="anchor" aria-label="anchor" href="#arg-cache-dir"></a></dt>
@@ -98,9 +102,10 @@ bound once into a single <a href="scopus_records.html">scopus_records</a> tibble
 argument. A cache directory serves one plan: cells are checkpointed by
 their position in the plan and their year, so give each distinct plan its
 own directory. As a safeguard, a checkpoint is served only when the query,
-year, view and page size it was fetched under all match the plan cell, and
-only when its own <code>max_results</code> did not truncate it below what is being
-asked for now; anything else is a cache miss, refetched and overwritten.
+year, view, page size and paging mode it was fetched under all match the
+plan cell, and only when its own <code>max_results</code> did not truncate it below
+what is being asked for now; anything else is a cache miss, refetched and
+overwritten.
 A checkpoint holding more records than the current <code>max_results</code> asks for
 is served trimmed to that cap, the fuller set staying on disk. A
 checkpoint that cannot be read back, for example one left half-written by
@@ -108,7 +113,12 @@ an interrupted run, is also treated as a miss, and never aborts the
 harvest. A <code>COMPLETE</code> checkpoint written by a release that read <code>authors</code>
 from the first author alone (0.4.0 and earlier) is a miss as well, and is
 refetched once with a warning. <code>STANDARD</code> checkpoints from those releases
-are served as before, since their authors were read correctly.</p></dd>
+are served as before, since their authors were read correctly.
+Checkpoints also record their <code>fields</code>. One fetched with
+<code>fields = "extended"</code> serves a core request, with the extra columns
+dropped, while a core one is a miss for an extended request and is
+refetched with a warning. A checkpoint written before the fields were
+recorded counts as core.</p></dd>
 
 
 <dt id="arg-resume">resume<a class="anchor" aria-label="anchor" href="#arg-resume"></a></dt>
@@ -123,6 +133,30 @@ file already exists is loaded from disk, sparing a second request.</p></dd>
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
 <dd><p>Logical. When <code>TRUE</code>, per-cell progress is reported.</p></dd>
 
+
+<dt id="arg-cursor">cursor<a class="anchor" aria-label="anchor" href="#arg-cursor"></a></dt>
+<dd><p>Logical. When <code>TRUE</code>, each cell is retrieved with cursor-based
+pagination, which has no 5000-record ceiling, so a cell matching more
+records than that is retrieved whole and still checkpointed. The records
+then arrive in the API's deep-paging order (see <code><a href="scopus_fetch.html">scopus_fetch()</a></code>). The
+default, <code>FALSE</code>, pages by offset, as plans always have, so a cell stops at
+its first 5000 records with a warning. Checkpoints record the paging mode
+and serve only requests made in the same mode. A checkpoint written before
+the mode was recorded counts as offset-paged. The Python twin's
+<code>fetch_plan()</code> pages by cursor unless told otherwise, the mode it has
+always used.</p></dd>
+
+
+<dt id="arg-fields">fields<a class="anchor" aria-label="anchor" href="#arg-fields"></a></dt>
+<dd><p><code>"core"</code> (the default) or <code>"extended"</code>. <code>"extended"</code> also keeps
+the document type, source type, volume, issue, pages, ISSN, PubMed
+identifier and open-access status the Search API sends with every record,
+and the abstract under a <code>COMPLETE</code> plan. They arrive in the responses each
+cell already pays for, so they cost no extra quota. Like <code>cursor</code>, it is an
+argument of the fetch, since it changes how the records are read while the
+search returns the same records. See the <em>Extended fields</em> section of
+<code><a href="scopus_records.html">scopus_records()</a></code>.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -135,16 +169,22 @@ reported one, since a partial sum would understate the search while
 looking like a real figure. A cell that comes back shorter than the API
 said it should warns, because a truncated or refused download otherwise
 arrives as a merely small result set; a cell stopped by <code>max_results</code> is
-short by request and does not warn. <code><a href="scopus_search_report.html">scopus_search_report()</a></code> reads all of
-this back. The <code>retrieved_at</code> and
-<code>scopusflow_version</code> attributes described in <code><a href="scopus_fetch.html">scopus_fetch()</a></code> are carried
-across from the cells: the time is the earliest of them, since a combined
-set is only as fresh as its oldest cell, and every version that
-contributed is listed, since resuming an older cache means more than one
-did. Both are omitted when any cell cannot supply them, as a checkpoint
-written before they existed cannot. Dating the whole from the part of it
-that can be dated would misreport the set. <code>paging</code> and <code>view</code> are kept
-where every cell records the same one.</p>
+short by request and does not warn. A finite <code>max_results</code> is attached as
+the attribute of that name, the cap of this call: a checkpoint written
+under a wider cap is served trimmed to it, so no cell holds more.
+<code><a href="scopus_search_report.html">scopus_search_report()</a></code> reads all of this back. The <code>retrieved_at</code>,
+<code>retrieved_until</code> and <code>scopusflow_version</code> attributes described in
+<code><a href="scopus_fetch.html">scopus_fetch()</a></code> are carried across from the cells. <code>retrieved_at</code> is the
+earliest of their times, since a combined set is only as fresh as its
+oldest cell. <code>retrieved_until</code> is
+the latest, the last search, which the record of a harvest resumed over
+several days has to give. Every version that contributed is listed, since
+resuming an older cache means more than one did. Each is omitted when any
+cell cannot supply it, as a checkpoint written before these attributes
+existed cannot. Dating the whole from the part of it that can be dated
+would misreport the set. A cell written before <code>retrieved_until</code> existed
+counts by its <code>retrieved_at</code>. <code>paging</code> and <code>view</code> are kept where every
+cell records the same one.</p>
     </div>
     <div class="section level2">
     <h2 id="api-access">API access<a class="anchor" aria-label="anchor" href="#api-access"></a></h2>
@@ -161,18 +201,20 @@ The <em>API access</em> section of <code><a href="scopus_count.html">scopus_coun
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># scopusflow::scopus_has_key()</span></span></span>
-<span class="r-in"><span><span class="va">plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="st">"graphene supercapacitor"</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2024</span>,</span></span>
+<span class="r-in"><span><span class="va">plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="st">'"graphene supercapacitor"'</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2024</span>,</span></span>
 <span class="r-in"><span>                    field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span>, partition <span class="op">=</span> <span class="st">"year"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"graphene-cache"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># `max_results` caps each yearly cell, so the example stays small and</span></span></span>
 <span class="r-in"><span><span class="co"># quota-light; drop it to harvest every record in the plan.</span></span></span>
 <span class="r-in"><span><span class="va">recs</span> <span class="op">&lt;-</span> <span class="fu">scopus_fetch_plan</span><span class="op">(</span><span class="va">plan</span>, max_results <span class="op">=</span> <span class="fl">25</span>, cache_dir <span class="op">=</span> <span class="va">dir</span>, resume <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-in"><span><span class="co"># The offline companion, which needs no key: a record set with the plan</span></span></span>
-<span class="r-in"><span><span class="co"># that describes it attached. 'Scopus' records may not be redistributed, so</span></span></span>
-<span class="r-in"><span><span class="co"># the bundled corpus of real articles stands in for the harvest, and the</span></span></span>
-<span class="r-in"><span><span class="co"># plan describes the same search, one cell per year.</span></span></span>
-<span class="r-in"><span><span class="va">plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="st">"graphene supercapacitor"</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2024</span>,</span></span>
+<span class="r-in"><span><span class="co"># The offline companion, which needs no key: a record set with a plan</span></span></span>
+<span class="r-in"><span><span class="co"># attached. 'Scopus' records may not be redistributed, so the bundled corpus</span></span></span>
+<span class="r-in"><span><span class="co"># of real articles stands in for the harvest. It came from OpenAlex's</span></span></span>
+<span class="r-in"><span><span class="co"># exact-phrase search for the same phrase, so the plan, one cell per year,</span></span></span>
+<span class="r-in"><span><span class="co"># describes a 'Scopus' search that was not run and would return other</span></span></span>
+<span class="r-in"><span><span class="co"># records.</span></span></span>
+<span class="r-in"><span><span class="va">plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="st">'"graphene supercapacitor"'</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2024</span>,</span></span>
 <span class="r-in"><span>                    field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span>, partition <span class="op">=</span> <span class="st">"year"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">recs</span> <span class="op">&lt;-</span> <span class="va">example_records</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">recs</span>, <span class="st">"plan"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">plan</span></span></span>
@@ -196,18 +238,18 @@ The <em>API access</em> section of <code><a href="scopus_count.html">scopus_coun
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">recs</span>, <span class="st">"plan"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #0000BB;">&lt;scopus_plan&gt;</span> (10 cells, view <span style="color: #0000BB;">"STANDARD"</span>, partition <span style="color: #0000BB;">"year"</span>)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 10 × 6</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     cell query                                  date   year view     page_size</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  <span style="color: #BCBCBC;">*</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                                  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>     1 TITLE-ABS-KEY(graphene supercapacitor) 2015   <span style="text-decoration: underline;">2</span>015 STANDARD       200</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>     2 TITLE-ABS-KEY(graphene supercapacitor) 2016   <span style="text-decoration: underline;">2</span>016 STANDARD       200</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>     3 TITLE-ABS-KEY(graphene supercapacitor) 2017   <span style="text-decoration: underline;">2</span>017 STANDARD       200</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>     4 TITLE-ABS-KEY(graphene supercapacitor) 2018   <span style="text-decoration: underline;">2</span>018 STANDARD       200</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>     5 TITLE-ABS-KEY(graphene supercapacitor) 2019   <span style="text-decoration: underline;">2</span>019 STANDARD       200</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>     6 TITLE-ABS-KEY(graphene supercapacitor) 2020   <span style="text-decoration: underline;">2</span>020 STANDARD       200</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>     7 TITLE-ABS-KEY(graphene supercapacitor) 2021   <span style="text-decoration: underline;">2</span>021 STANDARD       200</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>     8 TITLE-ABS-KEY(graphene supercapacitor) 2022   <span style="text-decoration: underline;">2</span>022 STANDARD       200</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>     9 TITLE-ABS-KEY(graphene supercapacitor) 2023   <span style="text-decoration: underline;">2</span>023 STANDARD       200</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>    10 TITLE-ABS-KEY(graphene supercapacitor) 2024   <span style="text-decoration: underline;">2</span>024 STANDARD       200</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     cell query                                       date   year view  page_size</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  <span style="color: #BCBCBC;">*</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                                       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>     1 <span style="color: #949494;">"</span>TITLE-ABS-KEY(\"graphene supercapacitor\"… 2015   <span style="text-decoration: underline;">2</span>015 STAN…       200</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>     2 <span style="color: #949494;">"</span>TITLE-ABS-KEY(\"graphene supercapacitor\"… 2016   <span style="text-decoration: underline;">2</span>016 STAN…       200</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>     3 <span style="color: #949494;">"</span>TITLE-ABS-KEY(\"graphene supercapacitor\"… 2017   <span style="text-decoration: underline;">2</span>017 STAN…       200</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>     4 <span style="color: #949494;">"</span>TITLE-ABS-KEY(\"graphene supercapacitor\"… 2018   <span style="text-decoration: underline;">2</span>018 STAN…       200</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>     5 <span style="color: #949494;">"</span>TITLE-ABS-KEY(\"graphene supercapacitor\"… 2019   <span style="text-decoration: underline;">2</span>019 STAN…       200</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>     6 <span style="color: #949494;">"</span>TITLE-ABS-KEY(\"graphene supercapacitor\"… 2020   <span style="text-decoration: underline;">2</span>020 STAN…       200</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>     7 <span style="color: #949494;">"</span>TITLE-ABS-KEY(\"graphene supercapacitor\"… 2021   <span style="text-decoration: underline;">2</span>021 STAN…       200</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>     8 <span style="color: #949494;">"</span>TITLE-ABS-KEY(\"graphene supercapacitor\"… 2022   <span style="text-decoration: underline;">2</span>022 STAN…       200</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>     9 <span style="color: #949494;">"</span>TITLE-ABS-KEY(\"graphene supercapacitor\"… 2023   <span style="text-decoration: underline;">2</span>023 STAN…       200</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>    10 <span style="color: #949494;">"</span>TITLE-ABS-KEY(\"graphene supercapacitor\"… 2024   <span style="text-decoration: underline;">2</span>024 STAN…       200</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

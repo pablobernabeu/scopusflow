@@ -128,9 +128,13 @@
 <span><span class="va">plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="va">q</span>, years <span class="op">=</span> <span class="fl">2012</span><span class="op">:</span><span class="fl">2022</span>, partition <span class="op">=</span> <span class="st">"year"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Size the search before spending quota, then execute, caching each year</span></span>
-<span><span class="co"># so an interrupted run can resume.</span></span>
+<span><span class="co"># in a directory of the plan's own so an interrupted run can resume.</span></span>
 <span><span class="fu"><a href="reference/scopus_count.html">scopus_count</a></span><span class="op">(</span><span class="va">q</span>, years <span class="op">=</span> <span class="fl">2012</span><span class="op">:</span><span class="fl">2022</span><span class="op">)</span></span>
-<span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scopus_fetch_plan.html">scopus_fetch_plan</a></span><span class="op">(</span><span class="va">plan</span>, cache_dir <span class="op">=</span> <span class="fu"><a href="reference/scopus_cache_dir.html">scopus_cache_dir</a></span><span class="op">(</span><span class="op">)</span>, resume <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/scopus_fetch_plan.html">scopus_fetch_plan</a></span><span class="op">(</span></span>
+<span>  <span class="va">plan</span>,</span>
+<span>  cache_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="reference/scopus_cache_dir.html">scopus_cache_dir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"perovskite-solar-cell"</span><span class="op">)</span>,</span>
+<span>  resume <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Save a clean DOI list, or export the records for a reference manager</span></span>
 <span><span class="co"># (Zotero, EndNote, Mendeley) or a LaTeX bibliography.</span></span>
@@ -204,6 +208,7 @@
 <p>If scopusflow contributes to published work, please cite it. R prints the reference and its BibTeX entry.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span><span class="st">"scopusflow"</span><span class="op">)</span></span></code></pre></div>
+<p>The DOI that CRAN assigned to the package is <a href="https://doi.org/10.32614/CRAN.package.scopusflow" class="external-link uri">https://doi.org/10.32614/CRAN.package.scopusflow</a>, and it covers every version.</p>
 <p>The <a href="https://pablobernabeu.github.io/scopusflow/articles/about.html">About page</a> carries the same citation with a BibTeX entry, and a short note on the developer. The repository also ships a <code>CITATION.cff</code>, which is what GitHub’s ‘Cite this repository’ button reads.</p>
 </div>
 <div class="section level2">
@@ -246,7 +251,7 @@
 <ul class="list-unstyled">
 <li>
 <p><a href="articles/about.html">How to cite scopusflow</a></p>
-<p>DOI <a href="https://doi.org/10.32614/CRAN.package.scopusflow" class="external-link">10.32614/<wbr>CRAN.package.scopusflow</wbr></a></p>
+<p><a href="https://doi.org/10.32614/CRAN.package.scopusflow" class="external-link">https://doi.org<wbr>/10.32614<wbr>/CRAN.package<wbr>.scopusflow</wbr></wbr></wbr></a></p>
 </li>
 </ul>
 </div>
@@ -266,7 +271,7 @@
 <li><a href="https://github.com/pablobernabeu/scopusflow/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/pablobernabeu/scopusflow/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
 <li><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a></li>
 <li><a href="https://opensource.org/license/MIT" class="external-link"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a></li>
-<li><a href="https://doi.org/10.32614/CRAN.package.scopusflow" class="external-link"><img src="https://img.shields.io/badge/DOI-10.32614%2FCRAN.package.scopusflow-blue.svg" alt="DOI"></a></li>
+<li><a href="https://doi.org/10.32614/CRAN.package.scopusflow" class="external-link"><img src="https://img.shields.io/badge/DOI-10.32614%2FCRAN.package.scopusflow-blue.svg" alt="DOI 10.32614/CRAN.package.scopusflow"></a></li>
 </ul>
 </div>
 

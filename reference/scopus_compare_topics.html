@@ -137,9 +137,11 @@ by descending average percentage.</p>
     <h2 id="api-access">API access<a class="anchor" aria-label="anchor" href="#api-access"></a></h2>
 
 
-<p>This performs one count request per term per year, so it requires a valid API
-key and internet access. The <em>API access</em> section of <code><a href="scopus_count.html">scopus_count()</a></code> gives
-the details. A modest number of terms and years keeps the call within quota.</p>
+<p>This performs one count request per year for the reference topic and one per
+term per year, <code>(length(comparison_terms) + 1) * length(years)</code> requests in
+all. It therefore requires a valid API key and internet access. The
+<em>API access</em> section of <code><a href="scopus_count.html">scopus_count()</a></code> gives the details. A modest number
+of terms and years keeps the call within quota.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

@@ -33,9 +33,18 @@ summary(object, ...)
 A list of class `scopus_records_summary`, with elements `n_records`,
 `years` (the earliest and latest year present, each `NA` when no year is
 known), `n_sources`, `n_with_doi`, `total_citations`,
-`median_citations`, `top_cited` (the title of the most-cited record) and
-`top_source` (the most frequent source title). Printing it produces a
-short readable report.
+`median_citations`, `top_cited` (the title of the most-cited record),
+`top_source` (the most frequent source title) and `doc_types`.
+`doc_types` counts the records of each document-type code, most frequent
+first, for a set retrieved with `fields = "extended"` (see
+[`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)),
+and is `NULL` for a set without the `doc_type` column. Printing it
+produces a short readable report, which for such a set also says how
+many records 'Scopus' labels errata (`er`) or retracted (`tb`). The
+counts report the labels 'Scopus' assigns, which do not screen a set for
+retractions. The *Extended fields* section of
+[`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
+explains why, and what to check a set against.
 
 ## Examples
 
