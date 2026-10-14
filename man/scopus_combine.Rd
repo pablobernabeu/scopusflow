@@ -12,8 +12,13 @@ scopus_combine(..., dedupe = FALSE)
 \arguments{
 \item{...}{Two or more \link{scopus_records} objects, or a single list of them.}
 
-\item{dedupe}{Logical. When \code{TRUE}, records sharing a 'Scopus' identifier, or
-failing that a DOI (compared case-insensitively), are kept once.}
+\item{dedupe}{Whether, and by which rule, to keep once the records that are
+one record. \code{FALSE}, the default, keeps every row. \code{TRUE}, also spelled
+\code{"id_or_shared_doi"}, treats records as one when they share a 'Scopus'
+identifier, or when they share a DOI and one of them lacks an identifier.
+\code{"id_or_doi"} also merges records with different identifiers that share a
+DOI, and \code{"id_then_doi"} applies the rule of scopusflow 0.4.0 and earlier.
+See Details.}
 
 \item{x}{A \link{scopus_records} object (for the \code{c()} method).}
 }
@@ -26,15 +31,42 @@ earliest of the inputs' times and \code{retrieved_until} the latest, so a
 baseline merged with its update is dated from one to the other. Every
 contributing \code{scopusflow_version} is listed. The merge itself is recorded
 in the \code{combined} attribute, a list of \code{n_in}
-(records supplied), \code{n_out} (records kept), \code{n_removed} and \code{deduplicated},
-which is what lets \code{\link[=scopus_search_report]{scopus_search_report()}} state how many duplicates were
-removed, so the PRISMA-S item is answered.
+(records supplied), \code{n_out} (records kept), \code{n_removed}, \code{deduplicated},
+\code{rule} (the rule applied, \code{NA} when none was) and \code{doi_conflicts} (how
+many DOIs records with different identifiers share, \code{NA} when no rule was
+applied). It is what lets \code{\link[=scopus_search_report]{scopus_search_report()}} state how many
+duplicates were removed and how, so the PRISMA-S item is answered.
 }
 \description{
 Binds several \link{scopus_records} objects into a single one, renumbering
 \code{entry_number} across the result and, optionally, dropping duplicates. This is
 the safe way to merge separate fetches: plain \code{rbind()} would leave duplicate
 entry numbers, and \code{c()} would return a list.
+}
+\details{
+De-duplication compares DOIs as \code{\link[=scopus_extract_dois]{scopus_extract_dois()}} does, without
+resolver prefixes such as \verb{https://doi.org/} or \verb{doi:} and ignoring case. It
+keeps the first record of each group, in the order the sets were given, and
+a record with neither an identifier nor a DOI cannot be matched and is kept.
+
+Under the default rule, records with the same 'Scopus' identifier are one
+record, and a record without an identifier joins the identified record that
+carries its DOI. Records with different identifiers are never merged, even
+when they share a DOI. 'Scopus' holds duplicate records of one paper
+(Valderrama-Zurián et al., 2015), but it also gives one DOI to distinct
+papers (Franceschini et al., 2015), and a review loses a wrongly removed
+record for good where a surviving duplicate is caught at screening. Such
+DOIs are counted in \code{doi_conflicts}, which the search record reports, so
+that they can be checked by hand. A record without an identifier whose DOI
+two identified records carry is kept once, apart from both. Records without
+an identifier that share a DOI no identified record carries are one record.
+
+\code{"id_or_doi"} merges every record linked to another by a shared identifier
+or a shared DOI, directly or through a chain of such links. It suits a set
+whose shared DOIs have been checked and found to be duplicates.
+\code{"id_then_doi"} keys each record on its identifier, failing that on its DOI
+lower-cased but not otherwise cleaned, and so reproduces a set
+de-duplicated by scopusflow 0.4.0 or earlier.
 }
 \examples{
 # A baseline retrieval and a later one, merged into a cumulative set. The
@@ -50,6 +82,16 @@ nrow(combined)
 # survive in both copies, which is why 138 distinct articles come back as
 # 149 rows.
 sum(is.na(example_records$doi))
+}
+\references{
+Franceschini, F., Maisano, D., & Mastrogiacomo, L. (2015). Errors in DOI
+indexing by bibliometric databases. \emph{Scientometrics}, \emph{102}(3), 2181–2186.
+\doi{10.1007/s11192-014-1503-4}
+
+Valderrama-Zurián, J.-C., Aguilar-Moya, R., Melero-Fuentes, D., &
+Aleixandre-Benavent, R. (2015). A systematic analysis of duplicate records
+in Scopus. \emph{Journal of Informetrics}, \emph{9}(3), 570–576.
+\doi{10.1016/j.joi.2015.05.002}
 }
 \seealso{
 \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}, which combines plan cells the same way.

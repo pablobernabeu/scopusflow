@@ -101,6 +101,21 @@
   longer aborts a harvest. scopusflow now requires httr2 1.0.4 or later. A
   timeout is reported as such, with the class `scopus_error_timeout` (a subclass
   of `scopus_error_offline`), and no longer as being offline.
+* De-duplication in `scopus_combine()` now cleans DOIs as
+  `scopus_extract_dois()` does (resolver prefixes, case) and matches a record
+  without a 'Scopus' identifier to the identified record carrying the same DOI.
+  Records with different identifiers and one DOI are still both kept, since
+  'Scopus' also gives one DOI to distinct papers, and the merge now counts them
+  for you to check. The `combined` attribute records the rule as `rule` and the
+  DOIs such records share as `doi_conflicts`, and PRISMA-S item 16 of the search
+  record names the rule and gives the count. `dedupe = "id_or_doi"` merges
+  records with different identifiers that share a DOI, and
+  `dedupe = "id_then_doi"` reproduces the earlier rule. A set merged by 0.4.0
+  records no rule and keeps its item 16 wording. A blank identifier, which
+  `read_scopus_records()` reads from a CSV file the Python twin wrote, now
+  counts as none, where every record carrying one was merged into one record.
+  `dedupe` refuses a value other than `TRUE`, `FALSE` or the name of a rule,
+  where `NA` or any other value meant no de-duplication.
 
 ## Bug fixes
 

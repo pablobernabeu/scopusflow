@@ -65,7 +65,9 @@ scopus_report_months <- function() {
 #'   times), `version`, `n_records`, `n_with_doi`, `reported_total`,
 #'   `stopped_early`, `cells_planned`, `cells_run`, `not_run` (the cells a
 #'   stopped harvest never reached), `records_combined`, `duplicates_removed`,
-#'   `deduplicated`, `snippet` and `prisma` (a tibble of `item`, `name`,
+#'   `deduplicated`, `dedupe_rule` and `doi_conflicts` (the rule
+#'   [scopus_combine()] matched records by, and the DOIs it left shared across
+#'   identifiers), `snippet` and `prisma` (a tibble of `item`, `name`,
 #'   `source` and `note`). A field the objects do not record is `NA`.
 #' @details
 #' Everything in the record comes from the objects handed to it. The dates of
@@ -81,7 +83,7 @@ scopus_report_months <- function() {
 #' or, for a set from a single search, its `total_results`), never an inference
 #' from the number of rows, and it is given overall only when every cell
 #' reported one; and the duplicates removed are those [scopus_combine()]
-#' recorded removing. Where
+#' recorded removing, matched by the rule it recorded. Where
 #' an attribute is absent, as it is for a set read back from a `.csv`, for the
 #' bundled corpus, and for a cell resumed from a checkpoint written before these
 #' attributes existed, the record says the field is unrecorded and fills
@@ -256,6 +258,8 @@ scopus_report_build <- function(records, plan) {
     records_combined = scopus_report_combined(combined, "n_in"),
     duplicates_removed = scopus_report_combined(combined, "n_removed"),
     deduplicated = if (is.null(combined)) NA else isTRUE(combined$deduplicated),
+    dedupe_rule = scopus_report_rule(combined),
+    doi_conflicts = scopus_report_combined(combined, "doi_conflicts"),
     snippet = scopus_report_snippet(plan, paging, cap)
   )
   out$prisma <- scopus_report_prisma(out)
@@ -448,6 +452,49 @@ scopus_report_combined <- function(combined, field) {
   }
 }
 
+# The de-duplication rule a merge recorded, or NA where it recorded no rule this
+# version knows. A set merged by 0.4.0 or earlier recorded none.
+scopus_report_rule <- function(combined) {
+  rule <- if (is.null(combined)) NULL else combined$rule
+  if (is.character(rule) && length(rule) == 1L && rule %in% scopus_dedupe_rules()) {
+    rule
+  } else {
+    NA_character_
+  }
+}
+
+# PRISMA-S item 16 as the merge recorded it: how many records were removed and
+# the rule that matched them. A set that records no rule was merged by 0.4.0,
+# whose rule is "id_then_doi", so it keeps the wording it was written with.
+# Where records with different identifiers share a DOI, the count is given, so
+# that the reviewer knows how many to check by hand.
+scopus_report_dedupe_note <- function(x) {
+  rule <- if (is.na(x$dedupe_rule)) "id_then_doi" else x$dedupe_rule
+  how <- switch(
+    rule,
+    id_or_shared_doi = "matched on a shared Scopus identifier, or on a shared DOI where one record lacks an identifier.",
+    id_or_doi = "matched on a shared Scopus identifier or a shared DOI, even where the identifiers differ.",
+    id_then_doi = "matched on the Scopus identifier and failing that the DOI."
+  )
+  note <- sprintf(
+    "%s duplicate records removed by scopus_combine() from %s combined, %s",
+    scopus_report_count(x$duplicates_removed), scopus_report_count(x$records_combined), how
+  )
+  conflicts <- x$doi_conflicts
+  if (is.na(conflicts) || conflicts < 1L) {
+    return(note)
+  }
+  n <- scopus_report_count(conflicts)
+  noun <- if (conflicts == 1L) "DOI" else "DOIs"
+  paste(note, if (identical(rule, "id_or_doi")) {
+    sprintf("Records with different Scopus identifiers were merged under %s shared %s.",
+            n, noun)
+  } else {
+    sprintf("Records with different Scopus identifiers that share a DOI were kept, which leaves %s %s to check by hand.",
+            n, noun)
+  })
+}
+
 # The runnable reproduction. Built from what the plan records, so that
 # evaluating it returns a plan identical to the one the report describes; the
 # package's test suite asserts exactly that over a grid of plans. Without a
@@ -601,10 +648,7 @@ scopus_report_prisma <- function(x) {
   }
 
   if (isTRUE(x$deduplicated) && !is.na(x$duplicates_removed)) {
-    notes[16] <- sprintf(
-      "%s duplicate records removed by scopus_combine() from %s combined, matched on the Scopus identifier and failing that the DOI.",
-      scopus_report_count(x$duplicates_removed), scopus_report_count(x$records_combined)
-    )
+    notes[16] <- scopus_report_dedupe_note(x)
     supplied <- c(supplied, 16L)
   } else if (is.na(x$n_records)) {
     notes[16] <- "How duplicate records were removed, which this plan has not been run to produce."

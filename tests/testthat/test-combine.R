@@ -108,3 +108,133 @@ test_that("a merge carries no attribute describing a single retrieval", {
   expect_true(grepl("Records identified from Scopus: 276",
                     format(report, style = "report"), fixed = TRUE))
 })
+
+# A harvest whose records carry 'Scopus' identifiers (rows 1 to 3) and a set
+# from another source that carries none (rows 4 to 10), with its DOIs spelled
+# as other sources spell them. The file is byte-identical to the Python twin's
+# tests/fixtures/dedupe-fixture.csv, whose suite asserts the same results.
+dedupe_fixture <- function() {
+  fx <- read_scopus_records(test_path("fixtures", "dedupe-fixture.csv"))
+  list(harvest = fx[1:3, ], other = fx[4:10, ])
+}
+
+test_that("an unidentified record joins the identified record with its DOI, however spelled", {
+  # 0.4.0 keyed an unidentified record on its DOI, lower-cased only, so the
+  # prefixed and upper-case copies of 10.5555/abc.1 survived beside the
+  # harvest's record of it.
+  fx <- dedupe_fixture()
+  out <- scopus_combine(fx$harvest, fx$other, dedupe = TRUE)
+  expect_identical(out$title, c(
+    "First record under a shared DOI", "Second record under the shared DOI",
+    "An article in the harvest", "An unidentified copy under the shared DOI",
+    "An article no harvest holds", "A record with no key",
+    "Another record with no key"
+  ))
+  expect_identical(out$entry_number, 1:7)
+  abc <- out[grepl("abc.1", tolower(out$doi), fixed = TRUE), ]
+  expect_identical(abc$scopus_id, "85000000333")
+
+  recorded <- attr(out, "combined")
+  expect_identical(recorded$n_removed, 3L)
+  expect_identical(recorded$rule, "id_or_shared_doi")
+  expect_identical(attr(scopus_combine(fx$harvest, fx$other, dedupe = "id_or_shared_doi"),
+                        "combined"), recorded)
+})
+
+test_that("records with different identifiers and one DOI are kept and counted", {
+  # 'Scopus' holds duplicate records under different identifiers, and it also
+  # gives one DOI to distinct papers, so neither record is dropped by default.
+  # The unidentified copy of that DOI cannot be assigned to either and is kept
+  # once, apart from both.
+  fx <- dedupe_fixture()
+  out <- scopus_combine(fx$harvest, fx$other, dedupe = TRUE)
+  expect_identical(sum(tolower(out$doi) == "10.5555/same", na.rm = TRUE), 2L)
+  expect_identical(attr(out, "combined")$doi_conflicts, 1L)
+})
+
+test_that('dedupe = "id_or_doi" merges records with different identifiers under one DOI', {
+  fx <- dedupe_fixture()
+  out <- scopus_combine(fx$harvest, fx$other, dedupe = "id_or_doi")
+  expect_identical(out$title, c(
+    "First record under a shared DOI", "An article in the harvest",
+    "An article no harvest holds", "A record with no key",
+    "Another record with no key"
+  ))
+  recorded <- attr(out, "combined")
+  expect_identical(recorded$rule, "id_or_doi")
+  expect_identical(recorded$doi_conflicts, 1L)
+  expect_identical(recorded$n_removed, 5L)
+})
+
+test_that('dedupe = "id_then_doi" reproduces the 0.4.0 rule', {
+  out <- scopus_combine(example_records, example_records, dedupe = "id_then_doi")
+  expect_identical(nrow(out), 149L)
+  expect_identical(attr(out, "combined")$rule, "id_then_doi")
+
+  # The 0.4.0 rule compares DOIs lower-cased but not cleaned, so a resolver
+  # prefix keeps two copies apart that the default rule merges.
+  r1 <- scopus_records(list(entry = list(list(`prism:doi` = "https://doi.org/10.1/X"))))
+  r2 <- scopus_records(list(entry = list(list(`prism:doi` = "10.1/x"))))
+  expect_identical(nrow(scopus_combine(r1, r2, dedupe = "id_then_doi")), 2L)
+  expect_identical(nrow(scopus_combine(r1, r2, dedupe = TRUE)), 1L)
+})
+
+test_that("every rule merges empty sets to an empty set", {
+  empty <- example_records[0, ]
+  for (rule in c("id_or_shared_doi", "id_or_doi", "id_then_doi")) {
+    out <- scopus_combine(empty, empty, dedupe = rule)
+    expect_identical(nrow(out), 0L)
+    expect_identical(attr(out, "combined")$doi_conflicts, 0L)
+  }
+})
+
+test_that("a merge without de-duplication records no rule", {
+  plain <- attr(scopus_combine(example_records, example_records), "combined")
+  expect_identical(plain$rule, NA_character_)
+  expect_identical(plain$doi_conflicts, NA_integer_)
+})
+
+test_that("dedupe refuses anything but TRUE, FALSE or the name of a rule", {
+  r <- example_records[1:2, ]
+  for (bad in list("both", NA, c(TRUE, FALSE), 1)) {
+    expect_error(scopus_combine(r, r, dedupe = bad), class = "scopus_error_bad_input")
+  }
+  expect_error(
+    scopus_combine(r, r, dedupe = "both"),
+    '`dedupe` must be TRUE, FALSE, "id_or_shared_doi", "id_or_doi" or "id_then_doi".',
+    fixed = TRUE
+  )
+})
+
+test_that("the search record's item 16 names the rule the merge used", {
+  # The wording is asserted word for word in the Python suite too.
+  fx <- dedupe_fixture()
+  note <- function(x) scopus_search_report(x)$prisma$note[16]
+
+  merged <- scopus_combine(fx$harvest, fx$other, dedupe = TRUE)
+  expect_identical(note(merged), paste(
+    "3 duplicate records removed by scopus_combine() from 10 combined,",
+    "matched on a shared Scopus identifier, or on a shared DOI where one",
+    "record lacks an identifier. Records with different Scopus identifiers",
+    "that share a DOI were kept, which leaves 1 DOI to check by hand."
+  ))
+  expect_identical(note(scopus_combine(fx$harvest, fx$other, dedupe = "id_or_doi")), paste(
+    "5 duplicate records removed by scopus_combine() from 10 combined,",
+    "matched on a shared Scopus identifier or a shared DOI, even where the",
+    "identifiers differ. Records with different Scopus identifiers were",
+    "merged under 1 shared DOI."
+  ))
+  expect_identical(
+    note(scopus_combine(example_records, example_records, dedupe = "id_then_doi")),
+    paste("127 duplicate records removed by scopus_combine() from 276 combined,",
+          "matched on the Scopus identifier and failing that the DOI.")
+  )
+
+  # A set merged by 0.4.0 records no rule, and keeps the wording it had.
+  attr(merged, "combined") <- list(n_in = 10L, n_out = 7L, n_removed = 3L,
+                                   deduplicated = TRUE)
+  expect_identical(note(merged), paste(
+    "3 duplicate records removed by scopus_combine() from 10 combined,",
+    "matched on the Scopus identifier and failing that the DOI."
+  ))
+})

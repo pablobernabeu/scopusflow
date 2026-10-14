@@ -471,7 +471,8 @@ test_that("the record matches the golden file both twins are pinned to", {
   # the wording has to change both files, which is the point of the pin.
   recs <- report_fixture()
   attr(recs, "combined") <- list(n_in = 149L, n_out = 138L, n_removed = 11L,
-                                 deduplicated = TRUE)
+                                 deduplicated = TRUE, rule = "id_or_shared_doi",
+                                 doi_conflicts = 0L)
   report <- scopus_search_report(recs)
   rendered <- paste0(format(report, style = "report"), "\n\n",
                      format(report, style = "paragraph"), "\n")

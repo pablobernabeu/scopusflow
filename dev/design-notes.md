@@ -1126,6 +1126,40 @@ on request. The Python app has no cap field and never caps one. A blank field
 risks no unbounded spend, since offset paging stops a cell at 5000 records, 25
 requests under `STANDARD` and 200 under `COMPLETE`.
 
+## De-duplication: which records are one record
+
+`scopus_combine()` keyed a record on its 'Scopus' identifier and, failing that,
+on its DOI lower-cased. An unidentified record therefore never matched the
+identified record carrying its DOI, and `https://doi.org/10.5555/X` never
+matched `10.5555/x`. Both cases arise when a harvest is merged with a set from
+another source, a hand-edited CSV or the bundled corpus, which carries no
+identifiers. The API itself returns bare DOIs and an identifier on every record.
+
+Merging every pair of records that share a DOI was rejected as the default.
+'Scopus' holds duplicate records of one paper under different identifiers
+(Valderrama-Zurián et al., 2015, Journal of Informetrics, 9(3), 570–576), but
+it also gives one DOI to distinct papers (Franceschini, Maisano and
+Mastrogiacomo, 2015, Scientometrics, 102(3), 2181–2186). The two errors cost a
+review different amounts. A surviving duplicate is caught at screening, while a
+wrongly removed record is lost without trace. The default rule therefore links
+records that share an identifier, and an unidentified record to the one
+identifier that carries its cleaned DOI. Records with different identifiers
+stay apart. The DOIs they share are counted in the `combined` attribute as
+`doi_conflicts`, and item 16 of the search record gives the count so that the
+reviewer can check them. An unidentified record whose DOI two identifiers carry
+cannot be assigned to either, and is kept once under the DOI.
+`dedupe = "id_or_doi"` takes connected components over both keys, for a set
+whose shared DOIs have been checked. `"id_then_doi"` keeps the 0.4.0 key
+unchanged, so that an earlier set can be reproduced, and a set that records no
+rule, having been merged by 0.4.0, keeps the 0.4.0 wording in item 16.
+
+DOIs are cleaned as `scopus_extract_dois()` cleans them, by
+`scopus_tidy_dois()`, the element-wise form of `scopus_clean_dois()`. Under the
+two new rules a blank identifier counts as none, because `read.csv()` reads an
+empty field of a character column as `""`. The Python twin computes the same group keys, and both
+suites assert the same kept rows and the same item 16 wording on the
+byte-identical fixture `dedupe-fixture.csv`.
+
 ## Tested version floors
 
 `R (>= 4.1.0)` was an untested claim: the check matrix reached only `oldrel-1`,

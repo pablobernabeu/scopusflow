@@ -48,7 +48,9 @@ A list of class \code{scopus_search_report}, returned invisibly when
 times), \code{version}, \code{n_records}, \code{n_with_doi}, \code{reported_total},
 \code{stopped_early}, \code{cells_planned}, \code{cells_run}, \code{not_run} (the cells a
 stopped harvest never reached), \code{records_combined}, \code{duplicates_removed},
-\code{deduplicated}, \code{snippet} and \code{prisma} (a tibble of \code{item}, \code{name},
+\code{deduplicated}, \code{dedupe_rule} and \code{doi_conflicts} (the rule
+\code{\link[=scopus_combine]{scopus_combine()}} matched records by, and the DOIs it left shared across
+identifiers), \code{snippet} and \code{prisma} (a tibble of \code{item}, \code{name},
 \code{source} and \code{note}). A field the objects do not record is \code{NA}.
 
 \code{format()} returns a length-one character string.
@@ -76,7 +78,7 @@ cells recorded (the \code{cell_totals} attribute \code{\link[=scopus_fetch_plan]
 or, for a set from a single search, its \code{total_results}), never an inference
 from the number of rows, and it is given overall only when every cell
 reported one; and the duplicates removed are those \code{\link[=scopus_combine]{scopus_combine()}}
-recorded removing. Where
+recorded removing, matched by the rule it recorded. Where
 an attribute is absent, as it is for a set read back from a \code{.csv}, for the
 bundled corpus, and for a cell resumed from a checkpoint written before these
 attributes existed, the record says the field is unrecorded and fills

@@ -129,14 +129,22 @@ scopus_as_doi_vector <- function(x) {
   )
 }
 
-# Trim whitespace, strip resolver prefixes, drop NA/empty. The resolver host and
-# the `doi:` label are removed separately so that a space after either (as in
-# "DOI: 10.1/x", common when DOIs are copied from a citation) does not survive.
+# Trim whitespace, strip resolver prefixes, drop NA/empty.
 scopus_clean_dois <- function(dois) {
-  dois <- dois[!is.na(dois)]
-  dois <- trimws(dois)
+  dois <- scopus_tidy_dois(dois)
+  dois[!is.na(dois)]
+}
+
+# The cleaning of scopus_clean_dois(), one value per element, with NA for a DOI
+# that is missing or empty once cleaned, so that the result lines up with the
+# records (scopus_combine() keys each record on it). The resolver host and the
+# `doi:` label are removed separately so that a space after either (as in
+# "DOI: 10.1/x", common when DOIs are copied from a citation) does not survive.
+scopus_tidy_dois <- function(dois) {
+  dois <- trimws(as.character(dois))
   dois <- sub("^\\s*(https?://)?(www\\.)?(dx\\.)?doi\\.org/", "", dois, ignore.case = TRUE)
   dois <- sub("^\\s*doi:\\s*", "", dois, ignore.case = TRUE)
   dois <- trimws(dois)
-  dois[nzchar(dois)]
+  dois[!is.na(dois) & !nzchar(dois)] <- NA_character_
+  dois
 }
