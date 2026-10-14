@@ -144,6 +144,70 @@ scopus_disambiguate <- function(keys) {
   }, character(1), USE.NAMES = FALSE)
 }
 
+# A column of one record, or NA when the set does not carry the column. Only a
+# set retrieved with fields = "extended" has the document type, volume, issue,
+# pages and ISSN. Only a COMPLETE one has the author keywords, and only one
+# that is both has the abstract.
+scopus_refman_field <- function(row, name) {
+  if (name %in% names(row)) row[[name]] else NA_character_
+}
+
+# The 'Scopus' document-type code of one record, lower-cased, or NA.
+scopus_refman_doc_type <- function(row) {
+  code <- scopus_refman_field(row, "doc_type")
+  if (scopus_refman_present(code)) tolower(scopus_refman_clean(code)) else NA_character_
+}
+
+# The RIS and BibTeX types of the 'Scopus' codes that are not journal content:
+# a conference paper (cp), a conference review (cr), a book chapter (ch) and a
+# book (bk). Every other code, and a record with none, is a journal article.
+# Zotero's RIS import reads CPAPER and CONF as a conference paper, so both map
+# to @inproceedings, where a conference review is an item in the proceedings.
+scopus_ris_types <- c(cp = "CPAPER", cr = "CONF", ch = "CHAP", bk = "BOOK")
+scopus_bibtex_types <- c(
+  cp = "inproceedings", cr = "inproceedings", ch = "incollection", bk = "book"
+)
+
+scopus_refman_type <- function(code, types, default) {
+  if (!is.na(code) && code %in% names(types)) types[[code]] else default
+}
+
+# TRUE when a book's source title names a series. 'Scopus' gives a book in a
+# book series that series as its source, and a book outside a series itself,
+# which would repeat the title. Zotero reads a book's T2 as its series, and
+# BibTeX's @book has a series field, so only the first is written.
+scopus_refman_book_series <- function(row) {
+  type <- scopus_refman_field(row, "source_type")
+  scopus_refman_present(type) && identical(tolower(scopus_refman_clean(type)), "book series")
+}
+
+# The author keywords of one record. The Search API's COMPLETE view joins them
+# with " | ", and scopus_abstract() joins its own with "; ". The split is at
+# either, so one rule serves keywords from both endpoints.
+scopus_refman_keywords <- function(x) {
+  if (!scopus_refman_present(x)) {
+    return(character())
+  }
+  parts <- trimws(strsplit(scopus_refman_clean(x), "[|;]")[[1]])
+  parts[nzchar(parts)]
+}
+
+# A 'Scopus' page range ("101-117") as its first and last page, or a page that
+# is no range ("e0123456") on its own. Returns character(0) when there are no
+# pages.
+scopus_refman_pages <- function(x) {
+  if (!scopus_refman_present(x)) {
+    return(character())
+  }
+  pages <- scopus_refman_clean(x)
+  ends <- regmatches(pages, regexec("^([^-]+)-([^-]+)$", pages))[[1]]
+  if (length(ends) == 3L) {
+    ends <- trimws(ends[2:3])
+    if (all(nzchar(ends))) return(ends)
+  }
+  pages
+}
+
 # Build the BibTeX entry for one record (a one-row scopus_records), with a
 # pre-disambiguated `key`.
 scopus_bibtex_entry <- function(row, key) {
@@ -153,6 +217,7 @@ scopus_bibtex_entry <- function(row, key) {
       fields[[name]] <<- scopus_bibtex_escape(scopus_refman_clean(value))
     }
   }
+  type <- scopus_refman_type(scopus_refman_doc_type(row), scopus_bibtex_types, "article")
   auth <- scopus_refman_authors(row$authors)
   if (length(auth) > 0L) {
     fields[["author"]] <- paste(
@@ -166,20 +231,46 @@ scopus_bibtex_entry <- function(row, key) {
   if ("title" %in% names(fields)) {
     fields[["title"]] <- scopus_bibtex_protect(fields[["title"]])
   }
-  add("journal", row$publication)
+  # The source goes in the field each entry type reads: the proceedings or the
+  # book a paper or chapter appears in, a book's series, or a journal.
+  if (type %in% c("inproceedings", "incollection")) {
+    add("booktitle", row$publication)
+    if ("booktitle" %in% names(fields)) {
+      fields[["booktitle"]] <- scopus_bibtex_protect(fields[["booktitle"]])
+    }
+  } else if (type == "book") {
+    if (scopus_refman_book_series(row)) add("series", row$publication)
+  } else {
+    add("journal", row$publication)
+  }
   add("year", row$year)
+  add("volume", scopus_refman_field(row, "volume"))
+  add("number", scopus_refman_field(row, "issue"))
+  pages <- scopus_refman_pages(scopus_refman_field(row, "pages"))
+  if (length(pages) > 0L) add("pages", paste(pages, collapse = "--"))
+  add("issn", scopus_refman_field(row, "issn"))
   add("doi", row$doi)
+  add("abstract", scopus_refman_field(row, "abstract"))
+  keywords <- scopus_refman_keywords(scopus_refman_field(row, "authkeywords"))
+  if (length(keywords) > 0L) {
+    fields[["keywords"]] <- paste(
+      vapply(keywords, scopus_bibtex_escape, character(1), USE.NAMES = FALSE),
+      collapse = ", "
+    )
+  }
   if (scopus_refman_present(row$scopus_id)) {
     fields[["note"]] <- scopus_bibtex_escape(paste0("Scopus ID: ", row$scopus_id))
   }
 
   body <- paste0("  ", names(fields), " = {", unlist(fields), "},", collapse = "\n")
-  paste0("@article{", key, ",\n", body, "\n}")
+  paste0("@", type, "{", key, ",\n", body, "\n}")
 }
 
 # Build the RIS entry for one record.
 scopus_ris_entry <- function(row) {
-  lines <- "TY  - JOUR"
+  code <- scopus_refman_doc_type(row)
+  type <- scopus_refman_type(code, scopus_ris_types, "JOUR")
+  lines <- paste0("TY  - ", type)
   ris_add <- function(tag, value) {
     if (length(value) == 1L && !is.na(value) && nzchar(as.character(value))) {
       lines <<- c(lines, paste0(tag, "  - ", scopus_refman_clean(value)))
@@ -193,8 +284,21 @@ scopus_ris_entry <- function(row) {
   # T2 is the tag Scopus's own RIS export uses for the source title, and the one
   # reference managers read as the publication title. Zotero reads JO, which
   # this function wrote before, as the journal abbreviation.
-  ris_add("T2", row$publication)
+  if (type != "BOOK" || scopus_refman_book_series(row)) {
+    ris_add("T2", row$publication)
+  }
+  ris_add("VL", scopus_refman_field(row, "volume"))
+  ris_add("IS", scopus_refman_field(row, "issue"))
+  pages <- scopus_refman_pages(scopus_refman_field(row, "pages"))
+  if (length(pages) > 0L) ris_add("SP", pages[1])
+  if (length(pages) > 1L) ris_add("EP", pages[2])
+  ris_add("SN", scopus_refman_field(row, "issn"))
   ris_add("DO", row$doi)
+  ris_add("AB", scopus_refman_field(row, "abstract"))
+  for (k in scopus_refman_keywords(scopus_refman_field(row, "authkeywords"))) {
+    lines <- c(lines, paste0("KW  - ", k))
+  }
+  ris_add("M3", scopus_refman_field(row, "doc_type_description"))
   id <- if (scopus_refman_present(row$scopus_id)) scopus_refman_clean(row$scopus_id) else NA
   if (!is.na(id)) {
     lines <- c(lines, paste0("AN  - 2-s2.0-", id))
@@ -223,9 +327,28 @@ scopus_refman_write <- function(out, file) {
 #' Turns a [scopus_records] set into a BibTeX or RIS string, the interchange
 #' formats that reference managers (Zotero, EndNote, Mendeley) and LaTeX
 #' bibliographies import. Each record becomes one entry, with its authors split
-#' out and the 'Scopus' identifier kept as a note. Records are treated as journal
-#' articles, the dominant 'Scopus' content type. BibTeX citation keys are made
+#' out and the 'Scopus' identifier kept as a note. BibTeX citation keys are made
 #' unique within the export, and special characters are escaped.
+#'
+#' A set retrieved with `fields = "extended"` (see [scopus_records()]) carries
+#' each record's 'Scopus' document type, and the entry is typed by it. A
+#' conference paper (`cp`) becomes an RIS `CPAPER` and a BibTeX
+#' `@inproceedings`, and a conference review (`cr`) an RIS `CONF` and a BibTeX
+#' `@inproceedings`. A book chapter (`ch`) becomes an RIS `CHAP` and a BibTeX
+#' `@incollection`, and a book (`bk`) an RIS `BOOK` and a BibTeX `@book`. Every
+#' other record, and every record of a set retrieved with the core fields, is
+#' a journal article (`JOUR`, `@article`). In BibTeX, the source title of a
+#' conference paper or chapter goes under `booktitle`, braced as the title is,
+#' and a journal article's under `journal`. A book in a book series gives the
+#' series under `series`, and a book outside a series, whose source title
+#' 'Scopus' gives as the book's own, names no source. RIS gives the source
+#' under `T2` except for such a book, since Zotero reads a book's `T2` as its
+#' series. The entries also carry the volume, issue, pages, ISSN and document
+#' type (RIS `M3`). Under `view = "COMPLETE"` they carry the abstract and the
+#' author keywords, one `KW` line each in RIS and joined by commas in BibTeX.
+#' Keywords are split at the `" | "` the Search API joins them with and at the
+#' `"; "` [scopus_abstract()] joins its own with. A value the record lacks is
+#' left out, never filled in.
 #'
 #' Names are written family name first, with a comma. Under the `STANDARD`
 #' view, the `authors` column holds 'Scopus' names in the form `Zhang F.`,

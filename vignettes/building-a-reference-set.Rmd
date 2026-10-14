@@ -155,6 +155,15 @@ imports on its title, author and year. The source sits under `T2`, the tag
 name. Nearly all the bundled records give names first, and those are written
 as they stand.
 
+Every bundled record is a journal article, exported as `JOUR` and `@article`.
+A harvest retrieved with `fields = "extended"` carries the document type
+'Scopus' gives each record. A conference paper is then exported as `CPAPER`
+and `@inproceedings`, a chapter as `CHAP` and `@incollection` and a book as
+`BOOK` and `@book`. Its entries also carry the volume, issue, pages and ISSN,
+and under `view = "COMPLETE"` the abstract and the author keywords, which
+screening and de-duplication tools read. `?as_bibtex` lists where each field
+goes.
+
 Pass a `file` to write the whole set. Nothing is written without one.
 
 ```{r}
@@ -172,6 +181,14 @@ expect.
 m <- as_bibliometrix(example_records)
 head(m[, c("AU", "TI", "PY", "SO", "TC", "DB")])
 ```
+
+The fields follow the conventions `bibliometrix::convert2df()` applies to a
+'Scopus' export. Each author is written as the surname and initials without
+full stops, so `Zhang F.` becomes `ZHANG F`, and the authors of a record are
+joined by `;`. `UT` holds the EID, which the bundled records lack. A harvest
+retrieved under `view = "COMPLETE"` also fills `DE` with the author keywords,
+and one retrieved with `fields = "extended"` fills `DT`, `VL` and `IS` with
+the document type, volume and issue.
 
 From there the usual bibliometrix entry points apply. This step needs that
 package, so it is shown but not run.

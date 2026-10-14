@@ -12,17 +12,42 @@ as_bibliometrix(x)
 \value{
 A data frame (classed \code{bibliometrixDB}) with the standard tag columns
 \code{AU} (authors), \code{TI} (title), \code{SO} (source or publication), \code{DI} (DOI), \code{PY}
-(publication year), \code{TC} (times cited), \code{UT} (record id) and \code{DB}
-(\code{"SCOPUS"}). Character tag fields are upper-cased to match the bibliometrix
-convention.
+(publication year), \code{TC} (times cited), \code{UT} (the record's EID) and \code{DB}
+(\code{"SCOPUS"}). \code{DE} (author keywords) follows when the set carries the
+\code{authkeywords} column of a \code{view = "COMPLETE"} retrieval. \code{DT} (document
+type), \code{VL} (volume) and \code{IS} (issue) follow when it carries the columns
+of a \code{fields = "extended"} retrieval (see \code{\link[=scopus_records]{scopus_records()}}). Character
+tag fields other than \code{DI} are upper-cased, as bibliometrix upper-cases
+them.
 }
 \description{
 Re-maps a \link{scopus_records} tibble to the tagged column layout used by the
 \pkg{bibliometrix} package (and the wider ISI/Web of Science convention), so
-results can flow into downstream science-mapping workflows.
+results can flow into downstream science-mapping workflows. The fields
+follow the conventions \code{bibliometrix::convert2df()} applies to a 'Scopus'
+CSV export, so the two frames describe a record in the same terms.
 }
 \details{
-This produces the \emph{shape} bibliometrix expects from the core descriptive
+Each author in \code{AU} is written as bibliometrix writes a 'Scopus' author,
+the surname followed by the initials without full stops. The authors are
+joined by \code{";"}. A name in the \code{"Surname, Given"} form the \code{COMPLETE} view
+gives becomes the surname followed by the initial of each given name, and a
+hyphenated given name keeps its hyphen. \code{"Tour, James M."} thus becomes
+\code{"TOUR JM"} and \code{"Lee, Chul-Hee"} becomes \code{"LEE C-H"}. A name without a
+comma, such as the \code{STANDARD} view's \code{"Lee C.-H."}, loses its full stops
+and becomes \code{"LEE C-H"}. Each given name yields one initial, so a name
+that 'Scopus' abbreviates to two letters, such as \code{"Yu."} for Yuri, keeps
+both under \code{STANDARD} and gives one under \code{COMPLETE}.
+
+\code{UT} holds the EID, \code{"2-S2.0-"} followed by the 'Scopus' identifier, as a
+'Scopus' import gives it, and is \code{NA} for a record without an identifier.
+\code{sub("^2-S2.0-", "", UT)} gives back the bare identifier. \code{DE} holds the
+author keywords joined by \code{"; "}, as in a 'Scopus' CSV export. Keywords are
+split at the \code{" | "} the Search API joins them with and at the \code{"; "}
+\code{\link[=scopus_abstract]{scopus_abstract()}} joins its own with, so either source can fill the
+\code{authkeywords} column.
+
+This produces the \emph{shape} bibliometrix expects from the descriptive
 fields. It reconstructs only what the 'Scopus' Search API returns, so richer
 fields that some bibliometrix analyses use, such as full author affiliations
 or cited references, are left out. To obtain those, export a full 'Scopus'

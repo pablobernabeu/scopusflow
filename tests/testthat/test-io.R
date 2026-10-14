@@ -111,5 +111,7 @@ test_that("as_bibliometrix maps to tag columns", {
   expect_true(all(c("AU", "TI", "SO", "DI", "PY", "TC", "DB") %in% names(m)))
   expect_equal(unique(m$DB), "SCOPUS")
   expect_equal(m$DI, recs$doi)
-  expect_equal(m$AU[1], toupper(recs$authors[1]))
+  # bibliometrix writes a 'Scopus' author without full stops.
+  expect_identical(recs$authors[1], "Zhang F.")
+  expect_equal(m$AU[1], "ZHANG F")
 })

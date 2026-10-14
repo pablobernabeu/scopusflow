@@ -933,6 +933,57 @@ characters they stand for, and R keeps the text as the API sends it. The shared
 fixture holds none, so the twins agree on it, and the abstract shares the edge
 the titles already had.
 
+## Typed exports and the bibliometrix frame
+
+With the extended fields, the exporters type each record by its 'Scopus' code.
+A conference paper (`cp`) becomes an RIS `CPAPER` and a BibTeX
+`@inproceedings`, a chapter (`ch`) `CHAP` and `@incollection`, and a book
+(`bk`) `BOOK` and `@book`. Everything else stays `JOUR` and `@article`, so a
+set retrieved with the core fields exports exactly as before, as the
+six-record golden still shows. A conference review (`cr`) becomes `CONF` in
+RIS, and `@inproceedings` in BibTeX, where it is an item in the proceedings.
+Zotero's RIS import reads `CONF` as a conference paper too. `@proceedings`
+was set aside, since it describes a whole volume with editors and no authors.
+
+Where the source goes was checked against Zotero's RIS translator. It reads
+`T2` as the publication title of a journal article, the book title of a
+chapter, the conference name of a conference paper and the series of a book.
+'Scopus' gives a book in a book series the series as its source, and a book
+outside a series itself. Such a book therefore has no `T2`, since one would
+have filed its own title as its series. BibTeX gives the source of a book
+under `series` only when 'Scopus' calls the source a book series. A conference
+paper keeps `T2`, as Elsevier's own RIS export writes it, although Zotero then
+reads the proceedings title as the conference name. `C3`, Zotero's tag for the
+proceedings title, was not adopted, because other readers and 'Scopus' itself
+use `T2`. `SN` carries the ISSN for every type. RIS defines it as an ISSN or
+ISBN, and Zotero files it as an ISBN outside journal articles.
+
+The author keywords come in two forms. The Search API's `COMPLETE` view joins
+them with `" | "`, and `scopus_abstract()` joins its own with `"; "`. One rule
+splits at either, so keywords from both endpoints export alike. RIS gives one
+`KW` line per keyword, and BibTeX joins them with commas, the separator biblatex
+reads. A keyword containing a comma or a semicolon is then split, as Zotero and
+bibliometrix would split it. The pages split at a single hyphen into `SP` and
+`EP`, and BibTeX writes the range with `--`. A page that is no range, such as
+an article number, stays whole. The typed exports are pinned by a second
+hand-written golden, `export-fixture-typed`, shared by both suites, so that
+the six-record golden goes on pinning a core export.
+
+`as_bibliometrix()` was checked against `bibliometrix::convert2df()` (version
+5.4.1) reading a 'Scopus' CSV export of the same records. That function strips
+full stops and commas from each author and joins the authors with `";"`. It
+upper-cases every field and takes `UT` from the EID and `DE` from the author
+keywords, joined in the CSV with `"; "`. The frame now matches it tag for
+tag on those records, the one difference being that a missing value is `NA`
+where `convert2df()` writes an empty string. The audit proposed `";"` between
+keywords. `"; "` is kept, since that is what `convert2df()` produces. A
+`COMPLETE` name such as `"Tour, James M."` would lose its comma to the same
+rule and read `"TOUR JAMES M"`, bibliometrix's full-name form, so the given
+names are reduced to their initials first. The audit suggested building `AU`
+from the author objects' indexed `authname`, which the records do not keep.
+Reducing the given names gives the same string except where 'Scopus'
+abbreviates a given name to two letters, as in `Yu.`.
+
 ## Dating a retrieval
 
 `citations` is a snapshot value that moves continuously, and the

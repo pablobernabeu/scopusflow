@@ -24,11 +24,30 @@ invisibly when \code{file} is supplied).
 Turns a \link{scopus_records} set into a BibTeX or RIS string, the interchange
 formats that reference managers (Zotero, EndNote, Mendeley) and LaTeX
 bibliographies import. Each record becomes one entry, with its authors split
-out and the 'Scopus' identifier kept as a note. Records are treated as journal
-articles, the dominant 'Scopus' content type. BibTeX citation keys are made
+out and the 'Scopus' identifier kept as a note. BibTeX citation keys are made
 unique within the export, and special characters are escaped.
 }
 \details{
+A set retrieved with \code{fields = "extended"} (see \code{\link[=scopus_records]{scopus_records()}}) carries
+each record's 'Scopus' document type, and the entry is typed by it. A
+conference paper (\code{cp}) becomes an RIS \code{CPAPER} and a BibTeX
+\verb{@inproceedings}, and a conference review (\code{cr}) an RIS \code{CONF} and a BibTeX
+\verb{@inproceedings}. A book chapter (\code{ch}) becomes an RIS \code{CHAP} and a BibTeX
+\verb{@incollection}, and a book (\code{bk}) an RIS \code{BOOK} and a BibTeX \verb{@book}. Every
+other record, and every record of a set retrieved with the core fields, is
+a journal article (\code{JOUR}, \verb{@article}). In BibTeX, the source title of a
+conference paper or chapter goes under \code{booktitle}, braced as the title is,
+and a journal article's under \code{journal}. A book in a book series gives the
+series under \code{series}, and a book outside a series, whose source title
+'Scopus' gives as the book's own, names no source. RIS gives the source
+under \code{T2} except for such a book, since Zotero reads a book's \code{T2} as its
+series. The entries also carry the volume, issue, pages, ISSN and document
+type (RIS \code{M3}). Under \code{view = "COMPLETE"} they carry the abstract and the
+author keywords, one \code{KW} line each in RIS and joined by commas in BibTeX.
+Keywords are split at the \code{" | "} the Search API joins them with and at the
+\code{"; "} \code{\link[=scopus_abstract]{scopus_abstract()}} joins its own with. A value the record lacks is
+left out, never filled in.
+
 Names are written family name first, with a comma. Under the \code{STANDARD}
 view, the \code{authors} column holds 'Scopus' names in the form \verb{Zhang F.},
 which BibTeX would read as given name "Zhang" and family name "F.", so a

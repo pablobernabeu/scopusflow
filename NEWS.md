@@ -27,6 +27,16 @@
   `open_access`, so an ISSN keeps its leading zeros. The default,
   `fields = "core"`, returns the columns it always has. The Python twin's
   `fetch_plan()` and `to_records()` gain `fields` too.
+* With `fields = "extended"`, `as_ris()` and `as_bibtex()` type conference
+  papers, conference reviews, chapters and books by the document type 'Scopus'
+  gives them (RIS `CPAPER`, `CONF`, `CHAP` and `BOOK`, BibTeX `@inproceedings`,
+  `@incollection` and `@book`), where every record used to be a journal
+  article. The entries carry the volume, issue, pages, ISSN and document type,
+  and under `view = "COMPLETE"` the abstract, which screening and
+  de-duplication tools read. A `COMPLETE` set also exports its author keywords,
+  one RIS `KW` line each, with or without the extended fields. A value the
+  record lacks is left out. The Python twin's `to_ris()` and `to_bibtex()` do
+  the same, held to a shared golden file.
 
 ## Changed behaviour
 
@@ -66,6 +76,15 @@
 * RIS records put the source title under `T2`, which reference managers read as
   the publication title, instead of `JO`, which Zotero reads as the journal
   abbreviation, and now carry `DB  - Scopus` and the EID as `AN`.
+* `as_bibliometrix()` follows the conventions `bibliometrix::convert2df()`
+  applies to a 'Scopus' export, so its frame describes a record as a 'Scopus'
+  CSV import does. `AU` gives each author as the surname and initials without
+  full stops (`"ZHANG F"`, where it held `"ZHANG F."`), joined by `";"`, and a
+  `COMPLETE` name such as `"Tour, James M."` becomes `"TOUR JM"`. `UT` holds
+  the upper-cased EID, `"2-S2.0-<scopus_id>"`, where it held the bare
+  identifier, which `sub("^2-S2.0-", "", UT)` restores. A set carrying author
+  keywords gains `DE`, and one retrieved with `fields = "extended"` gains `DT`,
+  `VL` and `IS`.
 * Requests are retried after transport failures such as timeouts and connection
   resets, which httr2 stopped doing by default in 1.0.4, so one such failure no
   longer aborts a harvest. scopusflow now requires httr2 1.0.4 or later. A

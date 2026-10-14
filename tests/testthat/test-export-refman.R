@@ -211,6 +211,138 @@ test_that("the export fixture renders to the shared BibTeX and RIS goldens", {
   }
 })
 
+# A record set built from columns, as read back from a CSV file, so the
+# extended columns can be set directly.
+typed_records <- function(...) {
+  scopusflow:::scopus_coerce_records(data.frame(..., stringsAsFactors = FALSE))
+}
+
+# The first line of each RIS entry, and the entry type of each BibTeX entry.
+ris_types <- function(ris) {
+  vapply(strsplit(ris, "\n\n", fixed = TRUE)[[1]], function(e) {
+    strsplit(e, "\n", fixed = TRUE)[[1]][1]
+  }, character(1), USE.NAMES = FALSE)
+}
+bibtex_types <- function(bib) {
+  regmatches(bib, gregexpr("(?m)^@[a-z]+", bib, perl = TRUE))[[1]]
+}
+
+test_that("RIS and BibTeX type each record by its 'Scopus' document type", {
+  recs <- typed_records(
+    title = paste("Record", 1:8),
+    publication = "Mock Source",
+    doc_type = c("ar", "cp", "cr", "ch", "bk", "re", "er", NA),
+    source_type = c("Journal", "Conference Proceeding", "Conference Proceeding",
+                    "Book", "Book Series", "Journal", "Journal", NA)
+  )
+  expect_identical(
+    ris_types(as_ris(recs)),
+    paste0("TY  - ", c("JOUR", "CPAPER", "CONF", "CHAP", "BOOK", "JOUR", "JOUR", "JOUR"))
+  )
+  expect_identical(
+    bibtex_types(as_bibtex(recs)),
+    paste0("@", c("article", "inproceedings", "inproceedings", "incollection",
+                  "book", "article", "article", "article"))
+  )
+  # A set retrieved with the core fields has no document type, and every
+  # record stays a journal article, as before.
+  expect_identical(unique(ris_types(as_ris(example_records))), "TY  - JOUR")
+})
+
+test_that("each entry type carries the source where reference managers read it", {
+  recs <- typed_records(
+    title = paste("Record", 1:5),
+    publication = c("Journal of Mocking", "Proceedings of the IEEE Mock Forum",
+                    "Handbook of Mocking", "Lecture Notes in Mocking", "Record 5"),
+    doc_type = c("ar", "cp", "ch", "bk", "bk"),
+    source_type = c("Journal", "Conference Proceeding", "Book", "Book Series", "Book")
+  )
+  bib <- strsplit(as_bibtex(recs), "\n\n", fixed = TRUE)[[1]]
+  expect_match(bib[1], "\n  journal = {Journal of Mocking},\n", fixed = TRUE)
+  # booktitle is protected as the title is, so a style keeps IEEE in capitals.
+  expect_match(bib[2], "\n  booktitle = {Proceedings of the {IEEE} Mock Forum},\n", fixed = TRUE)
+  expect_match(bib[3], "\n  booktitle = {Handbook of Mocking},\n", fixed = TRUE)
+  expect_match(bib[4], "\n  series = {Lecture Notes in Mocking},\n", fixed = TRUE)
+  # A book that is no series' volume is its own source, so it names none.
+  expect_false(grepl("journal|booktitle|series", bib[5]))
+  expect_false(any(grepl("journal = ", bib[2:5], fixed = TRUE)))
+
+  ris <- strsplit(as_ris(recs), "\n\n", fixed = TRUE)[[1]]
+  expect_true(all(grepl("\nT2  - ", ris[1:4], fixed = TRUE)))
+  # Zotero reads T2 as a book's series, so a standalone book has no T2.
+  expect_false(grepl("T2  - ", ris[5], fixed = TRUE))
+})
+
+test_that("RIS and BibTeX carry the abstract, keywords, volume, issue, pages and ISSN", {
+  fx <- extended_fixture()
+  recs <- scopus_records(list(entry = list(fx$complete)), view = "COMPLETE",
+                         fields = "extended")
+  ris <- as_ris(recs)
+  for (line in c("VL  - 12", "IS  - 3", "SP  - 101", "EP  - 117",
+                 "SN  - 00368075", paste("AB  -", fx$complete$`dc:description`),
+                 "KW  - screening", "KW  - document types", "M3  - Article")) {
+    expect_match(ris, paste0("\n", line, "\n"), fixed = TRUE, label = line)
+  }
+  bib <- as_bibtex(recs)
+  for (field in c("volume = {12}", "number = {3}", "pages = {101--117}",
+                  "issn = {00368075}",
+                  paste0("abstract = {", fx$complete$`dc:description`, "}"),
+                  "keywords = {screening, document types}")) {
+    expect_match(bib, paste0("\n  ", field, ",\n"), fixed = TRUE, label = field)
+  }
+})
+
+test_that("absent values are left out, never invented", {
+  fx <- extended_fixture()
+  # The STANDARD view sends no abstract and no keywords.
+  recs <- scopus_records(list(entry = list(fx$standard)), fields = "extended")
+  ris <- as_ris(recs)
+  bib <- as_bibtex(recs)
+  expect_false(grepl("AB  - |KW  - ", ris))
+  expect_false(grepl("abstract = |keywords = ", bib))
+  # A page that is no range is a start page with no end page.
+  recs <- typed_records(title = c("Single page", "No pages"),
+                        doc_type = "ar", pages = c("e0123456", NA))
+  ris <- strsplit(as_ris(recs), "\n\n", fixed = TRUE)[[1]]
+  expect_match(ris[1], "\nSP  - e0123456\n", fixed = TRUE)
+  expect_false(grepl("EP  - ", ris[1], fixed = TRUE))
+  expect_false(grepl("SP  - |EP  - |VL  - |IS  - |SN  - |M3  - ", ris[2]))
+  bib <- strsplit(as_bibtex(recs), "\n\n", fixed = TRUE)[[1]]
+  expect_match(bib[1], "\n  pages = {e0123456},\n", fixed = TRUE)
+  expect_false(grepl("pages = ", bib[2], fixed = TRUE))
+})
+
+test_that("keywords split at the Search API's bars and at the semicolons scopus_abstract() joins with", {
+  recs <- typed_records(
+    title = c("From a search", "From Abstract Retrieval"),
+    authkeywords = c("CRISPR | Cas9", "graphene; supercapacitor")
+  )
+  ris <- strsplit(as_ris(recs), "\n\n", fixed = TRUE)[[1]]
+  expect_match(ris[1], "\nKW  - CRISPR\nKW  - Cas9\n", fixed = TRUE)
+  expect_match(ris[2], "\nKW  - graphene\nKW  - supercapacitor\n", fixed = TRUE)
+  bib <- strsplit(as_bibtex(recs), "\n\n", fixed = TRUE)[[1]]
+  expect_match(bib[1], "\n  keywords = {CRISPR, Cas9},\n", fixed = TRUE)
+  expect_match(bib[2], "\n  keywords = {graphene, supercapacitor},\n", fixed = TRUE)
+})
+
+test_that("the typed export fixture renders to the shared BibTeX and RIS goldens", {
+  # As for the six-record fixture above, the goldens were written by hand and
+  # both suites compare against the same bytes. The fixture is ASCII, so it
+  # reads the same in every locale.
+  recs <- read_scopus_records(test_path("fixtures", "export-fixture-typed.csv"))
+  expect_identical(nrow(recs), 8L)
+  for (ext in c("bib", "ris")) {
+    golden <- test_path("fixtures", paste0("export-fixture-typed.", ext))
+    out <- withr::local_tempfile(fileext = paste0(".", ext))
+    if (ext == "bib") as_bibtex(recs, file = out) else as_ris(recs, file = out)
+    expect_identical(
+      readBin(out, "raw", file.size(out)),
+      readBin(golden, "raw", file.size(golden)),
+      label = paste("the", ext, "export of the typed fixture")
+    )
+  }
+})
+
 test_that("embedded newlines are folded so RIS stays line-structured", {
   recs <- scopus_records(list(entry = list(
     list(`dc:title` = "Line one\nLine two", `dc:creator` = "Smith J.")
