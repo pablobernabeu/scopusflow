@@ -391,6 +391,8 @@ test_that("the app reads the bundled corpus with scopusflow loaded but not attac
 })
 
 test_that("the record cap starts blank and is labelled per cell", {
+  skip_if_not_installed("shiny")
+  skip_if_not_installed("bslib")
   # The field used to default to 200 records per year, so every live harvest
   # was capped unless the user cleared it, and the By year tab then plotted
   # the cap. With partitioning off it caps the whole search, a single cell.

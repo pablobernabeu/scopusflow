@@ -46,6 +46,7 @@ clearable
 cli
 deduplicated
 deduplication
+dir
 doi
 gTree
 ggplot
