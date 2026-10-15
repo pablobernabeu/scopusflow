@@ -120,7 +120,11 @@ options or environment variables (see <code><a href="scopus_has_key.html">scopus
 field-wrapped query), <code>year</code> (integer) and <code>n</code> (the count that year, as a
 double so very large counts are exact). A year whose response omits a total
 is recorded as <code>NA</code> (with a warning) and contributes nothing to the total
-shown by <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code>.</p>
+shown by <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code>. The time the counts were taken is attached as the
+<code>retrieved_at</code> attribute (a <code>POSIXct</code>), as a harvest records its own.
+'Scopus' goes on indexing a year's publications after the year has begun,
+so a count for the year of retrieval is a count so far, and
+<code><a href="plot_scopus_trend.html">plot_scopus_trend()</a></code> says so from this time.</p>
     </div>
     <div class="section level2">
     <h2 id="api-access">API access<a class="anchor" aria-label="anchor" href="#api-access"></a></h2>

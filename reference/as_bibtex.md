@@ -5,9 +5,8 @@ Turns a
 set into a BibTeX or RIS string, the interchange formats that reference
 managers (Zotero, EndNote, Mendeley) and LaTeX bibliographies import.
 Each record becomes one entry, with its authors split out and the
-'Scopus' identifier kept as a note. Records are treated as journal
-articles, the dominant 'Scopus' content type. BibTeX citation keys are
-made unique within the export, and special characters are escaped.
+'Scopus' identifier kept as a note. BibTeX citation keys are made unique
+within the export, and special characters are escaped.
 
 ## Usage
 
@@ -37,6 +36,29 @@ A length-one character string of the formatted records (returned
 invisibly when `file` is supplied).
 
 ## Details
+
+A set retrieved with `fields = "extended"` (see
+[`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md))
+carries each record's 'Scopus' document type, and the entry is typed by
+it. A conference paper (`cp`) becomes an RIS `CPAPER` and a BibTeX
+`@inproceedings`, and a conference review (`cr`) an RIS `CONF` and a
+BibTeX `@inproceedings`. A book chapter (`ch`) becomes an RIS `CHAP` and
+a BibTeX `@incollection`, and a book (`bk`) an RIS `BOOK` and a BibTeX
+`@book`. Every other record, and every record of a set retrieved with
+the core fields, is a journal article (`JOUR`, `@article`). In BibTeX,
+the source title of a conference paper or chapter goes under
+`booktitle`, braced as the title is, and a journal article's under
+`journal`. A book in a book series gives the series under `series`, and
+a book outside a series, whose source title 'Scopus' gives as the book's
+own, names no source. RIS gives the source under `T2` except for such a
+book, since Zotero reads a book's `T2` as its series. The entries also
+carry the volume, issue, pages, ISSN and document type (RIS `M3`). Under
+`view = "COMPLETE"` they carry the abstract and the author keywords, one
+`KW` line each in RIS and joined by commas in BibTeX. Keywords are split
+at the `" | "` the Search API joins them with and at the `"; "`
+[`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+joins its own with. A value the record lacks is left out, never filled
+in.
 
 Names are written family name first, with a comma. Under the `STANDARD`
 view, the `authors` column holds 'Scopus' names in the form `Zhang F.`,

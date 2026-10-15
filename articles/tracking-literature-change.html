@@ -131,7 +131,8 @@ in each category.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">changes</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_diff_dois.html">scopus_diff_dois</a></span><span class="op">(</span>old <span class="op">=</span> <span class="va">baseline</span>, new <span class="op">=</span> <span class="va">later</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">changes</span><span class="op">)</span></span></code></pre></div>
-<pre><code>&lt;scopus_doi_diff&gt; 14 added, 1 removed, 112 unchanged
+<pre><code>&lt;scopus_doi_diff&gt; 14 added, 1 removed, 112 unchanged, 11 earlier and 11 later
+records without a DOI not compared
 # A tibble: 127 × 2
    doi                            status
    &lt;chr&gt;                          &lt;fct&gt; 
@@ -152,8 +153,9 @@ the later pull as <code>removed</code>. The counts work out at fourteen
 added, one removed and 112 unchanged. Fourteen are added because that is
 how many of the 2024 papers carry a DOI, and the re-indexed record takes
 the unchanged count from 113 down to 112. Records without a DOI cannot
-be tracked this way at all, which is one reason to prefer the ‘Scopus’
-identifier when there is one.</p>
+be tracked this way at all. There are eleven in each pull here, and the
+printed line counts them, as do the attributes
+<code>n_old_without_doi</code> and <code>n_new_without_doi</code>.</p>
 <p>To act on one category, filter the table, which is an ordinary
 tibble.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
@@ -192,13 +194,53 @@ tibble.</p>
 </table>
 </div>
 <div class="section level2">
+<h2 id="comparing-records">Comparing records<a class="anchor" aria-label="anchor" href="#comparing-records"></a>
+</h2>
+<p><code><a href="../reference/scopus_diff_records.html">scopus_diff_records()</a></code> compares the records themselves,
+matching them as <code><a href="../reference/scopus_combine.html">scopus_combine()</a></code> de-duplicates them by
+default: on a shared ‘Scopus’ identifier, or on a shared DOI where one
+of the two records lacks an identifier. A record without a DOI is then
+tracked by its identifier, and each row carries the record’s title and
+year and its citation counts in both pulls. Where a record is found in
+one pull only and the other pull gives its DOI to a different record, it
+is marked <code>conflict</code>. It may have been re-indexed under a new
+identifier or may be a distinct paper sharing the DOI, and only the
+records themselves can tell. The bundled records carry no identifier, so
+here they are matched on their DOIs, and the eleven without one in each
+pull cannot be compared.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">records_changed</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_diff_records.html">scopus_diff_records</a></span><span class="op">(</span>old <span class="op">=</span> <span class="va">baseline</span>, new <span class="op">=</span> <span class="va">later</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">records_changed</span><span class="op">)</span></span></code></pre></div>
+<pre><code>&lt;scopus_record_diff&gt; 14 added, 1 removed, 0 in conflict, 112 unchanged, 11
+earlier and 11 later records without an identifier or a DOI not compared
+# A tibble: 127 × 7
+   status scopus_id doi                  title  year citations_old citations_new
+   &lt;fct&gt;  &lt;chr&gt;     &lt;chr&gt;                &lt;chr&gt; &lt;int&gt;         &lt;int&gt;         &lt;int&gt;
+ 1 added  &lt;NA&gt;      10.1002/adfm.202315… Vasc…  2024            NA            32
+ 2 added  &lt;NA&gt;      10.1002/asia.202400… A Hi…  2024            NA             6
+ 3 added  &lt;NA&gt;      10.1002/slct.202302… Allo…  2024            NA             2
+ 4 added  &lt;NA&gt;      10.1016/j.cej.2024.… High…  2024            NA            31
+ 5 added  &lt;NA&gt;      10.1016/j.diamond.2… Copp…  2024            NA            21
+ 6 added  &lt;NA&gt;      10.1016/j.isci.2024… Boos…  2024            NA             8
+ 7 added  &lt;NA&gt;      10.1016/j.jallcom.2… Enha…  2024            NA             5
+ 8 added  &lt;NA&gt;      10.1016/j.jallcom.2… From…  2024            NA            84
+ 9 added  &lt;NA&gt;      10.1016/j.jpowsour.… How …  2024            NA            14
+10 added  &lt;NA&gt;      10.1016/j.jpowsour.… High…  2024            NA             3
+# ℹ 117 more rows</code></pre>
+<p>The citation columns show how far each record’s count moved between
+the two pulls. They are equal here, because both pulls were cut from one
+snapshot.</p>
+</div>
+<div class="section level2">
 <h2 id="merging-without-duplicates">Merging without duplicates<a class="anchor" aria-label="anchor" href="#merging-without-duplicates"></a>
 </h2>
 <p>To keep a cumulative set across retrievals, combine them.
 <code><a href="../reference/scopus_combine.html">scopus_combine()</a></code> renumbers the records and, with
-<code>dedupe = TRUE</code>, keeps each one once by ‘Scopus’ identifier
-or DOI, so the records the two pulls share are not doubled.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code>dedupe = TRUE</code>, keeps each one once, so the records the two
+pulls share are not doubled. Records with the same ‘Scopus’ identifier
+are one record, and a record without an identifier joins the identified
+record that carries its DOI, however the DOI is spelled.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">combined</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_combine.html">scopus_combine</a></span><span class="op">(</span><span class="va">baseline</span>, <span class="va">later</span>, dedupe <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">combined</span><span class="op">)</span></span></code></pre></div>
 <pre><code>[1] 149</code></pre>
@@ -207,11 +249,16 @@ instructive. These records carry no ‘Scopus’ identifier, never having
 come from ‘Scopus’, so de-duplication falls back to the DOI. The eleven
 that arrived without one have no key to match on, and so survive in both
 copies. A live harvest carries an identifier on every record, so the
-same call on two real pulls returns each article once.</p>
+same call on two real pulls returns each record once. Two records of one
+article under different identifiers, which ‘Scopus’ does hold, are both
+kept, since ‘Scopus’ also gives one DOI to distinct papers. The merge
+counts the DOIs such records share, and the search record gives the
+count, so that they can be checked by hand.
+<code>dedupe = "id_or_doi"</code> merges them once they have been.</p>
 <p>The base <code><a href="https://rdrr.io/r/base/c.html" class="external-link">c()</a></code> method concatenates record sets directly,
 renumbering but without de-duplicating, so it is the building block that
 <code><a href="../reference/scopus_combine.html">scopus_combine()</a></code> adds the duplicate handling to.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">stacked</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">baseline</span>, <span class="va">later</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">stacked</span><span class="op">)</span></span></code></pre></div>
 <pre><code>[1] 261</code></pre>
@@ -221,7 +268,7 @@ renumbering but without de-duplicating, so it is the building block that
 </h2>
 <p>Saving each retrieval lets you compare against it next time. The
 <code>.rds</code> form round-trips exactly.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"baseline.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/write_scopus_records.html">write_scopus_records</a></span><span class="op">(</span><span class="va">baseline</span>, <span class="va">path</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="fu"><a href="../reference/write_scopus_records.html">read_scopus_records</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span>, <span class="va">baseline</span><span class="op">)</span></span></code></pre></div>
@@ -239,12 +286,14 @@ is why it round-trips identically above.</p>
 here it is a slice of the bundled corpus, and everything else would be
 as above. Both pulls could then say when they were taken. The baseline
 would be an earlier pull of your own, since the bundled one came from
-OpenAlex and would differ from any ‘Scopus’ pull for that reason
-alone.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+OpenAlex and would differ from any ‘Scopus’ pull for that reason alone.
+Both pulls would carry a ‘Scopus’ identifier on every record, so
+<code><a href="../reference/scopus_diff_records.html">scopus_diff_records()</a></code> could compare them all.</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">later</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch.html">scopus_fetch</a></span><span class="op">(</span><span class="st">'"graphene supercapacitor"'</span>, field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">later</span>, <span class="st">"retrieved_at"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/scopus_diff_dois.html">scopus_diff_dois</a></span><span class="op">(</span>old <span class="op">=</span> <span class="fu"><a href="../reference/write_scopus_records.html">read_scopus_records</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span>, new <span class="op">=</span> <span class="va">later</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/scopus_diff_dois.html">scopus_diff_dois</a></span><span class="op">(</span>old <span class="op">=</span> <span class="fu"><a href="../reference/write_scopus_records.html">read_scopus_records</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span>, new <span class="op">=</span> <span class="va">later</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/scopus_diff_records.html">scopus_diff_records</a></span><span class="op">(</span>old <span class="op">=</span> <span class="fu"><a href="../reference/write_scopus_records.html">read_scopus_records</a></span><span class="op">(</span><span class="va">path</span><span class="op">)</span>, new <span class="op">=</span> <span class="va">later</span><span class="op">)</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

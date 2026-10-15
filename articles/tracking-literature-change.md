@@ -54,7 +54,8 @@ changes <- scopus_diff_dois(old = baseline, new = later)
 print(changes)
 ```
 
-    <scopus_doi_diff> 14 added, 1 removed, 112 unchanged
+    <scopus_doi_diff> 14 added, 1 removed, 112 unchanged, 11 earlier and 11 later
+    records without a DOI not compared
     # A tibble: 127 × 2
        doi                            status
        <chr>                          <fct> 
@@ -76,8 +77,8 @@ times as `unchanged`, and anything dropped from the later pull as
 unchanged. Fourteen are added because that is how many of the 2024
 papers carry a DOI, and the re-indexed record takes the unchanged count
 from 113 down to 112. Records without a DOI cannot be tracked this way
-at all, which is one reason to prefer the ‘Scopus’ identifier when there
-is one.
+at all. There are eleven in each pull here, and the printed line counts
+them, as do the attributes `n_old_without_doi` and `n_new_without_doi`.
 
 To act on one category, filter the table, which is an ordinary tibble.
 
@@ -95,13 +96,58 @@ head(changes[changes$status == "added", ])
 | 10.1016/j.diamond.2024.110842 | added  |
 | 10.1016/j.isci.2024.111696    | added  |
 
+## Comparing records
+
+[`scopus_diff_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_diff_records.md)
+compares the records themselves, matching them as
+[`scopus_combine()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md)
+de-duplicates them by default: on a shared ‘Scopus’ identifier, or on a
+shared DOI where one of the two records lacks an identifier. A record
+without a DOI is then tracked by its identifier, and each row carries
+the record’s title and year and its citation counts in both pulls. Where
+a record is found in one pull only and the other pull gives its DOI to a
+different record, it is marked `conflict`. It may have been re-indexed
+under a new identifier or may be a distinct paper sharing the DOI, and
+only the records themselves can tell. The bundled records carry no
+identifier, so here they are matched on their DOIs, and the eleven
+without one in each pull cannot be compared.
+
+``` r
+
+records_changed <- scopus_diff_records(old = baseline, new = later)
+print(records_changed)
+```
+
+    <scopus_record_diff> 14 added, 1 removed, 0 in conflict, 112 unchanged, 11
+    earlier and 11 later records without an identifier or a DOI not compared
+    # A tibble: 127 × 7
+       status scopus_id doi                  title  year citations_old citations_new
+       <fct>  <chr>     <chr>                <chr> <int>         <int>         <int>
+     1 added  <NA>      10.1002/adfm.202315… Vasc…  2024            NA            32
+     2 added  <NA>      10.1002/asia.202400… A Hi…  2024            NA             6
+     3 added  <NA>      10.1002/slct.202302… Allo…  2024            NA             2
+     4 added  <NA>      10.1016/j.cej.2024.… High…  2024            NA            31
+     5 added  <NA>      10.1016/j.diamond.2… Copp…  2024            NA            21
+     6 added  <NA>      10.1016/j.isci.2024… Boos…  2024            NA             8
+     7 added  <NA>      10.1016/j.jallcom.2… Enha…  2024            NA             5
+     8 added  <NA>      10.1016/j.jallcom.2… From…  2024            NA            84
+     9 added  <NA>      10.1016/j.jpowsour.… How …  2024            NA            14
+    10 added  <NA>      10.1016/j.jpowsour.… High…  2024            NA             3
+    # ℹ 117 more rows
+
+The citation columns show how far each record’s count moved between the
+two pulls. They are equal here, because both pulls were cut from one
+snapshot.
+
 ## Merging without duplicates
 
 To keep a cumulative set across retrievals, combine them.
 [`scopus_combine()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md)
-renumbers the records and, with `dedupe = TRUE`, keeps each one once by
-‘Scopus’ identifier or DOI, so the records the two pulls share are not
-doubled.
+renumbers the records and, with `dedupe = TRUE`, keeps each one once, so
+the records the two pulls share are not doubled. Records with the same
+‘Scopus’ identifier are one record, and a record without an identifier
+joins the identified record that carries its DOI, however the DOI is
+spelled.
 
 ``` r
 
@@ -116,7 +162,12 @@ These records carry no ‘Scopus’ identifier, never having come from
 ‘Scopus’, so de-duplication falls back to the DOI. The eleven that
 arrived without one have no key to match on, and so survive in both
 copies. A live harvest carries an identifier on every record, so the
-same call on two real pulls returns each article once.
+same call on two real pulls returns each record once. Two records of one
+article under different identifiers, which ‘Scopus’ does hold, are both
+kept, since ‘Scopus’ also gives one DOI to distinct papers. The merge
+counts the DOIs such records share, and the search record gives the
+count, so that they can be checked by hand. `dedupe = "id_or_doi"`
+merges them once they have been.
 
 The base [`c()`](https://rdrr.io/r/base/c.html) method concatenates
 record sets directly, renumbering but without de-duplicating, so it is
@@ -160,10 +211,14 @@ here it is a slice of the bundled corpus, and everything else would be
 as above. Both pulls could then say when they were taken. The baseline
 would be an earlier pull of your own, since the bundled one came from
 OpenAlex and would differ from any ‘Scopus’ pull for that reason alone.
+Both pulls would carry a ‘Scopus’ identifier on every record, so
+[`scopus_diff_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_diff_records.md)
+could compare them all.
 
 ``` r
 
 later <- scopus_fetch('"graphene supercapacitor"', field = "TITLE-ABS-KEY")
 attr(later, "retrieved_at")
 scopus_diff_dois(old = read_scopus_records(path), new = later)
+scopus_diff_records(old = read_scopus_records(path), new = later)
 ```

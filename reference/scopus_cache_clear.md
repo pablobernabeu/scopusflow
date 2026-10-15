@@ -18,6 +18,12 @@ to be absent.
 ## Examples
 
 ``` r
-# Safe to call even when nothing is cached.
+# The managed cache is pointed at a temporary directory first, so that
+# running this example cannot delete the checkpoints of a real harvest.
+# Nothing is cached there, and clearing an absent cache is safe.
+old <- Sys.getenv("R_USER_CACHE_DIR", unset = NA)
+Sys.setenv(R_USER_CACHE_DIR = tempfile())
 scopus_cache_clear()
+if (is.na(old)) Sys.unsetenv("R_USER_CACHE_DIR") else
+  Sys.setenv(R_USER_CACHE_DIR = old)
 ```

@@ -79,24 +79,46 @@ representing the earlier (<code>old</code>) and later (<code>new</code>) retriev
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A tibble of class <code>scopus_doi_diff</code> with columns <code>doi</code> and <code>status</code>,
-where <code>status</code> is an ordered factor with levels <code>"added"</code> (in <code>new</code> only),
+where <code>status</code> is a factor with levels <code>"added"</code> (in <code>new</code> only),
 <code>"removed"</code> (in <code>old</code> only) and <code>"unchanged"</code> (in both). Rows are sorted by
-status then DOI, and printing shows the counts in each category.</p>
+status then DOI, in byte order, so the order is the same under every
+locale and in the Python twin. The integer attributes <code>n_old_without_doi</code>
+and <code>n_new_without_doi</code> count the records (or vector elements) on each
+side that had no DOI and so were not compared. Printing shows the counts
+in each category, and those records where there are any.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>A record without a DOI cannot be compared this way, and 'Scopus' gives no
+DOI to a share of what it indexes, more of it in the arts and humanities and
+among books and proceedings (Gorraiz et al., 2016). Such records are left out
+of the rows and counted in the attributes <code>n_old_without_doi</code> and
+<code>n_new_without_doi</code> and on the printed line. <code><a href="scopus_diff_records.html">scopus_diff_records()</a></code>
+compares the records themselves, matching on the 'Scopus' identifier.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
+    <p>Gorraiz, J., Melero-Fuentes, D., Gumpenberger, C., &amp; Valderrama-Zurián,
+J.-C. (2016). Availability of digital object identifiers (DOIs) in Web of
+Science and Scopus. <em>Journal of Informetrics</em>, <em>10</em>(1), 98–109.
+<a href="https://doi.org/10.1016/j.joi.2015.11.008" class="external-link">doi:10.1016/j.joi.2015.11.008</a></p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="scopus_extract_dois.html">scopus_extract_dois()</a></code></p></div>
+    <div class="dont-index"><p><code><a href="scopus_extract_dois.html">scopus_extract_dois()</a></code>, <code><a href="scopus_diff_records.html">scopus_diff_records()</a></code></p></div>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># A baseline retrieval and the same search re-run a year later, both taken</span></span></span>
 <span class="r-in"><span><span class="co"># from the bundled corpus of real articles: the second pull has gained the</span></span></span>
-<span class="r-in"><span><span class="co"># 2024 records and lost the first one to re-indexing.</span></span></span>
+<span class="r-in"><span><span class="co"># 2024 records and lost the first one to re-indexing. Eleven records in each</span></span></span>
+<span class="r-in"><span><span class="co"># pull carry no DOI, and the printed line says so.</span></span></span>
 <span class="r-in"><span><span class="va">baseline</span> <span class="op">&lt;-</span> <span class="va">example_records</span><span class="op">[</span><span class="va">example_records</span><span class="op">$</span><span class="va">year</span> <span class="op">&lt;=</span> <span class="fl">2023</span>, <span class="op">]</span></span></span>
 <span class="r-in"><span><span class="va">later</span> <span class="op">&lt;-</span> <span class="va">example_records</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span>, <span class="op">]</span></span></span>
 <span class="r-in"><span><span class="fu">scopus_diff_dois</span><span class="op">(</span>old <span class="op">=</span> <span class="va">baseline</span>, new <span class="op">=</span> <span class="va">later</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #0000BB;">&lt;scopus_doi_diff&gt;</span> 14 added, 1 removed, 112 unchanged</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #0000BB;">&lt;scopus_doi_diff&gt;</span> 14 added, 1 removed, 112 unchanged, 11 earlier and 11 later</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> records without a DOI not compared</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 127 × 2</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    doi                            status</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                          <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> </span>

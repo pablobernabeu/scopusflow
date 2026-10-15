@@ -134,8 +134,16 @@ fields</em>). <code><a href="scopus_fetch.html">scopus_fetch()</a></code> and <c
     <p>The coercion methods return a plain <a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a> or data
 frame with the same columns and the <code>scopus_records</code> class removed.</p>
 <p>The <code>autoplot()</code> method returns a <a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot2::ggplot</a> of the records per
-year. When a <code>max_results</code> cap stopped any cell of the retrieval, a caption
-says that the bars count records retrieved, not publications per year.</p>
+year. The bars cover every year the set's plan searched, a year without
+records drawn as a zero bar, and no year the plan did not search. A plan
+over 2015, 2016, 2019 and 2020 therefore draws no bar for 2017 or 2018. A
+harvest stopped before its last cell covers only the cells it ran. Without
+a plan, or with one that sent no year limit, the bars run from the first
+year in the records to the last. When a <code>max_results</code> cap stopped any
+cell of the retrieval, a caption says that the bars count records
+retrieved, not publications per year. When the years plotted reach the
+year of the recorded <code>retrieved_at</code>, the caption also says that year was
+incomplete when the records were retrieved, as <code><a href="plot_scopus_trend.html">plot_scopus_trend()</a></code> does.</p>
 <p>A tibble of class <code>scopus_records</code> with the columns
 <code>entry_number</code> (integer), <code>scopus_id</code> (character), <code>doi</code> (character),
 <code>title</code> (character), <code>authors</code> (character, the author list under

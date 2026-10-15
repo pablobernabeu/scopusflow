@@ -256,7 +256,8 @@ later <- records[-1, ]
 print(scopus_diff_dois(old = baseline, new = later))
 ```
 
-    <scopus_doi_diff> 14 added, 1 removed, 112 unchanged
+    <scopus_doi_diff> 14 added, 1 removed, 112 unchanged, 11 earlier and 11 later
+    records without a DOI not compared
     # A tibble: 127 × 2
        doi                            status
        <chr>                          <fct> 

@@ -124,7 +124,12 @@ authors](analysing-a-literature_files/figure-html/unnamed-chunk-6-1.png)
 A record set also has an honest default view. `autoplot()` draws its
 records per year. Because this corpus is a complete harvest of one
 query, those bars are the real number of publications per year for that
-query. The same `autoplot()` generic dispatches on `scopus_trend` and
+query. For a harvest of your own, the bars cover the years its plan
+searched, a year without records drawn as a zero bar and a year no cell
+searched left out. When the years reach the year of the harvest, the
+caption says that year was incomplete when the records were retrieved,
+since ‘Scopus’ goes on indexing a year’s publications after it has
+begun. The same `autoplot()` generic dispatches on `scopus_trend` and
 `scopus_top` objects too, delegating to the plots above.
 
 ``` r

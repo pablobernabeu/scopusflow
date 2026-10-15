@@ -38,8 +38,78 @@
   integer `open_access`, so an ISSN keeps its leading zeros. The
   default, `fields = "core"`, returns the columns it always has. The
   Python twin’s `fetch_plan()` and `to_records()` gain `fields` too.
+- With `fields = "extended"`,
+  [`as_ris()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
+  and
+  [`as_bibtex()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
+  type conference papers, conference reviews, chapters and books by the
+  document type ‘Scopus’ gives them (RIS `CPAPER`, `CONF`, `CHAP` and
+  `BOOK`, BibTeX `@inproceedings`, `@incollection` and `@book`), where
+  every record used to be a journal article. The entries carry the
+  volume, issue, pages, ISSN and document type, and under
+  `view = "COMPLETE"` the abstract, which screening and de-duplication
+  tools read. A `COMPLETE` set also exports its author keywords, one RIS
+  `KW` line each, with or without the extended fields. A value the
+  record lacks is left out. The Python twin’s `to_ris()` and
+  `to_bibtex()` do the same, held to a shared golden file.
+- `scopus_abstract(include = "index_terms")` returns the index keywords
+  ‘Scopus’ assigns, in an `idxterms` column joined by `"; "`, under
+  `view = "FULL"`.
+  [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
+  can use them, alone or with the author keywords, through its new
+  `keywords` argument, `"index"` or `"both"`, and refuses either under
+  `view = "REF"` before any request. The default, `keywords = "author"`,
+  keeps the author keywords alone. ‘Scopus’ chooses index keywords from
+  standard vocabularies, so they give different co-occurrence results
+  from author keywords, and whether they arrive depends on the key’s
+  entitlement. In development testing, they arrived on a key whose
+  author keywords came back empty. The Python twin’s
+  [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+  and `corpus()` gain the same options.
+- [`write_scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_corpus.md)
+  writes a
+  [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
+  result in theoryforge’s corpus schema, keying cited works on the
+  ‘Scopus’ identifier so the same work is one node however its DOI is
+  written.
+  [`as_theoryforge_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_corpus.md)
+  returns the same document as a list. A reference that carries only a
+  DOI takes the identifier that another document or reference in the
+  corpus pairs with that DOI, and one with neither is dropped with a
+  warning. Keywords are trimmed, lower-cased and made unique, and a
+  missing year is written as `null`. Keyed on the DOI wherever there was
+  one, as theoryforge’s own recipe did, two documents citing the same
+  two works gave no co-citation edge. A `provenance` block records the
+  search expression, when the search ran, the kind of keyword and how
+  many references were dropped and records came without keywords. The
+  Python twin’s `write_corpus()` and `to_theoryforge_corpus()` write the
+  same bytes, held to a shared golden file and validated against a copy
+  of theoryforge’s schema.
+- [`scopus_diff_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_diff_records.md)
+  compares two harvests record by record, matching on the ‘Scopus’
+  identifier and, where a record lacks one, on the DOI, as
+  `scopus_combine(dedupe = TRUE)` matches records. Each row gives the
+  record’s citation counts in both harvests beside its status,
+  identifier, DOI, title and year. A record in one harvest only whose
+  DOI the other harvest gives to a different record is marked `conflict`
+  for you to check, since it may have been re-indexed under a new
+  identifier or may be a distinct paper sharing the DOI. Records with
+  neither key are counted and left out. The Python twin’s
+  `diff_records()` returns the same rows, held to a shared fixture.
 
 ### Changed behaviour
+
+- [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
+  now reports the requests it made and the quota left, in the
+  `n_requests` and `quota` attributes, as the Python twin does, and both
+  twins return each document’s ‘Scopus’ identifier in a new `scopus_id`
+  column, the second. It comes from Abstract Retrieval, or from the
+  records where the lookup failed. Code that selects the corpus’s
+  columns by position needs updating. The result also carries the search
+  expression, when the search ran and the kind of keyword, as the
+  attributes `query`, `retrieved_at` and `keywords`, which
+  [`write_scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_corpus.md)
+  records.
 
 - Input errors now inherit `scopus_error`, as the package has always
   documented. `scopus_error_bad_input` was raised on its own, so
@@ -49,6 +119,7 @@
   `rlang_error` conditions with the same message. A retry loop keyed on
   `scopus_error` should test the subclass, since an input error will not
   succeed on retry.
+
 - [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
   now requests `view = "META_ABS"` by default, the view Elsevier
   documents as carrying the abstract, as the Python twin does. It used
@@ -61,6 +132,7 @@
   `META_ABS`. A cache written by 0.4.0 for a call without a view
   therefore serves only `view = NULL`, and a default call spends a
   request on each of its identifiers again.
+
 - Queries are checked offline before any request. `LIMIT-TO()` and
   `EXCLUDE()` refinement syntax pasted from the web interface, a field
   tag wrapped around a query that already opens with one, and unbalanced
@@ -87,16 +159,50 @@
   uses a concept written as the web interface writes a tag,
   `TITLE-ABS-KEY ( x )`, as given, where it used to wrap it in `field` a
   second time.
+
 - RIS records put the source title under `T2`, which reference managers
   read as the publication title, instead of `JO`, which Zotero reads as
   the journal abbreviation, and now carry `DB - Scopus` and the EID as
   `AN`.
+
+- [`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)
+  follows the conventions `bibliometrix::convert2df()` applies to a
+  ‘Scopus’ export, so its frame describes a record as a ‘Scopus’ CSV
+  import does. `AU` gives each author as the surname and initials
+  without full stops (`"ZHANG F"`, where it held `"ZHANG F."`), joined
+  by `";"`, and a `COMPLETE` name such as `"Tour, James M."` becomes
+  `"TOUR JM"`. `UT` holds the upper-cased EID, `"2-S2.0-<scopus_id>"`,
+  where it held the bare identifier, which `sub("^2-S2.0-", "", UT)`
+  restores. A set carrying author keywords gains `DE`, and one retrieved
+  with `fields = "extended"` gains `DT`, `VL` and `IS`.
+
 - Requests are retried after transport failures such as timeouts and
   connection resets, which httr2 stopped doing by default in 1.0.4, so
   one such failure no longer aborts a harvest. scopusflow now requires
   httr2 1.0.4 or later. A timeout is reported as such, with the class
   `scopus_error_timeout` (a subclass of `scopus_error_offline`), and no
   longer as being offline.
+
+- De-duplication in
+  [`scopus_combine()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md)
+  now cleans DOIs as
+  [`scopus_extract_dois()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_extract_dois.md)
+  does (resolver prefixes, case) and matches a record without a ‘Scopus’
+  identifier to the identified record carrying the same DOI. Records
+  with different identifiers and one DOI are still both kept, since
+  ‘Scopus’ also gives one DOI to distinct papers, and the merge now
+  counts them for you to check. The `combined` attribute records the
+  rule as `rule` and the DOIs such records share as `doi_conflicts`, and
+  PRISMA-S item 16 of the search record names the rule and gives the
+  count. `dedupe = "id_or_doi"` merges records with different
+  identifiers that share a DOI, and `dedupe = "id_then_doi"` reproduces
+  the earlier rule. A set merged by 0.4.0 records no rule and keeps its
+  item 16 wording. A blank identifier, which
+  [`read_scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_records.md)
+  reads from a CSV file the Python twin wrote, now counts as none, where
+  every record carrying one was merged into one record. `dedupe` refuses
+  a value other than `TRUE`, `FALSE` or the name of a rule, where `NA`
+  or any other value meant no de-duplication.
 
 ### Bug fixes
 
@@ -279,6 +385,50 @@
   [`scopusflow::run_app()`](https://pablobernabeu.github.io/scopusflow/reference/run_app.md)
   without attaching the package, where Check size and Fetch records
   failed with “object ‘example_records’ not found”.
+- [`scopus_diff_dois()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_diff_dois.md)
+  now says how many records it could not compare for want of a DOI, in
+  the attributes `n_old_without_doi` and `n_new_without_doi` and on its
+  printed line. Such records, 11 of the 138 in the bundled corpus, used
+  to vanish from the diff without a count. It also orders its rows the
+  same way on every machine, in byte order as the Python twin does,
+  where it followed the locale’s collation and an English locale put
+  `10.1016/j.cell` before `10.1016/S0140`. The tracking article advised
+  preferring the ‘Scopus’ identifier, which no function supported, and
+  now points to
+  [`scopus_diff_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_diff_records.md).
+- A `cache_dir` that cannot be written is now refused with
+  `scopus_error_bad_input` before any request, in
+  [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md),
+  [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+  and
+  [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md).
+  A checkpoint that cannot be written all the same, for example on a
+  full disk, gives a `scopus_warning_cache_unwritable` warning, and its
+  records are kept in the result. Both used to spend the cell’s quota
+  and then lose its records to an untyped “cannot open the connection”
+  error. The
+  [`scopus_cache_clear()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_clear.md)
+  example no longer deletes a real managed cache when the examples are
+  run, since it now points the cache at a temporary directory first.
+- `autoplot()` of a record set no longer draws zero bars for years its
+  plan never searched. The bars ran from the first year in the records
+  to the last, so a plan over 2015, 2016, 2019 and 2020 showed 2017 and
+  2018 as years without publications. They now cover the years the plan
+  searched, each year cell or every year of a single cell’s range, and a
+  year without records is still drawn as a zero bar. A set without a
+  plan keeps the span of its own years. The Python twin’s
+  `year_counts()` counts the same years, held to a shared fixture.
+- Trend figures now say when their last year was still being indexed.
+  [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md)
+  records when it counted, in the `retrieved_at` attribute.
+  [`plot_scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_trend.md)
+  and `autoplot()` then add a caption line such as “2026 was incomplete
+  when retrieved on 2026-09-29.” when the years plotted reach that year.
+  ‘Scopus’ goes on indexing a year’s publications after the year has
+  begun, so the last point of such a figure was a count so far, easily
+  read as a decline. The line is read from the recorded time, never from
+  the session’s clock, so a trend tallied by hand is drawn as before.
+  The Python twin’s `plot_trend()` adds the same note.
 
 ### Documentation
 

@@ -227,6 +227,17 @@ such as `Zhang F.` is exported as `Zhang, F.`, so that a reference
 manager or BibTeX reads Zhang as the family name. Nearly all the bundled
 records give names first, and those are written as they stand.
 
+Every bundled record is a journal article, exported as `JOUR` and
+`@article`. A harvest retrieved with `fields = "extended"` carries the
+document type ‘Scopus’ gives each record. A conference paper is then
+exported as `CPAPER` and `@inproceedings`, a chapter as `CHAP` and
+`@incollection` and a book as `BOOK` and `@book`. Its entries also carry
+the volume, issue, pages and ISSN, and under `view = "COMPLETE"` the
+abstract and the author keywords, which screening and de-duplication
+tools read.
+[`?as_bibtex`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
+lists where each field goes.
+
 Pass a `file` to write the whole set. Nothing is written without one.
 
 ``` r
@@ -256,6 +267,15 @@ head(m[, c("AU", "TI", "PY", "SO", "TC", "DB")])
 | VIKRANT SAHU | HEAVILY NITROGEN DOPED, GRAPHENE SUPERCAPACITOR FROM SILK COCOON | 2015 | ELECTROCHIMICA ACTA | 195 | SCOPUS |
 | CHIH-TAO CHIEN | GRAPHENE-BASED INTEGRATED PHOTOVOLTAIC ENERGY HARVESTING/STORAGE DEVICE | 2015 | SMALL | 108 | SCOPUS |
 | HAO YANG | NANOPOROUS GRAPHENE MATERIALS BY LOW-TEMPERATURE VACUUM-ASSISTED THERMAL PROCESS FOR ELECTROCHEMICAL ENERGY STORAGE | 2015 | JOURNAL OF POWER SOURCES | 47 | SCOPUS |
+
+The fields follow the conventions `bibliometrix::convert2df()` applies
+to a ‘Scopus’ export. Each author is written as the surname and initials
+without full stops, so `Zhang F.` becomes `ZHANG F`, and the authors of
+a record are joined by `;`. `UT` holds the EID, which the bundled
+records lack. A harvest retrieved under `view = "COMPLETE"` also fills
+`DE` with the author keywords, and one retrieved with
+`fields = "extended"` fills `DT`, `VL` and `IS` with the document type,
+volume and issue.
 
 From there the usual bibliometrix entry points apply. This step needs
 that package, so it is shown but not run.

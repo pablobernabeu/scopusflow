@@ -140,14 +140,44 @@ ab <- scopus_abstract(
 )
 ```
 
+## Index keywords
+
+‘Scopus’ records a second kind of keyword. Authors choose their own
+keywords, whereas ‘Scopus’ chooses the index keywords and standardises
+them to vocabularies derived from thesauri Elsevier owns or licenses,
+with synonyms, spellings and plurals brought together.
+`include = "index_terms"` adds them as an `idxterms` column, joined by
+`"; "` as the author keywords are. Like the author keywords, they come
+only with `view = "FULL"`, in the same request.
+
+``` r
+
+ab <- scopus_abstract(
+  "10.1038/nature14539",
+  view = "FULL", include = c("keywords", "index_terms")
+)
+ab$idxterms
+```
+
+Elsevier’s guide lists index keywords in the `FULL` view as not
+available by default, so whether they arrive depends on your key’s
+entitlement. In this package’s development testing, they did arrive on
+the same key whose author keywords came back empty. Where that happens,
+the index keywords may be the only keyword signal a ‘Scopus’ harvest can
+give. The two kinds are not interchangeable, though. A standard
+vocabulary merges terms that authors phrase differently, so the two give
+different co-occurrence networks from the same documents, and a study
+should say which it used.
+
 ## A minimal, cross-tool corpus
 
 [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
 combines a search result with this Abstract Retrieval step, returning a
 minimal shape close to what OpenAlex’s `works` API already returns:
-`id`, `title`, `year`, `keywords` (a list-column of character vectors)
-and `references` (a list-column of data frames), where bibliometrix
-would give you semicolon-joined citation strings. It does not replace
+`id`, `scopus_id`, `title`, `year`, `keywords` (a list-column of
+character vectors) and `references` (a list-column of data frames),
+where bibliometrix would give you semicolon-joined citation strings. It
+does not replace
 \[[`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)\],
 which keeps its own field-mapping convention for users who want that.
 
@@ -162,8 +192,21 @@ nrow(corpus$references[[1]])
 This costs one Abstract Retrieval request per record in `recs`, on top
 of whatever retrieved `recs` in the first place. The `keywords` column,
 split from the joined `authkeywords` string, holds a character vector
-per record, which is the shape co-occurrence analysis wants. Counting
-every unordered pair of keywords within each document gives the
+per record, which is the shape co-occurrence analysis wants.
+`keywords = "index"` fills it with the index keywords instead, and
+`keywords = "both"` with the author keywords followed by each index
+keyword not already among them. Either costs what the default costs, and
+both need `view = "FULL"`.
+
+``` r
+
+corpus <- scopus_corpus(recs, view = "FULL", keywords = "both")
+```
+
+The match is on the exact text, so `"graphene"` from the author and
+`"Graphene"` from the index both stay.
+
+Counting every unordered pair of keywords within each document gives the
 co-occurrence table the article opened on, and base R is enough for it.
 
 Author keywords are one of the fields that cannot travel with the
@@ -224,3 +267,62 @@ head(cooc, 5)
 
 Each row is one pair of keywords and the number of documents carrying
 both, which is the edge list a co-occurrence network is built from.
+
+## Handing the corpus to theoryforge
+
+theoryforge maps a literature from a corpus file in its own schema, and
+[`write_scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_corpus.md)
+writes one from a
+[`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
+result. The file needs a name for the corpus, since the result carries
+none.
+
+``` r
+
+write_scopus_corpus(corpus, "corpus.json", id = "graphene-supercapacitors")
+```
+
+theoryforge compares cited works as exact strings, so the writer gives
+each one a single key across the corpus, its ‘Scopus’ identifier, as
+`scopus:<id>`. ‘Scopus’ gives a cited work’s DOI in some bibliographies
+only, and in different cases. A key built from the DOI wherever there is
+one would therefore split the work into several nodes and lose its
+co-citation edges. A reference that carries only a DOI takes the
+identifier that another reference pairs with the same DOI, and a DOI
+that nothing pairs with is keyed as `doi:<doi>`, lower-cased. Keywords
+are lower-cased as well, so the `"graphene"` and `"Graphene"` that
+`keywords = "both"` keeps apart become one. The chunk below runs the
+writer on two bundled records, each made to cite the same two others,
+the second with the DOIs in capitals. Both cite the same two keys.
+
+``` r
+
+docs <- example_records[!is.na(example_records$doi), ][1:4, ]
+cites <- function(dois) tibble::tibble(id = NA_character_, doi = dois)
+corpus <- tibble::tibble(
+  id = docs$doi[1:2],
+  scopus_id = NA_character_,
+  title = docs$title[1:2],
+  year = docs$year[1:2],
+  keywords = list(c("Graphene", "supercapacitor"), "graphene"),
+  references = list(cites(docs$doi[3:4]), cites(toupper(docs$doi[3:4])))
+)
+doc <- as_theoryforge_corpus(corpus, id = "graphene-supercapacitors")
+doc$records[[1]]$references
+```
+
+    [1] "doi:10.1016/j.electacta.2015.02.019" "doi:10.1002/smll.201403383"         
+
+``` r
+
+doc$records[[2]]$references
+```
+
+    [1] "doi:10.1016/j.electacta.2015.02.019" "doi:10.1002/smll.201403383"         
+
+The file also carries a `provenance` block recording the search
+expression, when the search ran and the kind of keyword, with counts of
+the references dropped and of the records without keywords. An
+entitlement that returns no author keywords shows up in that last count,
+and it leaves theoryforge’s keyword themes empty whatever the writer
+does.

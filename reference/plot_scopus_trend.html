@@ -85,6 +85,17 @@
     <p>A <a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot2::ggplot</a> object. Needs the suggested package <span class="pkg">ggplot2</span>.</p>
     </div>
     <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>When the years plotted reach the year recorded in the <code>retrieved_at</code>
+attribute that <code><a href="scopus_trend.html">scopus_trend()</a></code> attaches, the caption adds a line such as
+"2026 was incomplete when retrieved on 2026-09-29." 'Scopus' goes on
+indexing a year's publications after the year has begun, so the last point
+of such a figure is a count so far, easily read as a decline. The line is
+read from the recorded time alone, never from the clock of the session
+drawing the figure, so a trend that records none, such as one tallied by
+hand, is drawn without it.</p>
+    </div>
+    <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="scopus_trend.html">scopus_trend()</a></code></p></div>
     </div>

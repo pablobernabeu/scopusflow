@@ -245,18 +245,45 @@ quota already spent.</p>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
+<h2 id="index-keywords">Index keywords<a class="anchor" aria-label="anchor" href="#index-keywords"></a>
+</h2>
+<p>‘Scopus’ records a second kind of keyword. Authors choose their own
+keywords, whereas ‘Scopus’ chooses the index keywords and standardises
+them to vocabularies derived from thesauri Elsevier owns or licenses,
+with synonyms, spellings and plurals brought together.
+<code>include = "index_terms"</code> adds them as an
+<code>idxterms</code> column, joined by <code>"; "</code> as the author
+keywords are. Like the author keywords, they come only with
+<code>view = "FULL"</code>, in the same request.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ab</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_abstract.html">scopus_abstract</a></span><span class="op">(</span></span>
+<span>  <span class="st">"10.1038/nature14539"</span>,</span>
+<span>  view <span class="op">=</span> <span class="st">"FULL"</span>, include <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"keywords"</span>, <span class="st">"index_terms"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">ab</span><span class="op">$</span><span class="va">idxterms</span></span></code></pre></div>
+<p>Elsevier’s guide lists index keywords in the <code>FULL</code> view
+as not available by default, so whether they arrive depends on your
+key’s entitlement. In this package’s development testing, they did
+arrive on the same key whose author keywords came back empty. Where that
+happens, the index keywords may be the only keyword signal a ‘Scopus’
+harvest can give. The two kinds are not interchangeable, though. A
+standard vocabulary merges terms that authors phrase differently, so the
+two give different co-occurrence networks from the same documents, and a
+study should say which it used.</p>
+</div>
+<div class="section level2">
 <h2 id="a-minimal-cross-tool-corpus">A minimal, cross-tool corpus<a class="anchor" aria-label="anchor" href="#a-minimal-cross-tool-corpus"></a>
 </h2>
 <p><code><a href="../reference/scopus_corpus.html">scopus_corpus()</a></code> combines a search result with this
 Abstract Retrieval step, returning a minimal shape close to what
 OpenAlex’s <code>works</code> API already returns: <code>id</code>,
-<code>title</code>, <code>year</code>, <code>keywords</code> (a
-list-column of character vectors) and <code>references</code> (a
-list-column of data frames), where bibliometrix would give you
-semicolon-joined citation strings. It does not replace
-[<code><a href="../reference/as_bibliometrix.html">as_bibliometrix()</a></code>], which keeps its own field-mapping
-convention for users who want that.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code>scopus_id</code>, <code>title</code>, <code>year</code>,
+<code>keywords</code> (a list-column of character vectors) and
+<code>references</code> (a list-column of data frames), where
+bibliometrix would give you semicolon-joined citation strings. It does
+not replace [<code><a href="../reference/as_bibliometrix.html">as_bibliometrix()</a></code>], which keeps its own
+field-mapping convention for users who want that.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">recs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch.html">scopus_fetch</a></span><span class="op">(</span><span class="st">"DOI(10.1038/nature14539)"</span>, max_results <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">corpus</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_corpus.html">scopus_corpus</a></span><span class="op">(</span><span class="va">recs</span>, view <span class="op">=</span> <span class="st">"FULL"</span><span class="op">)</span></span>
 <span><span class="va">corpus</span><span class="op">$</span><span class="va">keywords</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
@@ -265,15 +292,24 @@ convention for users who want that.</p>
 <code>recs</code>, on top of whatever retrieved <code>recs</code> in the
 first place. The <code>keywords</code> column, split from the joined
 <code>authkeywords</code> string, holds a character vector per record,
-which is the shape co-occurrence analysis wants. Counting every
-unordered pair of keywords within each document gives the co-occurrence
-table the article opened on, and base R is enough for it.</p>
+which is the shape co-occurrence analysis wants.
+<code>keywords = "index"</code> fills it with the index keywords
+instead, and <code>keywords = "both"</code> with the author keywords
+followed by each index keyword not already among them. Either costs what
+the default costs, and both need <code>view = "FULL"</code>.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">corpus</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_corpus.html">scopus_corpus</a></span><span class="op">(</span><span class="va">recs</span>, view <span class="op">=</span> <span class="st">"FULL"</span>, keywords <span class="op">=</span> <span class="st">"both"</span><span class="op">)</span></span></code></pre></div>
+<p>The match is on the exact text, so <code>"graphene"</code> from the
+author and <code>"Graphene"</code> from the index both stay.</p>
+<p>Counting every unordered pair of keywords within each document gives
+the co-occurrence table the article opened on, and base R is enough for
+it.</p>
 <p>Author keywords are one of the fields that cannot travel with the
 package. The corpus below stands them in from each bundled record’s own
 title, keeping a fixed vocabulary of terms and recording those a title
 mentions. That is a cruder signal than a real keyword list, but the
 counting is identical and it runs over 138 published titles.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">vocabulary</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"graphene"</span>, <span class="st">"supercapacitor"</span>, <span class="st">"electrode"</span>, <span class="st">"energy storage"</span>,</span>
 <span>                <span class="st">"flexible"</span>, <span class="st">"electrochemical"</span><span class="op">)</span></span>
 <span><span class="va">corpus</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
@@ -317,7 +353,7 @@ Supercapacitors</td>
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Each unordered pair once per document, sorted in byte order, so the pairs and</span></span>
 <span><span class="co"># the order of tied counts do not depend on the locale.</span></span>
 <span><span class="va">pairs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">corpus</span><span class="op">$</span><span class="va">keywords</span>, <span class="kw">function</span><span class="op">(</span><span class="va">keywords</span><span class="op">)</span> <span class="op">{</span></span>
@@ -367,6 +403,53 @@ Supercapacitors</td>
 </table>
 <p>Each row is one pair of keywords and the number of documents carrying
 both, which is the edge list a co-occurrence network is built from.</p>
+</div>
+<div class="section level2">
+<h2 id="handing-the-corpus-to-theoryforge">Handing the corpus to theoryforge<a class="anchor" aria-label="anchor" href="#handing-the-corpus-to-theoryforge"></a>
+</h2>
+<p>theoryforge maps a literature from a corpus file in its own schema,
+and <code><a href="../reference/write_scopus_corpus.html">write_scopus_corpus()</a></code> writes one from a
+<code><a href="../reference/scopus_corpus.html">scopus_corpus()</a></code> result. The file needs a name for the
+corpus, since the result carries none.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/write_scopus_corpus.html">write_scopus_corpus</a></span><span class="op">(</span><span class="va">corpus</span>, <span class="st">"corpus.json"</span>, id <span class="op">=</span> <span class="st">"graphene-supercapacitors"</span><span class="op">)</span></span></code></pre></div>
+<p>theoryforge compares cited works as exact strings, so the writer
+gives each one a single key across the corpus, its ‘Scopus’ identifier,
+as <code>scopus:&lt;id&gt;</code>. ‘Scopus’ gives a cited work’s DOI in
+some bibliographies only, and in different cases. A key built from the
+DOI wherever there is one would therefore split the work into several
+nodes and lose its co-citation edges. A reference that carries only a
+DOI takes the identifier that another reference pairs with the same DOI,
+and a DOI that nothing pairs with is keyed as
+<code>doi:&lt;doi&gt;</code>, lower-cased. Keywords are lower-cased as
+well, so the <code>"graphene"</code> and <code>"Graphene"</code> that
+<code>keywords = "both"</code> keeps apart become one. The chunk below
+runs the writer on two bundled records, each made to cite the same two
+others, the second with the DOIs in capitals. Both cite the same two
+keys.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">docs</span> <span class="op">&lt;-</span> <span class="va">example_records</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">$</span><span class="va">doi</span><span class="op">)</span>, <span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>, <span class="op">]</span></span>
+<span><span class="va">cites</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">dois</span><span class="op">)</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span>id <span class="op">=</span> <span class="cn">NA_character_</span>, doi <span class="op">=</span> <span class="va">dois</span><span class="op">)</span></span>
+<span><span class="va">corpus</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
+<span>  id <span class="op">=</span> <span class="va">docs</span><span class="op">$</span><span class="va">doi</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span>,</span>
+<span>  scopus_id <span class="op">=</span> <span class="cn">NA_character_</span>,</span>
+<span>  title <span class="op">=</span> <span class="va">docs</span><span class="op">$</span><span class="va">title</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span>,</span>
+<span>  year <span class="op">=</span> <span class="va">docs</span><span class="op">$</span><span class="va">year</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span>,</span>
+<span>  keywords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Graphene"</span>, <span class="st">"supercapacitor"</span><span class="op">)</span>, <span class="st">"graphene"</span><span class="op">)</span>,</span>
+<span>  references <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu">cites</span><span class="op">(</span><span class="va">docs</span><span class="op">$</span><span class="va">doi</span><span class="op">[</span><span class="fl">3</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span>, <span class="fu">cites</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/chartr.html" class="external-link">toupper</a></span><span class="op">(</span><span class="va">docs</span><span class="op">$</span><span class="va">doi</span><span class="op">[</span><span class="fl">3</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">doc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/write_scopus_corpus.html">as_theoryforge_corpus</a></span><span class="op">(</span><span class="va">corpus</span>, id <span class="op">=</span> <span class="st">"graphene-supercapacitors"</span><span class="op">)</span></span>
+<span><span class="va">doc</span><span class="op">$</span><span class="va">records</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">references</span></span></code></pre></div>
+<pre><code>[1] "doi:10.1016/j.electacta.2015.02.019" "doi:10.1002/smll.201403383"         </code></pre>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">doc</span><span class="op">$</span><span class="va">records</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">references</span></span></code></pre></div>
+<pre><code>[1] "doi:10.1016/j.electacta.2015.02.019" "doi:10.1002/smll.201403383"         </code></pre>
+<p>The file also carries a <code>provenance</code> block recording the
+search expression, when the search ran and the kind of keyword, with
+counts of the references dropped and of the records without keywords. An
+entitlement that returns no author keywords shows up in that last count,
+and it leaves theoryforge’s keyword themes empty whatever the writer
+does.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

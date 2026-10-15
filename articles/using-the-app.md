@@ -192,8 +192,9 @@ words. By year draws the records per year through `autoplot()`, which
 traces the publications per year when every record was retrieved. When a
 cap stopped a cell, the bars count the records retrieved instead. The
 chart’s caption says so, and so do a note in the Retrieval panel and the
-search record. Top sources and Top authors tally the most frequent of
-each with
+search record. When the years reach the year of the harvest, the caption
+also says that year was incomplete when the records were retrieved. Top
+sources and Top authors tally the most frequent of each with
 [`scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_top.md)
 and
 [`plot_scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_top.md).

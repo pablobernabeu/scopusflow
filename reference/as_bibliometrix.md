@@ -4,7 +4,9 @@ Re-maps a
 [scopus_records](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
 tibble to the tagged column layout used by the bibliometrix package (and
 the wider ISI/Web of Science convention), so results can flow into
-downstream science-mapping workflows.
+downstream science-mapping workflows. The fields follow the conventions
+`bibliometrix::convert2df()` applies to a 'Scopus' CSV export, so the
+two frames describe a record in the same terms.
 
 ## Usage
 
@@ -24,13 +26,39 @@ as_bibliometrix(x)
 
 A data frame (classed `bibliometrixDB`) with the standard tag columns
 `AU` (authors), `TI` (title), `SO` (source or publication), `DI` (DOI),
-`PY` (publication year), `TC` (times cited), `UT` (record id) and `DB`
-(`"SCOPUS"`). Character tag fields are upper-cased to match the
-bibliometrix convention.
+`PY` (publication year), `TC` (times cited), `UT` (the record's EID) and
+`DB` (`"SCOPUS"`). `DE` (author keywords) follows when the set carries
+the `authkeywords` column of a `view = "COMPLETE"` retrieval. `DT`
+(document type), `VL` (volume) and `IS` (issue) follow when it carries
+the columns of a `fields = "extended"` retrieval (see
+[`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)).
+Character tag fields other than `DI` are upper-cased, as bibliometrix
+upper-cases them.
 
 ## Details
 
-This produces the *shape* bibliometrix expects from the core descriptive
+Each author in `AU` is written as bibliometrix writes a 'Scopus' author,
+the surname followed by the initials without full stops. The authors are
+joined by `";"`. A name in the `"Surname, Given"` form the `COMPLETE`
+view gives becomes the surname followed by the initial of each given
+name, and a hyphenated given name keeps its hyphen. `"Tour, James M."`
+thus becomes `"TOUR JM"` and `"Lee, Chul-Hee"` becomes `"LEE C-H"`. A
+name without a comma, such as the `STANDARD` view's `"Lee C.-H."`, loses
+its full stops and becomes `"LEE C-H"`. Each given name yields one
+initial, so a name that 'Scopus' abbreviates to two letters, such as
+`"Yu."` for Yuri, keeps both under `STANDARD` and gives one under
+`COMPLETE`.
+
+`UT` holds the EID, `"2-S2.0-"` followed by the 'Scopus' identifier, as
+a 'Scopus' import gives it, and is `NA` for a record without an
+identifier. `sub("^2-S2.0-", "", UT)` gives back the bare identifier.
+`DE` holds the author keywords joined by `"; "`, as in a 'Scopus' CSV
+export. Keywords are split at the `" | "` the Search API joins them with
+and at the `"; "`
+[`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+joins its own with, so either source can fill the `authkeywords` column.
+
+This produces the *shape* bibliometrix expects from the descriptive
 fields. It reconstructs only what the 'Scopus' Search API returns, so
 richer fields that some bibliometrix analyses use, such as full author
 affiliations or cited references, are left out. To obtain those, export

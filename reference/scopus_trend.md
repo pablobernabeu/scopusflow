@@ -65,7 +65,13 @@ A tibble of class `scopus_trend` with columns `query` (the field-wrapped
 query), `year` (integer) and `n` (the count that year, as a double so
 very large counts are exact). A year whose response omits a total is
 recorded as `NA` (with a warning) and contributes nothing to the total
-shown by [`print()`](https://rdrr.io/r/base/print.html).
+shown by [`print()`](https://rdrr.io/r/base/print.html). The time the
+counts were taken is attached as the `retrieved_at` attribute (a
+`POSIXct`), as a harvest records its own. 'Scopus' goes on indexing a
+year's publications after the year has begun, so a count for the year of
+retrieval is a count so far, and
+[`plot_scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_trend.md)
+says so from this time.
 
 ## API access
 

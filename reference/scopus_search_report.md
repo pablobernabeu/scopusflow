@@ -77,9 +77,12 @@ is written. Its elements are the fields the record is built from:
 times), `version`, `n_records`, `n_with_doi`, `reported_total`,
 `stopped_early`, `cells_planned`, `cells_run`, `not_run` (the cells a
 stopped harvest never reached), `records_combined`,
-`duplicates_removed`, `deduplicated`, `snippet` and `prisma` (a tibble
-of `item`, `name`, `source` and `note`). A field the objects do not
-record is `NA`.
+`duplicates_removed`, `deduplicated`, `dedupe_rule` and `doi_conflicts`
+(the rule
+[`scopus_combine()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md)
+matched records by, and the DOIs it left shared across identifiers),
+`snippet` and `prisma` (a tibble of `item`, `name`, `source` and
+`note`). A field the objects do not record is `NA`.
 
 [`format()`](https://rdrr.io/r/base/format.html) returns a length-one
 character string.
@@ -102,12 +105,12 @@ attaches, or, for a set from a single search, its `total_results`),
 never an inference from the number of rows, and it is given overall only
 when every cell reported one; and the duplicates removed are those
 [`scopus_combine()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md)
-recorded removing. Where an attribute is absent, as it is for a set read
-back from a `.csv`, for the bundled corpus, and for a cell resumed from
-a checkpoint written before these attributes existed, the record says
-the field is unrecorded and fills nothing in. This matters most for
-completeness: a harvest whose reported total is unknown is never
-described as exhaustive.
+recorded removing, matched by the rule it recorded. Where an attribute
+is absent, as it is for a set read back from a `.csv`, for the bundled
+corpus, and for a cell resumed from a checkpoint written before these
+attributes existed, the record says the field is unrecorded and fills
+nothing in. This matters most for completeness: a harvest whose reported
+total is unknown is never described as exhaustive.
 
 A harvest capped by `max_results` says so. A cell that holds as many
 records as the cap allowed, where the API reported more or reported

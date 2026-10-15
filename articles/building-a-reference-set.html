@@ -379,6 +379,16 @@ it. A ‘Scopus’ name such as <code>Zhang F.</code> is exported as
 <code>Zhang, F.</code>, so that a reference manager or BibTeX reads
 Zhang as the family name. Nearly all the bundled records give names
 first, and those are written as they stand.</p>
+<p>Every bundled record is a journal article, exported as
+<code>JOUR</code> and <code>@article</code>. A harvest retrieved with
+<code>fields = "extended"</code> carries the document type ‘Scopus’
+gives each record. A conference paper is then exported as
+<code>CPAPER</code> and <code>@inproceedings</code>, a chapter as
+<code>CHAP</code> and <code>@incollection</code> and a book as
+<code>BOOK</code> and <code>@book</code>. Its entries also carry the
+volume, issue, pages and ISSN, and under <code>view = "COMPLETE"</code>
+the abstract and the author keywords, which screening and de-duplication
+tools read. <code><a href="../reference/as_bibtex.html">?as_bibtex</a></code> lists where each field goes.</p>
 <p>Pass a <code>file</code> to write the whole set. Nothing is written
 without one.</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
@@ -470,6 +480,16 @@ VACUUM-ASSISTED THERMAL PROCESS FOR ELECTROCHEMICAL ENERGY STORAGE</td>
 </tr>
 </tbody>
 </table>
+<p>The fields follow the conventions
+<code>bibliometrix::convert2df()</code> applies to a ‘Scopus’ export.
+Each author is written as the surname and initials without full stops,
+so <code>Zhang F.</code> becomes <code>ZHANG F</code>, and the authors
+of a record are joined by <code>;</code>. <code>UT</code> holds the EID,
+which the bundled records lack. A harvest retrieved under
+<code>view = "COMPLETE"</code> also fills <code>DE</code> with the
+author keywords, and one retrieved with <code>fields = "extended"</code>
+fills <code>DT</code>, <code>VL</code> and <code>IS</code> with the
+document type, volume and issue.</p>
 <p>From there the usual bibliometrix entry points apply. This step needs
 that package, so it is shown but not run.</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">

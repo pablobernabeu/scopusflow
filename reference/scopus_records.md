@@ -84,9 +84,19 @@ frame with the same columns and the `scopus_records` class removed.
 
 The `autoplot()` method returns a
 [ggplot2::ggplot](https://ggplot2.tidyverse.org/reference/ggplot.html)
-of the records per year. When a `max_results` cap stopped any cell of
-the retrieval, a caption says that the bars count records retrieved, not
-publications per year.
+of the records per year. The bars cover every year the set's plan
+searched, a year without records drawn as a zero bar, and no year the
+plan did not search. A plan over 2015, 2016, 2019 and 2020 therefore
+draws no bar for 2017 or 2018. A harvest stopped before its last cell
+covers only the cells it ran. Without a plan, or with one that sent no
+year limit, the bars run from the first year in the records to the last.
+When a `max_results` cap stopped any cell of the retrieval, a caption
+says that the bars count records retrieved, not publications per year.
+When the years plotted reach the year of the recorded `retrieved_at`,
+the caption also says that year was incomplete when the records were
+retrieved, as
+[`plot_scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_trend.md)
+does.
 
 A tibble of class `scopus_records` with the columns `entry_number`
 (integer), `scopus_id` (character), `doi` (character), `title`

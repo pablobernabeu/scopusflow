@@ -135,7 +135,9 @@ that <code><a href="https://rdrr.io/r/base/print.html" class="external-link">pri
 times), <code>version</code>, <code>n_records</code>, <code>n_with_doi</code>, <code>reported_total</code>,
 <code>stopped_early</code>, <code>cells_planned</code>, <code>cells_run</code>, <code>not_run</code> (the cells a
 stopped harvest never reached), <code>records_combined</code>, <code>duplicates_removed</code>,
-<code>deduplicated</code>, <code>snippet</code> and <code>prisma</code> (a tibble of <code>item</code>, <code>name</code>,
+<code>deduplicated</code>, <code>dedupe_rule</code> and <code>doi_conflicts</code> (the rule
+<code><a href="scopus_combine.html">scopus_combine()</a></code> matched records by, and the DOIs it left shared across
+identifiers), <code>snippet</code> and <code>prisma</code> (a tibble of <code>item</code>, <code>name</code>,
 <code>source</code> and <code>note</code>). A field the objects do not record is <code>NA</code>.</p>
 <p><code><a href="https://rdrr.io/r/base/format.html" class="external-link">format()</a></code> returns a length-one character string.</p>
     </div>
@@ -154,7 +156,7 @@ cells recorded (the <code>cell_totals</code> attribute <code><a href="scopus_fet
 or, for a set from a single search, its <code>total_results</code>), never an inference
 from the number of rows, and it is given overall only when every cell
 reported one; and the duplicates removed are those <code><a href="scopus_combine.html">scopus_combine()</a></code>
-recorded removing. Where
+recorded removing, matched by the rule it recorded. Where
 an attribute is absent, as it is for a set read back from a <code>.csv</code>, for the
 bundled corpus, and for a cell resumed from a checkpoint written before these
 attributes existed, the record says the field is unrecorded and fills

@@ -294,6 +294,8 @@ added or dropped.
   : Extract, clean and optionally export DOIs
 - [`scopus_diff_dois()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_diff_dois.md)
   : Compare two DOI retrievals
+- [`scopus_diff_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_diff_records.md)
+  : Compare two retrievals record by record
 
 ## Analyse and visualise
 
@@ -324,7 +326,7 @@ it, and plot the result.
 ## Export and I/O
 
 Hand records to bibliometrix, to a reference manager, or to a file on
-disk.
+disk, and a corpus to theoryforge.
 
 - [`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)
   : Convert records to a bibliometrix-compatible data frame
@@ -334,6 +336,9 @@ disk.
 - [`write_scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_records.md)
   [`read_scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_records.md)
   : Read and write 'Scopus' record sets
+- [`as_theoryforge_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_corpus.md)
+  [`write_scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_corpus.md)
+  : Write a corpus in theoryforge's corpus schema
 
 ## App
 
