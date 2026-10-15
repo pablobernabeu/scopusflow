@@ -143,7 +143,9 @@ them. A harvest that fails says why in the worker's own words. By year draws the
 records per year through `autoplot()`, which traces the publications per year
 when every record was retrieved. When a cap stopped a cell, the bars count the
 records retrieved instead. The chart's caption says so, and so do a note in the
-Retrieval panel and the search record. Top sources and Top authors tally the
+Retrieval panel and the search record. When the years reach the year of the
+harvest, the caption also says that year was incomplete when the records were
+retrieved. Top sources and Top authors tally the
 most frequent of each with `scopus_top()` and `plot_scopus_top()`. Under the
 `STANDARD` detail, the API sends the first author of each record alone, so a
 note above the Top authors plot says that it tallies first authors, and choosing

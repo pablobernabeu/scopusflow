@@ -53,8 +53,16 @@ The coercion methods return a plain \link[tibble:tibble]{tibble} or data
 frame with the same columns and the \code{scopus_records} class removed.
 
 The \code{autoplot()} method returns a \link[ggplot2:ggplot]{ggplot2::ggplot} of the records per
-year. When a \code{max_results} cap stopped any cell of the retrieval, a caption
-says that the bars count records retrieved, not publications per year.
+year. The bars cover every year the set's plan searched, a year without
+records drawn as a zero bar, and no year the plan did not search. A plan
+over 2015, 2016, 2019 and 2020 therefore draws no bar for 2017 or 2018. A
+harvest stopped before its last cell covers only the cells it ran. Without
+a plan, or with one that sent no year limit, the bars run from the first
+year in the records to the last. When a \code{max_results} cap stopped any
+cell of the retrieval, a caption says that the bars count records
+retrieved, not publications per year. When the years plotted reach the
+year of the recorded \code{retrieved_at}, the caption also says that year was
+incomplete when the records were retrieved, as \code{\link[=plot_scopus_trend]{plot_scopus_trend()}} does.
 
 A tibble of class \code{scopus_records} with the columns
 \code{entry_number} (integer), \code{scopus_id} (character), \code{doi} (character),

@@ -1291,6 +1291,49 @@ search record supply PRISMA-S item 12. The other is an opt-in fallback that
 matches records on title and year. Both twins assert the same rows and counts
 on the byte-identical fixture `diff-fixture.csv`.
 
+## Trend figures: the years searched and the year still being indexed
+
+`autoplot()` counted a record set's years from the first year in the records
+to the last, filling the years between with zeros. A plan's year cells need
+not be contiguous. A plan over 2015, 2016, 2019 and 2020 therefore drew zero
+bars for 2017 and 2018, years no cell searched, which a reader takes for years
+without publications. The Python twin's `year_counts()` had the opposite defect. It
+counted only the years holding records, so `plot_trend()` drew its line
+straight across a year without any. Both twins now count the years the set's
+searches covered, read from the plan's cells as the search record reads them.
+A year without records counts as zero, and a year no cell searched is left
+out. A harvest stopped before its last cell covers the cells it ran. Without a
+plan the span of the records' own years stands in, since nothing then records
+which years were searched. A year that holds records always keeps its row, so
+a set merged with records from another source loses none of them.
+`year_counts(fill = False)` keeps the earlier output in Python, where the
+function is public. The R function is internal and needs no such switch. The
+rule is pinned by the shared fixture `trend-years.json`.
+
+A count for the year of retrieval is a count so far. 'Scopus' is updated
+daily, and the PRISMA-S elaboration of item 13 notes that databases keep
+adding records as they are published (Rethlefsen et al., 2021). The last point
+of a trend reaching that year is therefore depressed and easily read as a
+decline. `scopus_trend()` records `retrieved_at`, as a harvest does, and the
+trend and record-count figures add a caption line when the years plotted
+reach the year of that time. Under the search record's honesty contract, the
+line is read from the recorded time alone, in UTC as the record reads it, and
+the session's clock never stands in for it. A trend tallied by hand, as in the
+documentation's offline examples, records no time and is drawn as before. A
+year after the year of retrieval, which an article in press can already
+carry, is as incomplete. The line therefore names the first such year plotted
+and adds "and later years" when there are more. The Python twin dates a count
+that pybliometrics answered from its cache by the cache file, as its harvest
+dates such a cell. It leaves the time out when the file time cannot be read.
+
+Three proposals were set aside. Ending the R app's default year range at the
+year before the current one was unnecessary, since its slider opens on the
+bundled corpus's span, 2015 to 2024. A flag column on the trend would have
+changed its documented schema. A flag computed from the session's clock would
+date the counts by when they were drawn. The comparison figure carries no such
+line. It plots shares, and a partial year depresses a topic's count and the
+reference count alike.
+
 ## Tested version floors
 
 `R (>= 4.1.0)` was an untested claim: the check matrix reached only `oldrel-1`,

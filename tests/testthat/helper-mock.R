@@ -340,3 +340,46 @@ mock_abstract_idxterms <- function(case, doi) {
     ))
   )
 }
+
+# The record sets and retrieval times behind the year counts and the
+# incomplete-year note, with what both twins return for each. The Python suite
+# reads the same file, byte for byte.
+trend_years_fixture <- function() {
+  jsonlite::fromJSON(test_path("fixtures", "trend-years.json"),
+                     simplifyVector = FALSE)
+}
+
+# A JSON array of whole numbers, null for a missing one, as an integer vector.
+fixture_integers <- function(x) {
+  vapply(x, function(v) if (is.null(v)) NA_integer_ else as.integer(v), integer(1))
+}
+
+# A retrieval time written in the fixture as UTC text, or NULL.
+fixture_time <- function(x) {
+  if (is.null(x)) NULL else as.POSIXct(x, format = "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+}
+
+# A record set holding only the years of one counts case of that fixture, with
+# its plan and, for a stopped harvest, the attributes the Python twin's
+# fetch_plan() records, so the year counts read them as they read a harvest's.
+fixture_year_records <- function(case) {
+  recs <- tibble::tibble(year = fixture_integers(case$record_years))
+  if (!is.null(case$plan)) {
+    years <- if (is.null(case$plan$years)) NULL else fixture_integers(case$plan$years)
+    attr(recs, "plan") <- scopus_plan(case$plan$query, years = years,
+                                      partition = case$plan$partition)
+  }
+  if (!is.null(case$stopped)) {
+    attr(recs, "stopped_early") <- TRUE
+    attr(recs, "cells_planned") <- case$stopped$cells_planned
+    attr(recs, "cells_run") <- case$stopped$cells_run
+    rows <- case$stopped$cell_totals
+    attr(recs, "cell_totals") <- tibble::tibble(
+      cell = vapply(rows, function(r) as.integer(r$cell), integer(1)),
+      date = vapply(rows, function(r) r$date, character(1)),
+      n_records = vapply(rows, function(r) as.integer(r$n_records), integer(1)),
+      reported_total = vapply(rows, function(r) as.numeric(r$reported_total), numeric(1))
+    )
+  }
+  recs
+}

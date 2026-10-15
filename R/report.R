@@ -415,15 +415,22 @@ scopus_report_expression <- function(records, plan) {
 # limit such as "2015-2025" covers every year in it, since the API takes the
 # range inclusively, and a single-year limit covers that year.
 scopus_report_years <- function(cells, plan) {
+  covered <- scopus_report_covered(cells)
+  if (length(covered) == 0L) {
+    return(NA_character_)
+  }
+  scopus_report_year_list(covered)
+}
+
+# The years the cells' date limits cover, sorted, as scopus_report_years()
+# reads them. Empty when no cell carries a limit.
+scopus_report_covered <- function(cells) {
   limits <- cells$limit[!is.na(cells$limit)]
   covered <- unlist(lapply(limits, function(limit) {
     found <- as.integer(regmatches(limit, gregexpr("[0-9]{4}", limit))[[1]])
     if (length(found) == 0L) integer() else seq(min(found), max(found))
   }))
-  if (length(covered) == 0L) {
-    return(NA_character_)
-  }
-  scopus_report_year_list(sort(unique(covered)))
+  sort(unique(as.integer(covered)))
 }
 
 # Sorted years as a methods section states them. One unbroken run reads as a

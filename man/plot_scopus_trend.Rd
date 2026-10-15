@@ -22,6 +22,16 @@ A \link[ggplot2:ggplot]{ggplot2::ggplot} object. Needs the suggested package \pk
 \description{
 Draws annual record counts over time from the output of \code{\link[=scopus_trend]{scopus_trend()}}.
 }
+\details{
+When the years plotted reach the year recorded in the \code{retrieved_at}
+attribute that \code{\link[=scopus_trend]{scopus_trend()}} attaches, the caption adds a line such as
+"2026 was incomplete when retrieved on 2026-09-29." 'Scopus' goes on
+indexing a year's publications after the year has begun, so the last point
+of such a figure is a count so far, easily read as a decline. The line is
+read from the recorded time alone, never from the clock of the session
+drawing the figure, so a trend that records none, such as one tallied by
+hand, is drawn without it.
+}
 \examples{
 \dontshow{if (rlang::is_installed("ggplot2")) withAutoprint(\{ # examplesIf}
 # Drawn from the bundled corpus of real articles, which needs no key. That

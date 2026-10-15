@@ -305,6 +305,23 @@
   untyped "cannot open the connection" error. The `scopus_cache_clear()`
   example no longer deletes a real managed cache when the examples are run,
   since it now points the cache at a temporary directory first.
+* `autoplot()` of a record set no longer draws zero bars for years its plan
+  never searched. The bars ran from the first year in the records to the
+  last, so a plan over 2015, 2016, 2019 and 2020 showed 2017 and 2018 as
+  years without publications. They now cover the years the plan searched,
+  each year cell or every year of a single cell's range, and a year without
+  records is still drawn as a zero bar. A set without a plan keeps the span of
+  its own years. The Python twin's `year_counts()` counts the same years,
+  held to a shared fixture.
+* Trend figures now say when their last year was still being indexed.
+  `scopus_trend()` records when it counted, in the `retrieved_at` attribute.
+  `plot_scopus_trend()` and `autoplot()` then add a caption line such as "2026
+  was incomplete when retrieved on 2026-09-29." when the years plotted reach
+  that year. 'Scopus' goes on indexing a year's publications after
+  the year has begun, so the last point of such a figure was a count so far,
+  easily read as a decline. The line is read from the recorded time, never
+  from the session's clock, so a trend tallied by hand is drawn as before. The
+  Python twin's `plot_trend()` adds the same note.
 
 ## Documentation
 

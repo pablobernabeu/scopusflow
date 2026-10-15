@@ -40,7 +40,11 @@ A tibble of class \code{scopus_trend} with columns \code{query} (the
 field-wrapped query), \code{year} (integer) and \code{n} (the count that year, as a
 double so very large counts are exact). A year whose response omits a total
 is recorded as \code{NA} (with a warning) and contributes nothing to the total
-shown by \code{print()}.
+shown by \code{print()}. The time the counts were taken is attached as the
+\code{retrieved_at} attribute (a \code{POSIXct}), as a harvest records its own.
+'Scopus' goes on indexing a year's publications after the year has begun,
+so a count for the year of retrieval is a count so far, and
+\code{\link[=plot_scopus_trend]{plot_scopus_trend()}} says so from this time.
 }
 \description{
 Counts how many records match a query in each year, giving the size of a

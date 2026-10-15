@@ -13,7 +13,11 @@
 #'   field-wrapped query), `year` (integer) and `n` (the count that year, as a
 #'   double so very large counts are exact). A year whose response omits a total
 #'   is recorded as `NA` (with a warning) and contributes nothing to the total
-#'   shown by `print()`.
+#'   shown by `print()`. The time the counts were taken is attached as the
+#'   `retrieved_at` attribute (a `POSIXct`), as a harvest records its own.
+#'   'Scopus' goes on indexing a year's publications after the year has begun,
+#'   so a count for the year of retrieval is a count so far, and
+#'   [plot_scopus_trend()] says so from this time.
 #' @section API access:
 #' This performs one count request per year, so it requires a valid API key and
 #' internet access; see the *API access* section of [scopus_count()].
@@ -62,6 +66,11 @@ scopus_trend <- function(query,
     ))
   }, numeric(1))
 
+  # Taken when the counting finished, as a harvest is dated when its records
+  # are in. The incomplete-year note on the figure is read from this time,
+  # never from the clock of the session that draws it.
+  stamp <- Sys.time()
+
   if (anyNA(n)) {
     missing_years <- years[is.na(n)]
     n_missing <- length(missing_years)
@@ -70,10 +79,12 @@ scopus_trend <- function(query,
     )
   }
 
-  tibble::new_tibble(
+  out <- tibble::new_tibble(
     list(query = rep(wrapped, length(years)), year = as.integer(years), n = n),
     nrow = length(years), class = "scopus_trend"
   )
+  attr(out, "retrieved_at") <- stamp
+  out
 }
 
 #' @export
@@ -163,12 +174,73 @@ scopus_top <- function(x, by = c("source", "author"), n = 10L) {
 }
 
 # Annual record counts within a held set (used by autoplot.scopus_records).
+# Every year the set's searches covered is counted, a year without records as
+# zero, so an empty year shows as a zero bar. A year no cell searched is not
+# added. The counts used to run from the first year in the records to the
+# last, which drew a zero bar for each year that a plan such as c(2015, 2020)
+# never searched. Without a plan, or with one that sent no year limit, the
+# span of the records' own years stands in. A year that holds records keeps
+# its row in every case, and a set in which no record has a year gives no
+# rows. The Python twin's year_counts() follows the same rule, held to the
+# shared fixture tests/testthat/fixtures/trend-years.json.
 scopus_year_counts <- function(x) {
-  years <- x$year[!is.na(x$year)]
+  years <- as.integer(x$year[!is.na(x$year)])
   if (length(years) == 0L) {
     return(tibble::tibble(year = integer(), n = integer()))
   }
-  span <- seq(min(years), max(years))
-  counts <- tabulate(factor(years, levels = span))
-  tibble::tibble(year = as.integer(span), n = as.integer(counts))
+  searched <- scopus_searched_years(x)
+  span <- if (length(searched) == 0L) seq(min(years), max(years)) else searched
+  span <- sort(unique(c(as.integer(span), years)))
+  # table() over the factor counts every level. tabulate() would size its
+  # result by the highest level present and drop trailing years without
+  # records, which a plan's span can now end on.
+  counts <- as.integer(table(factor(years, levels = span)))
+  tibble::tibble(year = span, n = counts)
+}
+
+# The years a record set's searches covered, read from its plan's cells as the
+# search record reads them (scopus_report_years()). That is each year cell's
+# year, or every year of the range a single cell sent. A harvest stopped before
+# its last cell searched only the cells it ran. Only the Python twin stops one,
+# so the branch is dormant here, kept so that the twins count the same years
+# from the same attributes. Empty without a plan, or with one that sent no
+# year limit.
+scopus_searched_years <- function(x) {
+  plan <- attr(x, "plan")
+  if (!is_scopus_plan(plan)) {
+    return(integer())
+  }
+  stoppage <- scopus_report_stop(x, plan)
+  cells <- scopus_report_cells(x, plan, joined = stoppage$joined)
+  scopus_report_covered(cells[!(cells$cell %in% stoppage$not_run), , drop = FALSE])
+}
+
+# The note a record-count figure carries when the years it plots reach the
+# year its counts were retrieved in. 'Scopus' is updated daily, so a count for
+# the year of retrieval, or for a later year that an article in press already
+# carries, was a count so far. A final point that drops is easily read as a
+# decline. The year and the date are read in UTC from the recorded retrieval
+# time, as the search record reads it. The clock of the session drawing the
+# figure is never read, since it says nothing about when the counts were
+# taken. NULL when nothing records the time or no plotted year reaches it. The
+# Python twin words the note identically.
+scopus_incomplete_note <- function(years, retrieved_at) {
+  if (is.null(retrieved_at) || length(retrieved_at) == 0L) {
+    return(NULL)
+  }
+  stamp <- min(as.POSIXct(retrieved_at))
+  if (is.na(stamp)) {
+    return(NULL)
+  }
+  year <- as.integer(format(stamp, "%Y", tz = "UTC"))
+  late <- sort(unique(as.integer(years[!is.na(years) & years >= year])))
+  if (length(late) == 0L) {
+    return(NULL)
+  }
+  day <- format(stamp, "%Y-%m-%d", tz = "UTC")
+  if (length(late) == 1L) {
+    sprintf("%d was incomplete when retrieved on %s.", late, day)
+  } else {
+    sprintf("%d and later years were incomplete when retrieved on %s.", late[1L], day)
+  }
 }
