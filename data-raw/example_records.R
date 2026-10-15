@@ -90,7 +90,9 @@ raw <- utils::read.csv(csv_path, colClasses = "character", na.strings = "",
 # author names. Normalise it so one visible character is not stored two ways.
 # Everything else non-ASCII is left exactly as it arrives: the accents, the
 # Cyrillic and the en dashes belong to real people's names and real titles, and
-# transliterating them would misspell published work.
+# transliterating them would misspell published work. The Python twin's loader
+# (src/scopusflow/data.py) makes the same replacement when it reads the CSV, so
+# change the two together.
 unify_hyphen <- function(x) gsub("‐", "-", x, fixed = TRUE)
 
 # The remaining non-ASCII strings must be MARKED as UTF-8, not left in the

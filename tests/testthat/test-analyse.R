@@ -92,6 +92,21 @@ test_that("scopus_top breaks count ties deterministically by value", {
   expect_equal(top$n, c(3L, 1L))
 })
 
+test_that("scopus_top's tallies of the bundled corpus match the fixture both twins share", {
+  # Values tie at every cut-off below, so the fixture pins which of them the
+  # byte-order rule keeps. The Python suite reads the same file, byte for byte,
+  # and its top() must return the same rows.
+  path <- test_path("fixtures", "top-expected.csv")
+  expected <- utils::read.csv(path, colClasses = c("character", "numeric", "integer",
+                                                   "character", "integer"),
+                              encoding = "UTF-8")
+  for (cut in split(expected, list(expected$by, expected$cut), drop = TRUE)) {
+    top <- scopus_top(example_records, by = cut$by[1], n = cut$cut[1])
+    expect_identical(top$value, cut$value, info = paste(cut$by[1], cut$cut[1]))
+    expect_identical(top$n, cut$n, info = paste(cut$by[1], cut$cut[1]))
+  }
+})
+
 test_that("scopus_trend counts each year via the API", {
   local_scopus_test_env()
   httr2::local_mocked_responses(function(req) {

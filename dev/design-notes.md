@@ -478,7 +478,9 @@ Cyrillic author names and the en dashes in titles are part of real names and
 real titles, so they are marked UTF-8 and left as they arrived. Transliterating
 them would misspell published work. Only U+2010, a hyphen indistinguishable from
 the ASCII one, is normalised, so a single visible character is not stored two
-ways.
+ways. The shared CSV keeps OpenAlex's text, and the Python twin's loader makes the
+same replacement as it reads the file. It used to keep the five U+2010 hyphens in
+author names, so those names were spelt differently in the two twins' corpora.
 
 ## Continuous maintenance
 

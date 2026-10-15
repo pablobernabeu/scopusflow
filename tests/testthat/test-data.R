@@ -14,6 +14,16 @@ test_that("example_records keeps the gaps a real harvest has", {
   expect_true(all(is.na(example_records$scopus_id)))
 })
 
+test_that("example_records stores U+2010 as the ASCII hyphen, as the Python twin's does", {
+  # The shared CSV keeps OpenAlex's U+2010 in five author names. Both twins
+  # write it as "-", so the two corpora hold the same strings.
+  text <- unlist(example_records[vapply(example_records, is.character, logical(1))],
+                 use.names = FALSE)
+  expect_false(any(grepl("\u2010", text, fixed = TRUE)))
+  expect_true(all(c("Chih-Tao Chien", "Zhong-Shuai Wu", "Maher F. El-Kady",
+                    "Xiu-Yan Fu", "Woo-Jae Lee") %in% example_records$authors))
+})
+
 test_that("example_records is a complete harvest, so its year counts are real", {
   expect_setequal(unique(example_records$year), 2015:2024)
   expect_false(anyNA(example_records$year))
