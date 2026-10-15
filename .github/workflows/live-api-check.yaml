@@ -1,7 +1,9 @@
 # Weekly live smoke test against the real Elsevier 'Scopus' Search API, so that a
 # change to the API's response schema or auth is caught early rather than by a
 # user's bug report. The offline test suite cannot cover this, since it mocks all
-# HTTP. The tests skip themselves unless a SCOPUS_API_KEY secret is configured.
+# HTTP. The tests run only where SCOPUSFLOW_LIVE_TESTS is "true", which this
+# workflow sets and no test runner sets by itself, and they skip themselves
+# unless a SCOPUS_API_KEY secret is configured.
 # Until the maintainer opts in by adding the key, the run stays green but says
 # so plainly: it emits a warning and a step-summary line that the check is
 # dormant, so a green badge is never mistaken for live coverage. Once the key
@@ -27,6 +29,7 @@ jobs:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       SCOPUS_API_KEY: ${{ secrets.SCOPUS_API_KEY }}
       NOT_CRAN: "true"
+      SCOPUSFLOW_LIVE_TESTS: "true"
     steps:
       - uses: actions/checkout@v7
 

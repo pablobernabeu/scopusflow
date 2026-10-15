@@ -107,9 +107,101 @@ test_that("fetching stops when the server serves fewer records than its total", 
     # Report a total far larger than what is actually served.
     mock_search_results(entries, total = 100L)
   })
-  recs <- scopus_fetch("anything", page_size = 2L)
+  # 5 records of a reported 100 is a shortfall, which scopus_fetch() reports as
+  # scopus_fetch_plan() reports it for a cell.
+  expect_warning(
+    recs <- scopus_fetch("anything", page_size = 2L),
+    class = "scopus_warning_shortfall"
+  )
   expect_equal(nrow(recs), 5L)
-  expect_lte(calls, 4L)  # 3 full pages then a short page; no run to the ceiling
+  # Two full pages, a short one, then the empty page that ends the harvest; no
+  # run to the ceiling.
+  expect_lte(calls, 4L)
+})
+
+# A server that caps every page at `cap` entries, as a key whose entitlement
+# allows fewer records a request than were asked for does, over a set of
+# `total` records. With `report_total = FALSE` the response omits the total.
+mock_capped_pages <- function(cap, total, report_total = TRUE) {
+  function(req) {
+    q <- httr2::url_parse(req$url)$query
+    start <- as.integer(if (is.null(q$start)) 0L else q$start)
+    count <- as.integer(if (is.null(q$count)) 25L else q$count)
+    n <- min(count, cap, max(0L, total - start))
+    entries <- if (n > 0L) mock_entries(n, offset = start) else {
+      list(list(error = "Result set was empty"))
+    }
+    if (report_total) {
+      mock_search_results(entries, total = total)
+    } else {
+      mock_json_response(list(`search-results` = list(entry = entries)))
+    }
+  }
+}
+
+test_that("offset paging advances by the records received, not by the page asked for", {
+  # A page shorter than requested is not the end of the set when the server caps
+  # its pages. Advancing the offset by the page size stepped over the records
+  # between those received and the next offset, and the short page ended the
+  # harvest: 20 of 60 records came back here, with no warning.
+  local_scopus_test_env()
+  httr2::local_mocked_responses(mock_capped_pages(cap = 10L, total = 60L))
+  recs <- expect_no_warning(scopus_fetch("anything", page_size = 25L))
+  expect_equal(nrow(recs), 60L)
+  expect_equal(recs$doi, sprintf("10.1000/mock.%04d", 1:60))
+  expect_equal(recs$entry_number, 1:60)
+})
+
+test_that("offset paging without a reported total runs until an empty page", {
+  # With no total to page towards, only an empty page shows that the set has
+  # ended. A first page shorter than requested used to end the harvest at once.
+  local_scopus_test_env()
+  httr2::local_mocked_responses(
+    mock_capped_pages(cap = 10L, total = 60L, report_total = FALSE)
+  )
+  recs <- expect_no_warning(scopus_fetch("anything", page_size = 25L))
+  expect_equal(nrow(recs), 60L)
+  expect_equal(recs$doi, sprintf("10.1000/mock.%04d", 1:60))
+})
+
+test_that("a harvest short of the reported total warns", {
+  local_scopus_test_env()
+  # The server reports 40 records but serves 3 and then nothing.
+  httr2::local_mocked_responses(function(req) {
+    q <- httr2::url_parse(req$url)$query
+    start <- as.integer(if (is.null(q$start)) 0L else q$start)
+    entries <- if (start < 3L) mock_entries(3L - start, offset = start) else {
+      list(list(error = "Result set was empty"))
+    }
+    mock_search_results(entries, total = 40L)
+  })
+  cnd <- expect_warning(
+    recs <- scopus_fetch("anything", page_size = 3L),
+    class = "scopus_warning_shortfall"
+  )
+  expect_equal(nrow(recs), 3L)
+  expect_match(conditionMessage(cnd),
+               "Retrieved 3 record(s), but the Scopus API reports 40 for this query",
+               fixed = TRUE)
+})
+
+test_that("a retrieval stopped by max_results or at the ceiling is not a shortfall", {
+  # A cap the caller set is short by request, and a retrieval stopped at the
+  # offset ceiling has its own warning, which names the remedy.
+  local_scopus_test_env()
+  httr2::local_mocked_responses(mock_corpus(total = 100L))
+  expect_no_warning(scopus_fetch("anything", max_results = 6L, page_size = 3L))
+  withr::local_options(scopusflow.hard_cap = 6L)
+  warnings <- character()
+  withCallingHandlers(
+    recs <- scopus_fetch("anything", page_size = 2L),
+    warning = function(cnd) {
+      warnings <<- c(warnings, class(cnd)[1])
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_equal(nrow(recs), 6L)
+  expect_identical(warnings, "scopus_warning_capped")
 })
 
 test_that("an empty corpus yields zero rows", {

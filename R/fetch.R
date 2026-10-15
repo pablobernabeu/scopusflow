@@ -47,6 +47,10 @@
 #'   the search record states the field tag and the year limit the request
 #'   carried. These attributes survive a `.rds` round trip through
 #'   [write_scopus_records()] but not a `.csv` one, which carries columns only.
+#'   A retrieval that comes back with fewer records than the API reported
+#'   warns with a `scopus_warning_shortfall`, as each cell of
+#'   [scopus_fetch_plan()] does, unless `max_results` or the offset ceiling
+#'   stopped it.
 #' @section API access:
 #' Requires a valid API key and internet access. The *API access* section of
 #' [scopus_count()] lists the conditions that may be raised.
@@ -82,16 +86,19 @@ scopus_fetch <- function(query,
   years <- scopus_check_years(years)
   page_size <- scopus_resolve_page_size(page_size, view)
   max_results <- scopus_check_max_results(max_results)
+  scopus_check_flag(cursor, "cursor")
+  scopus_check_flag(verbose, "verbose")
 
   wrapped <- scopus_wrap_field(query, field)
   date <- if (is.null(years)) NULL else scopus_year_range(years)
 
   records <- scopus_fetch_core(
     wrapped = wrapped, date = date, view = view, page_size = page_size,
-    max_results = max_results, cursor = isTRUE(cursor),
+    max_results = max_results, cursor = cursor,
     api_key = api_key, inst_token = inst_token, verbose = verbose,
     fields = fields
   )
+  scopus_warn_fetch_shortfall(records, max_results)
   # The plan this call ran, one cell sending the same query and date. Without
   # it, the search record could not state the field tag or the year limit,
   # since the year travels as the request's date parameter and never reaches
@@ -99,6 +106,37 @@ scopus_fetch <- function(query,
   attr(records, "plan") <- scopus_new_plan(query, years, field, view, page_size,
                                            partition = "none")
   records
+}
+
+# A retrieval that came back with fewer records than the API reported is the
+# one failure a caller cannot see, since a truncated or refused download
+# arrives as a merely small result set. scopus_fetch_plan() warns per cell
+# (scopus_warn_shortfall()), and this is the same check for a single search.
+# A retrieval stopped by `max_results` is short by request, and one stopped at
+# the offset ceiling has already said so with its own warning and remedy.
+scopus_warn_fetch_shortfall <- function(records, max_results) {
+  total <- scopus_reported_total(records)
+  n <- nrow(records)
+  if (is.na(total) || n >= total) {
+    return(invisible(NULL))
+  }
+  if (is.finite(max_results) && n >= max_results) {
+    return(invisible(NULL))
+  }
+  hard_cap <- as.integer(getOption("scopusflow.hard_cap", 5000L))
+  if (identical(attr(records, "paging"), "offset") && n >= hard_cap) {
+    return(invisible(NULL))
+  }
+  rlang::warn(
+    sprintf(
+      paste0("Retrieved %d record(s), but the Scopus API reports %s for this ",
+             "query, so the harvest may be incomplete. Check the key's ",
+             "remaining quota, and consider partitioning the search by year ",
+             "with scopus_plan()."),
+      n, format(total, big.mark = ",", scientific = FALSE)
+    ),
+    class = "scopus_warning_shortfall"
+  )
 }
 
 # Internal pagination engine shared by scopus_fetch() and scopus_fetch_plan().
@@ -161,13 +199,10 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
     )
   }
 
-  # How many to aim for: the reported total when known, otherwise keep paging
-  # (up to the ceiling) until a short or empty page signals the end. A first page
-  # shorter than requested already means there is nothing more to fetch.
+  # How many to aim for: the reported total when known, otherwise page up to
+  # the ceiling and let an empty page end the harvest.
   to_fetch <- if (known_total) {
     min(max_results, total, hard_cap)
-  } else if (fetched < first_count) {
-    fetched
   } else {
     min(max_results, hard_cap)
   }
@@ -175,7 +210,11 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
     cli::cli_inform("Fetching up to {to_fetch} record{?s}.")
   }
 
-  start <- page_size
+  # The next offset is the number of records received, not the number asked
+  # for. A server that caps its pages below `page_size`, as an entitlement can,
+  # returns a short page in the middle of the set, and advancing by the request
+  # stepped over the records in between. Only an empty page ends the set early.
+  start <- fetched
   while (fetched < to_fetch && start < hard_cap) {
     count <- min(page_size, to_fetch - fetched)
     page <- fetch_page(start, count)
@@ -185,9 +224,7 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
     pages[[length(pages) + 1L]] <- entries
     fetched <- fetched + length(entries)
     if (verbose) cli::cli_inform("  {fetched}/{to_fetch} retrieved.")
-    start <- start + page_size
-    # A page shorter than requested is the last page; stop without a wasted call.
-    if (length(entries) < count) break
+    start <- start + length(entries)
   }
 
   # Concatenate entries once, then normalise a single time.

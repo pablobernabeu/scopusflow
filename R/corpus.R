@@ -126,6 +126,8 @@ scopus_corpus <- function(records,
   by <- scopus_match_arg(by, c("doi", "scopus_id"))
   view <- scopus_match_arg(view, c("FULL", "REF"))
   keywords <- scopus_match_arg(keywords, c("author", "index", "both"))
+  scopus_check_flag(resume, "resume")
+  scopus_check_flag(verbose, "verbose")
   # Checked here, so that the error names this function's own argument, where
   # scopus_abstract() would name the `include` value it was passed.
   if (keywords != "author" && view != "FULL") {

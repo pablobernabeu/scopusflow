@@ -46,7 +46,9 @@ most quota-efficient page the view allows (200 for \code{STANDARD}, 25 for
 the earliest year to the latest, as a \code{\link[=scopus_plan]{scopus_plan()}} with
 \code{partition = "none"} does, so \code{c(2015, 2020)} covers every year from 2015
 to 2020. \code{\link[=scopus_trend]{scopus_trend()}}, \code{\link[=scopus_compare_topics]{scopus_compare_topics()}} and a plan with
-\code{partition = "year"} take each listed year.}
+\code{partition = "year"} take each listed year. An empty vector places no year
+restriction, as \code{NULL} does, where the years form a range, and is refused
+where each year is counted.}
 
 \item{cursor}{Logical. When \code{TRUE}, retrieve the result set with cursor-based
 pagination, which has no 5000-record ceiling, so an entire large query can be
@@ -89,6 +91,10 @@ retrieval stopped at it. \code{plan} is the one-cell plan the call ran,
 the search record states the field tag and the year limit the request
 carried. These attributes survive a \code{.rds} round trip through
 \code{\link[=write_scopus_records]{write_scopus_records()}} but not a \code{.csv} one, which carries columns only.
+A retrieval that comes back with fewer records than the API reported
+warns with a \code{scopus_warning_shortfall}, as each cell of
+\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} does, unless \code{max_results} or the offset ceiling
+stopped it.
 }
 \description{
 Retrieves records page by page, accumulating them and returning a single

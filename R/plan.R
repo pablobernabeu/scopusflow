@@ -14,7 +14,8 @@
 #'   [scopus_trend()] and [scopus_compare_topics()] do. Otherwise, the plan sends
 #'   one inclusive range from the earliest year to the latest, so `c(2015, 2020)`
 #'   covers every year from 2015 to 2020, as in [scopus_count()],
-#'   [scopus_fetch()] and [scopus_intersections()].
+#'   [scopus_fetch()] and [scopus_intersections()]. An empty vector places no
+#'   year restriction, as `NULL` does.
 #' @param field Optional character scalar naming a 'Scopus' field tag to wrap the
 #'   query in, for example `"TITLE-ABS-KEY"`, `"TITLE"`, `"AUTH"` or `"AFFIL"`.
 #'   When `NULL`, the query is used verbatim. See [scopus_field_tags()] for the
@@ -166,6 +167,18 @@ scopus_check_query <- function(query, field = NULL, call = rlang::caller_env()) 
   invisible(query)
 }
 
+# A logical argument must be TRUE or FALSE. isTRUE() reads "TRUE", 1 and NA
+# alike as FALSE, so scopus_fetch(cursor = "TRUE") paged by offset under the
+# ceiling the caller meant to lift, and `if` or `&&` on any other value died
+# on a base error that a handler for scopus_error could not catch.
+scopus_check_flag <- function(x, arg, call = rlang::caller_env()) {
+  if (!is.logical(x) || length(x) != 1L || is.na(x)) {
+    scopus_abort_bad_input(sprintf("`%s` must be `TRUE` or `FALSE`.", arg),
+                           call = call)
+  }
+  invisible(x)
+}
+
 scopus_check_field <- function(field, call = rlang::caller_env()) {
   if (is.null(field)) {
     return(NULL)
@@ -195,6 +208,13 @@ scopus_check_years <- function(years, call = rlang::caller_env()) {
       "`years` must be `NULL` or a vector of whole numbers (e.g. 2015:2020).",
       call = call
     )
+  }
+  # An empty vector places no year restriction, as NULL does and as the Python
+  # twin reads an empty list. A date range built from its empty minimum and
+  # maximum died on an untyped formatting error, and the functions that
+  # count each year refuse NULL with a typed error of their own.
+  if (length(years) == 0L) {
+    return(NULL)
   }
   years <- as.integer(years)
   if (any(years < 1700L) || any(years > 2200L)) {

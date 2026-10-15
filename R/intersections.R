@@ -159,6 +159,7 @@ scopus_intersections <- function(concepts,
   }
   field <- scopus_check_field(field)
   years <- scopus_check_years(years)
+  scopus_check_flag(verbose, "verbose")
   # A tagged concept is used as written, so it is checked without the field.
   for (term in unname(concepts)) {
     scopus_check_query(term, if (scopus_opens_with_tag(term)) NULL else field)

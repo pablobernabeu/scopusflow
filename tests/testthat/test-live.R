@@ -1,8 +1,15 @@
-# Live integration tests. These are skipped on CRAN and only run when a real key
-# is configured and the user has opted in via NOT_CRAN. They make genuine network
-# requests and consume a small amount of quota: about seven 'Scopus' Search
-# requests and one Abstract Retrieval request, the latter drawing on its own
-# weekly quota, which is the smaller of the two.
+# Live integration tests. These are skipped on CRAN and run only when a real key
+# is configured and SCOPUSFLOW_LIVE_TESTS is set to "true". They make genuine
+# network requests and consume a small amount of quota: about seven 'Scopus'
+# Search requests and one Abstract Retrieval request, the latter drawing on its
+# own weekly quota, which is the smaller of the two.
+#
+# The opt-in is a variable of the package's own. devtools::test(),
+# testthat::test_local() and devtools::check() set NOT_CRAN themselves, so an
+# opt-in through NOT_CRAN spent live quota on every local run by anyone who
+# keeps the key in ~/.Renviron, as ?scopus_has_key recommends. It is checked
+# before the key and the connection, so an ordinary run neither reads the key
+# nor probes the network. .github/workflows/live-api-check.yaml sets it.
 #
 # Their job is the one thing the offline mocks cannot do: confirm the package
 # still works against the live, evolving 'Scopus' API, so that a renamed field or
@@ -10,10 +17,29 @@
 
 skip_live <- function() {
   skip_on_cran()
-  skip_if_offline()
+  skip_if(!identical(Sys.getenv("SCOPUSFLOW_LIVE_TESTS"), "true"),
+          "SCOPUSFLOW_LIVE_TESTS not set to true")
   skip_if(Sys.getenv("SCOPUS_API_KEY") == "", "SCOPUS_API_KEY not set")
-  skip_if(Sys.getenv("NOT_CRAN") != "true", "NOT_CRAN not enabled")
+  skip_if_offline()
 }
+
+test_that("the live tests stay dormant unless they are switched on", {
+  # devtools::test(), testthat::test_local() and devtools::check() set NOT_CRAN
+  # themselves, and ?scopus_has_key recommends keeping the key in ~/.Renviron,
+  # so an opt-in through NOT_CRAN spent live quota on every local run of the
+  # suite. The key here is a placeholder, and no test below runs.
+  withr::local_envvar(
+    NOT_CRAN = "true",
+    SCOPUS_API_KEY = "not-a-real-key",
+    SCOPUSFLOW_LIVE_TESTS = ""
+  )
+  cnd <- tryCatch({
+    skip_live()
+    NULL
+  }, condition = function(cnd) cnd)
+  expect_s3_class(cnd, "skip")
+  expect_match(conditionMessage(cnd), "SCOPUSFLOW_LIVE_TESTS", fixed = TRUE)
+})
 
 test_that("a live count succeeds", {
   skip_live()

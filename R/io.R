@@ -12,6 +12,11 @@
 #' `.csv` is a table of columns and cannot hold them, so save as `.rds` when a
 #' set is a baseline to be compared against later.
 #'
+#' A `.csv` file is written and read as UTF-8 in every locale. One written by
+#' another tool reads back as well, and a blank field in it reads as missing,
+#' since pandas, the Python twin and spreadsheet software write a missing value
+#' that way, where R writes `NA`.
+#'
 #' @param x A [scopus_records] tibble to write.
 #' @param path Explicit file path. The functions read from, or write to, exactly
 #'   this path and leave the working directory alone. Parent directories are
@@ -46,24 +51,40 @@ write_scopus_records <- function(x, path) {
   invisible(x)
 }
 
-# Text artifacts carry LF line endings on every platform. Written through a
-# text-mode connection on Windows, each "\n" would be translated to CRLF, so
-# the connection is opened in binary mode, where no translation happens.
+# Text artifacts carry LF line endings and UTF-8 bytes on every platform.
+# Written through a text-mode connection on Windows, each "\n" would be
+# translated to CRLF, so the connection is opened in binary mode, where no
+# translation happens. `useBytes = TRUE` stops writeLines() translating the
+# text to the session's native encoding first, which in a C or single-byte
+# locale writes each character it cannot encode as the text <U+00ED>.
 scopus_write_lines <- function(text, path) {
   con <- file(path, open = "wb")
   on.exit(close(con))
-  writeLines(text, con, sep = "\n")
+  writeLines(enc2utf8(text), con, sep = "\n", useBytes = TRUE)
   invisible(path)
 }
 
 # write.csv() counterpart of scopus_write_lines(): the line endings come from
 # the connection, not from write.csv() itself, so a binary-mode connection
-# keeps CSV output LF-terminated on Windows too.
+# keeps CSV output LF-terminated on Windows too. write.csv() has no
+# `useBytes`, so the text columns are converted to UTF-8 and then marked as
+# native, whose bytes it writes untouched in any locale.
 scopus_write_csv <- function(x, path) {
   con <- file(path, open = "wb")
   on.exit(close(con))
-  utils::write.csv(x, file = con, row.names = FALSE)
+  utils::write.csv(scopus_utf8_bytes(x), file = con, row.names = FALSE)
   invisible(path)
+}
+
+scopus_utf8_bytes <- function(x) {
+  for (nm in names(x)) {
+    if (is.character(x[[nm]])) {
+      col <- enc2utf8(x[[nm]])
+      Encoding(col) <- "unknown"
+      x[[nm]] <- col
+    }
+  }
+  x
 }
 
 #' @rdname write_scopus_records
@@ -85,7 +106,13 @@ read_scopus_records <- function(path) {
     }
     return(obj)
   }
-  raw <- utils::read.csv(path, stringsAsFactors = FALSE, colClasses = "character")
+  # pandas, and with it the Python twin, and spreadsheet software write a
+  # missing value as an empty field, where R writes NA, so both read as
+  # missing. Read as "", a blank identifier was an identifier to the rule of
+  # scopusflow 0.4.0, which merged every such record into one. The file is
+  # UTF-8 whatever the session's locale.
+  raw <- utils::read.csv(path, stringsAsFactors = FALSE, colClasses = "character",
+                         na.strings = c("NA", ""), encoding = "UTF-8")
   scopus_coerce_records(raw)
 }
 

@@ -10,8 +10,9 @@ scopus_top(x, by = c("source", "author"), n = 10L)
 \item{x}{A \link{scopus_records} tibble.}
 
 \item{by}{What to tally: \code{"source"} (the publication titles) or \code{"author"}.
-Author strings holding several names separated by \code{"; "} are split, so each
-contributor is counted once per record. Only a \code{view = "COMPLETE"}
+Author strings holding several names are split at the semicolon, with or
+without a space after it, so each contributor is counted once per record.
+Only a \code{view = "COMPLETE"}
 retrieval holds several names, since \code{STANDARD} records carry the first
 author alone (see \code{\link[=scopus_records]{scopus_records()}}). A tally by author of a set retrieved
 under \code{STANDARD} therefore counts first authorships, and says so with a

@@ -733,6 +733,315 @@ test_that("Search record downloads the replayed record for demo records", {
   })
 })
 
+test_that("every field the app offers is one the package documents", {
+  # The Author entry sent AUTHLASTNAME, a tag scopus_field_tags() does not list
+  # and which searches surnames alone, while the Python app sends AUTH under the
+  # same label, so one choice ran a different search in each app.
+  choices <- app_field_choices()
+  tagged <- unname(choices[nzchar(choices)])
+  expect_true(all(tagged %in% scopus_field_tags()$tag))
+  expect_identical(unname(choices[["Author"]]), "AUTH")
+  expect_true("" %in% choices)
+})
+
+test_that("the demo worker names its cells as the harvest it replays would", {
+  # An unpartitioned run is one cell over every year, which the terminal used
+  # to announce as year 0, and a year outside the bundled corpus is drawn from
+  # the nearest year it holds, which the terminal now says.
+  span <- range(example_records$year)
+  years <- c(span[2L], span[2L] + 1L)
+  log <- utils::capture.output(invisible(
+    app_demo_fetch_worker("graphene", years, app_demo_records(years), span = span)
+  ))
+  expect_identical(log[1], sprintf("Cell 1/2: demo records for graphene (%d)", span[2L]))
+  expect_identical(log[2], sprintf("Cell 2/2: demo records for graphene (%d)", span[2L] + 1L))
+  expect_identical(log[3], sprintf(
+    "  %d is outside the bundled example harvest (%d-%d), so it is drawn from %d.",
+    span[2L] + 1L, span[1L], span[2L], span[2L]
+  ))
+  expect_length(log, 3L)
+  unpartitioned <- utils::capture.output(invisible(
+    app_demo_fetch_worker("graphene", NULL, app_demo_records(NULL), span = span)
+  ))
+  expect_identical(unpartitioned, "Cell 1/1: demo records for graphene")
+})
+
+test_that("Check size waits while a retrieval is running", {
+  skip_if_not_installed("shiny")
+  # A real count runs on the one Shiny thread, so it would freeze the live
+  # terminal and the progress poller for the length of the request. The app
+  # runs one job at a time.
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = "graphene", demo = TRUE)
+    rv$proc <- list(is_alive = function() TRUE)
+    session$setInputs(count = 1)
+    expect_null(rv$size_note)
+    rv$proc <- NULL
+    session$setInputs(count = 2)
+    expect_match(rv$size_note, "^Demo plan: 2 year-cells")
+  })
+})
+
+test_that("a size note goes when the search it answers for changes", {
+  skip_if_not_installed("shiny")
+  # The note is the app's statement of what a search costs, so one left over
+  # from a plan no longer on screen read as the price of the new one.
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = "graphene", demo = TRUE)
+    session$setInputs(count = 1)
+    expect_match(rv$size_note, "^Demo plan: 2 year-cells")
+    session$setInputs(query = "perovskite")
+    expect_null(rv$size_note)
+    session$setInputs(count = 2)
+    session$setInputs(years = c(2015, 2020))
+    expect_null(rv$size_note)
+    session$setInputs(count = 3)
+    expect_match(rv$size_note, "^Demo plan: 6 year-cells")
+    session$setInputs(field = "TITLE")
+    expect_null(rv$size_note)
+    session$setInputs(count = 4)
+    session$setInputs(demo = FALSE)
+    expect_null(rv$size_note)
+  })
+})
+
+test_that("a size note writes its count in full and goes when a later check fails", {
+  skip_if_not_installed("shiny")
+  # format() writes 100000 as 1e+05. The second check fails in the transport
+  # layer, as an untyped error.
+  calls <- 0L
+  httr2::local_mocked_responses(function(req) {
+    calls <<- calls + 1L
+    if (calls > 1L) stop("connection reset in a test")
+    mock_search_results(list(), total = 100000)
+  })
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = "graphene")
+    session$setInputs(count = 1)
+    expect_identical(rv$size_note,
+                     "This query matches 100,000 records across 2 year-cells.")
+    session$setInputs(count = 2)
+    expect_identical(rv$status, "error")
+    expect_null(rv$size_note)
+  })
+})
+
+test_that("starting a harvest drops the size note", {
+  skip_if_not_installed("shiny")
+  skip_if_not_installed("callr")
+  # Fetch starts a background R process through callr, so the test stays off
+  # CRAN. Demo mode keeps that process offline, and it is stopped at once.
+  skip_on_cran()
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = "graphene", demo = TRUE)
+    session$setInputs(count = 1)
+    expect_false(is.null(rv$size_note))
+    session$setInputs(fetch = 1)
+    proc <- rv$proc
+    if (!is.null(proc)) try(proc$kill(), silent = TRUE)
+    expect_null(rv$size_note)
+  })
+})
+
+test_that("the app sends the query it shows, trimmed", {
+  skip_if_not_installed("shiny")
+  # The script panel trims the query, while the count, the comparison and the
+  # harvest sent it as typed, so a query pasted with surrounding space went to
+  # the API inside the field tag and into the search record. The white space
+  # here is what the Python twin's str.strip() removes, a no-break space and a
+  # tab among it.
+  sent <- character()
+  httr2::local_mocked_responses(function(req) {
+    sent <<- c(sent, httr2::url_parse(req$url)$query$query)
+    mock_search_results(list(), total = 10L)
+  })
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = "  graphene supercapacitor\t")
+    expect_match(code_text(), "scopus_plan(\n  \"graphene supercapacitor\",", fixed = TRUE)
+    session$setInputs(count = 1)
+    session$setInputs(cmp_terms = "flexible", compare = 1)
+  })
+  # One count, then the reference and the term in each of the two years.
+  expect_length(sent, 5L)
+  expect_true(all(grepl("TITLE-ABS-KEY(graphene supercapacitor)", sent, fixed = TRUE)))
+})
+
+test_that("a harvest is started with the query trimmed", {
+  skip_if_not_installed("shiny")
+  skip_if_not_installed("callr")
+  # Fetch starts a background R process through callr, so the test stays off
+  # CRAN. Demo mode keeps that process offline, and its first line names the
+  # query the worker was given.
+  skip_on_cran()
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = "  graphene  ", demo = TRUE)
+    session$setInputs(fetch = 1)
+    proc <- rv$proc
+    lines <- character()
+    for (i in seq_len(100L)) {
+      lines <- readLines(rv$logfile, warn = FALSE)
+      if (length(lines) > 0L) break
+      Sys.sleep(0.1)
+    }
+    if (!is.null(proc)) try(proc$kill(), silent = TRUE)
+    expect_identical(lines[1], "Cell 1/2: demo records for graphene (2019)")
+  })
+})
+
+test_that("a highlighted topic with no share to plot is left unhighlighted", {
+  skip_if_not_installed("shiny")
+  skip_if_not_installed("ggplot2")
+  # plot_scopus_comparison() drops the years with no share before it reads the
+  # highlight, so a topic whose counts all came back missing was offered in the
+  # selector and then replaced the figure with an error. The Python app leaves
+  # such a topic unhighlighted.
+  cmp <- app_demo_comparison("graphene", c("flexible", "opaque"), 2015:2017)
+  cmp$comparison_percentage[cmp$abridged_query == "opaque"] <- NA_real_
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = "graphene", demo = TRUE)
+    session$setInputs(cmp_terms = "flexible, opaque", cmp_highlight = "opaque")
+    rv$comparison <- cmp
+    session$flushReact()
+    expect_no_error(output$plot_comparison)
+    session$setInputs(cmp_highlight = "flexible")
+    expect_no_error(output$plot_comparison)
+  })
+})
+
+test_that("a demo comparison says its counts are illustrative", {
+  skip_if_not_installed("shiny")
+  # The figure's caption names the Search API as its source, which is true of a
+  # real comparison and not of the one demo mode synthesises. The Python app
+  # already says so.
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = "graphene", demo = TRUE)
+    session$setInputs(cmp_terms = "flexible")
+    expect_null(output$cmp_demo_note)
+    session$setInputs(compare = 1)
+    expect_match(output$cmp_demo_note$html, "illustrative rather than retrieved",
+                 fixed = TRUE)
+    # The note describes the figure on screen, which switching Demo mode off
+    # leaves there.
+    session$setInputs(demo = FALSE)
+    expect_match(output$cmp_demo_note$html, "illustrative rather than retrieved",
+                 fixed = TRUE)
+  })
+})
+
+test_that("the export buttons arrive with what they write", {
+  skip_if_not_installed("shiny")
+  # Every download opens with req(), and a click with nothing to write fails
+  # in the browser with nothing on screen to say why. The Python app builds its
+  # buttons with the results they write.
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = "graphene", demo = TRUE)
+    session$setInputs(cmp_terms = "flexible")
+    expect_match(output$export_buttons$html, "Fetch records to export them.",
+                 fixed = TRUE)
+    expect_false(grepl("dl_rds", output$export_buttons$html, fixed = TRUE))
+    expect_null(output$cmp_download)
+    rv$records <- example_records
+    rv$comparison <- app_demo_comparison("graphene", "flexible", 2019:2020)
+    session$flushReact()
+    for (id in c("dl_rds", "dl_dois", "dl_bibtex", "dl_ris", "dl_report")) {
+      expect_match(output$export_buttons$html, id, fixed = TRUE)
+    }
+    expect_match(output$cmp_download$html, "dl_comparison", fixed = TRUE)
+  })
+})
+
+test_that("a harvest with nothing to plot says so in each panel", {
+  skip_if_not_installed("shiny")
+  skip_if_not_installed("ggplot2")
+  # A search that matched nothing returns a record set with no rows, which the
+  # NULL guard let through, and each panel then showed a plotting function's
+  # own error.
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = "graphene", demo = TRUE)
+    rv$records <- scopus_records(list())
+    session$flushReact()
+    expect_error(output$plot_year, "No records to plot.", class = "validation")
+    expect_error(output$plot_sources, "No source titles to tally.", class = "validation")
+    expect_error(output$plot_authors, "No author names to tally.", class = "validation")
+    # Records whose source titles are all missing still plot by year.
+    recs <- app_demo_records(2019:2020)
+    recs$publication <- NA_character_
+    rv$records <- recs
+    session$flushReact()
+    expect_error(output$plot_sources, "No source titles to tally.", class = "validation")
+    expect_type(output$plot_year, "list")
+  })
+})
+
+test_that("the key status is written in colours dark enough to read", {
+  skip_if_not_installed("shiny")
+  # Bootstrap's .text-info, .text-warning and .text-success stand at about
+  # 1.7:1, 1.5:1 and 4.1:1 on the sidebar's ground, under the 4.5:1 text needs.
+  # Their -emphasis variants clear 7:1.
+  shiny::testServer(app_server, {
+    session$setInputs(demo = TRUE, api_key = "")
+    expect_match(output$key_status$html, "class=\"text-info-emphasis\"", fixed = TRUE)
+    session$setInputs(demo = FALSE)
+    expect_match(output$key_status$html, "class=\"text-warning-emphasis\"", fixed = TRUE)
+    session$setInputs(api_key = "a-key")
+    expect_match(output$key_status$html, "class=\"text-success-emphasis\"", fixed = TRUE)
+  })
+})
+
+test_that("the progress bar tells assistive technology how far a harvest has come", {
+  skip_if_not_installed("shiny")
+  # role="progressbar" with no name and no value announced nothing during the
+  # long wait it is there for.
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = "graphene", demo = TRUE)
+    rv$status <- "running"
+    rv$progress <- list(done = 4L, total = 10L)
+    session$flushReact()
+    bar <- output$progress_ui$html
+    expect_match(bar, 'aria-label="Fetching cell 4 of 10"', fixed = TRUE)
+    expect_match(bar, 'aria-valuenow="30"', fixed = TRUE)
+    expect_match(bar, 'aria-valuemin="0"', fixed = TRUE)
+    expect_match(bar, 'aria-valuemax="100"', fixed = TRUE)
+    # A bar still animated has no value to report, which ARIA spells as no
+    # aria-valuenow.
+    rv$progress <- NULL
+    session$flushReact()
+    bar <- output$progress_ui$html
+    expect_match(bar, 'aria-label="Working..."', fixed = TRUE)
+    expect_false(grepl("aria-valuenow", bar, fixed = TRUE))
+    rv$status <- "idle"
+  })
+})
+
+test_that("every figure the app draws carries a text alternative", {
+  skip_if_not_installed("shiny")
+  skip_if_not_installed("ggplot2")
+  # Each figure reached the browser described only as "Plot object".
+  shiny::testServer(app_server, {
+    app_test_inputs(session, query = "graphene", demo = TRUE)
+    session$setInputs(cmp_terms = "flexible")
+    rv$records <- app_demo_records(2019:2020)
+    session$flushReact()
+    n <- nrow(rv$records)
+    expect_identical(output$plot_year$alt,
+                     sprintf("Bar chart of records by year: %d records from 2019 to 2020.", n))
+    expect_match(output$plot_sources$alt,
+                 "^Bar chart of the \\d+ most frequent source titles: .+ leads with \\d+ records?\\.$")
+    expect_match(output$plot_authors$alt,
+                 "^Bar chart of the \\d+ most frequent author names: .+ leads with \\d+ records?\\.$")
+    session$setInputs(compare = 1)
+    expect_identical(output$plot_comparison$alt,
+                     "Line chart of the share of 'graphene' records matching 'flexible', 2019 to 2020.")
+    # The alternative is computed even when the panel validates away, so a tally
+    # with nothing in it must not fail in place of the message.
+    recs <- app_demo_records(2019:2020)
+    recs$publication <- NA_character_
+    rv$records <- recs
+    session$flushReact()
+    expect_error(output$plot_sources, "No source titles to tally.", class = "validation")
+  })
+})
+
 test_that("a demo harvest marks the records it draws as replayed", {
   skip_if_not_installed("shiny")
   skip_if_not_installed("callr")

@@ -93,6 +93,7 @@ scopus_compare_topics <- function(reference_query,
   if (is.null(years)) {
     scopus_abort_bad_input("`years` must be supplied.")
   }
+  scopus_check_flag(verbose, "verbose")
   years <- sort(unique(years))
 
   ref_wrapped <- scopus_wrap_field(reference_query, field)

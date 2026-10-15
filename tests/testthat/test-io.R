@@ -72,6 +72,58 @@ test_that("a title with comma, quote and newline survives CSV round-trip", {
   expect_equal(read_scopus_records(path)$title, recs$title)
 })
 
+test_that("non-ASCII names survive the CSV round trip in a non-UTF-8 locale", {
+  # R translates a string to the session's native encoding on its way to a
+  # connection, and in a C or single-byte locale it spells every character it
+  # cannot encode as the text <U+00ED>, so the file no longer held the name.
+  withr::local_locale(c(LC_CTYPE = "C"))
+  recs <- scopus_records(list(entry = list(
+    list(`dc:identifier` = "SCOPUS_ID:1", `prism:doi` = "10.1/a",
+         `dc:title` = "Graphene – a study",
+         `dc:creator` = "A.I. Mtz-Enríquez")
+  )))
+  path <- withr::local_tempfile(fileext = ".csv")
+  write_scopus_records(recs, path)
+  bytes <- readBin(path, "raw", file.size(path))
+  expect_false(grepl("<U+", rawToChar(bytes), fixed = TRUE))
+  expect_true(grepRaw(charToRaw(enc2utf8("Mtz-Enríquez")), bytes, fixed = TRUE) > 0L)
+  back <- read_scopus_records(path)
+  expect_identical(back$authors, recs$authors)
+  expect_identical(back$title, recs$title)
+})
+
+test_that("text files are written as UTF-8 in a non-UTF-8 locale", {
+  # The search record, the app's script and the exports go through this helper.
+  withr::local_locale(c(LC_CTYPE = "C"))
+  path <- withr::local_tempfile(fileext = ".md")
+  scopusflow:::scopus_write_lines(c("# Mtz-Enríquez", "Д. М."), path)
+  bytes <- readBin(path, "raw", file.size(path))
+  expect_identical(bytes, charToRaw(enc2utf8("# Mtz-Enríquez\nД. М.\n")))
+})
+
+test_that("a CSV the Python twin wrote reads back with its blanks missing", {
+  # pandas, and so the Python twin, writes a missing value as an empty field,
+  # where R writes NA. Read as "", a blank identifier was taken for an
+  # identifier by the rule of scopusflow 0.4.0, which merged every such record
+  # into one, while the Python twin reads the same file with the identifiers
+  # missing and falls back to the DOI. The file is byte-identical to the Python
+  # twin's tests/fixtures/blank-fields.csv, whose suite asserts the same.
+  withr::local_locale(c(LC_CTYPE = "C"))
+  fx <- read_scopus_records(test_path("fixtures", "blank-fields.csv"))
+  expect_equal(nrow(fx), 5L)
+  expect_identical(is.na(fx$scopus_id), c(TRUE, TRUE, TRUE, FALSE, TRUE))
+  expect_identical(is.na(fx$doi), c(FALSE, FALSE, FALSE, FALSE, TRUE))
+  expect_true(is.na(fx$publication[5]))
+  # The file is UTF-8 whatever the session's locale.
+  expect_identical(fx$authors[1], "A.I. Mtz-Enríquez")
+  # Rows 1 and 2 share a DOI in two spellings and carry no identifier, so every
+  # rule keeps one of them, and the twins keep the same rows.
+  for (rule in c("id_or_shared_doi", "id_or_doi", "id_then_doi")) {
+    kept <- scopus_combine(fx, dedupe = rule)
+    expect_identical(kept$title, fx$title[-2], label = rule)
+  }
+})
+
 test_that("the record CSV carries LF line endings on every platform", {
   path <- withr::local_tempfile(fileext = ".csv")
   write_scopus_records(make_records(), path)

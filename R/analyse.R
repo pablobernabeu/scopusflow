@@ -55,6 +55,7 @@ scopus_trend <- function(query,
   if (is.null(years)) {
     scopus_abort_bad_input("`years` must be supplied.")
   }
+  scopus_check_flag(verbose, "verbose")
   years <- sort(unique(years))
   wrapped <- scopus_wrap_field(query, field)
 
@@ -104,8 +105,9 @@ print.scopus_trend <- function(x, ...) {
 #'
 #' @param x A [scopus_records] tibble.
 #' @param by What to tally: `"source"` (the publication titles) or `"author"`.
-#'   Author strings holding several names separated by `"; "` are split, so each
-#'   contributor is counted once per record. Only a `view = "COMPLETE"`
+#'   Author strings holding several names are split at the semicolon, with or
+#'   without a space after it, so each contributor is counted once per record.
+#'   Only a `view = "COMPLETE"`
 #'   retrieval holds several names, since `STANDARD` records carry the first
 #'   author alone (see [scopus_records()]). A tally by author of a set retrieved
 #'   under `STANDARD` therefore counts first authorships, and says so with a
@@ -147,7 +149,9 @@ scopus_top <- function(x, by = c("source", "author"), n = 10L) {
   values <- switch(
     by,
     source = x$publication[!is.na(x$publication)],
-    author = unlist(strsplit(x$authors[!is.na(x$authors)], "; ", fixed = TRUE),
+    # At the semicolon, with or without the space, as the Python twin splits:
+    # scopusflow-py 0.3.0 joined the authors with ";" alone.
+    author = unlist(strsplit(x$authors[!is.na(x$authors)], ";", fixed = TRUE),
                     use.names = FALSE)
   )
   values <- trimws(values)

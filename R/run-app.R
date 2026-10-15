@@ -25,13 +25,24 @@ app_fetch_worker <- function(query, years, field, view, partition,
 # real run) and returns the records it was handed. Those come from the bundled
 # corpus and are drawn in the parent (by app_demo_records()) and passed in, so
 # the worker needs no package on the child. Mirrors the Python app's
-# _demo_worker.
-app_demo_fetch_worker <- function(query, years, records) {
+# _demo_worker. An unpartitioned run is one cell over every year, so it is
+# announced without a year, where it used to read "(0)". `span` is the corpus
+# span, used to say that a year outside it is drawn from the nearest year the
+# corpus holds (see app_demo_records()), as the Python worker says that such a
+# year comes back empty under its own rule.
+app_demo_fetch_worker <- function(query, years, records, span = NULL) {
   options(cli.num_colors = 256L, cli.default_num_colors = 256L, crayon.enabled = TRUE)
-  yrs <- if (is.null(years)) 0L else years
+  yrs <- if (is.null(years) || length(years) == 0L) NA_integer_ else as.integer(years)
   total <- length(yrs)
   for (i in seq_along(yrs)) {
-    cat(sprintf("Cell %d/%d: demo records for %s (%s)\n", i, total, query, yrs[i]))
+    label <- if (is.na(yrs[i])) "" else sprintf(" (%d)", yrs[i])
+    cat(sprintf("Cell %d/%d: demo records for %s%s\n", i, total, query, label))
+    if (!is.na(yrs[i]) && !is.null(span) && (yrs[i] < span[1L] || yrs[i] > span[2L])) {
+      cat(sprintf(
+        "  %d is outside the bundled example harvest (%d-%d), so it is drawn from %d.\n",
+        yrs[i], span[1L], span[2L], min(max(yrs[i], span[1L]), span[2L])
+      ))
+    }
     flush(stdout())
     Sys.sleep(0.5)
   }
@@ -39,14 +50,16 @@ app_demo_fetch_worker <- function(query, years, records) {
 }
 
 # Common Scopus field tags offered in the UI (a "(none)" option leaves the query
-# untagged).
+# untagged). Each tag is one scopus_field_tags() lists, so a tag read off the
+# generated script can be looked up, and the Python app offers the same tag
+# under the same label.
 app_field_choices <- function() {
   c(
     "Title, abstract, keywords" = "TITLE-ABS-KEY",
     "Title" = "TITLE",
     "Abstract" = "ABS",
     "Keywords" = "AUTHKEY",
-    "Author" = "AUTHLASTNAME",
+    "Author" = "AUTH",
     "Affiliation" = "AFFIL",
     "Source title" = "SRCTITLE",
     "All fields" = "ALL",
@@ -170,9 +183,9 @@ app_ui <- function() {
                               class = "btn-outline-primary mb-2",
                               icon = shiny::icon("chart-line")),
           shiny::plotOutput("plot_comparison", height = "360px"),
+          shiny::uiOutput("cmp_demo_note"),
           shiny::br(),
-          shiny::downloadButton("dl_comparison", "Comparison (.csv)",
-                                class = "btn-outline-secondary btn-sm")
+          shiny::uiOutput("cmp_download")
         )
       ),
       bslib::nav_panel(
@@ -181,12 +194,7 @@ app_ui <- function() {
         shiny::p(shiny::tags$small(
           "Carry the records into a reference manager (Zotero, EndNote) or a ",
           "LaTeX bibliography, or write the search up for a methods section.")),
-        shiny::downloadButton("dl_rds", "Records (.rds)", class = "btn-outline-secondary"),
-        shiny::downloadButton("dl_dois", "DOIs (.csv)", class = "btn-outline-secondary"),
-        shiny::downloadButton("dl_bibtex", "BibTeX (.bib)", class = "btn-outline-secondary"),
-        shiny::downloadButton("dl_ris", "RIS (.ris)", class = "btn-outline-secondary"),
-        shiny::downloadButton("dl_report", "Search record (.md)",
-                              class = "btn-outline-secondary")
+        shiny::uiOutput("export_buttons")
       )
     ),
     shiny::tags$script(shiny::HTML(
@@ -203,7 +211,7 @@ app_ui <- function() {
 app_server <- function(input, output, session) {
   rv <- shiny::reactiveValues(
     proc = NULL, logfile = NULL, records = NULL, lines = character(),
-    progress = NULL, status = "idle", comparison = NULL
+    progress = NULL, status = "idle", comparison = NULL, comparison_demo = FALSE
   )
 
   # Checkpoints live under the temporary directory, so no search terms outlive
@@ -216,19 +224,27 @@ app_server <- function(input, output, session) {
     if (nzchar(k)) k else NULL
   })
 
+  # The query every handler sends and the script panel shows, trimmed once
+  # (see app_search_query()).
+  query_value <- shiny::reactive(app_search_query(input$query))
+
+  # The -emphasis variants throughout: the plain .text-info, .text-warning and
+  # .text-success stand at about 1.7:1, 1.5:1 and 4.1:1 on the sidebar's
+  # ground, under the 4.5:1 a line of text needs.
   output$key_status <- shiny::renderUI({
     if (isTRUE(input$demo)) {
       # "Synthetic data" was true of the six invented rows the package shipped
       # before 0.3.0. The demo harvest now replays `example_records`, which is
       # 138 real published articles, and only the topic comparison is
       # simulated, so the banner says which is which.
-      shiny::span(class = "text-info", shiny::icon("flask"),
+      shiny::span(class = "text-info-emphasis", shiny::icon("flask"),
                   " Demo mode: real bundled records, simulated comparison, no key needed.")
     } else if (is.null(api_key())) {
-      shiny::span(class = "text-warning", shiny::icon("circle"),
+      shiny::span(class = "text-warning-emphasis", shiny::icon("circle"),
                   " Enter your key to fetch.")
     } else {
-      shiny::span(class = "text-success", shiny::icon("circle-check"), " Key set.")
+      shiny::span(class = "text-success-emphasis", shiny::icon("circle-check"),
+                  " Key set.")
     }
   })
 
@@ -263,7 +279,7 @@ app_server <- function(input, output, session) {
   # demo mode change, and shared by the on-screen panel and the script download.
   code_text <- shiny::reactive({
     app_code_mirror(
-      query = input$query, years = years_value(),
+      query = query_value(), years = years_value(),
       field = input$field, view = input$view,
       partition = if (isTRUE(input$use_years)) "year" else "none",
       max_results = max_value(),
@@ -278,11 +294,30 @@ app_server <- function(input, output, session) {
 
   output$code_mirror <- shiny::renderText(code_text())
 
+  # A size note answers for one search, so it goes the moment the search
+  # changes. Left standing, it priced a plan no longer on screen. Declared
+  # before the sizing observer, so a change and a click that arrive in the same
+  # flush leave the new answer standing.
+  shiny::observeEvent(
+    list(input$query, input$field, input$view, input$use_years, input$years,
+         input$max_results, input$demo),
+    rv$size_note <- NULL,
+    ignoreInit = TRUE
+  )
+
   # Cheap pre-flight sizing, run synchronously: one request per query/year.
   shiny::observeEvent(input$count, {
+    # One job at a time: a real count runs on the one Shiny thread, so during a
+    # retrieval it would freeze the live terminal and the progress poller for
+    # the length of the request.
+    if (!is.null(rv$proc) && rv$proc$is_alive()) {
+      shiny::showNotification("Wait for the current retrieval to finish.",
+                              type = "warning")
+      return()
+    }
     # Refused here, as the compare handler and the Python app do, so a blank
     # box never reaches scopus_count().
-    if (!nzchar(trimws(input$query %||% ""))) {
+    if (!nzchar(query_value())) {
       shiny::showNotification("Enter search terms first.", type = "warning")
       return()
     }
@@ -308,13 +343,15 @@ app_server <- function(input, output, session) {
       # Catch every failure, typed scopus_error or otherwise: an error that
       # escapes an observer ends the Shiny session.
       out <- tryCatch(
-        scopus_count(input$query, years = years_value(), field = nzchar_or_null(input$field),
+        scopus_count(query_value(), years = years_value(),
+                     field = nzchar_or_null(input$field),
                      view = input$view, api_key = api_key()),
         error = function(e) e
       )
     })
     if (inherits(out, "condition")) {
       rv$status <- "error"
+      rv$size_note <- NULL
       msg <- if (inherits(out, "scopus_error")) {
         paste("Scopus:", conditionMessage(out))
       } else {
@@ -325,9 +362,10 @@ app_server <- function(input, output, session) {
     }
     n <- as.numeric(out)
     ncells <- if (isTRUE(input$use_years)) length(years_value()) else 1L
+    # Written in full: format() alone writes 100000 as 1e+05.
     rv$size_note <- sprintf(
       "This query matches %s records across %d %s.",
-      format(n, big.mark = ","), ncells, if (ncells == 1L) "cell" else "year-cells"
+      scopus_report_count(n), ncells, if (ncells == 1L) "cell" else "year-cells"
     )
   })
 
@@ -343,7 +381,7 @@ app_server <- function(input, output, session) {
   shiny::observeEvent(input$fetch, {
     # A blank query would only fail inside the background worker, after the
     # user had waited for it to start.
-    if (!nzchar(trimws(input$query %||% ""))) {
+    if (!nzchar(query_value())) {
       shiny::showNotification("Enter search terms first.", type = "warning")
       return()
     }
@@ -361,7 +399,7 @@ app_server <- function(input, output, session) {
     # request for all of them. Hashed, never truncated to a readable slug,
     # because two long queries sharing an opening 80 characters would otherwise
     # share a directory and so each other's checkpoints.
-    key <- rlang::hash(list(input$query, input$field, input$view,
+    key <- rlang::hash(list(query_value(), input$field, input$view,
                             range(years_value() %||% 0L), max_value()))
     cache_dir <- app_session_cache_dir(app_root, session$token, key)
     dir.create(cache_dir, recursive = TRUE, showWarnings = FALSE)
@@ -373,6 +411,8 @@ app_server <- function(input, output, session) {
     rv$lines <- character()
     rv$progress <- NULL
     rv$records <- NULL
+    # The harvest answers the question the size note was answering.
+    rv$size_note <- NULL
     # Where the records about to arrive come from, fixed at launch. Switching
     # Demo mode during or after the run leaves them on screen, and the search
     # record has to keep describing them.
@@ -381,16 +421,17 @@ app_server <- function(input, output, session) {
     rv$proc <- if (isTRUE(input$demo)) {
       callr::r_bg(
         func = app_demo_fetch_worker,
-        args = list(query = input$query, years = years_value(),
+        args = list(query = query_value(), years = years_value(),
                     records = app_demo_records(years_value(),
-                                               max_per_year = max_value())),
+                                               max_per_year = max_value()),
+                    span = range(scopusflow::example_records$year)),
         stdout = logfile, stderr = "2>&1", supervise = TRUE
       )
     } else {
       callr::r_bg(
         func = app_fetch_worker,
         args = list(
-          query = input$query, years = years_value(),
+          query = query_value(), years = years_value(),
           field = nzchar_or_null(input$field), view = input$view,
           partition = if (isTRUE(input$use_years)) "year" else "none",
           max_results = max_value(), cache_dir = cache_dir, api_key = api_key()
@@ -462,6 +503,7 @@ app_server <- function(input, output, session) {
       cls <- "progress-bar progress-bar-striped progress-bar-animated"
       width <- "100%"
       pct_label <- NULL
+      now <- NULL
     } else {
       # "Cell k/N" is logged as cell k starts, so k - 1 cells are complete; the
       # bar stays animated while the current (k-th) cell is still being fetched.
@@ -472,17 +514,24 @@ app_server <- function(input, output, session) {
         cls <- "progress-bar progress-bar-striped progress-bar-animated"
         width <- "100%"
         pct_label <- NULL
+        now <- NULL
       } else {
         cls <- "progress-bar"
         width <- paste0(pct, "%")
         pct_label <- paste0(pct, "%")
+        now <- pct
       }
     }
+    # The label beside the bar is a separate element, so the bar names itself
+    # through aria-label too. aria-valuenow is left off while the bar is
+    # animated, which is how ARIA writes a progress bar with no value yet.
     shiny::div(
       shiny::tags$small(label),
       shiny::div(
         class = "progress", style = "height:20px;",
-        shiny::div(class = cls, role = "progressbar",
+        shiny::div(class = cls, role = "progressbar", `aria-label` = label,
+                   `aria-valuenow` = now, `aria-valuemin` = 0,
+                   `aria-valuemax` = 100,
                    style = sprintf("width:%s;", width), pct_label)
       )
     )
@@ -522,19 +571,55 @@ app_server <- function(input, output, session) {
     utils::head(out, preview_rows)
   })
 
+  # A search that matched nothing returns a record set with no rows, which the
+  # NULL guard lets through, and so does a set whose years, source titles or
+  # author names are all missing. Each panel says what it has none of, where it
+  # showed a plotting function's error. Each figure also carries a text
+  # alternative naming what it found, where shiny describes it as "Plot
+  # object". shiny computes the alternative even when the panel validates
+  # away, so it reads the records defensively.
+  tally_alt <- function(by, what) {
+    function() {
+      recs <- records_r()
+      tally <- if (is.null(recs)) NULL else tryCatch(
+        rlang::with_options(scopus_top(recs, by = by), rlib_warning_verbosity = "quiet"),
+        error = function(e) NULL
+      )
+      if (is.null(tally) || nrow(tally) == 0L) {
+        return(sprintf("Bar chart of the most frequent %s.", what))
+      }
+      sprintf("Bar chart of the %d most frequent %s: %s leads with %s record%s.",
+              nrow(tally), what, tally$value[1L], scopus_report_count(tally$n[1L]),
+              if (tally$n[1L] == 1L) "" else "s")
+    }
+  }
+
   output$plot_year <- shiny::renderPlot({
     recs <- records_r()
     shiny::validate(shiny::need(!is.null(recs), "Fetch records to plot them."),
-                    shiny::need(rlang::is_installed("ggplot2"), "Install ggplot2 to see plots."))
+                    shiny::need(rlang::is_installed("ggplot2"), "Install ggplot2 to see plots."),
+                    shiny::need(nrow(recs) > 0L, "No records to plot."),
+                    shiny::need(any(!is.na(recs$year)), "No publication years to plot."))
     ggplot2::autoplot(recs)
+  }, alt = function() {
+    recs <- records_r()
+    if (is.null(recs) || nrow(recs) == 0L) {
+      return("Bar chart of records by year.")
+    }
+    yrs <- recs$year[!is.na(recs$year)]
+    sprintf("Bar chart of records by year: %s record%s%s.",
+            scopus_report_count(nrow(recs)), if (nrow(recs) == 1L) "" else "s",
+            if (length(yrs) > 0L) sprintf(" from %d to %d", min(yrs), max(yrs)) else "")
   })
 
   output$plot_sources <- shiny::renderPlot({
     recs <- records_r()
     shiny::validate(shiny::need(!is.null(recs), "Fetch records to plot them."),
                     shiny::need(rlang::is_installed("ggplot2"), "Install ggplot2 to see plots."))
-    plot_scopus_top(scopus_top(recs, by = "source"))
-  })
+    tally <- scopus_top(recs, by = "source")
+    shiny::validate(shiny::need(nrow(tally) > 0L, "No source titles to tally."))
+    plot_scopus_top(tally)
+  }, alt = tally_alt("source", "source titles"))
 
   output$authors_note <- shiny::renderUI({
     note <- app_authors_note(records_r())
@@ -552,8 +637,9 @@ app_server <- function(input, output, session) {
       scopus_top(recs, by = "author"),
       rlib_warning_verbosity = "quiet"
     )
+    shiny::validate(shiny::need(nrow(top) > 0L, "No author names to tally."))
     plot_scopus_top(top)
-  })
+  }, alt = tally_alt("author", "author names"))
 
   output$dl_script <- shiny::downloadHandler(
     filename = "scopusflow-script.R",
@@ -585,7 +671,7 @@ app_server <- function(input, output, session) {
   })
 
   shiny::observeEvent(input$compare, {
-    if (!nzchar(trimws(input$query %||% ""))) {
+    if (!nzchar(query_value())) {
       shiny::showNotification("Enter search terms first (used as the reference topic).",
                               type = "warning")
       return()
@@ -621,7 +707,7 @@ app_server <- function(input, output, session) {
                              detail = sprintf("counting '%s'", terms[i]))
           Sys.sleep(0.4)
         }
-        app_demo_comparison(input$query, terms, yrs)
+        app_demo_comparison(query_value(), terms, yrs)
       } else {
         # Advance the bar on each verbose message scopus_compare_topics emits
         # (one per count step), so a long term x year grid is observable.
@@ -630,7 +716,7 @@ app_server <- function(input, output, session) {
           # Catch every failure, typed scopus_error or otherwise, so a network
           # or internal error becomes a notification and never a red screen.
           tryCatch(
-            scopus_compare_topics(input$query, terms, years = yrs,
+            scopus_compare_topics(query_value(), terms, years = yrs,
                                   field = nzchar_or_null(input$field),
                                   view = input$view, api_key = api_key(),
                                   verbose = TRUE),
@@ -655,6 +741,9 @@ app_server <- function(input, output, session) {
       return()
     }
     rv$comparison <- out
+    # The mode that drew this figure, so the note under it stays true after the
+    # demo switch is flipped.
+    rv$comparison_demo <- isTRUE(input$demo)
   })
 
   output$plot_comparison <- shiny::renderPlot({
@@ -663,13 +752,68 @@ app_server <- function(input, output, session) {
       shiny::need(!is.null(cmp), "Enter comparison terms and click Compare topics."),
       shiny::need(rlang::is_installed("ggplot2"), "Install ggplot2 to see the plot.")
     )
-    topics <- unique(cmp$abridged_query[cmp$query_type == "comparison"])
+    # The plot drops the years with no share before it reads the highlight, so
+    # a topic whose counts all came back missing is not one of its topics and
+    # would abort it. Such a topic is left unhighlighted, as in the Python app.
+    plottable <- cmp$query_type == "comparison" & !is.na(cmp$comparison_percentage)
+    topics <- unique(cmp$abridged_query[plottable])
     hl <- input$cmp_highlight
     if (is.null(hl) || !nzchar(hl) || !hl %in% topics) hl <- NULL
     plot_scopus_comparison(
       cmp, highlight = hl, interval = !identical(input$cmp_interval, FALSE),
       pub_count_in_legend = !identical(input$cmp_counts, FALSE)
     )
+  }, alt = function() {
+    cmp <- rv$comparison
+    if (is.null(cmp)) {
+      return("Line chart of topic shares over time.")
+    }
+    topics <- unique(cmp$abridged_query[cmp$query_type == "comparison"])
+    ref <- unique(cmp$abridged_query[cmp$query_type == "reference"])
+    yrs <- sort(unique(cmp$year))
+    sprintf("Line chart of the share of '%s' records matching %s, %d to %d.",
+            ref[1L], paste(sprintf("'%s'", topics), collapse = ", "),
+            yrs[1L], yrs[length(yrs)])
+  })
+
+  # plot_scopus_comparison() captions every figure with the Search API as its
+  # source, which is true of a real comparison and not of the one demo mode
+  # synthesises, so a demo figure says where its numbers came from, as the
+  # Python app's does.
+  output$cmp_demo_note <- shiny::renderUI({
+    if (is.null(rv$comparison) || !isTRUE(rv$comparison_demo)) {
+      return(NULL)
+    }
+    shiny::p(shiny::tags$small(
+      class = "text-muted",
+      "Demo mode: these counts are illustrative rather than retrieved. The",
+      "figure shows the shape a real comparison returns, not measured shares."
+    ))
+  })
+
+  # Every download handler opens with req(), and a click with nothing to write
+  # fails in the browser with nothing on screen to say why, so the buttons
+  # arrive with what they write, as the Python app builds them.
+  output$export_buttons <- shiny::renderUI({
+    if (is.null(records_r())) {
+      return(shiny::p(shiny::tags$small("Fetch records to export them.")))
+    }
+    shiny::tagList(
+      shiny::downloadButton("dl_rds", "Records (.rds)", class = "btn-outline-secondary"),
+      shiny::downloadButton("dl_dois", "DOIs (.csv)", class = "btn-outline-secondary"),
+      shiny::downloadButton("dl_bibtex", "BibTeX (.bib)", class = "btn-outline-secondary"),
+      shiny::downloadButton("dl_ris", "RIS (.ris)", class = "btn-outline-secondary"),
+      shiny::downloadButton("dl_report", "Search record (.md)",
+                            class = "btn-outline-secondary")
+    )
+  })
+
+  output$cmp_download <- shiny::renderUI({
+    if (is.null(rv$comparison)) {
+      return(NULL)
+    }
+    shiny::downloadButton("dl_comparison", "Comparison (.csv)",
+                          class = "btn-outline-secondary btn-sm")
   })
 
   output$dl_comparison <- shiny::downloadHandler(

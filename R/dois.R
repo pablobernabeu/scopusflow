@@ -40,9 +40,10 @@
 #' scopus_extract_dois(example_records, file = path)
 #' @export
 scopus_extract_dois <- function(x, dedupe = TRUE, file = NULL) {
+  scopus_check_flag(dedupe, "dedupe")
   dois <- scopus_as_doi_vector(x)
   dois <- scopus_clean_dois(dois)
-  if (isTRUE(dedupe)) {
+  if (dedupe) {
     dois <- dois[!duplicated(tolower(dois))]
   }
   if (!is.null(file)) {

@@ -26,7 +26,8 @@ distinct year, so \code{c(2015, 2020)} searches those two years alone, as
 \code{\link[=scopus_trend]{scopus_trend()}} and \code{\link[=scopus_compare_topics]{scopus_compare_topics()}} do. Otherwise, the plan sends
 one inclusive range from the earliest year to the latest, so \code{c(2015, 2020)}
 covers every year from 2015 to 2020, as in \code{\link[=scopus_count]{scopus_count()}},
-\code{\link[=scopus_fetch]{scopus_fetch()}} and \code{\link[=scopus_intersections]{scopus_intersections()}}.}
+\code{\link[=scopus_fetch]{scopus_fetch()}} and \code{\link[=scopus_intersections]{scopus_intersections()}}. An empty vector places no
+year restriction, as \code{NULL} does.}
 
 \item{field}{Optional character scalar naming a 'Scopus' field tag to wrap the
 query in, for example \code{"TITLE-ABS-KEY"}, \code{"TITLE"}, \code{"AUTH"} or \code{"AFFIL"}.

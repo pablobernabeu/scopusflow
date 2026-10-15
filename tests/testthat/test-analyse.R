@@ -21,6 +21,19 @@ test_that("scopus_top splits multi-author strings and honours n", {
   expect_equal(nrow(scopus_top(example_records, by = "author", n = 3)), 3L)
 })
 
+test_that("scopus_top splits authors joined by a bare semicolon, as the Python twin does", {
+  # scopusflow-py 0.3.0 joined a COMPLETE record's authors with ";" alone, and
+  # its top() splits at the semicolon with or without the space. Split at "; "
+  # only, a set it wrote counted "Smith J.;Doe A." here as one author. The
+  # fixture is byte-identical to the Python twin's, whose suite asserts the
+  # same tally.
+  fx <- read_scopus_records(test_path("fixtures", "blank-fields.csv"))
+  top <- scopus_top(fx, by = "author")
+  expect_identical(top$value, c("A.I. Mtz-Enríquez", "Doe A.", "Lee K.",
+                                "Ono Y.", "Smith J."))
+  expect_identical(top$n, c(2L, 1L, 1L, 1L, 1L))
+})
+
 test_that("an author tally of a STANDARD harvest says once that it counts first authors", {
   # The sentinel lives for the whole session, so it is cleared on both sides
   # of the test, which would otherwise depend on the order the tests run in.

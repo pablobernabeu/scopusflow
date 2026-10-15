@@ -60,6 +60,19 @@ app_plan_cache_name <- function(query, years = NULL, field = NULL,
   paste(c(if (nzchar(words)) words, span, hash), collapse = "-")
 }
 
+# The query the app sends, trimmed as the Python twin's str.strip() trims
+# (see scopus_trim()). The script panel showed the query trimmed while the
+# count, the comparison and the harvest sent it as typed, so a query pasted
+# with surrounding space went to the API inside the field tag and into the
+# search record. One helper serves both, as app_search_query() does in the
+# Python app.
+app_search_query <- function(x) {
+  if (is.null(x) || length(x) != 1L || is.na(x)) {
+    return("")
+  }
+  scopus_trim(x)
+}
+
 # Quote a string for insertion into generated R code.
 app_quote <- function(x) {
   encodeString(x, quote = "\"")
@@ -108,7 +121,8 @@ app_code_mirror <- function(query,
                             interval = TRUE,
                             pub_count_in_legend = TRUE,
                             demo = FALSE) {
-  query <- if (is.null(query) || !nzchar(trimws(query))) "your query" else trimws(query)
+  query <- app_search_query(query)
+  if (!nzchar(query)) query <- "your query"
   years_code <- app_years_code(years)
   has_field <- !is.null(field) && nzchar(field)
   by_year <- identical(partition, "year") && !is.null(years_code)

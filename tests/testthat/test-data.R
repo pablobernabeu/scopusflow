@@ -122,6 +122,20 @@ test_that("the demonstration searches quote the phrase", {
   expect_match(tracking, "the bundled one came from OpenAlex", fixed = TRUE)
 })
 
+test_that("the help for scopus_search_report() names every element it returns", {
+  # The record carried `cells_reported`, the number of cells that reported a
+  # total, which the list of its elements left out.
+  root <- scopus_doc_root()
+  rd <- tools::parse_Rd(file.path(root, "man", "scopus_search_report.Rd"))
+  value <- Filter(function(x) identical(attr(x, "Rd_tag"), "\\value"), rd)
+  text <- paste(unlist(value), collapse = "")
+  elements <- names(unclass(scopus_search_report(example_records)))
+  named <- vapply(elements, function(name) {
+    grepl(sprintf("(^|[^A-Za-z0-9_])%s([^A-Za-z0-9_]|$)", name), text)
+  }, logical(1))
+  expect_identical(elements[!named], character())
+})
+
 test_that("the search-record demonstrations say they describe no search that was run", {
   root <- scopus_doc_root()
   for (path in c("vignettes/scopusflow.Rmd", "vignettes/plans-and-quota.Rmd",

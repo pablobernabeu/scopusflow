@@ -41,7 +41,7 @@ Suggests:
     grid,
     knitr,
     rmarkdown,
-    shiny,
+    shiny (>= 1.6.0),
     spelling,
     testthat (>= 3.0.0),
     withr

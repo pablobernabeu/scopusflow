@@ -95,9 +95,11 @@ plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
   }
 
   totals <- tapply(df$n, df$abridged_query, sum, na.rm = TRUE)
+  # Each count written on its own, as the Python twin writes it: format() over
+  # the whole column padded every count to the widest.
   df$label <- if (isTRUE(pub_count_in_legend)) {
     sprintf("%s (n = %s)", df$abridged_query,
-            format(totals[df$abridged_query], big.mark = ","))
+            scopus_report_count(totals[df$abridged_query]))
   } else {
     df$abridged_query
   }

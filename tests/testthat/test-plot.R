@@ -90,6 +90,19 @@ test_that("legend/line labels can include counts", {
   expect_true(any(grepl("n =", levels(p$data$label))))
 })
 
+test_that("each count in a label is written on its own, as the Python twin writes it", {
+  # format() pads a vector to its widest member, so the smaller count was
+  # spaced out inside its brackets, "a (n =   1,990)", where the Python twin
+  # writes "a (n = 1,990)".
+  skip_if_not_installed("ggplot2")
+  cmp <- make_comparison()
+  cmp$n <- c(200000, 200000, 200000, 600, 690, 700, 30000, 30000, 40000)
+  cmp$reference_n <- rep(200000, 9)
+  cmp$comparison_percentage <- 100 * cmp$n / cmp$reference_n
+  p <- plot_scopus_comparison(cmp, pub_count_in_legend = TRUE)
+  expect_setequal(levels(p$data$label), c("a (n = 1,990)", "b (n = 100,000)"))
+})
+
 test_that("highlight greys the others and accents one topic", {
   skip_if_not_installed("ggplot2")
   p <- plot_scopus_comparison(make_comparison(), highlight = "a")

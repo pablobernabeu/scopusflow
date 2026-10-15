@@ -195,6 +195,8 @@ scopus_abstract <- function(ids,
                             verbose = FALSE) {
   by <- scopus_match_arg(by, c("doi", "scopus_id"))
   include <- scopus_check_include(include)
+  scopus_check_flag(resume, "resume")
+  scopus_check_flag(verbose, "verbose")
   if (!is.null(view) && !view %in% c("META", "META_ABS", "REF", "FULL")) {
     scopus_abort_bad_input(
       "`view` must be one of \"META\", \"META_ABS\", \"REF\", \"FULL\", or NULL."

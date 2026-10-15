@@ -36,6 +36,59 @@ test_that("partition by year requires years", {
   expect_error(scopus_plan("x", partition = "year"), class = "scopus_error_bad_input")
 })
 
+test_that("an empty years vector places no year restriction, as NULL does", {
+  # The Python twin reads an empty year list as no restriction where the years
+  # form a range, and refuses it where each year is counted. Here it died on an
+  # unclassed formatting error building a date range from an empty minimum and
+  # maximum, or on a data.frame() error after the reference had been counted.
+  p <- expect_no_warning(scopus_plan("x", years = integer(0)))
+  expect_identical(p, scopus_plan("x"))
+  expect_error(scopus_plan("x", years = integer(0), partition = "year"),
+               class = "scopus_error_bad_input")
+  local_scopus_test_env()
+  httr2::local_mocked_responses(function(req) stop("a request was sent"))
+  expect_error(scopus_trend("q", years = integer(0)), class = "scopus_error_bad_input")
+  expect_error(scopus_compare_topics("q", "term", years = integer(0)),
+               class = "scopus_error_bad_input")
+})
+
+test_that("a logical argument that is not TRUE or FALSE is refused before any request", {
+  # isTRUE() read "TRUE", 1 and NA alike as FALSE, so scopus_fetch(cursor =
+  # "TRUE") paged by offset under the ceiling the caller meant to lift, and
+  # `if` or `&&` on any other value died on a base error that a handler for
+  # scopus_error could not catch.
+  local_scopus_test_env()
+  httr2::local_mocked_responses(function(req) stop("a request was sent"))
+  calls <- list(
+    fetch_cursor = function(v) scopus_fetch("q", cursor = v),
+    fetch_verbose = function(v) scopus_fetch("q", verbose = v),
+    plan_resume = function(v) scopus_fetch_plan(scopus_plan("q"), resume = v),
+    plan_verbose = function(v) scopus_fetch_plan(scopus_plan("q"), verbose = v),
+    plan_cursor = function(v) scopus_fetch_plan(scopus_plan("q"), cursor = v),
+    abstract_resume = function(v) scopus_abstract("10.1/x", resume = v),
+    abstract_verbose = function(v) scopus_abstract("10.1/x", verbose = v),
+    corpus_resume = function(v) scopus_corpus(example_records, resume = v),
+    corpus_verbose = function(v) scopus_corpus(example_records, verbose = v),
+    trend_verbose = function(v) scopus_trend("q", years = 2020L, verbose = v),
+    compare_verbose = function(v) {
+      scopus_compare_topics("q", "term", years = 2020L, verbose = v)
+    },
+    intersections_verbose = function(v) {
+      scopus_intersections(c(a = "x", b = "y"), verbose = v)
+    },
+    extract_dedupe = function(v) scopus_extract_dois("10.1/a", dedupe = v),
+    cache_dir_create = function(v) scopus_cache_dir(create = v)
+  )
+  for (name in names(calls)) {
+    for (value in list("TRUE", NA, 1, c(TRUE, FALSE))) {
+      expect_error(calls[[name]](value), class = "scopus_error_bad_input",
+                   label = sprintf("%s(%s)", name, deparse(value)))
+    }
+  }
+  expect_error(scopus_fetch("q", cursor = "TRUE"),
+               "`cursor` must be `TRUE` or `FALSE`.", fixed = TRUE)
+})
+
 test_that("invalid inputs are rejected", {
   expect_error(scopus_plan(""), class = "scopus_error_bad_input")
   expect_error(scopus_plan(c("a", "b")), class = "scopus_error_bad_input")

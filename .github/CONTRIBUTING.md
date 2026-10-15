@@ -95,9 +95,13 @@ A weekly live smoke test (`.github/workflows/live-api-check.yaml`) guards the
 other half of the risk. The ordinary test suite mocks all HTTP, so it cannot tell
 whether the real 'Scopus' API has renamed a field or changed its envelope. The
 live test runs a tiny real query and checks that the records come back with the
-documented columns populated. It needs a `SCOPUS_API_KEY` repository secret; until
-one is set, the live tests skip themselves and the run stays green, though it
-flags itself as dormant in the log and the run summary. Once a key is present, a
+documented columns populated. The live tests run only where the variable
+`SCOPUSFLOW_LIVE_TESTS` is `"true"`, which the workflow sets, so a local
+`devtools::test()` spends no quota even with a key in `~/.Renviron`. Set the
+variable in the session to run them by hand. The workflow needs a
+`SCOPUS_API_KEY` repository secret; until one is set, the live tests skip
+themselves and the run stays green, though it flags itself as dormant in the
+log and the run summary. Once a key is present, a
 skipped live test fails the run, so a green result always means the tests ran.
 
 Dependabot (`.github/dependabot.yml`) keeps the GitHub Actions used by the

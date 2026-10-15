@@ -68,7 +68,8 @@ states plainly that it is an independent client. Live API access is kept out of
 the checks: every example is based on a fixture or a mock, or guarded with
 `@examplesIf scopus_has_key()`, the tests never touch the network, and the
 vignette runs on bundled fixtures, while the live tests are gated behind
-`skip_on_cran()` and a key. No key or other secret is stored anywhere. Keys are
+`skip_on_cran()`, a key and an opt-in `SCOPUSFLOW_LIVE_TESTS` variable that no
+test runner sets by itself. No key or other secret is stored anywhere. Keys are
 read only from environment variables, options or arguments, and are redacted in
 request output. Nothing is written to disk unless the user asks, the cache is
 opt-in under `tools::R_user_dir()` and can be cleared, and examples and tests

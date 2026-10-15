@@ -12,7 +12,9 @@
 #'   the earliest year to the latest, as a [scopus_plan()] with
 #'   `partition = "none"` does, so `c(2015, 2020)` covers every year from 2015
 #'   to 2020. [scopus_trend()], [scopus_compare_topics()] and a plan with
-#'   `partition = "year"` take each listed year.
+#'   `partition = "year"` take each listed year. An empty vector places no year
+#'   restriction, as `NULL` does, where the years form a range, and is refused
+#'   where each year is counted.
 #' @param field Optional 'Scopus' field tag to wrap the query in (see
 #'   [scopus_plan()]).
 #' @param view Either `"STANDARD"` or `"COMPLETE"`. `COMPLETE` adds an

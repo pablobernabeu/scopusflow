@@ -128,9 +128,9 @@ scopus_fetch_plan <- function(plan,
   # The mode is part of every checkpoint's identity, and isTRUE() would read
   # a mistyped value as FALSE, fetching and checkpointing the plan in a mode
   # the caller never chose.
-  if (!is.logical(cursor) || length(cursor) != 1L || is.na(cursor)) {
-    scopus_abort_bad_input("`cursor` must be `TRUE` or `FALSE`.")
-  }
+  scopus_check_flag(cursor, "cursor")
+  scopus_check_flag(resume, "resume")
+  scopus_check_flag(verbose, "verbose")
   paging <- if (cursor) "cursor" else "offset"
   fields <- scopus_match_arg(fields, c("core", "extended"))
   scopus_check_cache_dir(cache_dir)
@@ -614,8 +614,9 @@ scopus_bind_provenance <- function(bound, records_list) {
 #' scopus_cache_dir(create = FALSE)
 #' @export
 scopus_cache_dir <- function(create = FALSE) {
+  scopus_check_flag(create, "create")
   path <- tools::R_user_dir("scopusflow", which = "cache")
-  if (isTRUE(create)) {
+  if (create) {
     dir.create(path, recursive = TRUE, showWarnings = FALSE)
     return(invisible(path))
   }

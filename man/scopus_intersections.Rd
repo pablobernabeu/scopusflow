@@ -40,7 +40,9 @@ Defaults to a multiplication sign between spaces.}
 the earliest year to the latest, as a \code{\link[=scopus_plan]{scopus_plan()}} with
 \code{partition = "none"} does, so \code{c(2015, 2020)} covers every year from 2015
 to 2020. \code{\link[=scopus_trend]{scopus_trend()}}, \code{\link[=scopus_compare_topics]{scopus_compare_topics()}} and a plan with
-\code{partition = "year"} take each listed year.}
+\code{partition = "year"} take each listed year. An empty vector places no year
+restriction, as \code{NULL} does, where the years form a range, and is refused
+where each year is counted.}
 
 \item{field}{Optional 'Scopus' field tag wrapped around each concept value
 that is not already a complete field-tagged expression (see

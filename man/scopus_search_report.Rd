@@ -46,7 +46,8 @@ A list of class \code{scopus_search_report}, returned invisibly when
 \code{cells} (a tibble of \code{cell}, \code{limit}, \code{n_records} and \code{reported_total}),
 \code{searched_at} and \code{searched_until} (the earliest and latest retrieval
 times), \code{version}, \code{n_records}, \code{n_with_doi}, \code{reported_total},
-\code{stopped_early}, \code{cells_planned}, \code{cells_run}, \code{not_run} (the cells a
+\code{cells_reported} (how many cells reported a total), \code{stopped_early},
+\code{cells_planned}, \code{cells_run}, \code{not_run} (the cells a
 stopped harvest never reached), \code{records_combined}, \code{duplicates_removed},
 \code{deduplicated}, \code{dedupe_rule} and \code{doi_conflicts} (the rule
 \code{\link[=scopus_combine]{scopus_combine()}} matched records by, and the DOIs it left shared across

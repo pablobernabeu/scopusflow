@@ -48,6 +48,46 @@ test_that("RIS gives each author of a COMPLETE record a line of its own", {
   ))
 })
 
+test_that("authors joined by a bare semicolon are split, as the Python twin splits them", {
+  # scopusflow-py 0.3.0 joined a COMPLETE record's authors with ";" alone, and
+  # its exports split at the semicolon with or without the space. Split at "; "
+  # only, such a set read back here went to BibTeX and RIS as one author.
+  recs <- scopus_records(list(entry = list(
+    list(`dc:title` = "T", `dc:creator` = "Smith J.;Doe A.",
+         `prism:coverDate` = "2021-01-01")
+  )))
+  expect_match(as_bibtex(recs), "author = {Smith, J. and Doe, A.},", fixed = TRUE)
+  expect_match(as_ris(recs), "AU  - Smith, J.\nAU  - Doe, A.\n", fixed = TRUE)
+  expect_identical(as_bibliometrix(recs)$AU, "SMITH J;DOE A")
+})
+
+test_that("files are written as UTF-8 in a non-UTF-8 locale", {
+  # In a C or single-byte locale R spelt each character the locale cannot
+  # encode as the text <U+00ED>, so a reference manager was handed misspelt
+  # names, and the search record a misspelt query.
+  withr::local_locale(c(LC_CTYPE = "C"))
+  recs <- scopus_records(list(entry = list(
+    list(`dc:creator` = "A.I. Mtz-Enríquez",
+         `dc:title` = "Graphene – a study",
+         `prism:coverDate` = "2021-01-01")
+  )), query = "TITLE(grafeno eléctrico)")
+  name <- charToRaw(enc2utf8("Mtz-Enríquez"))
+  written <- function(path) readBin(path, "raw", file.size(path))
+  bib <- withr::local_tempfile(fileext = ".bib")
+  as_bibtex(recs, file = bib)
+  ris <- withr::local_tempfile(fileext = ".ris")
+  as_ris(recs, file = ris)
+  report <- withr::local_tempfile(fileext = ".md")
+  scopus_search_report(recs, file = report)
+  for (path in c(bib, ris)) {
+    expect_false(grepl("<U+", rawToChar(written(path)), fixed = TRUE), label = path)
+    expect_true(grepRaw(name, written(path), fixed = TRUE) > 0L, label = path)
+  }
+  expect_false(grepl("<U+", rawToChar(written(report)), fixed = TRUE))
+  expect_true(grepRaw(charToRaw(enc2utf8("eléctrico")), written(report),
+                      fixed = TRUE) > 0L)
+})
+
 test_that("missing fields are skipped, not emitted as NA", {
   recs <- scopus_records(list(entry = list(
     list(`dc:title` = "Untitled with no doi")

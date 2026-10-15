@@ -4,11 +4,13 @@
 
 # Split the "; "-joined authors string of one record into a character vector,
 # dropping empty pieces. Returns character(0) when the field is NA or blank.
+# The split is at the semicolon, with or without the space, as the Python
+# twin's is: scopusflow-py 0.3.0 joined the authors with ";" alone.
 scopus_refman_authors <- function(authors) {
   if (length(authors) != 1L || is.na(authors)) {
     return(character())
   }
-  parts <- trimws(strsplit(authors, "; ", fixed = TRUE)[[1]])
+  parts <- trimws(strsplit(authors, ";", fixed = TRUE)[[1]])
   parts[nzchar(parts)]
 }
 
