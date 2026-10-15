@@ -33,6 +33,11 @@
 #'   dropped, while a core one is a miss for an extended request and is
 #'   refetched with a warning. A checkpoint written before the fields were
 #'   recorded counts as core.
+#'   A `cache_dir` that is not a directory and cannot be created as one, or in
+#'   which no file can be created, is refused with a `scopus_error_bad_input`
+#'   error before any request. A checkpoint that cannot be written all the
+#'   same, for example on a full disk, gives a `scopus_warning_cache_unwritable`
+#'   warning, and the cell's records are kept in the result.
 #' @param resume Logical. When `TRUE` and `cache_dir` is set, a cell whose cache
 #'   file already exists is loaded from disk, sparing a second request.
 #' @param api_key,inst_token Optional credentials (see [scopus_has_key()]).
@@ -128,14 +133,7 @@ scopus_fetch_plan <- function(plan,
   }
   paging <- if (cursor) "cursor" else "offset"
   fields <- scopus_match_arg(fields, c("core", "extended"))
-  if (!is.null(cache_dir)) {
-    if (!is.character(cache_dir) || length(cache_dir) != 1L || is.na(cache_dir)) {
-      scopus_abort_bad_input(
-        "`cache_dir` must be `NULL` or a single directory path."
-      )
-    }
-    dir.create(cache_dir, recursive = TRUE, showWarnings = FALSE)
-  }
+  scopus_check_cache_dir(cache_dir)
 
   results <- vector("list", nrow(plan))
   reported <- rep(NA_real_, nrow(plan))
@@ -437,6 +435,53 @@ scopus_serve_checkpoint <- function(cached, max_results, fields = "core") {
   out
 }
 
+# Create `cache_dir` and prove that a checkpoint can be written there, before
+# any request is made. dir.create() fails quietly under showWarnings = FALSE.
+# A cache_dir that was a file, or a directory the user could not write,
+# therefore cost a cell's requests and then lost its records to an untyped
+# error when the checkpoint was saved. Creating a file is the test.
+# ?file.access advises trying the operation itself, and the Python twin cannot
+# rely on os.access, which on Windows reports a directory that an ACL denies as
+# writable.
+scopus_check_cache_dir <- function(cache_dir, call = rlang::caller_env()) {
+  if (is.null(cache_dir)) {
+    return(invisible(NULL))
+  }
+  if (!is.character(cache_dir) || length(cache_dir) != 1L || is.na(cache_dir) ||
+      !nzchar(cache_dir)) {
+    scopus_abort_bad_input(
+      "`cache_dir` must be `NULL` or a single directory path.",
+      call = call
+    )
+  }
+  dir.create(cache_dir, recursive = TRUE, showWarnings = FALSE)
+  if (!dir.exists(cache_dir)) {
+    scopus_abort_bad_input(
+      sprintf(
+        paste0("`cache_dir` must be a directory that can be written, and \"%s\" ",
+               "is not a directory and could not be created as one. No request ",
+               "was made."),
+        cache_dir
+      ),
+      call = call
+    )
+  }
+  probe <- tempfile(pattern = "scopusflow-probe-", tmpdir = cache_dir)
+  created <- isTRUE(suppressWarnings(file.create(probe)))
+  unlink(probe)
+  if (!created) {
+    scopus_abort_bad_input(
+      sprintf(
+        paste0("`cache_dir` must be a directory that can be written, and no ",
+               "file could be created in \"%s\". No request was made."),
+        cache_dir
+      ),
+      call = call
+    )
+  }
+  invisible(cache_dir)
+}
+
 # Write a checkpoint so that it is either wholly there or not there at all.
 # saveRDS() straight to the destination leaves a truncated file when the
 # session dies mid-write, and the interruptions this cache exists to survive
@@ -444,18 +489,36 @@ scopus_serve_checkpoint <- function(cached, max_results, fields = "core") {
 # what produces one. Renaming within a single directory is atomic on both POSIX
 # and NTFS. file.rename() returns FALSE, and does not error, when the target is
 # locked by another process, which happens on Windows, so a failed rename falls
-# back to a direct write, so the cell just paid for is not lost.
+# back to a direct write, so the cell just paid for is not lost. When that
+# write fails as well, on a full disk or where a directory has taken the
+# checkpoint's name, the function warns and returns, so the caller keeps the
+# records it paid for. The error raised here used to lose them. Returns,
+# invisibly, whether the checkpoint was written.
 scopus_write_checkpoint <- function(x, path) {
   tmp <- tempfile(pattern = "checkpoint-", tmpdir = dirname(path), fileext = ".rds")
   renamed <- tryCatch({
-    saveRDS(x, tmp)
+    suppressWarnings(saveRDS(x, tmp))
     isTRUE(suppressWarnings(file.rename(tmp, path)))
   }, error = function(e) FALSE)
-  if (!renamed) {
-    unlink(tmp)
-    saveRDS(x, path)
+  if (renamed) {
+    return(invisible(TRUE))
   }
-  invisible(path)
+  unlink(tmp)
+  written <- tryCatch({
+    suppressWarnings(saveRDS(x, path))
+    TRUE
+  }, error = function(e) FALSE)
+  if (!written) {
+    rlang::warn(
+      sprintf(
+        paste0("The checkpoint %s could not be written, so its records are kept ",
+               "in the result without being saved to the cache."),
+        path
+      ),
+      class = "scopus_warning_cache_unwritable"
+    )
+  }
+  invisible(written)
 }
 
 # Read a checkpoint back, returning NULL when it cannot be read. A damaged
@@ -567,8 +630,14 @@ scopus_cache_dir <- function(create = FALSE) {
 #' @return Invisibly, `TRUE` once the managed cache directory is removed or found
 #'   to be absent.
 #' @examples
-#' # Safe to call even when nothing is cached.
+#' # The managed cache is pointed at a temporary directory first, so that
+#' # running this example cannot delete the checkpoints of a real harvest.
+#' # Nothing is cached there, and clearing an absent cache is safe.
+#' old <- Sys.getenv("R_USER_CACHE_DIR", unset = NA)
+#' Sys.setenv(R_USER_CACHE_DIR = tempfile())
 #' scopus_cache_clear()
+#' if (is.na(old)) Sys.unsetenv("R_USER_CACHE_DIR") else
+#'   Sys.setenv(R_USER_CACHE_DIR = old)
 #' @export
 scopus_cache_clear <- function() {
   path <- scopus_cache_dir(create = FALSE)

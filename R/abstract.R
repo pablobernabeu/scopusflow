@@ -36,7 +36,9 @@
 #'   setting whenever `include` is used: Abstract Retrieval draws on its own
 #'   weekly quota, smaller than and separate from Search's, and every
 #'   identifier here costs at least one request of its own, so re-running an interrupted batch
-#'   without a cache re-spends quota already spent.
+#'   without a cache re-spends quota already spent. A `cache_dir` that cannot
+#'   be written is refused before any request, and a checkpoint that cannot be
+#'   written all the same warns and keeps the row, as in [scopus_fetch_plan()].
 #' @param resume Logical. When `TRUE` (the default) and `cache_dir` is set, an
 #'   identifier whose cache file already exists is loaded from disk, sparing a
 #'   second request for it. A cache file that cannot be read back, for example
@@ -232,9 +234,7 @@ scopus_abstract <- function(ids,
   # turned into a whole tibble of NA rows.
   scopus_key(api_key)
 
-  if (!is.null(cache_dir)) {
-    dir.create(cache_dir, recursive = TRUE, showWarnings = FALSE)
-  }
+  scopus_check_cache_dir(cache_dir)
 
   n_requests <- 0L
   quota <- NULL

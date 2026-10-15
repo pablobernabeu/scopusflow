@@ -264,6 +264,85 @@ test_that("a checkpoint is written whole or not at all", {
   expect_setequal(list.files(cache), c("cell-001-2019.rds", "cell-002-2020.rds"))
 })
 
+test_that("a cache_dir that is not a directory is refused before any request", {
+  # A file in its place used to cost the cell's requests, and then the records,
+  # to an untyped "cannot open the connection" when the checkpoint was saved.
+  local_scopus_test_env()
+  calls <- 0L
+  httr2::local_mocked_responses(function(req) {
+    calls <<- calls + 1L
+    mock_corpus(total = 2L)(req)
+  })
+  file <- withr::local_tempfile()
+  writeLines("not a directory", file)
+  plan <- scopus_plan("x", years = 2020L, partition = "year")
+
+  err <- expect_error(scopus_fetch_plan(plan, cache_dir = file),
+                      class = "scopus_error_bad_input")
+  expect_s3_class(err, "scopus_error")
+  expect_match(conditionMessage(err), "is not a directory and could not be created",
+               fixed = TRUE)
+  expect_equal(calls, 0L)
+  expect_error(scopus_fetch_plan(plan, cache_dir = ""), class = "scopus_error_bad_input")
+  expect_equal(calls, 0L)
+})
+
+test_that("a directory that cannot be written is refused before any request", {
+  # The probe writes a file, since ?file.access advises trying the operation.
+  # Windows ignores a read-only mode on a directory, and root ignores modes
+  # altogether, so the test skips wherever the directory still takes a file.
+  local_scopus_test_env()
+  calls <- 0L
+  httr2::local_mocked_responses(function(req) {
+    calls <<- calls + 1L
+    mock_corpus(total = 2L)(req)
+  })
+  cache <- withr::local_tempdir()
+  Sys.chmod(cache, "0555")
+  withr::defer(Sys.chmod(cache, "0755"))
+  probe <- file.path(cache, "probe")
+  if (isTRUE(suppressWarnings(file.create(probe)))) {
+    unlink(probe)
+    skip("This platform lets a read-only directory be written.")
+  }
+
+  err <- expect_error(
+    scopus_fetch_plan(scopus_plan("x", years = 2020L), cache_dir = cache),
+    class = "scopus_error_bad_input"
+  )
+  expect_match(conditionMessage(err), "no file could be created in", fixed = TRUE)
+  expect_equal(calls, 0L)
+  expect_length(list.files(cache, all.files = TRUE, no.. = TRUE), 0L)
+})
+
+test_that("a checkpoint that cannot be written warns and keeps the cell's records", {
+  # A directory where the checkpoint belongs defeats both the rename and the
+  # direct write on every platform, as a full disk or a lost permission would.
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  httr2::local_mocked_responses(mock_corpus(total = 2L))
+  plan <- scopus_plan("x", years = 2019:2020, partition = "year")
+  blocked <- scopusflow:::scopus_cell_cache_name(plan[1, ])
+  dir.create(file.path(cache, blocked))
+
+  caught <- list()
+  recs <- withCallingHandlers(
+    scopus_fetch_plan(plan, cache_dir = cache, resume = FALSE),
+    warning = function(w) {
+      caught[[length(caught) + 1L]] <<- w
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_length(caught, 1L)
+  expect_s3_class(caught[[1]], "scopus_warning_cache_unwritable")
+  expect_match(conditionMessage(caught[[1]]), blocked, fixed = TRUE)
+  expect_equal(nrow(recs), 4L)
+  expect_equal(attr(recs, "cell_totals")$n_records, c(2L, 2L))
+  expect_equal(attr(recs, "total_results"), 4)
+  # The other cell is checkpointed as usual, and no temporary file is left.
+  expect_setequal(list.files(cache), c(blocked, "cell-002-2020.rds"))
+})
+
 test_that("scopus_fetch_plan validates its inputs", {
   local_scopus_test_env()
   expect_error(scopus_fetch_plan(list()), class = "scopus_error_bad_input")

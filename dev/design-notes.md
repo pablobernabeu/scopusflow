@@ -936,6 +936,24 @@ leaves a half-written `.rds`, and before this a damaged checkpoint aborted every
 subsequent resume with an untyped error that could only be cleared by finding
 and deleting the file by hand.
 
+A cache directory is checked before any request. It is created if need be,
+and a file is created in it and removed again. A path that is a file, or a
+directory the user cannot write, is thus refused as bad input with nothing
+spent. Up to 0.4.0 such a directory cost a cell's requests and then lost its
+records to an untyped error from `saveRDS()`. Creating a file is the test
+because `?file.access` advises trying the operation itself, and the Python
+twin cannot use `os.access`, which on Windows reports a directory that an ACL
+denies as writable. A checkpoint that still cannot be written, on a full disk
+or where a directory has taken its name, gives
+`scopus_warning_cache_unwritable`, and the records are returned without it.
+
+The `scopus_cache_clear()` example points `R_USER_CACHE_DIR` at a temporary
+directory and restores the variable afterwards, whether or not it was set.
+`example()`, `R CMD check` and pkgdown do not redirect `tools::R_user_dir()`,
+so the example used to delete the managed cache of whoever ran it.
+`\dontrun{}` was rejected, since CRAN asks for an example that can run to be
+run.
+
 ## Paging a plan
 
 Up to 0.4.0, a plan could only be paged by offset. A year cell matching more

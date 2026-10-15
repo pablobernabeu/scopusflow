@@ -296,6 +296,15 @@
   before `10.1016/S0140`. The tracking article advised preferring the 'Scopus'
   identifier, which no function supported, and now points to
   `scopus_diff_records()`.
+* A `cache_dir` that cannot be written is now refused with
+  `scopus_error_bad_input` before any request, in `scopus_fetch_plan()`,
+  `scopus_abstract()` and `scopus_corpus()`. A checkpoint that cannot be
+  written all the same, for example on a full disk, gives a
+  `scopus_warning_cache_unwritable` warning, and its records are kept in the
+  result. Both used to spend the cell's quota and then lose its records to an
+  untyped "cannot open the connection" error. The `scopus_cache_clear()`
+  example no longer deletes a real managed cache when the examples are run,
+  since it now points the cache at a temporary directory first.
 
 ## Documentation
 

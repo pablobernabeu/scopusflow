@@ -50,7 +50,9 @@ itself is otherwise accessible. See \emph{Details}.}
 setting whenever \code{include} is used: Abstract Retrieval draws on its own
 weekly quota, smaller than and separate from Search's, and every
 identifier here costs at least one request of its own, so re-running an interrupted batch
-without a cache re-spends quota already spent.}
+without a cache re-spends quota already spent. A \code{cache_dir} that cannot
+be written is refused before any request, and a checkpoint that cannot be
+written all the same warns and keeps the row, as in \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}.}
 
 \item{resume}{Logical. When \code{TRUE} (the default) and \code{cache_dir} is set, an
 identifier whose cache file already exists is loaded from disk, sparing a

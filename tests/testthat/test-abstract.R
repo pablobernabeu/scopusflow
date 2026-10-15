@@ -872,6 +872,50 @@ test_that("caching writes per-identifier files and resume avoids re-fetching", {
   expect_equal(nrow(ab), 2L)
 })
 
+test_that("a cache_dir that is not a directory is refused before any request", {
+  local_scopus_test_env()
+  calls <- 0L
+  httr2::local_mocked_responses(function(req) {
+    calls <<- calls + 1L
+    mock_abstract(list(`prism:doi` = "10.1/a"))
+  })
+  file <- withr::local_tempfile()
+  writeLines("not a directory", file)
+  err <- expect_error(scopus_abstract("10.1/a", cache_dir = file),
+                      class = "scopus_error_bad_input")
+  expect_s3_class(err, "scopus_error")
+  expect_equal(calls, 0L)
+  for (bad in list(1, c("a", "b"), NA_character_)) {
+    expect_error(scopus_abstract("10.1/a", cache_dir = bad),
+                 class = "scopus_error_bad_input")
+  }
+  expect_equal(calls, 0L)
+})
+
+test_that("a checkpoint that cannot be written warns and keeps the row", {
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  httr2::local_mocked_responses(function(req) {
+    mock_abstract(list(`prism:doi` = mock_request_doi(req), `dc:title` = "Kept"))
+  })
+  blocked <- sprintf("id-META_ABS-none-%s.rds", scopusflow:::scopus_safe_filename("10.1/a"))
+  dir.create(file.path(cache, blocked))
+
+  caught <- list()
+  ab <- withCallingHandlers(
+    scopus_abstract(c("10.1/a", "10.1/b"), cache_dir = cache, resume = FALSE),
+    warning = function(w) {
+      caught[[length(caught) + 1L]] <<- w
+      invokeRestart("muffleWarning")
+    }
+  )
+  expect_length(caught, 1L)
+  expect_s3_class(caught[[1]], "scopus_warning_cache_unwritable")
+  expect_equal(ab$title, c("Kept", "Kept"))
+  expect_equal(attr(ab, "n_requests"), 2L)
+  expect_equal(length(list.files(cache, pattern = "^id-.*10_1_b")), 1L)
+})
+
 test_that("a failed retrieval is not checkpointed, so a resumed run retries it", {
   # The all-NA row a failure degrades to keeps the batch alive, but written to
   # the cache it would be served back as data on resume, never retried.

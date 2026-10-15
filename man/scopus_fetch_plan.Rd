@@ -46,7 +46,12 @@ Checkpoints also record their \code{fields}. One fetched with
 \code{fields = "extended"} serves a core request, with the extra columns
 dropped, while a core one is a miss for an extended request and is
 refetched with a warning. A checkpoint written before the fields were
-recorded counts as core.}
+recorded counts as core.
+A \code{cache_dir} that is not a directory and cannot be created as one, or in
+which no file can be created, is refused with a \code{scopus_error_bad_input}
+error before any request. A checkpoint that cannot be written all the
+same, for example on a full disk, gives a \code{scopus_warning_cache_unwritable}
+warning, and the cell's records are kept in the result.}
 
 \item{resume}{Logical. When \code{TRUE} and \code{cache_dir} is set, a cell whose cache
 file already exists is loaded from disk, sparing a second request.}
