@@ -78,7 +78,9 @@ scopus_fetch(
   from 2015 to 2020.
   [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md),
   [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
-  and a plan with `partition = "year"` take each listed year.
+  and a plan with `partition = "year"` take each listed year. An empty
+  vector places no year restriction, as `NULL` does, where the years
+  form a range, and is refused where each year is counted.
 
 - cursor:
 
@@ -135,7 +137,11 @@ is the one-cell plan the call ran,
 so the search record states the field tag and the year limit the request
 carried. These attributes survive a `.rds` round trip through
 [`write_scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_records.md)
-but not a `.csv` one, which carries columns only.
+but not a `.csv` one, which carries columns only. A retrieval that comes
+back with fewer records than the API reported warns with a
+`scopus_warning_shortfall`, as each cell of
+[`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
+does, unless `max_results` or the offset ceiling stopped it.
 
 ## API access
 

@@ -75,10 +75,10 @@ is written. Its elements are the fields the record is built from:
 `cells` (a tibble of `cell`, `limit`, `n_records` and `reported_total`),
 `searched_at` and `searched_until` (the earliest and latest retrieval
 times), `version`, `n_records`, `n_with_doi`, `reported_total`,
-`stopped_early`, `cells_planned`, `cells_run`, `not_run` (the cells a
-stopped harvest never reached), `records_combined`,
-`duplicates_removed`, `deduplicated`, `dedupe_rule` and `doi_conflicts`
-(the rule
+`cells_reported` (how many cells reported a total), `stopped_early`,
+`cells_planned`, `cells_run`, `not_run` (the cells a stopped harvest
+never reached), `records_combined`, `duplicates_removed`,
+`deduplicated`, `dedupe_rule` and `doi_conflicts` (the rule
 [`scopus_combine()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md)
 matched records by, and the DOIs it left shared across identifiers),
 `snippet` and `prisma` (a tibble of `item`, `name`, `source` and

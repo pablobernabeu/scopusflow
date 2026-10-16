@@ -44,6 +44,7 @@ is_scopus_plan(x)
   [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
   and
   [`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md).
+  An empty vector places no year restriction, as `NULL` does.
 
 - field:
 

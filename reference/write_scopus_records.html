@@ -112,6 +112,13 @@ assumed to exist already.</p></dd>
     <p><code>write_scopus_records()</code> returns <code>x</code> invisibly. <code>read_scopus_records()</code>
 returns a <a href="scopus_records.html">scopus_records</a> tibble.</p>
     </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>A <code>.csv</code> file is written and read as UTF-8 in every locale. One written by
+another tool reads back as well, and a blank field in it reads as missing,
+since pandas, the Python twin and spreadsheet software write a missing value
+that way, where R writes <code>NA</code>.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>

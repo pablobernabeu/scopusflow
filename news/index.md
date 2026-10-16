@@ -204,6 +204,42 @@
   a value other than `TRUE`, `FALSE` or the name of a rule, where `NA`
   or any other value meant no de-duplication.
 
+- A logical argument that is not `TRUE` or `FALSE` now raises
+  `scopus_error_bad_input` before any request: `cursor` and `verbose` in
+  [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md),
+  `resume` and `verbose` in
+  [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md),
+  [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+  and
+  [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md),
+  `verbose` in
+  [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md),
+  [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
+  and
+  [`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md),
+  `dedupe` in
+  [`scopus_extract_dois()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_extract_dois.md)
+  and `create` in
+  [`scopus_cache_dir()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_dir.md).
+  [`isTRUE()`](https://rdrr.io/r/base/Logic.html) read `"TRUE"`, `1` and
+  `NA` alike as `FALSE`, so `scopus_fetch(cursor = "TRUE")` paged by
+  offset under the ceiling the caller meant to lift, and any other value
+  died on a base error that a handler for `scopus_error` could not
+  catch.
+
+- An empty `years` vector places no year restriction, as `NULL` does and
+  as the Python twin reads an empty list.
+  [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md),
+  [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md)
+  and
+  [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
+  died on an untyped formatting error building a date range from it, and
+  [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md)
+  and
+  [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md),
+  which count each year, now refuse it with the typed error a missing
+  `years` already raised.
+
 ### Bug fixes
 
 - The app’s search record no longer gives the bundled corpus’s own
@@ -429,6 +465,85 @@
   read as a decline. The line is read from the recorded time, never from
   the session’s clock, so a trend tallied by hand is drawn as before.
   The Python twin’s `plot_trend()` adds the same note.
+- [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
+  no longer loses records when a page comes back shorter than it asked
+  for in the middle of a result set, as a server that caps its pages
+  below `page_size` returns it. Offset paging advanced by the page size
+  it had requested, stepping over the records between those received and
+  the next offset, and took the short page for the last, so 20 of 60
+  such records came back without a warning. It now advances by the
+  records received and stops at an empty page, and a retrieval that ends
+  short of the total the API reported warns with
+  `scopus_warning_shortfall`, as each cell of
+  [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
+  already did. A retrieval stopped by `max_results` or at the offset
+  ceiling is short by request and does not warn.
+- Every file the package writes is UTF-8 in every locale: a record set’s
+  `.csv`, the DOI list, BibTeX, RIS, the search record and the app’s
+  script. In a C or single-byte locale, R wrote each character the
+  locale cannot encode as the text `<U+00ED>`, so a record set did not
+  survive a `.csv` round trip and a reference manager was given misspelt
+  names.
+- [`read_scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_records.md)
+  reads a `.csv` as UTF-8 whatever the locale, and reads a blank field
+  as missing, as it reads `NA`. pandas, and so the Python twin, and
+  spreadsheet software write a missing value as an empty field, which
+  arrived as an empty string. `dedupe = "id_then_doi"` took such a blank
+  identifier for an identifier and merged every unidentified record of a
+  file the Python twin wrote into one, where that twin falls back to the
+  DOI. The twins now keep the same rows, which a fixture both suites
+  read pins down.
+- `scopus_top(by = "author")`,
+  [`as_bibtex()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md),
+  [`as_ris()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
+  and
+  [`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)
+  split an author list at the semicolon with or without the space after
+  it, as the Python twin does. Version 0.3.0 of that twin joined the
+  authors with `";"` alone, so a set it wrote counted here as one author
+  per record.
+- [`plot_scopus_comparison()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_comparison.md)
+  writes each count in its label on its own, as the Python twin writes
+  it. [`format()`](https://rdrr.io/r/base/format.html) padded the
+  smaller counts to the width of the largest, as in `a (n = 1,990)`.
+- The app’s Author choice under Search in sends `AUTH`, the tag
+  [`scopus_field_tags()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_field_tags.md)
+  lists and the Python app sends under the same label. It sent
+  `AUTHLASTNAME`, which searches surnames alone.
+- The app sends the query it shows. The script panel trimmed the search
+  terms while Check size, Compare topics and Fetch records sent them as
+  typed, so a query pasted with surrounding space went to the API inside
+  the field tag and into the search record. All of them now trim it as
+  the Python app does, no-break spaces included.
+- The app’s size note goes when the search it priced changes, where it
+  went on standing for the plan on screen, and when a later check fails
+  or a harvest starts. Check size waits while a harvest is running,
+  since a count runs on the one Shiny thread and would freeze the live
+  terminal, and the note writes a count such as 100,000 in full, where
+  it read `1e+05`.
+- The app’s export buttons arrive with what they write, the record
+  exports after a harvest and the comparison’s after a comparison. Each
+  download opens with `req()`, and a click with nothing to write failed
+  in the browser with nothing on screen to say why. A demo comparison
+  carries a note that its counts are illustrative, as the Python app’s
+  does, since the figure’s caption names the Search API as its source.
+- The app’s panels say what they have none of. A harvest that matched
+  nothing, or one whose source titles or author names are all missing,
+  showed a plotting function’s error in By year, Top sources and Top
+  authors. A highlighted topic whose counts all came back missing no
+  longer replaces the comparison figure with an error, and is drawn
+  without the highlight, as in the Python app. The live terminal of a
+  demo harvest no longer labels a run over every year with the year 0,
+  and it names a year outside the bundled corpus and the year it is
+  drawn from.
+- The app is easier to use with a screen reader and to read. Its key
+  status used Bootstrap’s `.text-info`, `.text-warning` and
+  `.text-success`, at about 1.7:1, 1.5:1 and 4.1:1 on the sidebar’s
+  ground, under the 4.5:1 text needs, and now uses their `-emphasis`
+  variants. The progress bar carries an `aria-label` and, once a cell
+  has finished, its value. Each figure carries a text alternative naming
+  what it shows, where it was described as “Plot object”, which needs
+  shiny 1.6.0 or later.
 
 ### Documentation
 
@@ -466,6 +581,20 @@
   NOTE that left the run green. CRAN and a plain `R CMD check` still
   skip the test. The word list gains the twelve names and terms that had
   slipped past it.
+- [`?scopus_search_report`](https://pablobernabeu.github.io/scopusflow/reference/scopus_search_report.md)
+  lists `cells_reported`, the number of plan cells that reported a
+  total, among the elements of the record it returns.
+- The live tests run only where `SCOPUSFLOW_LIVE_TESTS` is `"true"`,
+  which the weekly live-check workflow sets. They ran wherever
+  `NOT_CRAN` was `"true"` and a key was present, and
+  [`devtools::test()`](https://devtools.r-lib.org/reference/test.html),
+  [`devtools::check()`](https://devtools.r-lib.org/reference/check.html)
+  and
+  [`testthat::test_local()`](https://testthat.r-lib.org/reference/test_package.html)
+  set `NOT_CRAN` themselves, so every local run of the suite by someone
+  keeping the key in `~/.Renviron`, as
+  [`?scopus_has_key`](https://pablobernabeu.github.io/scopusflow/reference/scopus_has_key.md)
+  recommends, spent live quota.
 - The designing-queries article explains loose and exact phrases, and
   replaces its spelling-variant example, which ‘Scopus’ matches without
   help, with two phrases naming one condition. It also shows why a query

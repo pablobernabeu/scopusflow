@@ -22,10 +22,10 @@ scopus_top(x, by = c("source", "author"), n = 10L)
 - by:
 
   What to tally: `"source"` (the publication titles) or `"author"`.
-  Author strings holding several names separated by `"; "` are split, so
-  each contributor is counted once per record. Only a
-  `view = "COMPLETE"` retrieval holds several names, since `STANDARD`
-  records carry the first author alone (see
+  Author strings holding several names are split at the semicolon, with
+  or without a space after it, so each contributor is counted once per
+  record. Only a `view = "COMPLETE"` retrieval holds several names,
+  since `STANDARD` records carry the first author alone (see
   [`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)).
   A tally by author of a set retrieved under `STANDARD` therefore counts
   first authorships, and says so with a warning of class

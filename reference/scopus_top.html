@@ -74,8 +74,9 @@ It works on records already in memory, so it makes no network request.</p>
 
 <dt id="arg-by">by<a class="anchor" aria-label="anchor" href="#arg-by"></a></dt>
 <dd><p>What to tally: <code>"source"</code> (the publication titles) or <code>"author"</code>.
-Author strings holding several names separated by <code>"; "</code> are split, so each
-contributor is counted once per record. Only a <code>view = "COMPLETE"</code>
+Author strings holding several names are split at the semicolon, with or
+without a space after it, so each contributor is counted once per record.
+Only a <code>view = "COMPLETE"</code>
 retrieval holds several names, since <code>STANDARD</code> records carry the first
 author alone (see <code><a href="scopus_records.html">scopus_records()</a></code>). A tally by author of a set retrieved
 under <code>STANDARD</code> therefore counts first authorships, and says so with a

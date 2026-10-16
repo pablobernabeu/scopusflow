@@ -45,12 +45,13 @@ redistributed, so every panel is exercised on real titles, DOIs,
 journals and citation counts, and the by-year chart shows a real
 publication curve with the shape the literature actually has. That
 corpus spans 2015 to 2024, which is where the year slider opens, and a
-year range reaching outside it is drawn from the nearest year it holds.
-Only the topic comparison is synthesised, since it counts whole
-literatures, which no set of records in hand can answer for. When you
-are ready for real results, paste your Scopus key into the field at the
-top of the sidebar and switch Demo mode off. The key stays in the
-running session and is never written into the generated script.
+year range reaching outside it is drawn from the nearest year it holds,
+as the live terminal says of each such year. Only the topic comparison
+is synthesised, since it counts whole literatures, which no set of
+records in hand can answer for. When you are ready for real results,
+paste your Scopus key into the field at the top of the sidebar and
+switch Demo mode off. The key stays in the running session and is never
+written into the generated script.
 
 ## Describing and sizing a search
 
@@ -64,7 +65,10 @@ in code. Check size runs a cheap count first, the same one
 [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md)
 performs, so you can see how much a query would retrieve before
 committing to it. In demo mode it reports instead how many records it
-would draw from the bundled corpus. Max records per cell is blank when
+would draw from the bundled corpus. The note answers for the search on
+screen, so it goes as soon as the terms, the field, the years, the
+detail or the cap change. Check size waits while a harvest is running,
+since the app runs one job at a time. Max records per cell is blank when
 the app opens, so the app sets no cap of its own, and each cell is
 retrieved up to the offset ceiling of 5000 records. A number there caps
 each cell, or the whole search when partitioning is off, which keeps a
@@ -200,9 +204,12 @@ and
 [`plot_scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_top.md).
 Under the `STANDARD` detail, the API sends the first author of each
 record alone, so a note above the Top authors plot says that it tallies
-first authors, and choosing `COMPLETE` gives every author. Every figure
-is drawn by the same library functions you would call from a script, so
-the app shows you nothing you could not reproduce.
+first authors, and choosing `COMPLETE` gives every author. A harvest
+that matched nothing, or one whose source titles or author names are all
+missing, says so in the tab where the figure would be. Every figure is
+drawn by the same library functions you would call from a script, so the
+app shows you nothing you could not reproduce, and each carries a text
+alternative for a screen reader, naming what it shows.
 
 ![The Results panel with tabs for Records, By year, Top sources, Top
 authors, Compare topics and Export. The Records tab is open, with a line
@@ -234,8 +241,9 @@ labels. Each term needs one count request per year, and the reference
 topic one more, so two terms over six years take 18 requests. The tab
 shows that figure and advises fewer terms or years above 80. With
 Partition by year off, the comparison covers the last six years. In demo
-mode the comparison is synthesised so you can see the figure offline.
-With a key it calls
+mode the comparison is synthesised so you can see the figure offline. A
+note under it says that its counts are illustrative, since the figure’s
+own caption names the Search API as its source. With a key it calls
 [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
 and draws the result with
 [`plot_scopus_comparison()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_comparison.md),
@@ -257,10 +265,12 @@ time. It opens by saying that the records on screen were replayed from
 the bundled corpus and that it describes no search that was run. The
 corpus carries the phrase of the OpenAlex search that produced it, which
 is not a search anyone sent to Scopus. The comparison can be saved as a
-CSV. None of this contacts the API again, because it works on results
-already in hand. Between the downloaded script and the exported records,
-a session in the app leaves you with both the data and the code that
-produced it.
+CSV. Each button appears once there is something for it to write, those
+for the records after a harvest and the one for the comparison after a
+comparison. None of this contacts the API again, because it works on
+results already in hand. Between the downloaded script and the exported
+records, a session in the app leaves you with both the data and the code
+that produced it.
 
 ## Beyond the app
 

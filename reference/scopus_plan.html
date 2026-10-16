@@ -98,7 +98,8 @@ distinct year, so <code>c(2015, 2020)</code> searches those two years alone, as
 <code><a href="scopus_trend.html">scopus_trend()</a></code> and <code><a href="scopus_compare_topics.html">scopus_compare_topics()</a></code> do. Otherwise, the plan sends
 one inclusive range from the earliest year to the latest, so <code>c(2015, 2020)</code>
 covers every year from 2015 to 2020, as in <code><a href="scopus_count.html">scopus_count()</a></code>,
-<code><a href="scopus_fetch.html">scopus_fetch()</a></code> and <code><a href="scopus_intersections.html">scopus_intersections()</a></code>.</p></dd>
+<code><a href="scopus_fetch.html">scopus_fetch()</a></code> and <code><a href="scopus_intersections.html">scopus_intersections()</a></code>. An empty vector places no
+year restriction, as <code>NULL</code> does.</p></dd>
 
 
 <dt id="arg-field">field<a class="anchor" aria-label="anchor" href="#arg-field"></a></dt>

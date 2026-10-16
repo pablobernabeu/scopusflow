@@ -68,7 +68,9 @@ scopus_intersections(
   from 2015 to 2020.
   [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md),
   [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
-  and a plan with `partition = "year"` take each listed year.
+  and a plan with `partition = "year"` take each listed year. An empty
+  vector places no year restriction, as `NULL` does, where the years
+  form a range, and is refused where each year is counted.
 
 - field:
 
