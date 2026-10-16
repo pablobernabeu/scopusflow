@@ -23,6 +23,7 @@ If you use scopusflow in published work, please cite it.
 
 > Bernabeu, P. (2026). scopusflow: A reproducible workflow layer for 'Scopus'
 > bibliographic searches. R package version `r packageVersion("scopusflow")`.
+> Comprehensive R Archive Network (CRAN).
 > <https://doi.org/10.32614/CRAN.package.scopusflow>
 
 ```{r bibtex, echo = FALSE, results = "asis"}
@@ -36,6 +37,7 @@ bib <- paste(
   "  title  = {{scopusflow}: A reproducible workflow layer for '{Scopus}' bibliographic searches},",
   "  author = {Pablo Bernabeu},",
   "  year   = {2026},",
+  "  publisher = {Comprehensive R Archive Network (CRAN)},",
   sprintf("  note   = {R package version %s},", ver),
   "  doi    = {10.32614/CRAN.package.scopusflow},",
   "  url    = {https://CRAN.R-project.org/package=scopusflow},",

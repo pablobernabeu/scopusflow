@@ -419,6 +419,11 @@
   The CRAN DOI and the Zenodo DOI are shown as full links on the website and in
   the README, and the sidebar of the home page shows the CRAN DOI once: the DOI
   badge in the README no longer appears there a second time.
+* `citation("scopusflow")` and the About page name the package's publisher, in
+  full: "Comprehensive R Archive Network (CRAN)" stands before the DOI in the
+  reference, and the BibTeX entry gives it as `publisher`. The reference named
+  no publisher before. Every reference across the package family and the
+  author's website now names CRAN in the same words.
 * The README no longer names the version CRAN carries. The README inside the 0.4.0
   tarball said CRAN carried 0.1.0, because the figure was typed by hand and a README
   is built before CRAN accepts a submission. The installation section now points to
