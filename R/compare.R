@@ -13,8 +13,10 @@
 #'   the reference as `(reference) AND (term)`, after `field` has wrapped each
 #'   side. A reference containing OR or AND NOT therefore keeps its meaning, and
 #'   every comparison set is a subset of the reference.
-#' @param years Integer vector of publication years to span (for example
-#'   `2015:2020`).
+#' @param years Integer vector of publication years, each counted on its own
+#'   (for example `2015:2020`), so `c(2015, 2020)` counts those two years alone,
+#'   as [scopus_trend()] does. It must be supplied, and an empty vector is
+#'   refused.
 #' @param field Optional 'Scopus' field tag applied to every component of every
 #'   query (see [scopus_plan()]).
 #' @param view Either `"STANDARD"` or `"COMPLETE"`.
@@ -62,7 +64,7 @@
 #'   comparison_percentage = 100 * c(ref_n, unlist(counts, use.names = FALSE)) /
 #'     rep(ref_n, length(counts) + 1),
 #'   average_comparison_percentage = c(rep(100, length(years)),
-#'                                     rep(c(35.3, 5.4), each = length(years)))
+#'                                     rep(c(35.3, 5.5), each = length(years)))
 #' )
 #' class(cmp) <- c("scopus_comparison", class(cmp))
 #' cmp

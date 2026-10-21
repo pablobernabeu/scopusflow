@@ -89,7 +89,7 @@ head(changes[changes$status == "added", ])
 ## Comparing records
 
 `scopus_diff_records()` compares the records themselves, matching them as
-`scopus_combine()` de-duplicates them by default: on a shared 'Scopus'
+`scopus_combine(dedupe = TRUE)` de-duplicates them: on a shared 'Scopus'
 identifier, or on a shared DOI where one of the two records lacks an identifier.
 A record without a DOI is then tracked by its identifier, and each row carries
 the record's title and year and its citation counts in both pulls. Where a

@@ -178,7 +178,7 @@ returning a minimal shape close to what OpenAlex's `works` API already
 returns: `id`, `scopus_id`, `title`, `year`, `keywords` (a list-column of
 character vectors) and `references` (a list-column of data frames), where
 bibliometrix would give you semicolon-joined citation strings. It does not
-replace [`as_bibliometrix()`], which keeps its own field-mapping convention for
+replace `as_bibliometrix()`, which keeps its own field-mapping convention for
 users who want that.
 
 ```{r, eval = FALSE}

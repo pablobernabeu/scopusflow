@@ -43,7 +43,10 @@
 #'   identifier whose cache file already exists is loaded from disk, sparing a
 #'   second request for it. A cache file that cannot be read back, for example
 #'   one left half-written by an interrupted run, is retrieved again with a
-#'   warning, and the batch carries on.
+#'   `scopus_warning_cache_unreadable` warning, and the batch carries on. One
+#'   holding a different identifier, since distinct identifiers can share a
+#'   cache filename, is retrieved again with a `scopus_warning_cache_mismatch`
+#'   warning.
 #' @param api_key,inst_token Optional credentials (see [scopus_has_key()]).
 #' @param verbose Logical. When `TRUE`, progress is reported.
 #' @return A tibble of class `scopus_abstracts`, one row per identifier, with
@@ -446,11 +449,12 @@ scopus_check_include <- function(include, call = rlang::caller_env()) {
   unique(include)
 }
 
-# The fallback a 403 message suggests, which depends on the view refused, as
-# in the Python twin. Either reference view may be entitled where the other is
-# not. A key refused META_ABS can fall back on the request without a view that
-# 0.4.0 and earlier made. META, or no view at all, leaves nothing lighter to
-# suggest.
+# The fallback a 403 message suggests, which depends on the view refused.
+# Either reference view may be entitled where the other is not, and for FULL
+# and REF the suggestion is the Python twin's. A key refused META_ABS can fall
+# back on the request without a view that 0.4.0 and earlier made, a
+# suggestion this package alone makes. META, or no view at all, leaves
+# nothing lighter to suggest.
 scopus_forbidden_hint <- function(view) {
   if (identical(view, "FULL") || identical(view, "REF")) {
     ", or, if you have not already, try the other of \"FULL\"/\"REF\""
@@ -639,10 +643,11 @@ scopus_abstract_row <- function(id, core, full = list(), view = NULL, include = 
 # Evaluate the parse of an optional, nested part of a response (either kind of
 # keyword, or the references) and re-raise any error as a typed condition. The shape of
 # these parts varies with Elsevier's XML-to-JSON conversion. A base R error
-# from a shape not foreseen here escaped scopus_abstract()'s per-identifier
-# handler and aborted the whole batch, and every resume of it. As a
-# scopus_error it costs that identifier an NA row and a warning, and the row is
-# not checkpointed, so a resumed run retries it.
+# from a shape not foreseen here would escape scopus_abstract()'s
+# per-identifier handler, which catches only scopus_error, and abort the whole
+# batch and every resume of it. As a scopus_error it costs that identifier an
+# NA row and a warning, and the row is not checkpointed, so a resumed run
+# retries it.
 scopus_parse_optional <- function(parse, what) {
   tryCatch(parse, error = function(e) {
     rlang::abort(
@@ -661,8 +666,8 @@ scopus_parse_optional <- function(parse, what) {
 # `author-keyword` object (a one-item array collapsed to a bare object, see
 # scopus_listify()) or a list of them. Only entries carrying text are kept. An
 # author-keyword object can arrive with its attribute alone, as
-# {"@_fa": "true"} (pybliometrics issue #436), and a lone one used to be read
-# field by field, giving the keyword "true".
+# {"@_fa": "true"} (pybliometrics issue #436), and such an object adds no
+# keyword.
 scopus_parse_authkeywords <- function(full) {
   ak <- full[["authkeywords"]]
   scopus_join_terms(if (is.list(ak)) ak[["author-keyword"]] %||% ak else ak)
@@ -717,9 +722,7 @@ scopus_listify <- function(x) {
 # field names differ between the two (see scopus_abstract()'s documentation).
 # REF names a cited work's title and source `title` and `sourcetitle`, where
 # FULL uses `ref-title` and `ref-sourcetitle`, and pybliometrics reads either
-# (abstract_retrieval.py in its 4.4.1 release). Only the FULL names used to be
-# read here, which most likely accounts for the NA `title` and `source` of
-# every REF reference seen in development testing against a live key.
+# (abstract_retrieval.py in its 4.4.1 release).
 scopus_parse_references <- function(full, view) {
   empty <- data.frame(
     position = character(), id = character(), doi = character(),

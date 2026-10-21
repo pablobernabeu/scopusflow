@@ -3,9 +3,11 @@
 #' Binds several [scopus_records] objects into a single one, renumbering
 #' `entry_number` across the result and, optionally, dropping duplicates. This is
 #' the safe way to merge separate fetches: plain `rbind()` would leave duplicate
-#' entry numbers, and `c()` would return a list.
+#' entry numbers. `c()` on record sets calls `scopus_combine()`, so it renumbers
+#' in the same way and, unless it is given `dedupe`, keeps every row.
 #'
-#' @param ... Two or more [scopus_records] objects, or a single list of them.
+#' @param ... One or more [scopus_records] objects, or a single list of them. A
+#'   single set can be passed to de-duplicate it.
 #' @param dedupe Whether, and by which rule, to keep once the records that are
 #'   one record. `FALSE`, the default, keeps every row. `TRUE`, also spelled
 #'   `"id_or_shared_doi"`, treats records as one when they share a 'Scopus'
@@ -16,11 +18,14 @@
 #' @return A [scopus_records] tibble. Per-retrieval attributes such as
 #'   `total_results` and `plan` are not carried over, since they describe a
 #'   single fetch. The provenance a merge leaves true is kept, as
-#'   [scopus_fetch_plan()] keeps it for plan cells. `retrieved_at` is the
-#'   earliest of the inputs' times and `retrieved_until` the latest, so a
-#'   baseline merged with its update is dated from one to the other. Every
-#'   contributing `scopusflow_version` is listed. The merge itself is recorded
-#'   in the `combined` attribute, a list of `n_in`
+#'   [scopus_fetch_plan()] keeps it for plan cells. When every input records
+#'   its retrieval time, `retrieved_at` is the earliest of the inputs' times and
+#'   `retrieved_until` the latest, so a baseline merged with its update is dated
+#'   from one to the other. Every contributing `scopusflow_version` is listed
+#'   when every input records one. Each is omitted when any input cannot supply
+#'   it, as a set read back from a `.csv` file cannot, since a value drawn from
+#'   the other inputs alone would misreport the set. The merge
+#'   itself is recorded in the `combined` attribute, a list of `n_in`
 #'   (records supplied), `n_out` (records kept), `n_removed`, `deduplicated`,
 #'   `rule` (the rule applied, `NA` when none was) and `doi_conflicts` (how
 #'   many DOIs records with different identifiers share, `NA` when no rule was

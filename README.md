@@ -147,13 +147,15 @@ works within these limits and never tries to evade them. It requests the
 largest page each view allows, 200 records for `STANDARD` and 25 for
 `COMPLETE`, so that a retrieval uses as few requests, and as little
 quota, as it can. This is the same approach `rscopus` takes. The quota
-and rate-limit headers are parsed by `scopus_quota()`, transient
-failures such as HTTP 429 and the 5xx range are retried with back-off
-that honours `Retry-After`, and an offset-paged query is capped at 5000
-records with a warning that suggests cursor paging or partitioning by
-year. A failure arrives as a typed condition (every `scopus_error_*`
-condition inherits from `scopus_error`), so a workflow can respond to it
-in code. The Get started vignette shows the `tryCatch()` pattern.
+and rate-limit headers are parsed by `scopus_quota()`. Throttling (HTTP
+429), the server errors 500, 502, 503 and 504, timeouts and reset
+connections are retried with back-off that honours `Retry-After`, while
+a spent weekly quota, which Elsevier also answers with HTTP 429, is not
+retried. An offset-paged query is capped at 5000 records with a warning
+that suggests cursor paging or partitioning by year. A failure arrives
+as a typed condition (every `scopus_error_*` condition inherits from
+`scopus_error`), so a workflow can respond to it in code. The Get
+started vignette shows the `tryCatch()` pattern.
 
 ## How it compares
 
@@ -174,7 +176,8 @@ a large search is best partitioned by year with `scopus_plan()` or
 harvested in one pass with `scopus_fetch(cursor = TRUE)`, which trades
 relevance order for completeness. `as_bibliometrix()` maps the core
 descriptive fields the Search API returns. Structured reference lists
-are available through `scopus_abstract(include = "references")` and
+are available through
+`scopus_abstract(view = "FULL", include = "references")` and
 `scopus_corpus()`, but an analysis that needs full affiliations, or
 bibliometrix’s own cited-reference (CR) field, will still call for a
 complete Scopus export. What you can retrieve also depends on your

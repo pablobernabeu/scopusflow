@@ -233,7 +233,8 @@ document's own reference list need `view = "COMPLETE"` and Abstract Retrieval
 respectively, both at a materially different quota cost from an ordinary
 search. `vignette("keywords-and-references")` walks through both, and
 `scopus_corpus()`, which combines them into a minimal
-`id`/`title`/`year`/`keywords`/`references` shape for downstream tools.
+`id`/`scopus_id`/`title`/`year`/`keywords`/`references` shape for downstream
+tools.
 
 ## Export and interoperability
 
@@ -279,3 +280,5 @@ tryCatch(
     message("Scopus error: ", conditionMessage(e))
 )
 ```
+
+The *API access* section of `?scopus_count` lists every class a call can raise.

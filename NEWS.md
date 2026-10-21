@@ -416,9 +416,10 @@
   DOI that the CRAN page and the citation R generates for a CRAN package
   already gave, so the package no longer circulates under two. Zenodo still
   archives every GitHub release, and `CITATION.cff` lists both identifiers.
-  The CRAN DOI and the Zenodo DOI are shown as full links on the website and in
-  the README, and the sidebar of the home page shows the CRAN DOI once: the DOI
-  badge in the README no longer appears there a second time.
+  The CRAN DOI is shown as a full link on the website and in the README, and
+  the Zenodo concept DOI as a full link on the About page. The sidebar of the
+  home page shows the CRAN DOI once: the DOI badge in the README no longer
+  appears there a second time.
 * `citation("scopusflow")` and the About page name the package's publisher, in
   full: "Comprehensive R Archive Network (CRAN)" stands before the DOI in the
   reference, and the BibTeX entry gives it as `publisher`. The reference named
@@ -467,6 +468,67 @@
   DOI. The calls are shown without output, the shapes they return are built in
   view from `example_records`, and keyword stand-ins drawn from its 138 titles
   are counted in pairs, as in the Python guide.
+* The *API access* section of `?scopus_count`, to which the other functions
+  that make requests refer, names the class each HTTP status raises, such as
+  `scopus_error_unauthorized` for a key the API rejects, and the
+  `scopus_error_malformed` and `scopus_error_offline` classes. It said that
+  server errors were retried, where only 500, 502, 503 and 504 are. The help
+  also names the warning classes `scopus_warning_capped`,
+  `scopus_warning_cache_mismatch`, `scopus_warning_cache_unreadable` and
+  `scopus_warning_dropped_records` where they arise, and `?write_scopus_corpus`
+  says that a document with neither a 'Scopus' identifier nor a DOI is refused
+  with `scopus_error_bad_input` and nothing is written.
+* `?scopus_fetch_plan` and `?scopus_cache_dir` suggest a directory of the
+  plan's own under the managed cache, such as
+  `file.path(scopus_cache_dir(), "my-plan")`, as the README and the articles
+  do. They offered `scopus_cache_dir()` itself as a `cache_dir`, where plans
+  sharing it overwrite each other's checkpoints.
+* `?scopus_records` describes what `scopus_records()` accepts as `x`, where it
+  gave only the entry written for `is_scopus_records()`, "An object to test".
+  `?scopus_combine` says that a single set can be passed to de-duplicate it,
+  that a merged set carries no `retrieved_at` or `retrieved_until` when any
+  input records no retrieval time, and no `scopusflow_version` when any
+  records no version, as a set read back from a `.csv` file records neither,
+  and that `c()` on record sets renumbers them as `scopus_combine()` does,
+  where it said `c()` returned a list.
+* `?scopus_plan` says that a query already carrying its field tags, such as one
+  `scopus_query()` composes with `.field`, is sent as written when `field` is
+  `NULL`, where it asked for a query without field tags.
+  `?scopus_compare_topics` says that each year in `years` is counted on its
+  own, where it called them a span. The help for the `autoplot()` method says
+  that a plan with `partition = "none"` searches every year of its range, so
+  its bars include the years between those listed, and that a year a record
+  carries always keeps its bar.
+* `?scopus_corpus` says that `records` needs the identifier column `by` names,
+  `doi` or `scopus_id`, where it asked for `doi` whatever `by` was. Its
+  description and the Get started article list the `scopus_id` column among
+  those `scopus_corpus()` returns, where they left it out. `?as_bibtex` and the
+  building-a-reference-set article say that a `COMPLETE` set exports its author
+  keywords with the core fields as well as the extended ones.
+  `?summary.scopus_records` says that `n_with_doi` counts the records carrying
+  a DOI, so a DOI held by two records counts twice, where it read as a count of
+  distinct DOIs.
+* `?run_app` says that the app uses only the key pasted into its key field, and
+  not `SCOPUS_API_KEY` or the `scopusflow.api_key` option, so a key kept in
+  `~/.Renviron` has to be pasted in as well.
+* The README says that throttling, the server errors 500, 502, 503 and 504 and
+  transport failures are retried and that a spent weekly quota is not, where it
+  said that every HTTP 429 and every server error were retried. It writes the
+  call for reference lists with `view = "FULL"`, since `scopus_abstract()`
+  refuses `include = "references"` under its default view. The Get started
+  article points to the *API access* section of `?scopus_count` for the classes
+  a call can raise.
+* The tracking article says that `scopus_diff_records()` matches records as
+  `scopus_combine(dedupe = TRUE)` de-duplicates them, where it said that
+  `scopus_combine()` de-duplicates by default, which it does not. The app
+  article says that the Live terminal streams a line as each cell starts and
+  that the progress bar counts the cells already finished, where it said that
+  a line came as each cell completed. The analysis article says that its
+  stand-in for a `scopus_abstract()` result leaves the 'Scopus' identifier
+  `NA`, where it said that the stand-in lacked only the abstract.
+* The example in `?scopus_compare_topics` and the illustrative table in the
+  comparing-topics article give `average_comparison_percentage` as computed
+  from their own counts, where the values typed in did not match them.
 
 # scopusflow 0.4.0
 

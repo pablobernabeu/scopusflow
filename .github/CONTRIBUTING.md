@@ -13,11 +13,17 @@ API key into an issue.
 
 ## Setting up for development
 
-Clone the repository and install the development dependencies:
+Clone the repository and, from its root, install the package's dependencies, the
+suggested ones included, with the development tools:
+
+```sh
+git clone https://github.com/pablobernabeu/scopusflow.git
+cd scopusflow
+```
 
 ```r
 # install.packages("pak")
-pak::pak("pablobernabeu/scopusflow")
+pak::local_install_dev_deps()
 pak::pak(c("devtools", "roxygen2", "testthat", "spelling", "covr"))
 ```
 
@@ -40,8 +46,9 @@ when it follows them.
 The tests run entirely offline. HTTP is intercepted with
 `httr2::local_mocked_responses()` and small fixtures live in
 `tests/testthat/` and `inst/extdata`. A test should never make a real network
-request. Live integration tests are gated behind `skip_on_cran()` and a key, so
-they run only when `SCOPUS_API_KEY` is set.
+request. Live integration tests are skipped on CRAN and run only when the
+`SCOPUSFLOW_LIVE_TESTS` environment variable is `"true"` and `SCOPUS_API_KEY`
+is set (see *Automated maintenance* below).
 
 Errors are raised as typed conditions in the `scopus_error` family through
 `rlang::abort()`, never with a bare `stop()`, so that callers can handle them

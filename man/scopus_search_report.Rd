@@ -134,9 +134,9 @@ scopus_search_report(recs, file = path)
 }
 \references{
 Rethlefsen, M. L., Kirtley, S., Waffenschmidt, S., Ayala, A. P., Moher, D.,
-Page, M. J., & Koffel, J. B. (2021). PRISMA-S: an extension to the PRISMA
-Statement for Reporting Literature Searches in Systematic Reviews.
-\emph{Systematic Reviews}, \emph{10}, 39. \doi{10.1186/s13643-020-01542-z}
+Page, M. J., Koffel, J. B., & PRISMA-S Group. (2021). PRISMA-S: an extension
+to the PRISMA Statement for Reporting Literature Searches in Systematic
+Reviews. \emph{Systematic Reviews}, \emph{10}, 39. \doi{10.1186/s13643-020-01542-z}
 }
 \seealso{
 \code{\link[=scopus_plan]{scopus_plan()}}, \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}, \code{\link[=scopus_combine]{scopus_combine()}}

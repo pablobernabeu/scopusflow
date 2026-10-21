@@ -10,7 +10,8 @@ scopus_combine(..., dedupe = FALSE)
 \method{c}{scopus_records}(x, ...)
 }
 \arguments{
-\item{...}{Two or more \link{scopus_records} objects, or a single list of them.}
+\item{...}{One or more \link{scopus_records} objects, or a single list of them. A
+single set can be passed to de-duplicate it.}
 
 \item{dedupe}{Whether, and by which rule, to keep once the records that are
 one record. \code{FALSE}, the default, keeps every row. \code{TRUE}, also spelled
@@ -26,11 +27,14 @@ See Details.}
 A \link{scopus_records} tibble. Per-retrieval attributes such as
 \code{total_results} and \code{plan} are not carried over, since they describe a
 single fetch. The provenance a merge leaves true is kept, as
-\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} keeps it for plan cells. \code{retrieved_at} is the
-earliest of the inputs' times and \code{retrieved_until} the latest, so a
-baseline merged with its update is dated from one to the other. Every
-contributing \code{scopusflow_version} is listed. The merge itself is recorded
-in the \code{combined} attribute, a list of \code{n_in}
+\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} keeps it for plan cells. When every input records
+its retrieval time, \code{retrieved_at} is the earliest of the inputs' times and
+\code{retrieved_until} the latest, so a baseline merged with its update is dated
+from one to the other. Every contributing \code{scopusflow_version} is listed
+when every input records one. Each is omitted when any input cannot supply
+it, as a set read back from a \code{.csv} file cannot, since a value drawn from
+the other inputs alone would misreport the set. The merge
+itself is recorded in the \code{combined} attribute, a list of \code{n_in}
 (records supplied), \code{n_out} (records kept), \code{n_removed}, \code{deduplicated},
 \code{rule} (the rule applied, \code{NA} when none was) and \code{doi_conflicts} (how
 many DOIs records with different identifiers share, \code{NA} when no rule was
@@ -41,7 +45,8 @@ duplicates were removed and how, so the PRISMA-S item is answered.
 Binds several \link{scopus_records} objects into a single one, renumbering
 \code{entry_number} across the result and, optionally, dropping duplicates. This is
 the safe way to merge separate fetches: plain \code{rbind()} would leave duplicate
-entry numbers, and \code{c()} would return a list.
+entry numbers. \code{c()} on record sets calls \code{scopus_combine()}, so it renumbers
+in the same way and, unless it is given \code{dedupe}, keeps every row.
 }
 \details{
 De-duplication compares DOIs as \code{\link[=scopus_extract_dois]{scopus_extract_dois()}} does, without

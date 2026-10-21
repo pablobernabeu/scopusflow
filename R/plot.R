@@ -171,9 +171,9 @@ plot_scopus_comparison <- function(x, pub_count_in_legend = TRUE,
     if (direct) {
       # Spread the right-edge labels vertically so converging lines do not produce
       # overlapping labels. The spreading runs at draw time against the real text
-      # height (sf_geom_end_labels), so it holds at any figure size. The labels
-      # carry no leader lines: colour (the same viridis scale as the lines) and
-      # order link each label to its line.
+      # height (sf_geom_end_labels), so it holds at any figure size tall enough
+      # to stack the labels. The labels carry no leader lines: colour (the same
+      # viridis scale as the lines) and order link each label to its line.
       nudge <- diff(range(yrs)) * 0.012 + 0.05
       p <- p + sf_geom_end_labels(
         ggplot2::aes(x = .data$year, y = .data$comparison_percentage,
@@ -351,11 +351,12 @@ scopus_spread_positions <- function(values, gap) {
 # block is handed to grid as a gTree whose `makeContent` method (below) runs when
 # the panel's physical size is finally known, so the minimum vertical gap is one
 # rendered line of text, never a fixed fraction of the data range. That keeps
-# converging labels from overlapping at any figure size, the grid analogue of the
-# Python plot's redraw-time de-collision. Built lazily because ggplot2 is a soft
-# dependency; this is only reached after the caller has confirmed ggplot2 is
-# installed. `nudge` and `ymax` are in data units; `fontsize` is the label text
-# size (3.1 mm in geom_text terms) expressed in points.
+# converging labels from overlapping at any figure size with room to stack them,
+# the grid analogue of the Python plot's redraw-time de-collision. Built lazily
+# because ggplot2 is a soft dependency; this is only reached after the caller
+# has confirmed ggplot2 is installed. `nudge` and `ymax` are in data units;
+# `fontsize` is the label text size (3.1 mm in geom_text terms) expressed in
+# points.
 sf_geom_end_labels <- function(mapping = NULL, data = NULL, nudge = 0,
                                ymax = NA_real_, ...) {
   fontsize <- 3.1 * (72.27 / 25.4)
@@ -391,9 +392,11 @@ sf_geom_end_labels <- function(mapping = NULL, data = NULL, nudge = 0,
 #' Internal grid method for the [plot_scopus_comparison()] direct labels. It runs
 #' whenever the label grob is drawn, when the panel viewport (and so the rendered
 #' text height) is finally known, and spreads the labels by at least one line of
-#' text so converging topics never overlap however the figure is sized. The panel
-#' coordinates are `[0, 1]` (npc), so the measured text height, the spread and the
-#' overflow shift are all in those units. Not called directly.
+#' text, so converging topics do not overlap in any panel tall enough to stack
+#' them all. In a shorter panel, the lowest labels are held at its floor and can
+#' overlap. The panel coordinates are `[0, 1]` (npc), so the measured text
+#' height, the spread and the overflow shift are all in those units. Not called
+#' directly.
 #' @param x The `sf_endlabels` gTree built by `sf_geom_end_labels()`.
 #' @return The gTree with its text children set.
 #' @keywords internal

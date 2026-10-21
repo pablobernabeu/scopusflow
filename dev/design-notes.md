@@ -121,7 +121,8 @@ physical size is finally known, using one rendered line of text as the minimum
 gap. The labels carry no leader lines. They are colour-matched to their lines
 and spread in the same order as the line ends, and a leader from a line's end to
 its nudged label would cut across the neighbouring labels' text. Spreading
-against the rendered text height keeps labels legible at any figure size,
+against the rendered text height keeps labels legible in any figure tall enough
+to stack them,
 including the app's short result card, where a gap fixed as a fraction of the
 data range at build time overlapped. Beyond what fits one line per topic in a
 short panel the function still falls back to the legend. This needs only `grid`,
@@ -132,9 +133,11 @@ this device-aware de-collision, are reachable within ggplot2 and base grid, and
 the package keeps its imports small. ggrepel would also make the figure depend
 on whether an optional package is installed. A theme helper was left out of the
 first release, when one plotting function gave it nothing to be shared with.
-`scopus_minimal_theme()` now backs all four plots but stays internal, since a
-caller who wants to restyle a figure can add their own theme to the ggplot
-object the function returns.
+`scopus_minimal_theme()` backs the trend, top-values, records-by-year and
+intersection figures but stays internal, since a caller who wants to restyle a
+figure can add their own theme to the ggplot object the function returns.
+`plot_scopus_comparison()` sets the same `theme_minimal()` options itself, with
+a right margin sized to its direct labels.
 
 ## API additions and rejected options
 
@@ -195,15 +198,16 @@ other when a record appeared in more than one year cell.
 
 `scopus_check_query()` refuses, before any request, a query that cannot do what
 it appears to ask, and checks nothing less certain, since a warning that fires
-on legitimate input is the noise the field-tag decision above rejected. The
-first of its three errors is refinement syntax. `LIMIT-TO()` and `EXCLUDE()`
-come from the web interface's refinement panel, and the Search API ignores them
-without an error: rscopus issue #50 found 55 records with
-`LIMIT-TO(SUBJAREA, ...)`, the unfiltered count, against 36 with `SUBJAREA()`,
-and pybliometrics documents `LIMIT-TO()` as affecting the display only. The
-second is a field given for a query that already opens with a tag, so that one
-tag nests inside the other and the API answers with HTTP 400, as a live request
-showed. Unbalanced brackets, quotation marks or braces are the third.
+on legitimate input is the noise the field-tag decision above rejected. Its
+three errors are checked in a fixed order, shared with the Python twin, and the
+first one found is raised: unbalanced brackets, quotation marks or braces, then
+refinement syntax, then a field given for a query that already opens with a
+tag. `LIMIT-TO()` and `EXCLUDE()` come from the web interface's refinement
+panel, and the Search API ignores them without an error: rscopus issue #50 found
+55 records with `LIMIT-TO(SUBJAREA, ...)`, the unfiltered count, against 36 with
+`SUBJAREA()`, and pybliometrics documents `LIMIT-TO()` as affecting the display
+only. A field given for a query that already opens with a tag nests one tag
+inside the other, and the API answers with HTTP 400, as a live request showed.
 `INDEXTERMS()` only warns, because pybliometrics documents it as not working but
 its behaviour has not been observed. The scan treats a quoted or braced phrase as
 text, as the grouping code does, and the messages are shared word for word
@@ -288,7 +292,9 @@ De-duplicating by `authid` was considered and rejected, since the twins would
 then disagree wherever the array lists one author in two positions. Two edges
 remain where pybliometrics parses differently, and both twins document them. An
 author object without a `surname` or `given-name` key leaves pybliometrics
-building no list, and a null or empty surname is written after a bare comma.
+building no list, so the Python twin keeps the first author while R lists every
+author. Where a surname is null or empty, pybliometrics writes the given name
+after a bare comma, and R writes the indexed name (`authname`).
 Under `STANDARD` the column keeps the first author, the only name that view
 carries.
 
@@ -491,13 +497,22 @@ so a scheduled dependency canary
 day against the current and development versions of those dependencies. A
 breaking change therefore surfaces here before it reaches a release. The workflow
 flags the maintainer through a single, de-duplicated issue. The whole pipeline
-runs on GitHub's free Actions minutes and needs no secret. The attempt to resolve
-a breakage has three tiers: with no secret it asks a free GitHub Models model to
-diagnose and propose a fix in the issue; with a Claude subscription OAuth token
-(`CLAUDE_CODE_OAUTH_TOKEN`, no per-token cost) or a paid `ANTHROPIC_API_KEY`, the
-Claude Code action attempts a full fix and opens a pull request. Every tier is
-best-effort, so detection and flagging never depend on it. Dependabot keeps the
-workflow actions themselves current.
+runs on GitHub's free Actions minutes and needs no secret. The canary installs
+and runs the development heads of its dependencies, which is untrusted code, so
+it holds a read-only checkout plus issue access and never a token that could
+push commits or open a pull request. The attempt to resolve a breakage has three
+tiers. With no secret, the canary asks a free GitHub Models model to diagnose
+the breakage and propose a fix in the issue. With a Claude subscription OAuth
+token (`CLAUDE_CODE_OAUTH_TOKEN`, no per-token cost) or a paid
+`ANTHROPIC_API_KEY`, the canary skips that diagnosis, and a companion workflow
+(`.github/workflows/dependency-autofix.yaml`) takes over. The companion holds
+the write permissions and runs when the canary finishes red, or when dispatched
+by hand. It has the Claude Code action reproduce the breakage, attempt a full
+fix and open a pull request. That pull request needs the repository setting
+"Allow GitHub Actions to create and approve pull requests", and R-CMD-check does
+not start on it by itself, so the maintainer runs it on the branch before
+merging. Every tier is best-effort, so detection and flagging never depend on
+it. Dependabot keeps the workflow actions themselves current.
 
 ## Version 0.2.0: API reach and an analysis layer
 
@@ -858,8 +873,11 @@ live API in a real literature review, and two of its details are deliberate
 enough to be worth recording.
 
 First, a concept value that already reads as a complete field-tagged
-expression (matched by `^[A-Z][A-Z-]*\(`) is used exactly as given, and `field`
-leaves it alone. Passing an already-wrapped query through a
+expression is used exactly as given, and `field` leaves it alone. The test is
+`scopus_opens_with_tag()`, the one the offline query checks use: a capitalised
+tag against its bracket, as in `TITLE(x)`, or one of the common tags of
+`scopus_field_tags()` followed by white space and a bracket, as in
+`TITLE-ABS-KEY ( x )`. Passing an already-wrapped query through a
 further field wrap produces a nested tag such as `TITLE-ABS-KEY(TITLE(x))`,
 which the live API rejects as malformed with HTTP 400; the guard is what lets
 one call mix bare terms with hand-built expressions. A related quota courtesy:

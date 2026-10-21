@@ -25,8 +25,10 @@ before any request (see the \emph{Query checks} section of \code{\link[=scopus_p
 \item{max_results}{Maximum number of records to retrieve. Defaults to \code{Inf},
 meaning all available records up to the API ceiling. With the default
 offset-based paging the 'Scopus' Search API refuses offsets of 5000 or more,
-so a single query yields at most 5000 records; set \code{cursor = TRUE}, or
-partition the search by year with \code{\link[=scopus_plan]{scopus_plan()}}, to go beyond that.}
+so a single query yields at most 5000 records, and one that matches more,
+with \code{max_results} above 5000, gives a \code{scopus_warning_capped} warning; set
+\code{cursor = TRUE}, or partition the search by year with \code{\link[=scopus_plan]{scopus_plan()}}, to go
+beyond that.}
 
 \item{view}{Either \code{"STANDARD"} or \code{"COMPLETE"}. \code{COMPLETE} adds an
 \code{authkeywords} column to \code{\link[=scopus_fetch]{scopus_fetch()}}/\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} output (see
@@ -55,8 +57,9 @@ pagination, which has no 5000-record ceiling, so an entire large query can be
 harvested in one call. The records then arrive in the API's deep-paging
 order, which is no longer relevance order. As a safeguard against a
 non-conforming server that never signals the end, cursor paging stops after
-\code{getOption("scopusflow.max_cursor_pages", 1e5)} pages with a warning; set
-that option to \code{Inf} to remove the ceiling.}
+\code{getOption("scopusflow.max_cursor_pages", 1e5)} pages with a
+\code{scopus_warning_capped} warning; set that option to \code{Inf} to remove the
+ceiling.}
 
 \item{api_key, inst_token}{Optional credentials, resolved by default from
 options or environment variables (see \code{\link[=scopus_has_key]{scopus_has_key()}}).}

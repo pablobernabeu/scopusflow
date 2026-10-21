@@ -58,7 +58,10 @@ written all the same warns and keeps the row, as in \code{\link[=scopus_fetch_pl
 identifier whose cache file already exists is loaded from disk, sparing a
 second request for it. A cache file that cannot be read back, for example
 one left half-written by an interrupted run, is retrieved again with a
-warning, and the batch carries on.}
+\code{scopus_warning_cache_unreadable} warning, and the batch carries on. One
+holding a different identifier, since distinct identifiers can share a
+cache filename, is retrieved again with a \code{scopus_warning_cache_mismatch}
+warning.}
 
 \item{api_key, inst_token}{Optional credentials (see \code{\link[=scopus_has_key]{scopus_has_key()}}).}
 

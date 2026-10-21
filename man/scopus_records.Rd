@@ -24,7 +24,11 @@ scopus_records(
 is_scopus_records(x)
 }
 \arguments{
-\item{x}{An object to test.}
+\item{x}{For \code{scopus_records()}, a parsed \code{search-results} list (the value of
+\code{httr2::resp_body_json(resp)[["search-results"]]}), a bare list of entry
+objects, or an existing \code{scopus_records} object, which is returned
+unchanged. For \code{is_scopus_records()}, any object to test. For the
+coercion methods, a \code{scopus_records} object.}
 
 \item{...}{Ignored, for S3 compatibility.}
 
@@ -36,17 +40,17 @@ entries, kept in the \code{query} column for provenance.}
 \item{view}{Optional character scalar naming the Search API view the entries
 came from. Pass \code{"COMPLETE"} to read \code{authors} from the author list that
 view carries and to add an \code{authkeywords} column (see below). Any other
-value, including the default \code{NULL}, reads the first author and reproduces
-the original columns exactly, so existing callers that never mention
-\code{view} see no change at all. \code{\link[=scopus_fetch]{scopus_fetch()}} and \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}
+value, including the default \code{NULL}, reads the first author and adds no
+\code{authkeywords} column. \code{\link[=scopus_fetch]{scopus_fetch()}} and \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}
 pass this through automatically.}
 
-\item{fields}{\code{"core"} (the default) builds the columns listed under
-\emph{Value}, exactly as before. \code{"extended"} also keeps the document type,
-source type, volume, issue, pages, ISSN, PubMed identifier and open-access
-status the Search API sends with every record, and under
-\code{view = "COMPLETE"} the abstract, at no extra quota (see \emph{Extended
-fields}). \code{\link[=scopus_fetch]{scopus_fetch()}} and \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} pass this through.}
+\item{fields}{\code{"core"} (the default) builds the core columns listed under
+\emph{Value}, with \code{authkeywords} under \code{view = "COMPLETE"}. \code{"extended"} also
+keeps the document type, source type, volume, issue, pages, ISSN, PubMed
+identifier and open-access status the Search API sends with every record,
+and under \code{view = "COMPLETE"} the abstract, at no extra quota (see
+\emph{Extended fields}). \code{\link[=scopus_fetch]{scopus_fetch()}} and \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} pass this
+through.}
 }
 \value{
 The coercion methods return a plain \link[tibble:tibble]{tibble} or data
@@ -54,8 +58,10 @@ frame with the same columns and the \code{scopus_records} class removed.
 
 The \code{autoplot()} method returns a \link[ggplot2:ggplot]{ggplot2::ggplot} of the records per
 year. The bars cover every year the set's plan searched, a year without
-records drawn as a zero bar, and no year the plan did not search. A plan
-over 2015, 2016, 2019 and 2020 therefore draws no bar for 2017 or 2018. A
+records drawn as a zero bar, and a year the plan did not search only where
+a record carries it. A plan partitioned by year over 2015, 2016, 2019 and
+2020 therefore draws no bar for 2017 or 2018, while a plan over the same
+years with \code{partition = "none"} searches 2015 to 2020 and draws all six. A
 harvest stopped before its last cell covers only the cells it ran. Without
 a plan, or with one that sent no year limit, the bars run from the first
 year in the records to the last. When a \code{max_results} cap stopped any
@@ -125,9 +131,8 @@ the indexed name.
 
 Author keywords are only ever present under \code{view = "COMPLETE"}; the
 \code{STANDARD} view (the default throughout the package) never includes them,
-and \code{authkeywords} is not added to the output at all in that case, so
-existing code that inspects the column names of a \code{STANDARD}-view result is
-unaffected. Even under \code{COMPLETE} view, some 'Scopus' API keys do not return
+and \code{authkeywords} is not added to the output at all in that case. Even
+under \code{COMPLETE} view, some 'Scopus' API keys do not return
 populated author keywords (this was observed directly against a live,
 otherwise fully-entitled key during development, on documents that do carry
 author keywords in 'Scopus' itself); if your own keywords come back all
