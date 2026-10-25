@@ -74,7 +74,14 @@ also answers with HTTP 429, is not retried: it raises
 \code{scopus_error_quota_exceeded}, a subclass of \code{scopus_error_rate_limit} whose
 message gives the reset time. When the last attempt at a request times out
 after \code{getOption("scopusflow.timeout", 60)} seconds, the error is
-\code{scopus_error_timeout}, a subclass of \code{scopus_error_offline}.
+\code{scopus_error_timeout}, a subclass of \code{scopus_error_offline}. Each request is
+attempted at most \code{getOption("scopusflow.max_tries", 3)} times in all, and
+setting the option to 1 turns retrying off. Between attempts, the package
+waits as long as a \code{Retry-After} header asks, and otherwise for the seconds
+that the function in \code{getOption("scopusflow.retry_backoff")} returns when
+given the number of failed attempts so far. That function is passed to
+\code{\link[httr2:req_retry]{httr2::req_retry()}} as its \code{backoff}, so when the option is unset, the
+back-off documented there applies.
 }
 
 \examples{

@@ -46,7 +46,7 @@ scopus_report_months <- function() {
 #'   `print()`, the report object itself.
 #' @param plan Optional [scopus_plan()] describing `x`. Supply it when a record
 #'   set does not carry one, for example one read back from a `.csv`, a merged
-#'   set, or one saved by [scopus_fetch()] in scopusflow 0.4.0 or earlier,
+#'   set, or one saved by [scopus_fetch()] in the 0.4.0 release or earlier,
 #'   which attached none. An explicit plan takes precedence over the one `x`
 #'   carries. A one-cell plan supplied for a set without per-cell counts takes
 #'   the set's own row count and `total_results`.

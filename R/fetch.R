@@ -126,6 +126,7 @@ scopus_warn_fetch_shortfall <- function(records, max_results) {
   if (is.finite(max_results) && n >= max_results) {
     return(invisible(NULL))
   }
+  # scopusflow.hard_cap is an internal test hook, not meant for users.
   hard_cap <- as.integer(getOption("scopusflow.hard_cap", 5000L))
   if (identical(attr(records, "paging"), "offset") && n >= hard_cap) {
     return(invisible(NULL))
@@ -157,7 +158,8 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
       verbose = verbose, fields = fields
     ))
   }
-  # The API refuses start >= 5000; configurable only to keep tests fast.
+  # The API refuses start >= 5000. scopusflow.hard_cap, an internal test hook
+  # not meant for users, lets the tests lower the ceiling to keep them fast.
   hard_cap <- as.integer(getOption("scopusflow.hard_cap", 5000L))
 
   fetch_page <- function(start, count) {

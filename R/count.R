@@ -51,7 +51,14 @@
 #' `scopus_error_quota_exceeded`, a subclass of `scopus_error_rate_limit` whose
 #' message gives the reset time. When the last attempt at a request times out
 #' after `getOption("scopusflow.timeout", 60)` seconds, the error is
-#' `scopus_error_timeout`, a subclass of `scopus_error_offline`.
+#' `scopus_error_timeout`, a subclass of `scopus_error_offline`. Each request is
+#' attempted at most `getOption("scopusflow.max_tries", 3)` times in all, and
+#' setting the option to 1 turns retrying off. Between attempts, the package
+#' waits as long as a `Retry-After` header asks, and otherwise for the seconds
+#' that the function in `getOption("scopusflow.retry_backoff")` returns when
+#' given the number of failed attempts so far. That function is passed to
+#' [httr2::req_retry()] as its `backoff`, so when the option is unset, the
+#' back-off documented there applies.
 #' @examplesIf scopusflow::scopus_has_key()
 #' scopus_count('"graphene supercapacitor"', years = 2015:2024,
 #'              field = "TITLE-ABS-KEY")

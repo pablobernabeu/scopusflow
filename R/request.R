@@ -5,6 +5,7 @@
 # pagination, quota headers and retry with back-off, and, importantly, it makes
 # offline testing possible through httr2::local_mocked_responses().
 
+# scopusflow.base_url is an internal endpoint override, not meant for users.
 scopus_base_url <- function() {
   getOption("scopusflow.base_url", "https://api.elsevier.com/content/search/scopus")
 }
@@ -63,7 +64,8 @@ scopus_req_timeout <- function(req) {
 # Perform a request, retrying transient failures, and return the httr2 response.
 #
 # Non-2xx responses are turned into typed scopusflow conditions. Retry/back-off
-# parameters are read from options so tests can disable sleeping.
+# parameters are read from the options ?scopus_count documents, which tests also
+# set to disable sleeping.
 scopus_perform <- function(req, call = rlang::caller_env()) {
   req <- scopus_req_retry(req)
 

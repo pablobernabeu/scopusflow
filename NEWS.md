@@ -529,6 +529,12 @@
 * The example in `?scopus_compare_topics` and the illustrative table in the
   comparing-topics article give `average_comparison_percentage` as computed
   from their own counts, where the values typed in did not match them.
+* The *API access* section of `?scopus_count` documents the
+  `scopusflow.max_tries` and `scopusflow.retry_backoff` options beside
+  `scopusflow.timeout`. The first sets how many times in all a request is
+  attempted, 3 by default, and 1 turns retrying off. The second is the back-off
+  function passed to `httr2::req_retry()`, whose own back-off applies when it
+  is unset. No help page named either option.
 
 # scopusflow 0.4.0
 

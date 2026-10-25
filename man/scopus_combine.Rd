@@ -18,7 +18,7 @@ one record. \code{FALSE}, the default, keeps every row. \code{TRUE}, also spelle
 \code{"id_or_shared_doi"}, treats records as one when they share a 'Scopus'
 identifier, or when they share a DOI and one of them lacks an identifier.
 \code{"id_or_doi"} also merges records with different identifiers that share a
-DOI, and \code{"id_then_doi"} applies the rule of scopusflow 0.4.0 and earlier.
+DOI, and \code{"id_then_doi"} applies the rule of the 0.4.0 release and earlier.
 See Details.}
 
 \item{x}{A \link{scopus_records} object (for the \code{c()} method).}
@@ -71,7 +71,7 @@ or a shared DOI, directly or through a chain of such links. It suits a set
 whose shared DOIs have been checked and found to be duplicates.
 \code{"id_then_doi"} keys each record on its identifier, failing that on its DOI
 lower-cased but not otherwise cleaned, and so reproduces a set
-de-duplicated by scopusflow 0.4.0 or earlier.
+de-duplicated by the 0.4.0 release or earlier.
 }
 \examples{
 # A baseline retrieval and a later one, merged into a cumulative set. The

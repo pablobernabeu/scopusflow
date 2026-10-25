@@ -13,7 +13,7 @@
 #'   `"id_or_shared_doi"`, treats records as one when they share a 'Scopus'
 #'   identifier, or when they share a DOI and one of them lacks an identifier.
 #'   `"id_or_doi"` also merges records with different identifiers that share a
-#'   DOI, and `"id_then_doi"` applies the rule of scopusflow 0.4.0 and earlier.
+#'   DOI, and `"id_then_doi"` applies the rule of the 0.4.0 release and earlier.
 #'   See Details.
 #' @return A [scopus_records] tibble. Per-retrieval attributes such as
 #'   `total_results` and `plan` are not carried over, since they describe a
@@ -54,7 +54,7 @@
 #' whose shared DOIs have been checked and found to be duplicates.
 #' `"id_then_doi"` keys each record on its identifier, failing that on its DOI
 #' lower-cased but not otherwise cleaned, and so reproduces a set
-#' de-duplicated by scopusflow 0.4.0 or earlier.
+#' de-duplicated by the 0.4.0 release or earlier.
 #' @references
 #' Franceschini, F., Maisano, D., & Mastrogiacomo, L. (2015). Errors in DOI
 #' indexing by bibliometric databases. *Scientometrics*, *102*(3), 2181–2186.

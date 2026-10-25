@@ -41,10 +41,10 @@ checkpoint that cannot be read back, for example one left half-written by
 an interrupted run, is also treated as a miss, with a
 \code{scopus_warning_cache_unreadable} warning, and never aborts the harvest. A
 \code{COMPLETE} checkpoint written by a release that read \code{authors}
-from the first author alone (0.4.0 and earlier) is a miss as well, and is
-refetched once with a \code{scopus_warning_cache_mismatch} warning. \code{STANDARD}
-checkpoints from those releases are served, since their authors were read
-correctly.
+from the first author alone (the 0.4.0 release and earlier) is a miss as
+well, and is refetched once with a \code{scopus_warning_cache_mismatch} warning.
+\code{STANDARD} checkpoints from those releases are served, since their authors
+were read correctly.
 Checkpoints also record their \code{fields}. One fetched with
 \code{fields = "extended"} serves a core request, with the extra columns
 dropped, while a core one is a miss for an extended request and is

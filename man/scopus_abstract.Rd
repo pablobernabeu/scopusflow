@@ -26,7 +26,7 @@ Identifiers or 'Scopus' record identifiers (with or without the
 \item{view}{The Abstract Retrieval view to request: \code{"META_ABS"} (the
 default), \code{"META"}, \code{"REF"} or \code{"FULL"}, or \code{NULL}. \code{"META_ABS"} is the
 view Elsevier documents as carrying the abstract with the core metadata.
-\code{NULL} sends no \code{view} parameter, as scopusflow 0.4.0 and earlier did,
+\code{NULL} sends no \code{view} parameter, as the 0.4.0 release and earlier did,
 and leaves the choice to the API. Elsevier documents its default as
 \code{"META"}, a view without the abstract, but a live request in October 2026
 returned the abstract without a view. Retrieving \code{include = "references"}

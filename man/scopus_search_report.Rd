@@ -20,7 +20,7 @@ retrieval provenance and, through its \code{plan} attribute, the plan; or a bare
 
 \item{plan}{Optional \code{\link[=scopus_plan]{scopus_plan()}} describing \code{x}. Supply it when a record
 set does not carry one, for example one read back from a \code{.csv}, a merged
-set, or one saved by \code{\link[=scopus_fetch]{scopus_fetch()}} in scopusflow 0.4.0 or earlier,
+set, or one saved by \code{\link[=scopus_fetch]{scopus_fetch()}} in the 0.4.0 release or earlier,
 which attached none. An explicit plan takes precedence over the one \code{x}
 carries. A one-cell plan supplied for a set without per-cell counts takes
 the set's own row count and \code{total_results}.}

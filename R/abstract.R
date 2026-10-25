@@ -14,7 +14,7 @@
 #' @param view The Abstract Retrieval view to request: `"META_ABS"` (the
 #'   default), `"META"`, `"REF"` or `"FULL"`, or `NULL`. `"META_ABS"` is the
 #'   view Elsevier documents as carrying the abstract with the core metadata.
-#'   `NULL` sends no `view` parameter, as scopusflow 0.4.0 and earlier did,
+#'   `NULL` sends no `view` parameter, as the 0.4.0 release and earlier did,
 #'   and leaves the choice to the API. Elsevier documents its default as
 #'   `"META"`, a view without the abstract, but a live request in October 2026
 #'   returned the abstract without a view. Retrieving `include = "references"`
@@ -480,6 +480,8 @@ scopus_abstract_request <- function(id, by, view = NULL, api_key = NULL, inst_to
                                     startref = NULL, call = rlang::caller_env()) {
   key <- scopus_key(api_key, call = call)
   token <- scopus_inst_token(inst_token)
+  # scopusflow.abstract_url is an internal endpoint override, not meant for
+  # users.
   base <- getOption("scopusflow.abstract_url",
                     "https://api.elsevier.com/content/abstract")
   # A DOI may itself contain slashes, which the API expects literally, so each

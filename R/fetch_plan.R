@@ -27,10 +27,10 @@
 #'   an interrupted run, is also treated as a miss, with a
 #'   `scopus_warning_cache_unreadable` warning, and never aborts the harvest. A
 #'   `COMPLETE` checkpoint written by a release that read `authors`
-#'   from the first author alone (0.4.0 and earlier) is a miss as well, and is
-#'   refetched once with a `scopus_warning_cache_mismatch` warning. `STANDARD`
-#'   checkpoints from those releases are served, since their authors were read
-#'   correctly.
+#'   from the first author alone (the 0.4.0 release and earlier) is a miss as
+#'   well, and is refetched once with a `scopus_warning_cache_mismatch` warning.
+#'   `STANDARD` checkpoints from those releases are served, since their authors
+#'   were read correctly.
 #'   Checkpoints also record their `fields`. One fetched with
 #'   `fields = "extended"` serves a core request, with the extra columns
 #'   dropped, while a core one is a miss for an extended request and is

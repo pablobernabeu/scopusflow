@@ -24,10 +24,10 @@ and optional resumable caching, normalises them to a stable tidy schema,
 tracks changes in DOI sets over time, sizes sets of concepts and their
 intersections and compares publication trends across topics.
 
-This is the feature-parity twin of [the Python
-package](https://pablobernabeu.github.io/scopusflow-py/) of the same
-name, which offers the same workflow on top of
-[pybliometrics](https://pybliometrics.readthedocs.io).
+Its Python twin, [the package of the same
+name](https://pablobernabeu.github.io/scopusflow-py/), follows the same
+design on top of [pybliometrics](https://pybliometrics.readthedocs.io),
+so a search written in one language reads much the same in the other.
 
 <img src="man/figures/README-readme-hero-1.png" alt="An illustrative line chart of four sub-topics' share of a deep-learning reference literature between 2013 and 2021: computer vision, natural language processing, medical imaging and drug discovery" width="100%" />
 
