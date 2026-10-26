@@ -258,6 +258,15 @@ between them, and `?scopus_count` documents both beside the timeout.
 `scopusflow.hard_cap`, a test hook that lowers the offset ceiling, and
 `scopusflow.base_url` and `scopusflow.abstract_url`, which override the Search
 and Abstract Retrieval endpoints, are internal and not documented for users.
+Every request carries the key, and any institutional token, in its headers, so
+an override is accepted only as an `https` URL whose host is `api.elsevier.com`
+or another host under `elsevier.com`, optionally with a port. Any other
+override, such as one over `http` or one to a look-alike such as
+`api.elsevier.com.evil.example`, is refused with `scopus_error_bad_input`
+before a request is built.
+`scopus_abstract()` checks its endpoint once before the batch, as it does the
+key, since its handler for each identifier would otherwise turn the refusal
+into a row of `NA`s.
 
 Input errors carry `scopus_error_bad_input` beneath `scopus_error`, so the
 contract that every scopusflow error inherits `scopus_error` holds for them as

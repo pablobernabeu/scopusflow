@@ -234,10 +234,12 @@ scopus_abstract <- function(ids,
     ids <- sub("^SCOPUS_ID:", "", ids)
   }
 
-  # Resolve the key once up front: a missing key is a configuration error and
-  # should abort at once. Caught per identifier below, it would instead be
-  # turned into a whole tibble of NA rows.
+  # Resolve the key and the endpoint once up front: a missing key or a refused
+  # endpoint override is a configuration error and should abort at once.
+  # Caught per identifier below, it would instead be turned into a whole tibble
+  # of NA rows.
   scopus_key(api_key)
+  scopus_abstract_url()
 
   scopus_check_cache_dir(cache_dir)
 
@@ -474,16 +476,23 @@ scopus_safe_filename <- function(id) {
   gsub("[^A-Za-z0-9]+", "_", id)
 }
 
+# scopusflow.abstract_url is an internal endpoint override, not meant for
+# users. scopus_endpoint() accepts it only as an https URL on api.elsevier.com
+# or another host under elsevier.com.
+scopus_abstract_url <- function(call = rlang::caller_env()) {
+  scopus_endpoint(
+    "scopusflow.abstract_url", "https://api.elsevier.com/content/abstract",
+    call = call
+  )
+}
+
 # Build (but do not perform) an Abstract Retrieval request for one identifier.
 # `startref` asks the REF view for the page of references that starts there.
 scopus_abstract_request <- function(id, by, view = NULL, api_key = NULL, inst_token = NULL,
                                     startref = NULL, call = rlang::caller_env()) {
   key <- scopus_key(api_key, call = call)
   token <- scopus_inst_token(inst_token)
-  # scopusflow.abstract_url is an internal endpoint override, not meant for
-  # users.
-  base <- getOption("scopusflow.abstract_url",
-                    "https://api.elsevier.com/content/abstract")
+  base <- scopus_abstract_url(call = call)
   # A DOI may itself contain slashes, which the API expects literally, so each
   # path segment is percent-encoded individually and the slashes are preserved.
   # This escapes characters such as '?', '#' or spaces that would otherwise be

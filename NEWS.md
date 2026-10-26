@@ -400,6 +400,15 @@
   `aria-label` and, once a cell has finished, its value. Each figure carries a
   text alternative naming what it shows, where it was described as "Plot
   object", which needs shiny 1.6.0 or later.
+* The internal options `scopusflow.base_url` and `scopusflow.abstract_url` sent
+  the Search and Abstract Retrieval requests, and with them the API key and any
+  institutional token in their headers, to whatever URL they named. An override
+  is now accepted only as an `https` URL on `api.elsevier.com` or another host
+  under `elsevier.com`. Any other, such as one over `http` or one to a
+  look-alike such as `api.elsevier.com.evil.example`, is refused with
+  `scopus_error_bad_input` before a request is built, and `scopus_abstract()`
+  refuses it once, before the batch. Requests made without either option are
+  unchanged.
 
 ## Documentation
 

@@ -6,8 +6,42 @@
 # offline testing possible through httr2::local_mocked_responses().
 
 # scopusflow.base_url is an internal endpoint override, not meant for users.
-scopus_base_url <- function() {
-  getOption("scopusflow.base_url", "https://api.elsevier.com/content/search/scopus")
+# scopus_endpoint() accepts it only as an https URL on api.elsevier.com or
+# another host under elsevier.com.
+scopus_base_url <- function(call = rlang::caller_env()) {
+  scopus_endpoint(
+    "scopusflow.base_url", "https://api.elsevier.com/content/search/scopus",
+    call = call
+  )
+}
+
+# Read an endpoint option, refusing an override that would send the API key,
+# and any institutional token, anywhere but to Elsevier over TLS. The scheme
+# must be https and the host api.elsevier.com or another host under
+# elsevier.com, optionally with a port. The host is matched whole, so a
+# look-alike such as api.elsevier.com.evil.example, or a URL that puts user
+# information before its host, such as https://api.elsevier.com@evil.example,
+# is refused.
+scopus_endpoint <- function(option, default, call = rlang::caller_env()) {
+  url <- getOption(option, default)
+  is_elsevier <- is.character(url) && length(url) == 1L && grepl(
+    "^https://([a-z0-9-]+\\.)+elsevier\\.com(:[0-9]+)?(/|$)", url,
+    ignore.case = TRUE
+  )
+  if (!is_elsevier) {
+    scopus_abort_bad_input(
+      sprintf(
+        paste0(
+          "The `%s` option must be an https URL on api.elsevier.com or ",
+          "another host under elsevier.com, since every request carries the ",
+          "API key."
+        ),
+        option
+      ),
+      call = call
+    )
+  }
+  url
 }
 
 scopus_user_agent <- function() {
@@ -25,7 +59,7 @@ scopus_request <- function(params,
   key <- scopus_key(api_key, call = call)
   token <- scopus_inst_token(inst_token)
 
-  req <- httr2::request(scopus_base_url())
+  req <- httr2::request(scopus_base_url(call = call))
   req <- httr2::req_user_agent(req, scopus_user_agent())
   req <- httr2::req_headers(
     req,

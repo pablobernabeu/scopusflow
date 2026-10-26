@@ -86,3 +86,50 @@ test_that("empty-string parameters are omitted from the query", {
   expect_false("view" %in% names(u$query))
   expect_false("date" %in% names(u$query))
 })
+
+test_that("an endpoint override on a host under elsevier.com over https is used", {
+  withr::local_options(
+    scopusflow.api_key = "k",
+    scopusflow.base_url = "https://api-test.elsevier.com:8443/content/search/scopus",
+    scopusflow.abstract_url = "https://api-test.elsevier.com:8443/content/abstract"
+  )
+  expect_equal(
+    scopusflow:::scopus_request(list(query = "x"))$url,
+    "https://api-test.elsevier.com:8443/content/search/scopus?query=x"
+  )
+  expect_equal(
+    scopusflow:::scopus_abstract_request("10.1/x", by = "doi")$url,
+    "https://api-test.elsevier.com:8443/content/abstract/doi/10.1/x"
+  )
+})
+
+test_that("an endpoint override off Elsevier or off https is refused before any request", {
+  # Every request carries the API key, and any institutional token, in its
+  # headers, so they may travel only to Elsevier over TLS.
+  local_scopus_test_env()
+  requests <- 0L
+  httr2::local_mocked_responses(function(req) {
+    requests <<- requests + 1L
+    mock_search_results(mock_entries(1L))
+  })
+  refused <- c(
+    "http://api.elsevier.com/content",
+    "https://evil.example/content",
+    "https://api.elsevier.com.evil.example/content",
+    "https://api.elsevier.com@evil.example/content",
+    "https://evilelsevier.com/content"
+  )
+  for (url in refused) {
+    withr::local_options(scopusflow.base_url = url, scopusflow.abstract_url = url)
+    expect_error(
+      scopusflow:::scopus_request(list(query = "x")),
+      "scopusflow.base_url", class = "scopus_error_bad_input"
+    )
+    expect_error(
+      scopusflow:::scopus_abstract_request("10.1/x", by = "doi"),
+      "scopusflow.abstract_url", class = "scopus_error_bad_input"
+    )
+    expect_error(scopus_count("x"), class = "scopus_error_bad_input")
+  }
+  expect_equal(requests, 0L)
+})
