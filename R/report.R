@@ -46,7 +46,7 @@ scopus_report_months <- function() {
 #'   `print()`, the report object itself.
 #' @param plan Optional [scopus_plan()] describing `x`. Supply it when a record
 #'   set does not carry one, for example one read back from a `.csv`, a merged
-#'   set, or one saved by [scopus_fetch()] in scopusflow 0.4.0 or earlier,
+#'   set, or one saved by [scopus_fetch()] in the 0.4.0 release or earlier,
 #'   which attached none. An explicit plan takes precedence over the one `x`
 #'   carries. A one-cell plan supplied for a set without per-cell counts takes
 #'   the set's own row count and `total_results`.
@@ -114,9 +114,9 @@ scopus_report_months <- function() {
 #' package has no way to know them.
 #' @references
 #' Rethlefsen, M. L., Kirtley, S., Waffenschmidt, S., Ayala, A. P., Moher, D.,
-#' Page, M. J., & Koffel, J. B. (2021). PRISMA-S: an extension to the PRISMA
-#' Statement for Reporting Literature Searches in Systematic Reviews.
-#' *Systematic Reviews*, *10*, 39. \doi{10.1186/s13643-020-01542-z}
+#' Page, M. J., Koffel, J. B., & PRISMA-S Group. (2021). PRISMA-S: an extension
+#' to the PRISMA Statement for Reporting Literature Searches in Systematic
+#' Reviews. *Systematic Reviews*, *10*, 39. \doi{10.1186/s13643-020-01542-z}
 #' @seealso [scopus_plan()], [scopus_fetch_plan()], [scopus_combine()]
 #' @examples
 #' # A search described but not yet run. The record says so throughout rather
@@ -278,7 +278,7 @@ scopus_report_build <- function(records, plan) {
 # The recorded cells are placed on the plan's cells only when the plan is the
 # one the harvest ran. It must hold as many cells as were planned, the recorded
 # ones among them. A plan passed by hand that does not leaves the cells
-# unrecorded, as before, while the set still says that it was stopped.
+# unrecorded, while the set still says that it was stopped.
 scopus_report_stop <- function(records, plan) {
   out <- list(stopped = FALSE, cells_planned = NA_integer_,
               cells_run = NA_integer_, joined = FALSE, not_run = integer())
@@ -698,8 +698,8 @@ scopus_report_date <- function(t) {
 
 # Whether the earliest and latest retrieval times fall on different UTC days.
 # Only then is the search dated as a span. Stamps a few hours apart on one day
-# give that day, as a single stamp always has, so the record of a one-day
-# harvest, compared byte for byte with the Python twin's, is unchanged.
+# give that day, as a single stamp does, so a one-day harvest reads the same
+# whether it carries one stamp or two.
 scopus_report_spans_days <- function(x) {
   if (is.na(x$searched_at) || is.na(x$searched_until)) {
     return(FALSE)
@@ -1145,8 +1145,9 @@ scopus_report_markdown <- function(x) {
 }
 
 # The methods paragraph. Every sentence is conditioned on the evidence, so the
-# paragraph never asserts a figure the record does not hold; the suite recomputes
-# each of its numerals from the object independently.
+# paragraph never asserts a figure the record does not hold. The tests check its
+# figures against fixtures whose values are known in advance, and against the
+# golden files shared with the Python twin.
 scopus_report_paragraph <- function(x) {
   run <- scopus_report_run(x)
   stopped <- isTRUE(x$stopped_early)

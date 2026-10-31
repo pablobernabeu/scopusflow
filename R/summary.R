@@ -2,15 +2,17 @@
 #'
 #' Gives a compact overview of a [scopus_records] object, reporting how many
 #' records it holds, the span of publication years they cover, how many distinct
-#' sources and Digital Object Identifiers appear among them and how widely they
-#' have been cited. It is a convenient way to take stock of a retrieval before
-#' any closer analysis.
+#' sources appear among them, how many records carry a Digital Object Identifier
+#' and how widely they have been cited. It is a convenient way to take stock of
+#' a retrieval before any closer analysis.
 #'
 #' @param object A [scopus_records] tibble.
 #' @param ... Ignored, present for compatibility with the [summary()] generic.
 #' @return A list of class `scopus_records_summary`, with elements `n_records`,
 #'   `years` (the earliest and latest year present, each `NA` when no year is
-#'   known), `n_sources`, `n_with_doi`, `total_citations`, `median_citations`,
+#'   known), `n_sources` (the number of distinct source titles), `n_with_doi`
+#'   (the number of records carrying a DOI, so that a DOI held by two records
+#'   counts twice), `total_citations`, `median_citations`,
 #'   `top_cited` (the title of the most-cited record), `top_source` (the most
 #'   frequent source title) and `doc_types`. `doc_types` counts the records of
 #'   each document-type code, most frequent first, for a set retrieved with

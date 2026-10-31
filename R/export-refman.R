@@ -346,8 +346,10 @@ scopus_refman_write <- function(out, file) {
 #' 'Scopus' gives as the book's own, names no source. RIS gives the source
 #' under `T2` except for such a book, since Zotero reads a book's `T2` as its
 #' series. The entries also carry the volume, issue, pages, ISSN and document
-#' type (RIS `M3`). Under `view = "COMPLETE"` they carry the abstract and the
-#' author keywords, one `KW` line each in RIS and joined by commas in BibTeX.
+#' type (RIS `M3`), and under `view = "COMPLETE"` the abstract. The entries of
+#' a set retrieved under `view = "COMPLETE"`, with the core fields or the
+#' extended ones, also carry the author keywords, one `KW` line each in RIS and
+#' joined by commas in BibTeX.
 #' Keywords are split at the `" | "` the Search API joins them with and at the
 #' `"; "` [scopus_abstract()] joins its own with. A value the record lacks is
 #' left out, never filled in.

@@ -20,7 +20,7 @@ retrieval provenance and, through its \code{plan} attribute, the plan; or a bare
 
 \item{plan}{Optional \code{\link[=scopus_plan]{scopus_plan()}} describing \code{x}. Supply it when a record
 set does not carry one, for example one read back from a \code{.csv}, a merged
-set, or one saved by \code{\link[=scopus_fetch]{scopus_fetch()}} in scopusflow 0.4.0 or earlier,
+set, or one saved by \code{\link[=scopus_fetch]{scopus_fetch()}} in the 0.4.0 release or earlier,
 which attached none. An explicit plan takes precedence over the one \code{x}
 carries. A one-cell plan supplied for a set without per-cell counts takes
 the set's own row count and \code{total_results}.}
@@ -134,9 +134,9 @@ scopus_search_report(recs, file = path)
 }
 \references{
 Rethlefsen, M. L., Kirtley, S., Waffenschmidt, S., Ayala, A. P., Moher, D.,
-Page, M. J., & Koffel, J. B. (2021). PRISMA-S: an extension to the PRISMA
-Statement for Reporting Literature Searches in Systematic Reviews.
-\emph{Systematic Reviews}, \emph{10}, 39. \doi{10.1186/s13643-020-01542-z}
+Page, M. J., Koffel, J. B., & PRISMA-S Group. (2021). PRISMA-S: an extension
+to the PRISMA Statement for Reporting Literature Searches in Systematic
+Reviews. \emph{Systematic Reviews}, \emph{10}, 39. \doi{10.1186/s13643-020-01542-z}
 }
 \seealso{
 \code{\link[=scopus_plan]{scopus_plan()}}, \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}, \code{\link[=scopus_combine]{scopus_combine()}}

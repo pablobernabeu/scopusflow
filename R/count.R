@@ -31,17 +31,34 @@
 #'   can pace itself off a count.
 #' @section API access:
 #' This function performs a network request and therefore requires a valid API
-#' key and internet access. When no key is configured it raises a
-#' `scopus_error_no_key` condition, and other failures raise typed `scopus_error`
-#' subclasses such as `scopus_error_rate_limit`. A [tryCatch()] around the call
-#' lets a workflow handle these gracefully. Throttling (HTTP 429) and server
-#' errors are retried with back-off first, and so are transport failures such
-#' as a timeout or a reset connection. A spent weekly quota, which Elsevier
+#' key and internet access. Every error it raises inherits from `scopus_error`,
+#' so a [tryCatch()] around the call lets a workflow handle these gracefully.
+#' When no key is configured, it raises `scopus_error_no_key`, and an invalid
+#' argument raises `scopus_error_bad_input` before any request. A request the
+#' API refuses raises the subclass for its HTTP status:
+#' `scopus_error_bad_request` (400), `scopus_error_unauthorized` (401, a key
+#' the API does not accept), `scopus_error_forbidden` (403),
+#' `scopus_error_not_found` (404),
+#' `scopus_error_payload_too_large` (413), `scopus_error_uri_too_long` (414),
+#' `scopus_error_rate_limit` (429) or `scopus_error_server` (any other status),
+#' with the status in `cnd$status` and the parsed quota (see [scopus_quota()])
+#' in `cnd$quota`. A response that is not the JSON the API documents raises
+#' `scopus_error_malformed`, and a host that cannot be reached raises
+#' `scopus_error_offline`. Throttling (HTTP 429) and the server errors 500, 502,
+#' 503 and 504 are retried with back-off first, and so are transport failures
+#' such as a timeout or a reset connection. A spent weekly quota, which Elsevier
 #' also answers with HTTP 429, is not retried: it raises
 #' `scopus_error_quota_exceeded`, a subclass of `scopus_error_rate_limit` whose
 #' message gives the reset time. When the last attempt at a request times out
 #' after `getOption("scopusflow.timeout", 60)` seconds, the error is
-#' `scopus_error_timeout`, a subclass of `scopus_error_offline`.
+#' `scopus_error_timeout`, a subclass of `scopus_error_offline`. Each request is
+#' attempted at most `getOption("scopusflow.max_tries", 3)` times in all, and
+#' setting the option to 1 turns retrying off. Between attempts, the package
+#' waits as long as a `Retry-After` header asks, and otherwise for the seconds
+#' that the function in `getOption("scopusflow.retry_backoff")` returns when
+#' given the number of failed attempts so far. That function is passed to
+#' [httr2::req_retry()] as its `backoff`, so when the option is unset, the
+#' back-off documented there applies.
 #' @examplesIf scopusflow::scopus_has_key()
 #' scopus_count('"graphene supercapacitor"', years = 2015:2024,
 #'              field = "TITLE-ABS-KEY")

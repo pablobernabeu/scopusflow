@@ -54,17 +54,34 @@ simply report how large a topic is.
 \section{API access}{
 
 This function performs a network request and therefore requires a valid API
-key and internet access. When no key is configured it raises a
-\code{scopus_error_no_key} condition, and other failures raise typed \code{scopus_error}
-subclasses such as \code{scopus_error_rate_limit}. A \code{\link[=tryCatch]{tryCatch()}} around the call
-lets a workflow handle these gracefully. Throttling (HTTP 429) and server
-errors are retried with back-off first, and so are transport failures such
-as a timeout or a reset connection. A spent weekly quota, which Elsevier
+key and internet access. Every error it raises inherits from \code{scopus_error},
+so a \code{\link[=tryCatch]{tryCatch()}} around the call lets a workflow handle these gracefully.
+When no key is configured, it raises \code{scopus_error_no_key}, and an invalid
+argument raises \code{scopus_error_bad_input} before any request. A request the
+API refuses raises the subclass for its HTTP status:
+\code{scopus_error_bad_request} (400), \code{scopus_error_unauthorized} (401, a key
+the API does not accept), \code{scopus_error_forbidden} (403),
+\code{scopus_error_not_found} (404),
+\code{scopus_error_payload_too_large} (413), \code{scopus_error_uri_too_long} (414),
+\code{scopus_error_rate_limit} (429) or \code{scopus_error_server} (any other status),
+with the status in \code{cnd$status} and the parsed quota (see \code{\link[=scopus_quota]{scopus_quota()}})
+in \code{cnd$quota}. A response that is not the JSON the API documents raises
+\code{scopus_error_malformed}, and a host that cannot be reached raises
+\code{scopus_error_offline}. Throttling (HTTP 429) and the server errors 500, 502,
+503 and 504 are retried with back-off first, and so are transport failures
+such as a timeout or a reset connection. A spent weekly quota, which Elsevier
 also answers with HTTP 429, is not retried: it raises
 \code{scopus_error_quota_exceeded}, a subclass of \code{scopus_error_rate_limit} whose
 message gives the reset time. When the last attempt at a request times out
 after \code{getOption("scopusflow.timeout", 60)} seconds, the error is
-\code{scopus_error_timeout}, a subclass of \code{scopus_error_offline}.
+\code{scopus_error_timeout}, a subclass of \code{scopus_error_offline}. Each request is
+attempted at most \code{getOption("scopusflow.max_tries", 3)} times in all, and
+setting the option to 1 turns retrying off. Between attempts, the package
+waits as long as a \code{Retry-After} header asks, and otherwise for the seconds
+that the function in \code{getOption("scopusflow.retry_backoff")} returns when
+given the number of failed attempts so far. That function is passed to
+\code{\link[httr2:req_retry]{httr2::req_retry()}} as its \code{backoff}, so when the option is unset, the
+back-off documented there applies.
 }
 
 \examples{

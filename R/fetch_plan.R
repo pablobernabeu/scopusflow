@@ -10,29 +10,32 @@
 #'   finite cap is recorded on the result, and [scopus_search_report()] says
 #'   which cells stopped at it.
 #' @param cache_dir Optional directory for per-cell cache files. The default of
-#'   `NULL` performs no caching. Pass an explicit path you control, or
-#'   `scopus_cache_dir()` to use a managed, clearable cache under
-#'   [tools::R_user_dir()]. Caching happens only when you opt in through this
+#'   `NULL` performs no caching. Pass an explicit path you control, or a
+#'   directory of the plan's own under the managed, clearable cache, such as
+#'   `file.path(scopus_cache_dir(), "my-plan")`, which is created when absent.
+#'   Caching happens only when you opt in through this
 #'   argument. A cache directory serves one plan: cells are checkpointed by
 #'   their position in the plan and their year, so give each distinct plan its
 #'   own directory. As a safeguard, a checkpoint is served only when the query,
 #'   year, view, page size and paging mode it was fetched under all match the
 #'   plan cell, and only when its own `max_results` did not truncate it below
 #'   what is being asked for now; anything else is a cache miss, refetched and
-#'   overwritten.
+#'   overwritten with a `scopus_warning_cache_mismatch` warning.
 #'   A checkpoint holding more records than the current `max_results` asks for
 #'   is served trimmed to that cap, the fuller set staying on disk. A
 #'   checkpoint that cannot be read back, for example one left half-written by
-#'   an interrupted run, is also treated as a miss, and never aborts the
-#'   harvest. A `COMPLETE` checkpoint written by a release that read `authors`
-#'   from the first author alone (0.4.0 and earlier) is a miss as well, and is
-#'   refetched once with a warning. `STANDARD` checkpoints from those releases
-#'   are served as before, since their authors were read correctly.
+#'   an interrupted run, is also treated as a miss, with a
+#'   `scopus_warning_cache_unreadable` warning, and never aborts the harvest. A
+#'   `COMPLETE` checkpoint written by a release that read `authors`
+#'   from the first author alone (the 0.4.0 release and earlier) is a miss as
+#'   well, and is refetched once with a `scopus_warning_cache_mismatch` warning.
+#'   `STANDARD` checkpoints from those releases are served, since their authors
+#'   were read correctly.
 #'   Checkpoints also record their `fields`. One fetched with
 #'   `fields = "extended"` serves a core request, with the extra columns
 #'   dropped, while a core one is a miss for an extended request and is
-#'   refetched with a warning. A checkpoint written before the fields were
-#'   recorded counts as core.
+#'   refetched with a `scopus_warning_cache_mismatch` warning. A checkpoint
+#'   written before the fields were recorded counts as core.
 #'   A `cache_dir` that is not a directory and cannot be created as one, or in
 #'   which no file can be created, is refused with a `scopus_error_bad_input`
 #'   error before any request. A checkpoint that cannot be written all the
@@ -46,12 +49,11 @@
 #'   pagination, which has no 5000-record ceiling, so a cell matching more
 #'   records than that is retrieved whole and still checkpointed. The records
 #'   then arrive in the API's deep-paging order (see [scopus_fetch()]). The
-#'   default, `FALSE`, pages by offset, as plans always have, so a cell stops at
-#'   its first 5000 records with a warning. Checkpoints record the paging mode
-#'   and serve only requests made in the same mode. A checkpoint written before
-#'   the mode was recorded counts as offset-paged. The Python twin's
-#'   `fetch_plan()` pages by cursor unless told otherwise, the mode it has
-#'   always used.
+#'   default, `FALSE`, pages by offset, so a cell stops at its first 5000
+#'   records with a `scopus_warning_capped` warning. Checkpoints record the
+#'   paging mode and serve only requests made in the same mode. A checkpoint
+#'   written before the mode was recorded counts as offset-paged. The Python
+#'   twin's `fetch_plan()` pages by cursor unless told otherwise.
 #' @param fields `"core"` (the default) or `"extended"`. `"extended"` also keeps
 #'   the document type, source type, volume, issue, pages, ISSN, PubMed
 #'   identifier and open-access status the Search API sends with every record,
@@ -246,7 +248,7 @@ scopus_reported_total <- function(recs) {
 # failure mode a harvest cannot see for itself: a truncated or refused download
 # arrives as a merely small result set. `max_results` is exempt, since a cell
 # that stopped at a cap the caller set is short by request. The wording is
-# byte-identical to the Python twin's, which has warned on this since 0.3.0.
+# byte-identical to the warning the Python twin's fetch_plan() gives.
 scopus_warn_shortfall <- function(i, n, total, max_results) {
   if (is.na(total) || n >= total) {
     return(invisible(NULL))
@@ -604,9 +606,11 @@ scopus_bind_provenance <- function(bound, records_list) {
 #' Managed cache directory for scopusflow
 #'
 #' Returns (and creates on request) a per-user cache directory under
-#' [tools::R_user_dir()], suitable for passing to `cache_dir` in
-#' [scopus_fetch_plan()]. The cache is entirely optional and can be cleared with
-#' [scopus_cache_clear()].
+#' [tools::R_user_dir()]. A cache directory serves one plan, so give each plan
+#' a directory of its own inside this one, as in
+#' `file.path(scopus_cache_dir(), "my-plan")`, and pass that as `cache_dir` to
+#' [scopus_fetch_plan()]. The cache is entirely optional, and
+#' [scopus_cache_clear()] removes it, every plan's directory included.
 #'
 #' @param create Logical. When `TRUE`, the directory is created if it is absent.
 #' @return The cache directory path, invisibly when `create = TRUE`.

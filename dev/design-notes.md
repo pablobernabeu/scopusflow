@@ -121,7 +121,8 @@ physical size is finally known, using one rendered line of text as the minimum
 gap. The labels carry no leader lines. They are colour-matched to their lines
 and spread in the same order as the line ends, and a leader from a line's end to
 its nudged label would cut across the neighbouring labels' text. Spreading
-against the rendered text height keeps labels legible at any figure size,
+against the rendered text height keeps labels legible in any figure tall enough
+to stack them,
 including the app's short result card, where a gap fixed as a fraction of the
 data range at build time overlapped. Beyond what fits one line per topic in a
 short panel the function still falls back to the legend. This needs only `grid`,
@@ -132,9 +133,11 @@ this device-aware de-collision, are reachable within ggplot2 and base grid, and
 the package keeps its imports small. ggrepel would also make the figure depend
 on whether an optional package is installed. A theme helper was left out of the
 first release, when one plotting function gave it nothing to be shared with.
-`scopus_minimal_theme()` now backs all four plots but stays internal, since a
-caller who wants to restyle a figure can add their own theme to the ggplot
-object the function returns.
+`scopus_minimal_theme()` backs the trend, top-values, records-by-year and
+intersection figures but stays internal, since a caller who wants to restyle a
+figure can add their own theme to the ggplot object the function returns.
+`plot_scopus_comparison()` sets the same `theme_minimal()` options itself, with
+a right margin sized to its direct labels.
 
 ## API additions and rejected options
 
@@ -195,15 +198,16 @@ other when a record appeared in more than one year cell.
 
 `scopus_check_query()` refuses, before any request, a query that cannot do what
 it appears to ask, and checks nothing less certain, since a warning that fires
-on legitimate input is the noise the field-tag decision above rejected. The
-first of its three errors is refinement syntax. `LIMIT-TO()` and `EXCLUDE()`
-come from the web interface's refinement panel, and the Search API ignores them
-without an error: rscopus issue #50 found 55 records with
-`LIMIT-TO(SUBJAREA, ...)`, the unfiltered count, against 36 with `SUBJAREA()`,
-and pybliometrics documents `LIMIT-TO()` as affecting the display only. The
-second is a field given for a query that already opens with a tag, so that one
-tag nests inside the other and the API answers with HTTP 400, as a live request
-showed. Unbalanced brackets, quotation marks or braces are the third.
+on legitimate input is the noise the field-tag decision above rejected. Its
+three errors are checked in a fixed order, shared with the Python twin, and the
+first one found is raised: unbalanced brackets, quotation marks or braces, then
+refinement syntax, then a field given for a query that already opens with a
+tag. `LIMIT-TO()` and `EXCLUDE()` come from the web interface's refinement
+panel, and the Search API ignores them without an error: rscopus issue #50 found
+55 records with `LIMIT-TO(SUBJAREA, ...)`, the unfiltered count, against 36 with
+`SUBJAREA()`, and pybliometrics documents `LIMIT-TO()` as affecting the display
+only. A field given for a query that already opens with a tag nests one tag
+inside the other, and the API answers with HTTP 400, as a live request showed.
 `INDEXTERMS()` only warns, because pybliometrics documents it as not working but
 its behaviour has not been observed. The scan treats a quoted or braced phrase as
 text, as the grouping code does, and the messages are shared word for word
@@ -248,13 +252,27 @@ not told their retrieval was truncated. Every request carries a transfer timeout
 read from `getOption("scopusflow.timeout", 60)`: curl's own default is no timeout
 at all, so a connection that opens and then stalls hangs the session outright, and
 the retry policy never fires because no response arrives to be classified.
+The retry policy reads two options, `scopusflow.max_tries` for the number of
+attempts at each request and `scopusflow.retry_backoff` for the back-off
+between them, and `?scopus_count` documents both beside the timeout.
+`scopusflow.hard_cap`, a test hook that lowers the offset ceiling, and
+`scopusflow.base_url` and `scopusflow.abstract_url`, which override the Search
+and Abstract Retrieval endpoints, are internal and not documented for users.
+Every request carries the key, and any institutional token, in its headers, so
+an override is accepted only as an `https` URL whose host is `api.elsevier.com`
+or another host under `elsevier.com`, optionally with a port. Any other
+override, such as one over `http` or one to a look-alike such as
+`api.elsevier.com.evil.example`, is refused with `scopus_error_bad_input`
+before a request is built.
+`scopus_abstract()` checks its endpoint once before the batch, as it does the
+key, since its handler for each identifier would otherwise turn the refusal
+into a row of `NA`s.
 
 Input errors carry `scopus_error_bad_input` beneath `scopus_error`, so the
 contract that every scopusflow error inherits `scopus_error` holds for them as
-well. Up to and including 0.4.0, 66 validation sites raised the
-subclass on its own and the argument matching raised bare rlang errors, so a
-handler for `scopus_error` saw neither, and the app's Check size handler let a
-blank query close the session. Two internal helpers in `R/conditions.R` now
+well. A handler for `scopus_error` would otherwise miss a bad argument,
+whether a validation site raised the subclass on its own or the argument
+matching raised a bare rlang error. Two internal helpers in `R/conditions.R`
 carry the classes: `scopus_abort_bad_input()` for the package's own checks and
 `scopus_match_arg()` around `rlang::arg_match()`. The second re-signals rlang's
 condition with the two classes prepended. Rebuilding it from its message would
@@ -270,13 +288,12 @@ Elsevier's Search views table lists `dc:creator` as the first author in both
 views, and the `author` objects (`authid`, `authname`, `surname`, `given-name`
 and the rest) as the complete author list under `COMPLETE` alone. A live check
 on 2 October 2026 agreed, finding only `dc:creator` under `STANDARD` and the
-whole array under `COMPLETE`. Up to 0.4.0 the `authors` column read
-`dc:creator` in every view, so it held the first author everywhere while the
-documentation promised every author. The tests mocked an array-valued
-`dc:creator` the API never sends. Author tallies, bibliometrix collaboration
-measures and exports were built on first authors.
+whole array under `COMPLETE`. An `authors` column read from `dc:creator` in
+every view would hold the first author everywhere, and author tallies,
+bibliometrix collaboration measures and exports would be built on first
+authors.
 
-The column now follows the API. Under `COMPLETE` it is built from the `author`
+The column thus follows the API. Under `COMPLETE` it is built from the `author`
 array, each name written `"Surname, Given"` and joined by `"; "`, the separator
 the tally and the exporters already split on. The API lists at most 100 authors
 per record, and `author-count` gives the total. The Python twin joins
@@ -288,7 +305,9 @@ De-duplicating by `authid` was considered and rejected, since the twins would
 then disagree wherever the array lists one author in two positions. Two edges
 remain where pybliometrics parses differently, and both twins document them. An
 author object without a `surname` or `given-name` key leaves pybliometrics
-building no list, and a null or empty surname is written after a bare comma.
+building no list, so the Python twin keeps the first author while R lists every
+author. Where a surname is null or empty, pybliometrics writes the given name
+after a bare comma, and R writes the indexed name (`authname`).
 Under `STANDARD` the column keeps the first author, the only name that view
 carries.
 
@@ -302,7 +321,7 @@ fire on every routine export. The app's Top authors tab says the same in a note
 above the plot and draws its tally under quiet verbosity, which leaves the
 session's one warning for the user's own code.
 
-Checkpoints written before the change are handled by view. A `COMPLETE`
+Checkpoints that predate the author list are handled by view. A `COMPLETE`
 checkpoint holds first authors where the list belongs, so a manifest without
 `records_schema`, or no manifest at all, makes it a cache miss, refetched once
 with a warning that names the reason. A `STANDARD` checkpoint was always read
@@ -346,9 +365,8 @@ but one are given first and hide the defect.
 
 ## Naming
 
-The chosen name, `scopusflow`, is a valid package name with no underscore and no
-collision among current or archived CRAN packages. The backups held in reserve
-are `scopustools` and `scopusquota`.
+The name, `scopusflow`, is a valid package name with no underscore, and it
+collided with no current or archived CRAN package when it was chosen.
 
 ## Testing strategy
 
@@ -491,13 +509,22 @@ so a scheduled dependency canary
 day against the current and development versions of those dependencies. A
 breaking change therefore surfaces here before it reaches a release. The workflow
 flags the maintainer through a single, de-duplicated issue. The whole pipeline
-runs on GitHub's free Actions minutes and needs no secret. The attempt to resolve
-a breakage has three tiers: with no secret it asks a free GitHub Models model to
-diagnose and propose a fix in the issue; with a Claude subscription OAuth token
-(`CLAUDE_CODE_OAUTH_TOKEN`, no per-token cost) or a paid `ANTHROPIC_API_KEY`, the
-Claude Code action attempts a full fix and opens a pull request. Every tier is
-best-effort, so detection and flagging never depend on it. Dependabot keeps the
-workflow actions themselves current.
+runs on GitHub's free Actions minutes and needs no secret. The canary installs
+and runs the development heads of its dependencies, which is untrusted code, so
+it holds a read-only checkout plus issue access and never a token that could
+push commits or open a pull request. The attempt to resolve a breakage has three
+tiers. With no secret, the canary asks a free GitHub Models model to diagnose
+the breakage and propose a fix in the issue. With a Claude subscription OAuth
+token (`CLAUDE_CODE_OAUTH_TOKEN`, no per-token cost) or a paid
+`ANTHROPIC_API_KEY`, the canary skips that diagnosis, and a companion workflow
+(`.github/workflows/dependency-autofix.yaml`) takes over. The companion holds
+the write permissions and runs when the canary finishes red, or when dispatched
+by hand. It has the Claude Code action reproduce the breakage, attempt a full
+fix and open a pull request. That pull request needs the repository setting
+"Allow GitHub Actions to create and approve pull requests", and R-CMD-check does
+not start on it by itself, so the maintainer runs it on the branch before
+merging. Every tier is best-effort, so detection and flagging never depend on
+it. Dependabot keeps the workflow actions themselves current.
 
 ## Version 0.2.0: API reach and an analysis layer
 
@@ -704,18 +731,18 @@ alongside `as_bibliometrix()` already.
 
 ## Abstract Retrieval: the default view and collapsed lists
 
-`scopus_abstract()` names `view = "META_ABS"` by default. Up to 0.4.0 it sent
-no view. Elsevier documents the view served then as META (the Abstract
-Retrieval WADL and the Scopus API Guide), and its views table lists the
-abstract, `dc:description`, only under META_ABS and FULL. A live request on 2
-October 2026 nonetheless returned the abstract without a view, so the old
-default did not visibly fail for that key. The view is named all the same. The
+`scopus_abstract()` names `view = "META_ABS"` by default. Elsevier documents
+the view served to a request without one as META (the Abstract Retrieval WADL
+and the Scopus API Guide), and its views table lists the abstract,
+`dc:description`, only under META_ABS and FULL. A live request on 2 October
+2026 nonetheless returned the abstract without a view, so sending none did not
+visibly fail for that key. The view is named all the same. The
 `abstract` column should not rest on a server choice that the documentation
 contradicts and that may differ by entitlement, and the Python twin has named
-META_ABS since its first release. Keeping `NULL` as the default and
-documenting the live finding was therefore rejected. `view = NULL` still sends
-no view, and its checkpoints keep the `default` key, so a cache written by
-0.4.0 still serves it.
+META_ABS since its first release. Making `NULL` the default and documenting
+the live finding was therefore rejected. `view = NULL` sends no view and keys
+its checkpoints `default`, the key of a request without a view, so a cache
+written while that was the default serves it.
 
 Elsevier's XML-to-JSON conversion sends a one-item array as a bare object,
 which `jsonlite` parses as a named list, so iterating over it walks the
@@ -728,10 +755,10 @@ list that is not empty, and the parser passes it the references, their
 authors, their item identifiers and the author keywords, so each list has one
 shape to iterate. An empty object becomes an empty list, as an absent one
 does, since wrapping it would add a reference or an author whose every field
-is missing. The keyword parser used to wrap only an object carrying a known
-field, a rule rejected here because an author-keyword object can carry its
-attribute alone (`{"@_fa": "true"}`, pybliometrics issue #436). Left
-unwrapped, that object was read field by field, giving the keyword "true".
+is missing. Wrapping only an object that carries a known field was rejected,
+because an author-keyword object can carry its attribute alone
+(`{"@_fa": "true"}`, pybliometrics issue #436). Left unwrapped, that object
+would be read field by field, giving the keyword "true".
 
 Any other error while the keywords or references are parsed is re-raised as
 `scopus_error_malformed`, with the original as its parent. The per-identifier
@@ -754,7 +781,7 @@ document's index keywords `NA` with a warning, where R keeps the other terms.
 Reading the response past pybliometrics to match R was rejected, since it would
 rest on a private attribute.
 
-`scopus_corpus()` gains `keywords` as its last argument, so a call that passes
+`scopus_corpus()` takes `keywords` as its last argument, so a call that passes
 `cache_dir` by position keeps working. The Python twin puts it after `resume`,
 ahead of the arguments passed on to pybliometrics. `"both"` puts the author
 keywords first and adds each index keyword not already among them, matching on
@@ -858,8 +885,11 @@ live API in a real literature review, and two of its details are deliberate
 enough to be worth recording.
 
 First, a concept value that already reads as a complete field-tagged
-expression (matched by `^[A-Z][A-Z-]*\(`) is used exactly as given, and `field`
-leaves it alone. Passing an already-wrapped query through a
+expression is used exactly as given, and `field` leaves it alone. The test is
+`scopus_opens_with_tag()`, the one the offline query checks use: a capitalised
+tag against its bracket, as in `TITLE(x)`, or one of the common tags of
+`scopus_field_tags()` followed by white space and a bracket, as in
+`TITLE-ABS-KEY ( x )`. Passing an already-wrapped query through a
 further field wrap produces a nested tag such as `TITLE-ABS-KEY(TITLE(x))`,
 which the live API rejects as malformed with HTTP 400; the guard is what lets
 one call mix bare terms with hand-built expressions. A related quota courtesy:
@@ -888,15 +918,15 @@ comparison plot's accent marking the optional highlight.
 
 ## Checkpoint identity, and what a cache hit has to prove
 
-A checkpoint used to be keyed on the plan cell's position alone, guarded only by
-comparing the query recorded in the cached records. Under `partition = "year"`,
-which is the arrangement the documentation recommends, every cell of a plan
-carries the same field-wrapped query and the year travels separately as the
-`date` request parameter, so that guard could never distinguish one year's
-checkpoint from another's. Two plans over overlapping year spans pointed at one
-directory therefore returned each other's years, silently.
+Keying a checkpoint on the plan cell's position alone, guarded only by
+comparing the query recorded in the cached records, is not enough. Under
+`partition = "year"`, which is the arrangement the documentation recommends,
+every cell of a plan carries the same field-wrapped query and the year travels
+separately as the `date` request parameter, so that guard cannot distinguish
+one year's checkpoint from another's. Two plans over overlapping year spans
+pointed at one directory would then return each other's years, silently.
 
-The year is now part of the checkpoint's filename, and the rest of what shapes
+The year is thus part of the checkpoint's filename, and the rest of what shapes
 a cell (query, view, page size, and the `max_results` it was fetched under) is
 written as a manifest beside the records and compared on resume. Folding the
 year into the recorded query, which is how the Python twin solves the same
@@ -907,7 +937,7 @@ properly. The Python twin folds it for a reason of its own. pybliometrics
 accepts `date` as a request parameter, but it keys its search cache on the
 query string and view alone, an MD5 digest of the query filed under the view.
 With the year sent as a parameter, one year's cached response would answer
-another year's search. The Python twin now bypasses that cache by
+another year's search. The Python twin bypasses that cache by
 default, sending `refresh=True` unless the caller opts back in, and the folded
 year keeps that opt-in safe. The two engines therefore reach the same guarantee
 by different routes, which is why the Python guide describes its checkpoint
@@ -942,9 +972,9 @@ and deleting the file by hand.
 A cache directory is checked before any request. It is created if need be,
 and a file is created in it and removed again. A path that is a file, or a
 directory the user cannot write, is thus refused as bad input with nothing
-spent. Up to 0.4.0 such a directory cost a cell's requests and then lost its
-records to an untyped error from `saveRDS()`. Creating a file is the test
-because `?file.access` advises trying the operation itself, and the Python
+spent. Left to the first checkpoint, such a directory would be found only
+after a cell's requests had been spent. Creating a file is the test because
+`?file.access` advises trying the operation itself, and the Python
 twin cannot use `os.access`, which on Windows reports a directory that an ACL
 denies as writable. A checkpoint that still cannot be written, on a full disk
 or where a directory has taken its name, gives
@@ -953,22 +983,24 @@ or where a directory has taken its name, gives
 The `scopus_cache_clear()` example points `R_USER_CACHE_DIR` at a temporary
 directory and restores the variable afterwards, whether or not it was set.
 `example()`, `R CMD check` and pkgdown do not redirect `tools::R_user_dir()`,
-so the example used to delete the managed cache of whoever ran it.
+so without the redirection, the example would delete the managed cache of
+whoever ran it.
 `\dontrun{}` was rejected, since CRAN asks for an example that can run to be
 run.
 
 ## Paging a plan
 
-Up to 0.4.0, a plan could only be paged by offset. A year cell matching more
-than 5000 records therefore stopped at 5000, and both warnings advised
-partitioning by year, which the plan already was. `scopus_fetch_plan()` now
-takes `cursor`, an argument of the fetch and not a field of the plan, for three
-reasons. `scopus_fetch()` already takes `cursor`, and the search record already
-treats the mode as settled when the search is run. A plan field would also have
-changed plan equality, both golden search records and the snippet round trip.
-The default stays `FALSE`, so an existing script fetches what it fetched before
-and its checkpoints stay valid. The Python twin keeps cursor paging as its
-default for the same reason, and both defaults are documented.
+Paged by offset alone, a year cell matching more than 5000 records would stop
+at 5000, and partitioning by year, the remedy for a single search, cannot help
+a plan already partitioned that way. `scopus_fetch_plan()` therefore takes
+`cursor`, an argument of the fetch and not a field of the plan, for three
+reasons. `scopus_fetch()` takes `cursor` as
+well, and the search record treats the mode as settled when the search is run.
+A plan field would also change plan equality, both golden search records and
+the snippet round trip. The default is `FALSE`, so that a script written before
+the argument existed fetches the same records and keeps its checkpoints. The
+Python twin's default is cursor paging, for the same reason, and both defaults
+are documented.
 
 The mode joins the checkpoint identity. A manifest written before it was
 recorded, and a checkpoint without a manifest, count as offset, the only mode a
@@ -985,24 +1017,23 @@ read in every cell. Inside a plan, the capped warning names
 wording, which the Python twin shares word for word. The reproduction snippet
 adds `cursor = TRUE` when the records say they were paged by cursor.
 
-The Python twin used to send `cursor=True` to pybliometrics, which reads
-`cursor` as an alias for `subscriber` and lets it win, so a caller's
-`subscriber=False` was ignored and `cursor=False` raised a `TypeError`. It now
-sends `subscriber`, the documented name, alone. Where this package stops an
-offset-paged cell at 5000 records with a warning, pybliometrics refuses a search
-above 5000 matches with `ScopusQueryError`, which that twin raises again with
-the cell named.
+The Python twin passes the paging choice to pybliometrics as `subscriber`, the
+documented name, alone. pybliometrics reads `cursor` as an alias for
+`subscriber` and lets it win, so a `cursor=True` sent beside it would override
+a caller's `subscriber=False`. Where this package stops an offset-paged cell at
+5000 records with a warning, pybliometrics refuses a search above 5000 matches
+with `ScopusQueryError`, which that twin raises again with the cell named.
 
 ## Extended record fields
 
 Elsevier's Search views table lists, under both views, each record's document
 type (`subtype` and `subtypeDescription`), source type, volume, issue, pages,
 ISSN, PubMed identifier and open-access status, and under `COMPLETE` the
-abstract (`dc:description`). Both twins used to discard all of them. A
-reviewer could not drop errata, flag what 'Scopus' labels retracted or keep the
-articles alone once the harvest was in. A `COMPLETE` harvest also threw away
-the abstracts it had paid for, up to 25 with each request, where Abstract
-Retrieval spends a request on each record from a separate quota. With
+abstract (`dc:description`). The core columns keep none of them, so from those
+alone a reviewer cannot drop errata, flag what 'Scopus' labels retracted or
+keep the articles alone once the harvest is in. A core `COMPLETE` harvest also
+leaves out the abstracts it has paid for, up to 25 with each request, where
+Abstract Retrieval spends a request on each record from a separate quota. With
 `fields = "extended"`, the records keep every one of these fields.
 
 `fields` is an argument of `scopus_records()`, `scopus_fetch()` and
@@ -1019,14 +1050,14 @@ own parser.
 
 The ISSN is kept as text, since one such as `00368075` begins with zeros that a
 number would lose. R reads every column of a CSV file as text before typing it,
-so `read_scopus_records()` needed only to keep the extended columns, where it
-used to drop them. The Python twin names them among the columns its CSV reader
-must not infer. `open_access` is an integer in both twins, because pybliometrics
-reads `openaccess` as one. Elsevier's Scopus APIs Getting Started Guide (2023,
-section 17) illustrates the field with 0 for not open access, 1 for gold and 2
-for green, so the column is documented as a status code. The audit planned a 0
-or 1 flag, and those values contradict it. The legacy `openaccessFlag`, true
-for gold and empty for other kinds of open access, is not read.
+so `read_scopus_records()` needs only to keep the extended columns. The Python
+twin names them among the columns its CSV reader must not infer. `open_access`
+is an integer in both twins, because pybliometrics reads `openaccess` as one.
+Elsevier's Scopus APIs Getting Started Guide (2023, section 17) illustrates the
+field with 0 for not open access, 1 for gold and 2 for green, so the column is
+documented as a status code. The audit planned a 0 or 1 flag, and those values
+contradict it. The legacy `openaccessFlag`, true for gold and empty for other
+kinds of open access, is not read.
 
 A checkpoint records its fields in its manifest. An extended checkpoint serves a
 core request, the extra columns dropped from the served copy, which then holds
@@ -1113,10 +1144,10 @@ abbreviates a given name to two letters, as in `Yu.`.
 
 `citations` is a snapshot value that moves continuously, and the
 change-tracking workflow rests on diffing two pulls, so a saved set that cannot
-say when it was taken cannot honestly be compared with another. Retrievals now
-carry `retrieved_at` and `scopusflow_version`. Both are attributes, so the
-documented schema and the CSV round-trip are untouched, at the cost of `.csv`
-not preserving them. A combined harvest takes the earliest of
+say when it was taken cannot honestly be compared with another. Retrievals
+therefore carry `retrieved_at` and `scopusflow_version`. Both are attributes, so
+the documented schema and the CSV round-trip are untouched, at the cost of
+`.csv` not preserving them. A combined harvest takes the earliest of
 its cells' times, since a combined set is only as fresh as its oldest cell, and
 lists every version that contributed, since resuming an older cache means more
 than one did. The bundled `example_records` deliberately carries neither, so
@@ -1260,21 +1291,21 @@ byte-identical fixture `dedupe-fixture.csv`.
 
 ## Change tracking: what a diff can and cannot compare
 
-`scopus_diff_dois()` compares DOIs alone, so a record without one dropped out
-of its rows without a trace, 11 of the 138 records in the bundled corpus.
-'Scopus' gives no DOI to a share of what it indexes, more of it in the arts
-and humanities and among books and proceedings (Gorraiz et al., 2016, Journal
-of Informetrics, 10(1), 98–109). The diff now counts those records on each
-side, in the attributes `n_old_without_doi` and `n_new_without_doi`, and its
-printed line names them. It orders its rows with `method = "radix"`, as
-`scopus_top()` already did, since the default order followed the locale's
-collation and the Python twin compares code points. testthat runs every test
-under the C collation, which is why no test had caught the difference, and the
-order tests now set an English collation explicitly.
+`scopus_diff_dois()` compares DOIs alone, so a record without one has no row
+of its own, 11 of the 138 records in the bundled corpus. 'Scopus' gives no DOI
+to a share of what it indexes, more of it in the arts and humanities and among
+books and proceedings (Gorraiz et al., 2016, Journal of Informetrics, 10(1),
+98–109). The diff therefore counts those records on each side, in the
+attributes `n_old_without_doi` and `n_new_without_doi`, and its printed line
+names them. It orders its rows with `method = "radix"`, as `scopus_top()`
+does, since the default order follows the locale's collation and the Python
+twin compares code points. testthat runs every test under the C collation,
+which hides the difference, so the order tests set an English collation
+explicitly.
 
 Adding `by = "scopus_id"` to `scopus_diff_dois()` was rejected. It would have
-returned identifiers from a function and in a column named for DOIs. The new
-`scopus_diff_records()` compares records under the default rule of
+returned identifiers from a function and in a column named for DOIs.
+`scopus_diff_records()` instead compares records under the default rule of
 `scopus_combine()`, applied across the two pulls, so a diff and a merge of the
 same two sets agree on which records are one. A record found in one pull only
 whose DOI the other pull gives to a different record is a `conflict`. It may
@@ -1294,22 +1325,24 @@ on the byte-identical fixture `diff-fixture.csv`.
 
 ## Trend figures: the years searched and the year still being indexed
 
-`autoplot()` counted a record set's years from the first year in the records
-to the last, filling the years between with zeros. A plan's year cells need
-not be contiguous. A plan over 2015, 2016, 2019 and 2020 therefore drew zero
-bars for 2017 and 2018, years no cell searched, which a reader takes for years
-without publications. The Python twin's `year_counts()` had the opposite defect. It
-counted only the years holding records, so `plot_trend()` drew its line
-straight across a year without any. Both twins now count the years the set's
-searches covered, read from the plan's cells as the search record reads them.
+A plan's year cells need not be contiguous. A count running from the first year
+in the records to the last, with zeros for the years between, would give a plan
+over 2015, 2016, 2019 and 2020 zero bars for 2017 and 2018, years no cell
+searched, which a reader takes for years without publications. Counting only
+the years holding records has the opposite defect, since a trend line then
+runs straight across a year without any. Both twins therefore count the years
+the set's searches covered, for `autoplot()` in R and for `year_counts()` and
+`plot_trend()` in Python, reading them from the plan's cells as the search
+record reads them.
 A year without records counts as zero, and a year no cell searched is left
 out. A harvest stopped before its last cell covers the cells it ran. Without a
 plan the span of the records' own years stands in, since nothing then records
 which years were searched. A year that holds records always keeps its row, so
 a set merged with records from another source loses none of them.
-`year_counts(fill = False)` keeps the earlier output in Python, where the
-function is public. The R function is internal and needs no such switch. The
-rule is pinned by the shared fixture `trend-years.json`.
+`year_counts(fill = False)` counts only the years holding records in Python,
+where the function is public and a caller may rely on that count. The R
+function is internal and needs no such switch. The rule is pinned by the
+shared fixture `trend-years.json`.
 
 A count for the year of retrieval is a count so far. 'Scopus' is updated
 daily, and the PRISMA-S elaboration of item 13 notes that databases keep

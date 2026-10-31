@@ -24,29 +24,32 @@ finite cap is recorded on the result, and \code{\link[=scopus_search_report]{sco
 which cells stopped at it.}
 
 \item{cache_dir}{Optional directory for per-cell cache files. The default of
-\code{NULL} performs no caching. Pass an explicit path you control, or
-\code{scopus_cache_dir()} to use a managed, clearable cache under
-\code{\link[tools:R_user_dir]{tools::R_user_dir()}}. Caching happens only when you opt in through this
+\code{NULL} performs no caching. Pass an explicit path you control, or a
+directory of the plan's own under the managed, clearable cache, such as
+\code{file.path(scopus_cache_dir(), "my-plan")}, which is created when absent.
+Caching happens only when you opt in through this
 argument. A cache directory serves one plan: cells are checkpointed by
 their position in the plan and their year, so give each distinct plan its
 own directory. As a safeguard, a checkpoint is served only when the query,
 year, view, page size and paging mode it was fetched under all match the
 plan cell, and only when its own \code{max_results} did not truncate it below
 what is being asked for now; anything else is a cache miss, refetched and
-overwritten.
+overwritten with a \code{scopus_warning_cache_mismatch} warning.
 A checkpoint holding more records than the current \code{max_results} asks for
 is served trimmed to that cap, the fuller set staying on disk. A
 checkpoint that cannot be read back, for example one left half-written by
-an interrupted run, is also treated as a miss, and never aborts the
-harvest. A \code{COMPLETE} checkpoint written by a release that read \code{authors}
-from the first author alone (0.4.0 and earlier) is a miss as well, and is
-refetched once with a warning. \code{STANDARD} checkpoints from those releases
-are served as before, since their authors were read correctly.
+an interrupted run, is also treated as a miss, with a
+\code{scopus_warning_cache_unreadable} warning, and never aborts the harvest. A
+\code{COMPLETE} checkpoint written by a release that read \code{authors}
+from the first author alone (the 0.4.0 release and earlier) is a miss as
+well, and is refetched once with a \code{scopus_warning_cache_mismatch} warning.
+\code{STANDARD} checkpoints from those releases are served, since their authors
+were read correctly.
 Checkpoints also record their \code{fields}. One fetched with
 \code{fields = "extended"} serves a core request, with the extra columns
 dropped, while a core one is a miss for an extended request and is
-refetched with a warning. A checkpoint written before the fields were
-recorded counts as core.
+refetched with a \code{scopus_warning_cache_mismatch} warning. A checkpoint
+written before the fields were recorded counts as core.
 A \code{cache_dir} that is not a directory and cannot be created as one, or in
 which no file can be created, is refused with a \code{scopus_error_bad_input}
 error before any request. A checkpoint that cannot be written all the
@@ -64,12 +67,11 @@ file already exists is loaded from disk, sparing a second request.}
 pagination, which has no 5000-record ceiling, so a cell matching more
 records than that is retrieved whole and still checkpointed. The records
 then arrive in the API's deep-paging order (see \code{\link[=scopus_fetch]{scopus_fetch()}}). The
-default, \code{FALSE}, pages by offset, as plans always have, so a cell stops at
-its first 5000 records with a warning. Checkpoints record the paging mode
-and serve only requests made in the same mode. A checkpoint written before
-the mode was recorded counts as offset-paged. The Python twin's
-\code{fetch_plan()} pages by cursor unless told otherwise, the mode it has
-always used.}
+default, \code{FALSE}, pages by offset, so a cell stops at its first 5000
+records with a \code{scopus_warning_capped} warning. Checkpoints record the
+paging mode and serve only requests made in the same mode. A checkpoint
+written before the mode was recorded counts as offset-paged. The Python
+twin's \code{fetch_plan()} pages by cursor unless told otherwise.}
 
 \item{fields}{\code{"core"} (the default) or \code{"extended"}. \code{"extended"} also keeps
 the document type, source type, volume, issue, pages, ISSN, PubMed
