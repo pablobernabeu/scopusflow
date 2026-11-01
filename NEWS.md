@@ -47,11 +47,10 @@
   list at a semicolon with or without a space after it, where a list joined
   with `";"` alone, as version 0.3.0 of the Python twin wrote it, counted as one
   author.
-* `as_bibliometrix()` follows bibliometrix's own 'Scopus' import, giving `AU`
-  names as surname and initials joined by `";"`, such as `"ZHANG F;LI X"`, where
-  it upper-cased the `authors` string as given, and `UT` as the upper-cased
-  EID, where it gave the bare identifier, which `sub("^2-S2.0-", "", UT)` now
-  recovers. A set carrying author keywords gains `DE`.
+* `as_bibliometrix()` gives `AU` names as surname and initials joined by `";"`,
+  such as `"ZHANG F;LI X"`, where it upper-cased the `authors` string, and `UT`
+  as the upper-cased EID, where it gave the bare identifier. A set carrying
+  author keywords gains `DE`.
 * `read_scopus_records()` reads a `.csv` file as UTF-8 in every locale and a
   blank field as `NA`, where it followed the locale's encoding and read a blank
   field as an empty string.
@@ -245,13 +244,14 @@
   in the attributes `n_old_without_doi` and `n_new_without_doi`.
 * The app's 'Records' tab says how many records the harvest holds and that its
   table shows the first 25, and its 'Retrieval' panel says when the cap stopped
-  a cell. A failed harvest is reported in the worker's own words, marked
-  'Scopus:' when the package raised the error, as in the other panels.
+  a cell. A failed harvest is reported with the message of the error that
+  stopped it, without the wrapper that callr adds, marked 'Scopus:' when the
+  package raised the error, as in the other panels.
 * The app's 'Top authors' tab notes that a `STANDARD` harvest names first
   authors only.
 * In demo mode, the app's live terminal says when a year lies outside the
-  bundled corpus and which year it is drawn from, and a topic comparison notes
-  that its counts are illustrative.
+  bundled corpus and which year it is drawn from, and the app notes under a
+  topic comparison that its counts are illustrative.
 * The app's status text has the contrast that text needs, its progress bar has
   an accessible name and value and each figure has a text alternative.
 
