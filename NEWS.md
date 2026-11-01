@@ -1,4 +1,4 @@
-# scopusflow (development version)
+# scopusflow 0.5.0
 
 ## Upgrading from the previous release (0.4.0)
 
