@@ -94,7 +94,11 @@ all consume it.</p>
 
 
 <dl><dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
-<dd><p>An object to test.</p></dd>
+<dd><p>For <code>scopus_records()</code>, a parsed <code>search-results</code> list (the value of
+<code>httr2::resp_body_json(resp)[["search-results"]]</code>), a bare list of entry
+objects, or an existing <code>scopus_records</code> object, which is returned
+unchanged. For <code>is_scopus_records()</code>, any object to test. For the
+coercion methods, a <code>scopus_records</code> object.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -114,19 +118,19 @@ entries, kept in the <code>query</code> column for provenance.</p></dd>
 <dd><p>Optional character scalar naming the Search API view the entries
 came from. Pass <code>"COMPLETE"</code> to read <code>authors</code> from the author list that
 view carries and to add an <code>authkeywords</code> column (see below). Any other
-value, including the default <code>NULL</code>, reads the first author and reproduces
-the original columns exactly, so existing callers that never mention
-<code>view</code> see no change at all. <code><a href="scopus_fetch.html">scopus_fetch()</a></code> and <code><a href="scopus_fetch_plan.html">scopus_fetch_plan()</a></code>
+value, including the default <code>NULL</code>, reads the first author and adds no
+<code>authkeywords</code> column. <code><a href="scopus_fetch.html">scopus_fetch()</a></code> and <code><a href="scopus_fetch_plan.html">scopus_fetch_plan()</a></code>
 pass this through automatically.</p></dd>
 
 
 <dt id="arg-fields">fields<a class="anchor" aria-label="anchor" href="#arg-fields"></a></dt>
-<dd><p><code>"core"</code> (the default) builds the columns listed under
-<em>Value</em>, exactly as before. <code>"extended"</code> also keeps the document type,
-source type, volume, issue, pages, ISSN, PubMed identifier and open-access
-status the Search API sends with every record, and under
-<code>view = "COMPLETE"</code> the abstract, at no extra quota (see <em>Extended
-fields</em>). <code><a href="scopus_fetch.html">scopus_fetch()</a></code> and <code><a href="scopus_fetch_plan.html">scopus_fetch_plan()</a></code> pass this through.</p></dd>
+<dd><p><code>"core"</code> (the default) builds the core columns listed under
+<em>Value</em>, with <code>authkeywords</code> under <code>view = "COMPLETE"</code>. <code>"extended"</code> also
+keeps the document type, source type, volume, issue, pages, ISSN, PubMed
+identifier and open-access status the Search API sends with every record,
+and under <code>view = "COMPLETE"</code> the abstract, at no extra quota (see
+<em>Extended fields</em>). <code><a href="scopus_fetch.html">scopus_fetch()</a></code> and <code><a href="scopus_fetch_plan.html">scopus_fetch_plan()</a></code> pass this
+through.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -135,8 +139,10 @@ fields</em>). <code><a href="scopus_fetch.html">scopus_fetch()</a></code> and <c
 frame with the same columns and the <code>scopus_records</code> class removed.</p>
 <p>The <code>autoplot()</code> method returns a <a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot2::ggplot</a> of the records per
 year. The bars cover every year the set's plan searched, a year without
-records drawn as a zero bar, and no year the plan did not search. A plan
-over 2015, 2016, 2019 and 2020 therefore draws no bar for 2017 or 2018. A
+records drawn as a zero bar, and a year the plan did not search only where
+a record carries it. A plan partitioned by year over 2015, 2016, 2019 and
+2020 therefore draws no bar for 2017 or 2018, while a plan over the same
+years with <code>partition = "none"</code> searches 2015 to 2020 and draws all six. A
 harvest stopped before its last cell covers only the cells it ran. Without
 a plan, or with one that sent no year limit, the bars run from the first
 year in the records to the last. When a <code>max_results</code> cap stopped any
@@ -196,9 +202,8 @@ pybliometrics writes the given name after a bare comma, and this package uses
 the indexed name.</p>
 <p>Author keywords are only ever present under <code>view = "COMPLETE"</code>; the
 <code>STANDARD</code> view (the default throughout the package) never includes them,
-and <code>authkeywords</code> is not added to the output at all in that case, so
-existing code that inspects the column names of a <code>STANDARD</code>-view result is
-unaffected. Even under <code>COMPLETE</code> view, some 'Scopus' API keys do not return
+and <code>authkeywords</code> is not added to the output at all in that case. Even
+under <code>COMPLETE</code> view, some 'Scopus' API keys do not return
 populated author keywords (this was observed directly against a live,
 otherwise fully-entitled key during development, on documents that do carry
 author keywords in 'Scopus' itself); if your own keywords come back all

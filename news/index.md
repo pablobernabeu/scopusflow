@@ -2,636 +2,497 @@
 
 ## scopusflow (development version)
 
+### Upgrading from the previous release (0.4.0)
+
+#### Changed results
+
+- [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
+  sends each comparison as `(reference) AND (term)`, where, without
+  `field`, it joined them without brackets, so a reference with a
+  top-level AND NOT took the term into its negation and shares could
+  pass 100%. Re-run such comparisons made without `field`. Given
+  `field`, only the `query` column differs.
+- [`scopus_query()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_query.md)
+  brackets each term of several words, other than a quoted or braced
+  phrase or a bracketed or field-tagged group, when it joins terms
+  without `.field`, so
+  `scopus_query("machine learning", "deep learning", .op = "OR")` gives
+  `(machine learning) OR (deep learning)`, where ‘Scopus’ read the
+  unbracketed join as `machine AND (learning OR deep) AND learning`. It
+  also trims each term.
+- Under `view = "COMPLETE"`, the `authors` column lists every author, up
+  to the API’s 100, as `"Surname, Given"` joined by `"; "`, where it
+  held the first author alone. `COMPLETE` checkpoints from 0.4.0 are
+  fetched again once, each with a `scopus_warning_cache_mismatch`
+  warning.
+- `scopus_abstract(view = "REF", include = "references")` and
+  `scopus_corpus(view = "REF")` return the whole reference list, at one
+  request per 40 references, where they returned about the first 40. The
+  title and source of each reference are read, where both were `NA`. REF
+  checkpoints from 0.4.0 are fetched again once.
+- [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
+  and
+  [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
+  advance by the records each page returns, where a page shorter than
+  requested made them skip records. `STANDARD` plan checkpoints from
+  0.4.0 are served as before, so re-run with `resume = FALSE` a plan
+  that warned of a shortfall.
+- Requests are retried after a transport failure, such as a timeout or a
+  reset connection, where, under httr2 1.0.4 or later,
+  [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+  and
+  [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
+  gave the identifier an `NA` row with a warning and other functions
+  stopped with an error.
+- `scopus_combine(dedupe = TRUE)` matches DOIs without resolver prefixes
+  and joins a record without a ‘Scopus’ identifier, a blank one
+  included, to the identified record with its DOI, where 0.4.0 kept them
+  apart and merged all records with a blank identifier.
+  `dedupe = "id_then_doi"` restores the 0.4.0 rule.
+- [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+  requests `view = "META_ABS"` by default, where it sent no view, which
+  Elsevier documents as giving no abstract, although the API has
+  returned one. With a key not entitled to that view, the call stops
+  with `scopus_error_forbidden` (HTTP 403). `view = NULL` restores the
+  0.4.0 request and reads its checkpoints.
+- `scopus_top(by = "author")`,
+  [`as_bibtex()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
+  and
+  [`as_ris()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
+  split an author list at a semicolon with or without a space after it,
+  where a list joined with `";"` alone, as version 0.3.0 of the Python
+  twin wrote it, counted as one author.
+- [`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)
+  gives `AU` names as surname and initials joined by `";"`, such as
+  `"ZHANG F;LI X"`, where it upper-cased the `authors` string, and `UT`
+  as the upper-cased EID, where it gave the bare identifier. A set
+  carrying author keywords gains `DE`.
+- [`read_scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_records.md)
+  reads a `.csv` file as UTF-8 in every locale and a blank field as
+  `NA`, where it followed the locale’s encoding and read a blank field
+  as an empty string.
+- The app’s ‘Author’ choice under ‘Search in’ sends `AUTH`, where it
+  sent `AUTHLASTNAME`, which searches surnames alone.
+- [`run_app()`](https://pablobernabeu.github.io/scopusflow/reference/run_app.md)
+  leaves its ‘Max records per cell’ field blank, where the field,
+  labelled ‘Max records per year’ in 0.4.0, capped at 200 records each
+  year or, with ‘Partition by year’ off, the whole search. Entering 200
+  restores that cap.
+- [`run_app()`](https://pablobernabeu.github.io/scopusflow/reference/run_app.md)
+  opens its year slider on 2015 to 2024, where it opened on the last six
+  years.
+- [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+  and
+  [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
+  give no keyword for a lone author-keyword entry without text, where
+  they gave the keyword `"true"`. Checkpoints from 0.4.0 keep that
+  keyword, so re-run such a batch with `resume = FALSE`.
+- The app trims the query before every request, so it sends the query
+  the script panel shows, where ‘Check size’, ‘Compare topics’ and
+  ‘Fetch records’ sent it as typed.
+
+#### Changed interface
+
+- [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md),
+  [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md),
+  [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md),
+  [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md),
+  [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
+  and
+  [`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md)
+  refuse with `scopus_error_bad_input`, before any request, unbalanced
+  brackets, quotation marks or braces and the `LIMIT-TO()` and
+  `EXCLUDE()` refinements that the Search API ignores, with which a
+  search ran unfiltered.
+- [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md)
+  given `field` refuses with `scopus_error_bad_input` a query, and
+  [`scopus_query()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_query.md)
+  given `.field` a term, that already opens with a field tag, where they
+  nested the tags, which the API rejects.
+  [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md),
+  [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md),
+  [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md)
+  and
+  [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
+  refuse such a query before the request.
+- `scopus_error_bad_input` inherits `scopus_error`, so a handler for
+  `scopus_error` catches input errors, and an invalid `view`,
+  `partition`, `by`, `.op` or `style` raises it too. A retry loop on
+  `scopus_error` should not retry this subclass.
+- scopusflow requires httr2 1.0.4 or later, and its app shiny 1.6.0 or
+  later.
+- [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
+  returns a `scopus_id` column in second place, so code that selects its
+  columns by position needs updating.
+- A logical argument such as `cursor`, `resume`, `verbose`, `dedupe` in
+  [`scopus_extract_dois()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_extract_dois.md)
+  or `create` in
+  [`scopus_cache_dir()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_dir.md)
+  must be `TRUE` or `FALSE`, where `cursor`, `dedupe` and `create` read
+  `"TRUE"`, `1` and `NA` as `FALSE`.
+- [`scopus_combine()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md)
+  refuses any `dedupe` but `TRUE`, `FALSE` or a rule name, where `NA` or
+  another value meant no de-duplication.
+- [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md),
+  [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
+  and `scopus_plan(partition = "year")` refuse an empty `years` with
+  `scopus_error_bad_input`, as they refuse `years = NULL`, where
+  [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md)
+  returned an empty trend,
+  [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
+  stopped with an untyped error and
+  [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md)
+  built a plan without cells.
+- [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md),
+  [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+  and
+  [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
+  refuse with `scopus_error_bad_input`, before any request, a
+  `cache_dir` in which no file can be created, where 0.4.0 read its
+  checkpoints and lost any records it fetched to an error. Copy a
+  read-only cache to a writable directory.
+- The options `scopusflow.base_url` and `scopusflow.abstract_url` accept
+  only an `https` URL on `api.elsevier.com` or another host under
+  `elsevier.com`, so the API key goes to Elsevier alone. Any other value
+  is refused before a request.
+
+#### Changed output
+
+- [`scopus_search_report()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_search_report.md)
+  dates a harvest from its first retrieval to its last, where it gave
+  the first alone, lists year cells with gaps separately, where it gave
+  one span, names a `max_results` cap and supplies PRISMA-S item 2.
+- For a set without a plan,
+  [`scopus_search_report()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_search_report.md)
+  calls the year limit unrecorded, where it said that no year limit was
+  applied, and leaves PRISMA-S item 8 to the author.
+- [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
+  attaches the plan it ran, so the search record of its result states
+  the field tag and years and gives a reproduction snippet.
+- Given a one-cell `plan` for a set without per-cell counts,
+  [`scopus_search_report()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_search_report.md)
+  reports the set’s own counts, where it called them unrecorded.
+- PRISMA-S item 16 of
+  [`scopus_search_report()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_search_report.md)
+  names the de-duplication rule and the number of DOIs that records with
+  different identifiers share, which
+  [`scopus_combine()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md)
+  records in its `combined` attribute as `rule` and `doi_conflicts`.
+- In demo mode, the app’s search record names no search expression and
+  says that the records were replayed and that it describes no search
+  that was run, where it gave the bundled corpus’s phrase as the search
+  expression.
+- [`as_bibtex()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
+  and
+  [`as_ris()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
+  write a name ending in initials as ‘Surname, I.’, where BibTeX read
+  the initials as the family name and Zotero kept each RIS author as one
+  field. Citation keys are unchanged.
+- [`as_bibtex()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
+  spaces run-together initials, which BibTeX read as one given name, and
+  protects words such as DNA in titles from lower-casing.
+- [`as_ris()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
+  gives the source title as `T2` in place of `JO` and adds `DB - Scopus`
+  and the EID as `AN`.
+- [`as_ris()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
+  and
+  [`as_bibtex()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
+  export an `authkeywords` or `abstract` column, as a `COMPLETE` harvest
+  (the abstract with `fields = "extended"`) or
+  [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+  gives, where they wrote neither.
+- Every file the package writes is UTF-8 in every locale, where a C or
+  single-byte locale wrote a character it could not encode as text such
+  as `<U+00ED>`.
+- `autoplot()` of a record set, a
+  [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
+  result included, draws a bar, zero if need be, for each year its plan
+  searched, where its bars ran from the first year in the records to the
+  last.
+- When the `max_results` cap stopped a cell, `autoplot()` of a record
+  set says that the bars count retrieved records.
+- When the years plotted reach the year of retrieval,
+  [`plot_scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_trend.md)
+  and `autoplot()` of a trend or a record set add a caption line saying
+  that it and any later year were incomplete when retrieved. They read
+  the year from `retrieved_at`, which
+  [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md)
+  also records.
+- [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
+  warns with `scopus_warning_shortfall`, as plan cells do, when it
+  retrieves fewer records than the API reported, unless `max_results` or
+  the offset ceiling stopped it.
+- [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md),
+  [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md),
+  [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md),
+  [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md),
+  [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
+  and
+  [`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md)
+  warn with `scopus_warning_query_syntax` for `INDEXTERMS()`, which
+  pybliometrics documents as not working through the Search API.
+- `scopus_top(by = "author")` and
+  [`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)
+  warn once per session (`scopus_warning_first_author_only`) that a set
+  recorded as retrieved under `STANDARD` names first authors only. Sets
+  retrieved by 0.4.0 record no view and do not warn.
+- An HTTP 429 marked `QUOTA_EXCEEDED` raises
+  `scopus_error_quota_exceeded`, a subclass of
+  `scopus_error_rate_limit`, and is not retried.
+  [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+  and
+  [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
+  stop requesting at a spent quota and give the remaining identifiers
+  their `NA` rows with one `scopus_warning_quota_exceeded` warning,
+  where they tried each three times and warned for each.
+- The message for HTTP 403 no longer blames the quota, and a timeout
+  raises `scopus_error_timeout`, a subclass of `scopus_error_offline`,
+  with a message naming the time limit, where it said that the API could
+  not be reached.
+- The script the app generates keeps each plan’s checkpoints in a
+  directory of its own under
+  [`scopus_cache_dir()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_dir.md),
+  where plans shared one and overwrote each other’s checkpoints. A
+  script generated now does not resume from the checkpoints of one
+  generated by 0.4.0.
+- The script the app generates records the scopusflow version, notes
+  when demo mode was on, saves the records before plotting, plots only
+  where ggplot2 is installed and includes a comparison run with
+  ‘Partition by year’ off, which it left out.
+- The app’s cost note for a topic comparison and the generated script’s
+  comment on that cost give (terms + 1) × years requests, where they
+  gave terms × years. The note’s advice to use fewer terms or years
+  applies above 80 such requests.
+- [`scopus_diff_dois()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_diff_dois.md)
+  orders its rows in byte order on every machine, where it followed the
+  locale’s collation, and its printed line counts the records it could
+  not compare for want of a DOI.
+- [`plot_scopus_comparison()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_comparison.md)
+  writes each count in its labels without padding, where it padded the
+  smaller counts to the width of the largest.
+- Inside a plan, the warning for a cell stopped at the offset ceiling
+  advises `scopus_fetch_plan(plan, cursor = TRUE)`, where it advised
+  `scopus_fetch(cursor = TRUE)` or partitioning by year.
+- `citation("scopusflow")` gives the DOI that CRAN registered,
+  <https://doi.org/10.32614/CRAN.package.scopusflow>, where it gave the
+  Zenodo concept DOI, <https://doi.org/10.5281/zenodo.21252669>.
+
 ### New features
 
 - [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
   gains `cursor`, so a plan cell matching more than 5000 records can be
-  retrieved whole and still be checkpointed. The default,
-  `cursor = FALSE`, keeps the offset paging plans have always used.
-  Checkpoints now record the paging mode and serve only a request in the
-  same mode, and one written before the mode was recorded counts as
-  offset-paged. A checkpoint in the other mode is refetched with a
-  warning that names both modes. Inside a plan, the warning for a cell
-  that stops at the offset ceiling now names
-  `scopus_fetch_plan(plan, cursor = TRUE)`. It used to advise
-  partitioning by year, which a year-partitioned plan already does. The
-  search record’s reproduction snippet passes `cursor = TRUE` when the
-  records were paged by cursor. The Python twin’s `fetch_plan()` gains
-  `cursor` too, and keeps the cursor paging it has always used unless
-  given `cursor=False`.
+  retrieved whole and checkpointed. The default, `cursor = FALSE`, keeps
+  offset paging, and a checkpoint serves only a request in its own
+  paging mode.
 - [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md),
   [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
   and
   [`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
   gain `fields = "extended"`, adding the document type, source type,
-  volume, issue, pages, ISSN, PubMed identifier and open-access status
-  the Search API already returns, and the abstract under the `COMPLETE`
-  view, at no extra quota.
-  [`summary()`](https://rdrr.io/r/base/summary.html) reports how many
-  records ‘Scopus’ labels errata or retracted, and the help pages
-  explain why those labels do not screen a set for retractions.
-  Checkpoints record their fields. An extended checkpoint serves a core
-  request with the extra columns dropped. A core checkpoint is a miss
-  for an extended request and is refetched with a warning.
-  [`read_scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_records.md)
-  keeps the extended columns of a `.csv` file, as text apart from the
-  integer `open_access`, so an ISSN keeps its leading zeros. The
-  default, `fields = "core"`, returns the columns it always has. The
-  Python twin’s `fetch_plan()` and `to_records()` gain `fields` too.
+  volume, issue, pages, ISSN, PubMed identifier, open-access status and,
+  under `COMPLETE`, the abstract, at no extra quota.
+- [`summary()`](https://rdrr.io/r/base/summary.html) of a set retrieved
+  with `fields = "extended"` counts its document types and reports how
+  many records ‘Scopus’ labels errata or retracted, and the help
+  explains why those labels do not screen a set for retractions.
 - With `fields = "extended"`,
   [`as_ris()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
   and
   [`as_bibtex()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
-  type conference papers, conference reviews, chapters and books by the
-  document type ‘Scopus’ gives them (RIS `CPAPER`, `CONF`, `CHAP` and
-  `BOOK`, BibTeX `@inproceedings`, `@incollection` and `@book`), where
-  every record used to be a journal article. The entries carry the
-  volume, issue, pages, ISSN and document type, and under
-  `view = "COMPLETE"` the abstract, which screening and de-duplication
-  tools read. A `COMPLETE` set also exports its author keywords, one RIS
-  `KW` line each, with or without the extended fields. A value the
-  record lacks is left out. The Python twin’s `to_ris()` and
-  `to_bibtex()` do the same, held to a shared golden file.
+  type conference papers, conference reviews, chapters and books by
+  their ‘Scopus’ document type and add the volume, issue, pages, ISSN
+  and, in RIS, the document type as `M3`.
+  [`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)
+  adds `DT`, `VL` and `IS`.
 - `scopus_abstract(include = "index_terms")` returns the index keywords
-  ‘Scopus’ assigns, in an `idxterms` column joined by `"; "`, under
-  `view = "FULL"`.
+  ‘Scopus’ assigns, in an `idxterms` column, under `view = "FULL"`.
   [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
-  can use them, alone or with the author keywords, through its new
-  `keywords` argument, `"index"` or `"both"`, and refuses either under
-  `view = "REF"` before any request. The default, `keywords = "author"`,
-  keeps the author keywords alone. ‘Scopus’ chooses index keywords from
-  standard vocabularies, so they give different co-occurrence results
-  from author keywords, and whether they arrive depends on the key’s
-  entitlement. In development testing, they arrived on a key whose
-  author keywords came back empty. The Python twin’s
-  [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
-  and `corpus()` gain the same options.
+  gains `keywords`, to use them alone (`"index"`) or with the author
+  keywords (`"both"`). The default, `"author"`, is unchanged.
 - [`write_scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_corpus.md)
-  writes a
-  [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
-  result in theoryforge’s corpus schema, keying cited works on the
-  ‘Scopus’ identifier so the same work is one node however its DOI is
-  written.
+  writes, and
   [`as_theoryforge_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_corpus.md)
-  returns the same document as a list. A reference that carries only a
-  DOI takes the identifier that another document or reference in the
-  corpus pairs with that DOI, and one with neither is dropped with a
-  warning. Keywords are trimmed, lower-cased and made unique, and a
-  missing year is written as `null`. Keyed on the DOI wherever there was
-  one, as theoryforge’s own recipe did, two documents citing the same
-  two works gave no co-citation edge. A `provenance` block records the
-  search expression, when the search ran, the kind of keyword and how
-  many references were dropped and records came without keywords. The
-  Python twin’s `write_corpus()` and `to_theoryforge_corpus()` write the
-  same bytes, held to a shared golden file and validated against a copy
-  of theoryforge’s schema.
+  returns, a
+  [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
+  result in theoryforge’s corpus schema, with a `provenance` block,
+  keying cited works on the ‘Scopus’ identifier so that a work is one
+  node however its DOI is written.
 - [`scopus_diff_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_diff_records.md)
-  compares two harvests record by record, matching on the ‘Scopus’
-  identifier and, where a record lacks one, on the DOI, as
-  `scopus_combine(dedupe = TRUE)` matches records. Each row gives the
-  record’s citation counts in both harvests beside its status,
-  identifier, DOI, title and year. A record in one harvest only whose
-  DOI the other harvest gives to a different record is marked `conflict`
-  for you to check, since it may have been re-indexed under a new
-  identifier or may be a distinct paper sharing the DOI. Records with
-  neither key are counted and left out. The Python twin’s
-  `diff_records()` returns the same rows, held to a shared fixture.
+  compares two harvests record by record, matching records as
+  `scopus_combine(dedupe = TRUE)` does. It gives each record’s citation
+  counts in both and marks as `conflict` a record whose DOI the other
+  harvest gives to a different record.
+- [`scopus_combine()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md)
+  gains `dedupe = "id_or_doi"`, which also merges records with different
+  identifiers that share a DOI, and accepts `"id_or_shared_doi"` as the
+  name of the rule `TRUE` applies.
 
-### Changed behaviour
+### Minor improvements
 
 - [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
-  now reports the requests it made and the quota left, in the
-  `n_requests` and `quota` attributes, as the Python twin does, and both
-  twins return each document’s ‘Scopus’ identifier in a new `scopus_id`
-  column, the second. It comes from Abstract Retrieval, or from the
-  records where the lookup failed. Code that selects the corpus’s
-  columns by position needs updating. The result also carries the search
-  expression, when the search ran and the kind of keyword, as the
-  attributes `query`, `retrieved_at` and `keywords`, which
-  [`write_scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_corpus.md)
-  records.
-
-- Input errors now inherit `scopus_error`, as the package has always
-  documented. `scopus_error_bad_input` was raised on its own, so
-  `tryCatch(scopus_error = ...)` let a blank query or an out-of-range
-  year through. Invalid `view`, `partition`, `by`, `.op` and `style`
-  values now raise `scopus_error_bad_input` too, where they were bare
-  `rlang_error` conditions with the same message. A retry loop keyed on
-  `scopus_error` should test the subclass, since an input error will not
-  succeed on retry.
-
-- [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
-  now requests `view = "META_ABS"` by default, the view Elsevier
-  documents as carrying the abstract, as the Python twin does. It used
-  to send no view and so took the API’s default, which Elsevier
-  documents as META, a view without the abstract. A live request in
-  October 2026 nonetheless returned the abstract without a view, so
-  earlier default calls may well have carried it. The column no longer
-  depends on behaviour the documentation contradicts. Pass `view = NULL`
-  to send the old request. A default call’s checkpoints are now keyed
-  `META_ABS`. A cache written by 0.4.0 for a call without a view
-  therefore serves only `view = NULL`, and a default call spends a
-  request on each of its identifiers again.
-
-- Queries are checked offline before any request. `LIMIT-TO()` and
-  `EXCLUDE()` refinement syntax pasted from the web interface, a field
-  tag wrapped around a query that already opens with one, and unbalanced
-  brackets, quotation marks or braces now raise `scopus_error_bad_input`
-  in
-  [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md),
-  [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md),
-  [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md),
-  [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md),
-  [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
-  and
-  [`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md).
-  The Search API ignores a refinement without an error, so such a search
-  ran unfiltered. A nested field tag failed with HTTP 400 after spending
-  a request, and unbalanced brackets reached the API unchecked.
-  `INDEXTERMS()`, which pybliometrics documents as not working through
-  the Search API, raises a `scopus_warning_query_syntax` warning. The
-  messages match the Python twin’s word for word. Given `.field`,
-  [`scopus_query()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_query.md)
-  now refuses a term that already opens with a field tag, where
-  `scopus_query("TITLE(x)", .field = "ABS")` used to give
-  `ABS(TITLE(x))`.
-  [`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md)
-  uses a concept written as the web interface writes a tag,
-  `TITLE-ABS-KEY ( x )`, as given, where it used to wrap it in `field` a
-  second time.
-
-- RIS records put the source title under `T2`, which reference managers
-  read as the publication title, instead of `JO`, which Zotero reads as
-  the journal abbreviation, and now carry `DB - Scopus` and the EID as
-  `AN`.
-
-- [`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)
-  follows the conventions `bibliometrix::convert2df()` applies to a
-  ‘Scopus’ export, so its frame describes a record as a ‘Scopus’ CSV
-  import does. `AU` gives each author as the surname and initials
-  without full stops (`"ZHANG F"`, where it held `"ZHANG F."`), joined
-  by `";"`, and a `COMPLETE` name such as `"Tour, James M."` becomes
-  `"TOUR JM"`. `UT` holds the upper-cased EID, `"2-S2.0-<scopus_id>"`,
-  where it held the bare identifier, which `sub("^2-S2.0-", "", UT)`
-  restores. A set carrying author keywords gains `DE`, and one retrieved
-  with `fields = "extended"` gains `DT`, `VL` and `IS`.
-
-- Requests are retried after transport failures such as timeouts and
-  connection resets, which httr2 stopped doing by default in 1.0.4, so
-  one such failure no longer aborts a harvest. scopusflow now requires
-  httr2 1.0.4 or later. A timeout is reported as such, with the class
-  `scopus_error_timeout` (a subclass of `scopus_error_offline`), and no
-  longer as being offline.
-
-- De-duplication in
-  [`scopus_combine()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md)
-  now cleans DOIs as
-  [`scopus_extract_dois()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_extract_dois.md)
-  does (resolver prefixes, case) and matches a record without a ‘Scopus’
-  identifier to the identified record carrying the same DOI. Records
-  with different identifiers and one DOI are still both kept, since
-  ‘Scopus’ also gives one DOI to distinct papers, and the merge now
-  counts them for you to check. The `combined` attribute records the
-  rule as `rule` and the DOIs such records share as `doi_conflicts`, and
-  PRISMA-S item 16 of the search record names the rule and gives the
-  count. `dedupe = "id_or_doi"` merges records with different
-  identifiers that share a DOI, and `dedupe = "id_then_doi"` reproduces
-  the earlier rule. A set merged by 0.4.0 records no rule and keeps its
-  item 16 wording. A blank identifier, which
-  [`read_scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_records.md)
-  reads from a CSV file the Python twin wrote, now counts as none, where
-  every record carrying one was merged into one record. `dedupe` refuses
-  a value other than `TRUE`, `FALSE` or the name of a rule, where `NA`
-  or any other value meant no de-duplication.
-
-- A logical argument that is not `TRUE` or `FALSE` now raises
-  `scopus_error_bad_input` before any request: `cursor` and `verbose` in
-  [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md),
-  `resume` and `verbose` in
-  [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md),
-  [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
-  and
-  [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md),
-  `verbose` in
-  [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md),
-  [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
-  and
-  [`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md),
-  `dedupe` in
-  [`scopus_extract_dois()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_extract_dois.md)
-  and `create` in
-  [`scopus_cache_dir()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_dir.md).
-  [`isTRUE()`](https://rdrr.io/r/base/Logic.html) read `"TRUE"`, `1` and
-  `NA` alike as `FALSE`, so `scopus_fetch(cursor = "TRUE")` paged by
-  offset under the ceiling the caller meant to lift, and any other value
-  died on a base error that a handler for `scopus_error` could not
-  catch.
-
-- An empty `years` vector places no year restriction, as `NULL` does and
-  as the Python twin reads an empty list.
-  [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md),
-  [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md)
-  and
-  [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
-  died on an untyped formatting error building a date range from it, and
-  [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md)
-  and
-  [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md),
-  which count each year, now refuse it with the typed error a missing
-  `years` already raised.
-
-### Bug fixes
-
-- The app’s search record no longer gives the bundled corpus’s own
-  phrase as the search expression of a demo harvest, in a methods
-  paragraph written to be pasted into a manuscript. In demo mode the
-  record now names no expression, and it opens by saying that the
-  records were replayed and that it describes no search that was run.
-  Where the records came from is fixed when the harvest starts, so
-  switching Demo mode afterwards does not change the record. The Python
-  app does the same.
-- The app’s Check size button no longer closes the session on a blank
-  query. The handler caught `scopus_error` alone, so the input error
-  escaped it and Shiny ended the session. Check size and Fetch now
-  refuse a blank query with a notification, as Compare and the Python
-  app already did, and any other failure in Check size is shown as a
-  notification.
-- [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
-  joined the reference and each comparison term without brackets, so a
-  reference containing OR or AND NOT was regrouped by the operator
-  precedence of ‘Scopus’. Under the documented order, which applies AND
-  NOT last, an AND NOT reference took the term into its negation, so the
-  comparison set could exceed the reference and shares passed 100%. The
-  join is now `(reference) AND (term)`, as
-  [`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md)
-  already wrote it. Re-run comparisons whose reference contains OR or
-  AND NOT.
-- [`scopus_query()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_query.md)
-  now brackets each term of several words when it joins two or more
-  terms without a field tag, since ‘Scopus’ joins the words of an
-  unquoted term with AND.
-  `scopus_query("machine learning", "deep learning", .op = "OR")` used
-  to give `machine learning OR deep learning`, which reads as
-  `machine AND (learning OR deep) AND learning`. Quoted and braced
-  phrases, bracketed groups and single field-tagged groups are left as
-  written, and single words are never bracketed, so
-  `scopus_query("CRISPR", "Cas9", .op = "OR")` is unchanged. Terms are
-  also trimmed of the white space the Python twin trims, no-break spaces
-  included.
-- A reference list that arrives as a single bare object, which is how
-  Elsevier’s JSON sends a one-item array, no longer aborts the whole
-  [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
-  or
-  [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
-  batch, and every resume of it, with an untyped “subscript out of
-  bounds” error. Neither does a cited work whose author list arrives
-  that way. Any other shape the keyword or reference parser cannot read
-  is now handled as a malformed response (`scopus_error_malformed`).
-  That identifier gets a row of `NA`s and a warning and is retried on
-  resume, while the rest of the batch completes. A lone author-keyword
-  entry that carries no text, such as `{"@_fa": "true"}`, no longer
-  becomes the keyword “true”.
-- The `authors` column held only the first author. The Search API’s
-  `dc:creator` field is the first author alone, and the author list
-  exists only under `view = "COMPLETE"`, where scopusflow ignored it.
-  Under `COMPLETE` the column now lists the authors as
-  `"Surname, Given"`, joined by `"; "` (up to the API’s 100 per record),
-  so author tallies,
-  [`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)
-  and the BibTeX and RIS exports see every author. Under `STANDARD` it
-  still holds the first author, and `scopus_top(by = "author")` and
-  [`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)
-  now say so once per session, as a note on the app’s Top authors tab
-  does. Retrievals record their view as the `view` attribute, which a
-  combined set keeps where its parts agree. `COMPLETE`-view checkpoints
-  written by earlier versions are refetched once, and `STANDARD` ones
-  are served as before. This corrects the 0.1.0 entry, which said the
-  column retained every author a record lists.
-- Under `view = "REF"`,
-  [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
-  returned only the first page of a reference list, about 40 references,
-  which the documentation blamed on the API. It now follows `startref`
-  until the list is complete, as pybliometrics does, at a cost of one
-  request per 40 references, and `n_requests` counts each page. A REF
-  reference’s title and source are now read, where both were always
-  `NA`. REF cache files are keyed `REF-paged`, so truncated ones written
-  by 0.4.0 are refetched once. This reaches
-  `scopus_corpus(view = "REF")` too.
-- BibTeX and RIS exports wrote names in the ‘Scopus’ form “Surname I.”,
-  with no comma, so BibTeX and biber took the initials for the family
-  name and sorted bibliographies by them, and Zotero kept each RIS
-  author as a single field. This touched every export of records
-  retrieved outside `COMPLETE`. A name ending in initials is now written
-  “Surname, I.”, and BibTeX titles protect words such as CRISPR-Cas9 and
-  DNA from lower-casing. BibTeX also spaces run-together initials (“J.
-  R.”), which it would otherwise read as one given name. The `authors`
-  column and the citation keys are unchanged.
-- A spent weekly quota is no longer treated as a transient rate limit.
-  Elsevier answers both with HTTP 429, and a response marked
-  `QUOTA_EXCEEDED` now raises `scopus_error_quota_exceeded` (a subclass
-  of `scopus_error_rate_limit`) naming the reset time, and is not
-  retried. It stops a
-  [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
-  or
-  [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
-  batch with the rows already retrieved kept, an `NA` row for each
-  identifier not retrieved and one `scopus_warning_quota_exceeded`
-  warning. Every remaining identifier used to be tried three times and
-  become an `NA` row with a warning of its own. The 403 message no
-  longer blames the quota, and `Retry-After` dates parse in any locale,
-  where a German or French `LC_TIME` made every one `NA`.
-  [`scopus_quota()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_quota.md)
-  documents `reset` as the time the key’s quota resets, not a rate-limit
-  window.
-- The search record dated a harvest by its earliest cell, although
-  PRISMA-S item 13 asks for the date of the last search. Retrievals now
-  carry `retrieved_until` beside `retrieved_at`. For the harvest of a
-  plan, or a set from
-  [`scopus_combine()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md),
-  it holds the latest of its parts’ times, as `retrieved_at` holds the
-  earliest. A search run over several sessions, or a baseline merged
-  with its update, is now dated from its first retrieval to its last,
-  item 13 gives the date of the last search, and the methods paragraph
-  says the literature was searched between the two dates. Stamps on one
-  UTC day give the single date they always gave.
-- A set without a plan no longer says “no year limit” when its limit is
-  only unrecorded, and no longer lists item 8 of PRISMA-S as supplied.
-  [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
-  now attaches the one-cell plan it ran, so its record states the field
-  tag and the years. A one-cell plan supplied for a set without per-cell
-  counts keeps the set’s own counts, which the record used to call
-  unrecorded. Year cells with gaps between them are listed, as in “2015,
-  2020 and 2025”, where the record gave one span that claimed the years
-  between. Item 2, on databases searched together on one platform, is
-  now supplied, since the API searches Scopus alone.
-- A harvest capped by `max_results` is now recorded as capped: the
-  search record names the cap in the cells, the completeness line and
-  item 9, the reproduction snippet passes it, and `autoplot()` says the
-  bars count retrieved records. The app no longer caps live harvests at
-  200 records per year by default. Its field, now labelled “Max records
-  per cell”, starts blank, and a note in the Retrieval panel says when
-  the cap stopped a cell.
-  [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
-  and
-  [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
-  keep a finite cap as the `max_results` attribute, which the record
-  reads.
-- Closing one tab of the app deleted every other tab’s checkpoints
-  mid-harvest, because the app kept its checkpoints by search alone and
-  each session’s end removed the directory all sessions shared. Each
-  session now keeps them in a temporary directory of its own, removed
-  when that session ends, and a search fetched again in the same tab,
-  after Cancel or a failure, resumes from them. The app article no
-  longer promises that a quota-limited run picks up where it left off,
-  which the temporary directory never allowed across sessions, and
-  points to the generated script for a harvest that has to outlast the
-  session.
-- The script the app writes passed
-  [`scopus_cache_dir()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_dir.md)
-  itself to every plan, so one plan’s checkpoints overwrote another’s
-  and each rerun paid for them again. It now keeps each plan’s
-  checkpoints in a directory of their own under
-  [`scopus_cache_dir()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_dir.md),
-  named from the query and the years with a short hash added. The script
-  opens with the scopusflow version that wrote it, notes when demo mode
-  was on, saves the records before it plots and plots only where ggplot2
-  is installed. A comparison run with Partition by year off, which
-  covers the last six years, was left out of the script and is now
-  written over those years. The README and the articles likewise give
-  each plan a directory of its own under
-  [`scopus_cache_dir()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_dir.md).
-- The request count of a topic comparison was understated in the help
-  for
-  [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md),
-  the app, the generated script and two articles. It is (terms + 1) ×
-  years, since the reference is counted in every year too, so the app’s
-  default of two terms over six years makes 18 requests, where its note
-  said 12. The app’s advice to use fewer terms or years now applies
-  above 80 requests counted this way.
-- The app’s Records tab now says how many records the harvest holds and
-  that its table shows the first 25 of them. A failed harvest is
-  reported in the worker’s own words, where the notification opened with
-  the “in callr subprocess” wrapper of the background process, and an
-  error raised by scopusflow is marked “Scopus:”, as the other panels
-  mark theirs. The year slider opens on 2015 to 2024, the span of the
-  bundled corpus that demo mode replays, as the Python app’s slider
-  does. The app reads that corpus as
-  [`scopusflow::example_records`](https://pablobernabeu.github.io/scopusflow/reference/example_records.md),
-  so demo mode works when the app is launched as
-  [`scopusflow::run_app()`](https://pablobernabeu.github.io/scopusflow/reference/run_app.md)
-  without attaching the package, where Check size and Fetch records
-  failed with “object ‘example_records’ not found”.
-- [`scopus_diff_dois()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_diff_dois.md)
-  now says how many records it could not compare for want of a DOI, in
-  the attributes `n_old_without_doi` and `n_new_without_doi` and on its
-  printed line. Such records, 11 of the 138 in the bundled corpus, used
-  to vanish from the diff without a count. It also orders its rows the
-  same way on every machine, in byte order as the Python twin does,
-  where it followed the locale’s collation and an English locale put
-  `10.1016/j.cell` before `10.1016/S0140`. The tracking article advised
-  preferring the ‘Scopus’ identifier, which no function supported, and
-  now points to
-  [`scopus_diff_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_diff_records.md).
-- A `cache_dir` that cannot be written is now refused with
-  `scopus_error_bad_input` before any request, in
-  [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md),
-  [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
-  and
-  [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md).
-  A checkpoint that cannot be written all the same, for example on a
-  full disk, gives a `scopus_warning_cache_unwritable` warning, and its
-  records are kept in the result. Both used to spend the cell’s quota
-  and then lose its records to an untyped “cannot open the connection”
-  error. The
-  [`scopus_cache_clear()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_clear.md)
-  example no longer deletes a real managed cache when the examples are
-  run, since it now points the cache at a temporary directory first.
-- `autoplot()` of a record set no longer draws zero bars for years its
-  plan never searched. The bars ran from the first year in the records
-  to the last, so a plan over 2015, 2016, 2019 and 2020 showed 2017 and
-  2018 as years without publications. They now cover the years the plan
-  searched, each year cell or every year of a single cell’s range, and a
-  year without records is still drawn as a zero bar. A set without a
-  plan keeps the span of its own years. The Python twin’s
-  `year_counts()` counts the same years, held to a shared fixture.
-- Trend figures now say when their last year was still being indexed.
-  [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md)
-  records when it counted, in the `retrieved_at` attribute.
-  [`plot_scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_trend.md)
-  and `autoplot()` then add a caption line such as “2026 was incomplete
-  when retrieved on 2026-09-29.” when the years plotted reach that year.
-  ‘Scopus’ goes on indexing a year’s publications after the year has
-  begun, so the last point of such a figure was a count so far, easily
-  read as a decline. The line is read from the recorded time, never from
-  the session’s clock, so a trend tallied by hand is drawn as before.
-  The Python twin’s `plot_trend()` adds the same note.
+  reports its requests and the quota left in the `n_requests` and
+  `quota` attributes, and records the search expression, when the search
+  that found the records ran and the kind of keyword as `query`,
+  `retrieved_at` and `keywords`.
 - [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
-  no longer loses records when a page comes back shorter than it asked
-  for in the middle of a result set, as a server that caps its pages
-  below `page_size` returns it. Offset paging advanced by the page size
-  it had requested, stepping over the records between those received and
-  the next offset, and took the short page for the last, so 20 of 60
-  such records came back without a warning. It now advances by the
-  records received and stops at an empty page, and a retrieval that ends
-  short of the total the API reported warns with
-  `scopus_warning_shortfall`, as each cell of
-  [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
-  already did. A retrieval stopped by `max_results` or at the offset
-  ceiling is short by request and does not warn.
-- Every file the package writes is UTF-8 in every locale: a record set’s
-  `.csv`, the DOI list, BibTeX, RIS, the search record and the app’s
-  script. In a C or single-byte locale, R wrote each character the
-  locale cannot encode as the text `<U+00ED>`, so a record set did not
-  survive a `.csv` round trip and a reference manager was given misspelt
-  names.
-- [`read_scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_records.md)
-  reads a `.csv` as UTF-8 whatever the locale, and reads a blank field
-  as missing, as it reads `NA`. pandas, and so the Python twin, and
-  spreadsheet software write a missing value as an empty field, which
-  arrived as an empty string. `dedupe = "id_then_doi"` took such a blank
-  identifier for an identifier and merged every unidentified record of a
-  file the Python twin wrote into one, where that twin falls back to the
-  DOI. The twins now keep the same rows, which a fixture both suites
-  read pins down.
-- `scopus_top(by = "author")`,
-  [`as_bibtex()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md),
-  [`as_ris()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
   and
-  [`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)
-  split an author list at the semicolon with or without the space after
-  it, as the Python twin does. Version 0.3.0 of that twin joined the
-  authors with `";"` alone, so a set it wrote counted here as one author
-  per record.
-- [`plot_scopus_comparison()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_comparison.md)
-  writes each count in its label on its own, as the Python twin writes
-  it. [`format()`](https://rdrr.io/r/base/format.html) padded the
-  smaller counts to the width of the largest, as in `a (n = 1,990)`.
-- The app’s Author choice under Search in sends `AUTH`, the tag
+  [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
+  record `retrieved_until` beside `retrieved_at`, their view as `view`
+  and a finite cap as `max_results`.
+  [`scopus_combine()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md)
+  records the latest of its inputs’ times as `retrieved_until` and keeps
+  their `view` where they agree.
+- [`scopus_search_report()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_search_report.md)
+  also returns the latest retrieval time as `searched_until`, the cap as
+  `max_results`, the de-duplication rule as `dedupe_rule` and the number
+  of DOIs that records with different identifiers share as
+  `doi_conflicts`.
+- [`scopus_diff_dois()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_diff_dois.md)
+  counts the records it could not compare for want of a DOI in the
+  attributes `n_old_without_doi` and `n_new_without_doi`.
+- The app’s ‘Records’ tab says how many records the harvest holds and
+  that its table shows the first 25, and its ‘Retrieval’ panel says when
+  the cap stopped a cell. A failed harvest is reported with the message
+  of the error that stopped it, without the wrapper that callr adds,
+  marked ‘Scopus:’ when the package raised the error, as in the other
+  panels.
+- The app’s ‘Top authors’ tab notes that a `STANDARD` harvest names
+  first authors only.
+- In demo mode, the app’s live terminal says when a year lies outside
+  the bundled corpus and which year it is drawn from, and the app notes
+  under a topic comparison that its counts are illustrative.
+- The app’s status text has the contrast that text needs, its progress
+  bar has an accessible name and value and each figure has a text
+  alternative.
+
+### Fixes
+
+- `scopus_plan(partition = "none")`,
+  [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md),
+  [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
+  and
+  [`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md)
+  read an empty `years` as no year limit, as they read `NULL`, where
+  they stopped with an untyped error.
+- [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+  and
+  [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
+  read a reference list, or a cited work’s author list, that holds one
+  item, where such a list stopped the batch with an untyped error. A
+  keyword or reference list in any other shape they cannot read leaves
+  that identifier an `NA` row and a warning, as an unreadable response
+  already did, and the identifier is retried on resume.
+- `Retry-After` dates parse in any locale, where a German or French
+  `LC_TIME` made every one `NA`.
+- A checkpoint that
+  [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md),
+  [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+  or
+  [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
+  fails to write, as on a full disk, gives a
+  `scopus_warning_cache_unwritable` warning, and its records are kept,
+  where they were lost to an error.
+- [`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md)
+  uses as given a concept that opens with a tag of
   [`scopus_field_tags()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_field_tags.md)
-  lists and the Python app sends under the same label. It sent
-  `AUTHLASTNAME`, which searches surnames alone.
-- The app sends the query it shows. The script panel trimmed the search
-  terms while Check size, Compare topics and Fetch records sent them as
-  typed, so a query pasted with surrounding space went to the API inside
-  the field tag and into the search record. All of them now trim it as
-  the Python app does, no-break spaces included.
-- The app’s size note goes when the search it priced changes, where it
-  went on standing for the plan on screen, and when a later check fails
-  or a harvest starts. Check size waits while a harvest is running,
-  since a count runs on the one Shiny thread and would freeze the live
-  terminal, and the note writes a count such as 100,000 in full, where
-  it read `1e+05`.
-- The app’s export buttons arrive with what they write, the record
-  exports after a harvest and the comparison’s after a comparison. Each
-  download opens with `req()`, and a click with nothing to write failed
-  in the browser with nothing on screen to say why. A demo comparison
-  carries a note that its counts are illustrative, as the Python app’s
-  does, since the figure’s caption names the Search API as its source.
-- The app’s panels say what they have none of. A harvest that matched
-  nothing, or one whose source titles or author names are all missing,
-  showed a plotting function’s error in By year, Top sources and Top
-  authors. A highlighted topic whose counts all came back missing no
-  longer replaces the comparison figure with an error, and is drawn
-  without the highlight, as in the Python app. The live terminal of a
-  demo harvest no longer labels a run over every year with the year 0,
-  and it names a year outside the bundled corpus and the year it is
-  drawn from.
-- The app is easier to use with a screen reader and to read. Its key
-  status used Bootstrap’s `.text-info`, `.text-warning` and
-  `.text-success`, at about 1.7:1, 1.5:1 and 4.1:1 on the sidebar’s
-  ground, under the 4.5:1 text needs, and now uses their `-emphasis`
-  variants. The progress bar carries an `aria-label` and, once a cell
-  has finished, its value. Each figure carries a text alternative naming
-  what it shows, where it was described as “Plot object”, which needs
-  shiny 1.6.0 or later.
+  written with a space before the bracket, as the web interface writes
+  `TITLE-ABS-KEY ( x )`, where it wrapped it in `field` again and the
+  API refused it.
+- The app’s ‘Check size’ button shows any error in a notification, where
+  an error that was not a `scopus_error`, such as the one a blank query
+  raised, closed the session. ‘Check size’ and ‘Fetch records’ refuse a
+  blank query with a notification.
+- Each app session keeps its checkpoints in a directory of its own, so
+  closing one tab no longer deletes another’s mid-harvest.
+- Demo mode works when the app is launched as
+  [`scopusflow::run_app()`](https://pablobernabeu.github.io/scopusflow/reference/run_app.md)
+  without attaching the package, where ‘Check size’ and ‘Fetch records’
+  failed.
+- The app’s size note clears when the search whose size it gave changes,
+  where it stayed on screen for a different search. It writes counts in
+  full, and ‘Check size’ refuses with a notification while a harvest
+  runs.
+- The app’s export buttons appear once there is something to write,
+  where a click with nothing to write failed without a message.
+- The app’s ‘By year’, ‘Top sources’ and ‘Top authors’ panels say when
+  there is nothing to show, where they showed a plotting error, and a
+  highlighted topic whose counts are all missing is drawn without the
+  highlight. The live terminal of a demo harvest over every year no
+  longer labels it with the year 0.
 
 ### Documentation
 
-- The help for
-  [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md),
-  [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md),
-  [`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md)
-  and
-  [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md)
-  now says how `years` is sent. These functions, and a plan with
-  `partition = "none"`, send one inclusive range from the earliest year
-  to the latest, so `c(2015, 2020)` covers every year from 2015 to 2020.
-  [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md),
-  [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
-  and a plan with `partition = "year"` take each listed year.
-- `citation("scopusflow")`, the website and `CITATION.cff` give the DOI
-  that CRAN assigned to the package,
-  <https://doi.org/10.32614/CRAN.package.scopusflow>, in place of the
-  Zenodo concept DOI. It names the R package across all its versions,
-  and it is the DOI that the CRAN page and the citation R generates for
-  a CRAN package already gave, so the package no longer circulates under
-  two. Zenodo still archives every GitHub release, and `CITATION.cff`
-  lists both identifiers. The CRAN DOI and the Zenodo DOI are shown as
-  full links on the website and in the README, and the sidebar of the
-  home page shows the CRAN DOI once: the DOI badge in the README no
-  longer appears there a second time.
-- `citation("scopusflow")` and the About page name the package’s
-  publisher, in full: “Comprehensive R Archive Network (CRAN)” stands
-  before the DOI in the reference, and the BibTeX entry gives it as
-  `publisher`. The reference named no publisher before. Every reference
-  across the package family and the author’s website now names CRAN in
-  the same words.
-- The README no longer names the version CRAN carries. The README inside
-  the 0.4.0 tarball said CRAN carried 0.1.0, because the figure was
-  typed by hand and a README is built before CRAN accepts a submission.
-  The installation section now points to NEWS for what each release
-  added.
-- The spelling test now fails a check run with `NOT_CRAN` set, as in
-  [`devtools::check()`](https://devtools.r-lib.org/reference/check.html)
-  and on GitHub Actions, where an unknown word used to surface only as a
-  NOTE that left the run green. CRAN and a plain `R CMD check` still
-  skip the test. The word list gains the twelve names and terms that had
-  slipped past it.
-- [`?scopus_search_report`](https://pablobernabeu.github.io/scopusflow/reference/scopus_search_report.md)
-  lists `cells_reported`, the number of plan cells that reported a
-  total, among the elements of the record it returns.
-- The live tests run only where `SCOPUSFLOW_LIVE_TESTS` is `"true"`,
-  which the weekly live-check workflow sets. They ran wherever
-  `NOT_CRAN` was `"true"` and a key was present, and
-  [`devtools::test()`](https://devtools.r-lib.org/reference/test.html),
-  [`devtools::check()`](https://devtools.r-lib.org/reference/check.html)
-  and
-  [`testthat::test_local()`](https://testthat.r-lib.org/reference/test_package.html)
-  set `NOT_CRAN` themselves, so every local run of the suite by someone
-  keeping the key in `~/.Renviron`, as
-  [`?scopus_has_key`](https://pablobernabeu.github.io/scopusflow/reference/scopus_has_key.md)
-  recommends, spent live quota.
-- The designing-queries article explains loose and exact phrases, and
-  replaces its spelling-variant example, which ‘Scopus’ matches without
-  help, with two phrases naming one condition. It also shows why a query
-  written by hand that mixes operators needs brackets, under both the
-  documented operator order and the one Elsevier has announced.
 - The designing-queries article describes the offline query checks and
   gives a recipe for testing a strategy’s relative recall against
-  records known to be relevant, with two searches per chain of DOIs
-  (Sampson et al., 2006; Bramer et al., 2018). The recipe contacts the
-  API and is not run in the article.
-- The worked examples no longer present
-  `TITLE-ABS-KEY(graphene supercapacitor)` as the search behind the
-  bundled corpus. The corpus came from OpenAlex’s exact-phrase search
-  for “graphene supercapacitor” in titles and abstracts, limited to
-  journal articles. ‘Scopus’ joins the words of an unquoted phrase with
-  AND, so that query is far broader, and in OpenAlex the unquoted words
-  match about a hundred times as many records. The demonstration plan
-  and the live searches shown beside the corpus now quote the phrase,
-  and the help for `example_records` names the query the examples send.
-  The tracking article says that a live comparison needs a baseline of
-  your own, since the bundled one came from OpenAlex. The PRISMA-S
-  demonstrations label their hand-set attributes, the reported totals
-  among them, as illustrative and say that the paragraph they print
-  describes no search that was run.
-- The keywords-and-references article no longer prints invented author
-  keywords, four references for a paper that cites 103 works, authors in
-  a form the parser never writes and an invented quota beneath real
-  calls on a real DOI. The calls are shown without output, the shapes
-  they return are built in view from `example_records`, and keyword
-  stand-ins drawn from its 138 titles are counted in pairs, as in the
-  Python guide.
+  records known to be relevant, following Sampson et al. (2006) and
+  Bramer et al. (2018). It also explains loose and exact phrases and why
+  a query mixing operators needs brackets.
+- The help for
+  [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md),
+  [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
+  and
+  [`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md)
+  says that `years` is sent as one inclusive range, so `c(2015, 2020)`
+  covers every year from 2015 to 2020, where it called them ‘publication
+  years to restrict to’.
+  [`?scopus_compare_topics`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
+  says that each year is counted on its own, where it called `years` a
+  span.
+- The worked examples no longer present the bundled corpus as the result
+  of an unquoted search. It came from an exact-phrase search in
+  OpenAlex, and the demonstration plan and live searches quote the
+  phrase, since ‘Scopus’ joins the words of an unquoted phrase with AND.
+- The help for
+  [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
+  and two articles give a topic comparison’s cost as (terms + 1) × years
+  requests, where they gave one count request per term per year.
+- The app article no longer promises that a run stopped by the quota
+  resumes in a later session, and points to the generated script for a
+  harvest that has to continue after the session ends.
+- [`?scopus_fetch_plan`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md),
+  [`?scopus_cache_dir`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_dir.md),
+  the README and the articles give each plan a checkpoint directory of
+  its own under
+  [`scopus_cache_dir()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_dir.md),
+  where they used
+  [`scopus_cache_dir()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_dir.md)
+  itself, in which plans overwrite each other’s checkpoints.
+- The
+  [`scopus_cache_clear()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_clear.md)
+  example points the cache at a temporary directory first, where running
+  it deleted the managed cache.
+- The keywords-and-references article shows its calls without output and
+  builds the shapes they return from `example_records`, where it printed
+  invented keywords, references and quota.
+- The *API access* section of
+  [`?scopus_count`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md)
+  names the condition class each HTTP status raises and documents the
+  options `scopusflow.max_tries` and `scopusflow.retry_backoff`. The
+  README says that, of the server errors, only 500, 502, 503 and 504 are
+  retried, where it said that the whole 5xx range was.
+- The README writes the call for reference lists with `view = "FULL"`,
+  since
+  [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+  refuses `include = "references"` under its default view.
+- The analysing-a-literature article and
+  [`?scopus_top`](https://pablobernabeu.github.io/scopusflow/reference/scopus_top.md)
+  say that a harvest under the default `STANDARD` view names the first
+  author of each record alone, so an author tally counts first
+  authorships, and that `view = "COMPLETE"` gives the author list, where
+  they said that a live harvest returned every author.
+- [`?scopus_combine`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md)
+  says that [`c()`](https://rdrr.io/r/base/c.html) on record sets calls
+  [`scopus_combine()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md),
+  so it renumbers them and keeps every row unless given `dedupe`, where
+  it said that [`c()`](https://rdrr.io/r/base/c.html) returned a list.
+- [`?scopus_corpus`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
+  says that `records` needs the identifier column that `by` names,
+  [`?summary.scopus_records`](https://pablobernabeu.github.io/scopusflow/reference/summary.scopus_records.md)
+  that `n_with_doi` counts the records carrying a DOI and
+  [`?scopus_quota`](https://pablobernabeu.github.io/scopusflow/reference/scopus_quota.md)
+  that `reset` is when the key’s quota resets.
+  [`?scopus_diff_dois`](https://pablobernabeu.github.io/scopusflow/reference/scopus_diff_dois.md)
+  no longer calls `status` an ordered factor.
 
 ## scopusflow 0.4.0
 

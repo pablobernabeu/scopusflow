@@ -35,7 +35,11 @@ is_scopus_records(x)
 
 - x:
 
-  An object to test.
+  For `scopus_records()`, a parsed `search-results` list (the value of
+  `httr2::resp_body_json(resp)[["search-results"]]`), a bare list of
+  entry objects, or an existing `scopus_records` object, which is
+  returned unchanged. For `is_scopus_records()`, any object to test. For
+  the coercion methods, a `scopus_records` object.
 
 - ...:
 
@@ -56,8 +60,7 @@ is_scopus_records(x)
   from. Pass `"COMPLETE"` to read `authors` from the author list that
   view carries and to add an `authkeywords` column (see below). Any
   other value, including the default `NULL`, reads the first author and
-  reproduces the original columns exactly, so existing callers that
-  never mention `view` see no change at all.
+  adds no `authkeywords` column.
   [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
   and
   [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
@@ -65,12 +68,12 @@ is_scopus_records(x)
 
 - fields:
 
-  `"core"` (the default) builds the columns listed under *Value*,
-  exactly as before. `"extended"` also keeps the document type, source
-  type, volume, issue, pages, ISSN, PubMed identifier and open-access
-  status the Search API sends with every record, and under
-  `view = "COMPLETE"` the abstract, at no extra quota (see *Extended
-  fields*).
+  `"core"` (the default) builds the core columns listed under *Value*,
+  with `authkeywords` under `view = "COMPLETE"`. `"extended"` also keeps
+  the document type, source type, volume, issue, pages, ISSN, PubMed
+  identifier and open-access status the Search API sends with every
+  record, and under `view = "COMPLETE"` the abstract, at no extra quota
+  (see *Extended fields*).
   [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
   and
   [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
@@ -85,16 +88,18 @@ frame with the same columns and the `scopus_records` class removed.
 The `autoplot()` method returns a
 [ggplot2::ggplot](https://ggplot2.tidyverse.org/reference/ggplot.html)
 of the records per year. The bars cover every year the set's plan
-searched, a year without records drawn as a zero bar, and no year the
-plan did not search. A plan over 2015, 2016, 2019 and 2020 therefore
-draws no bar for 2017 or 2018. A harvest stopped before its last cell
-covers only the cells it ran. Without a plan, or with one that sent no
-year limit, the bars run from the first year in the records to the last.
-When a `max_results` cap stopped any cell of the retrieval, a caption
-says that the bars count records retrieved, not publications per year.
-When the years plotted reach the year of the recorded `retrieved_at`,
-the caption also says that year was incomplete when the records were
-retrieved, as
+searched, a year without records drawn as a zero bar, and a year the
+plan did not search only where a record carries it. A plan partitioned
+by year over 2015, 2016, 2019 and 2020 therefore draws no bar for 2017
+or 2018, while a plan over the same years with `partition = "none"`
+searches 2015 to 2020 and draws all six. A harvest stopped before its
+last cell covers only the cells it ran. Without a plan, or with one that
+sent no year limit, the bars run from the first year in the records to
+the last. When a `max_results` cap stopped any cell of the retrieval, a
+caption says that the bars count records retrieved, not publications per
+year. When the years plotted reach the year of the recorded
+`retrieved_at`, the caption also says that year was incomplete when the
+records were retrieved, as
 [`plot_scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_trend.md)
 does.
 
@@ -160,15 +165,14 @@ this package uses the indexed name.
 
 Author keywords are only ever present under `view = "COMPLETE"`; the
 `STANDARD` view (the default throughout the package) never includes
-them, and `authkeywords` is not added to the output at all in that case,
-so existing code that inspects the column names of a `STANDARD`-view
-result is unaffected. Even under `COMPLETE` view, some 'Scopus' API keys
-do not return populated author keywords (this was observed directly
-against a live, otherwise fully-entitled key during development, on
-documents that do carry author keywords in 'Scopus' itself); if your own
-keywords come back all `NA`, the field is most likely gated by your
-account's entitlement rather than genuinely absent, and is worth raising
-with your 'Scopus'/Elsevier account contact.
+them, and `authkeywords` is not added to the output at all in that case.
+Even under `COMPLETE` view, some 'Scopus' API keys do not return
+populated author keywords (this was observed directly against a live,
+otherwise fully-entitled key during development, on documents that do
+carry author keywords in 'Scopus' itself); if your own keywords come
+back all `NA`, the field is most likely gated by your account's
+entitlement rather than genuinely absent, and is worth raising with your
+'Scopus'/Elsevier account contact.
 
 ## Extended fields
 

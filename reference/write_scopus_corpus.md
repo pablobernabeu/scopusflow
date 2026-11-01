@@ -63,7 +63,10 @@ section 2.4). A reference with neither is dropped, and a
 `scopus_warning_dropped_references` warning says how many. Each document
 is keyed the same way, from its `scopus_id` or else from an `id` that is
 a DOI or a 'Scopus' identifier, so a citation of a document in the
-corpus and the document itself share one key.
+corpus and the document itself share one key. A document with neither,
+which no key can name, is refused with a `scopus_error_bad_input` error
+naming its row (the first ten such rows when there are more), and
+`write_scopus_corpus()` then writes nothing.
 
 Keywords are trimmed, lower-cased with
 [`tolower()`](https://rdrr.io/r/base/chartr.html) and made unique,

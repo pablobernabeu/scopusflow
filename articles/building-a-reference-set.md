@@ -233,8 +233,9 @@ document type ‘Scopus’ gives each record. A conference paper is then
 exported as `CPAPER` and `@inproceedings`, a chapter as `CHAP` and
 `@incollection` and a book as `BOOK` and `@book`. Its entries also carry
 the volume, issue, pages and ISSN, and under `view = "COMPLETE"` the
-abstract and the author keywords, which screening and de-duplication
-tools read.
+abstract. A `COMPLETE` harvest exports its author keywords as well, with
+or without the extended fields. Screening and de-duplication tools read
+both.
 [`?as_bibtex`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
 lists where each field goes.
 

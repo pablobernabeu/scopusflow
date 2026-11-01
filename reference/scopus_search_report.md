@@ -41,7 +41,7 @@ print(x, ...)
   describing `x`. Supply it when a record set does not carry one, for
   example one read back from a `.csv`, a merged set, or one saved by
   [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
-  in scopusflow 0.4.0 or earlier, which attached none. An explicit plan
+  in the 0.4.0 release or earlier, which attached none. An explicit plan
   takes precedence over the one `x` carries. A one-cell plan supplied
   for a set without per-cell counts takes the set's own row count and
   `total_results`.
@@ -137,9 +137,9 @@ author's to supply, because the package has no way to know them.
 ## References
 
 Rethlefsen, M. L., Kirtley, S., Waffenschmidt, S., Ayala, A. P., Moher,
-D., Page, M. J., & Koffel, J. B. (2021). PRISMA-S: an extension to the
-PRISMA Statement for Reporting Literature Searches in Systematic
-Reviews. *Systematic Reviews*, *10*, 39.
+D., Page, M. J., Koffel, J. B., & PRISMA-S Group. (2021). PRISMA-S: an
+extension to the PRISMA Statement for Reporting Literature Searches in
+Systematic Reviews. *Systematic Reviews*, *10*, 39.
 [doi:10.1186/s13643-020-01542-z](https://doi.org/10.1186/s13643-020-01542-z)
 
 ## See also

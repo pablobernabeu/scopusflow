@@ -100,17 +100,16 @@ head(changes[changes$status == "added", ])
 
 [`scopus_diff_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_diff_records.md)
 compares the records themselves, matching them as
-[`scopus_combine()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md)
-de-duplicates them by default: on a shared ‘Scopus’ identifier, or on a
-shared DOI where one of the two records lacks an identifier. A record
-without a DOI is then tracked by its identifier, and each row carries
-the record’s title and year and its citation counts in both pulls. Where
-a record is found in one pull only and the other pull gives its DOI to a
-different record, it is marked `conflict`. It may have been re-indexed
-under a new identifier or may be a distinct paper sharing the DOI, and
-only the records themselves can tell. The bundled records carry no
-identifier, so here they are matched on their DOIs, and the eleven
-without one in each pull cannot be compared.
+`scopus_combine(dedupe = TRUE)` de-duplicates them: on a shared ‘Scopus’
+identifier, or on a shared DOI where one of the two records lacks an
+identifier. A record without a DOI is then tracked by its identifier,
+and each row carries the record’s title and year and its citation counts
+in both pulls. Where a record is found in one pull only and the other
+pull gives its DOI to a different record, it is marked `conflict`. It
+may have been re-indexed under a new identifier or may be a distinct
+paper sharing the DOI, and only the records themselves can tell. The
+bundled records carry no identifier, so here they are matched on their
+DOIs, and the eleven without one in each pull cannot be compared.
 
 ``` r
 

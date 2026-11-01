@@ -8,10 +8,10 @@ and optional resumable caching, normalises them to a stable tidy schema,
 tracks changes in DOI sets over time, sizes sets of concepts and their
 intersections and compares publication trends across topics.
 
-This is the feature-parity twin of [the Python
-package](https://pablobernabeu.github.io/scopusflow-py/) of the same
-name, which offers the same workflow on top of
-[pybliometrics](https://pybliometrics.readthedocs.io).
+Its Python twin, [the package of the same
+name](https://pablobernabeu.github.io/scopusflow-py/), follows the same
+design on top of [pybliometrics](https://pybliometrics.readthedocs.io),
+so a search written in one language reads much the same in the other.
 
 ![An illustrative line chart of four sub-topics' share of a
 deep-learning reference literature between 2013 and 2021: computer
@@ -143,13 +143,15 @@ largest page each view allows, 200 records for `STANDARD` and 25 for
 `COMPLETE`, so that a retrieval uses as few requests, and as little
 quota, as it can. This is the same approach `rscopus` takes. The quota
 and rate-limit headers are parsed by
-[`scopus_quota()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_quota.md),
-transient failures such as HTTP 429 and the 5xx range are retried with
-back-off that honours `Retry-After`, and an offset-paged query is capped
-at 5000 records with a warning that suggests cursor paging or
-partitioning by year. A failure arrives as a typed condition (every
-`scopus_error_*` condition inherits from `scopus_error`), so a workflow
-can respond to it in code. The Get started vignette shows the
+[`scopus_quota()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_quota.md).
+Throttling (HTTP 429), the server errors 500, 502, 503 and 504, timeouts
+and reset connections are retried with back-off that honours
+`Retry-After`, while a spent weekly quota, which Elsevier also answers
+with HTTP 429, is not retried. An offset-paged query is capped at 5000
+records with a warning that suggests cursor paging or partitioning by
+year. A failure arrives as a typed condition (every `scopus_error_*`
+condition inherits from `scopus_error`), so a workflow can respond to it
+in code. The Get started vignette shows the
 [`tryCatch()`](https://rdrr.io/r/base/conditions.html) pattern.
 
 ## How it compares
@@ -174,7 +176,7 @@ trades relevance order for completeness.
 [`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)
 maps the core descriptive fields the Search API returns. Structured
 reference lists are available through
-`scopus_abstract(include = "references")` and
+`scopus_abstract(view = "FULL", include = "references")` and
 [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md),
 but an analysis that needs full affiliations, or bibliometrix’s own
 cited-reference (CR) field, will still call for a complete Scopus

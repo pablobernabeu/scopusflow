@@ -9,11 +9,12 @@ or
 and enriches it with keywords (the author keywords by default, or the
 index keywords 'Scopus' assigns) and structured references via Abstract
 Retrieval, returning a minimal, uniform shape close to what OpenAlex's
-`works` API already returns: an `id`, `title`, `year`, `keywords` (a
-list-column of character vectors) and `references` (a list-column of
-data frames). This is meant for downstream tools that want to consume
-'Scopus' output without writing their own parsing layer, for example for
-keyword co-occurrence or citation-network analysis. It does not replace
+`works` API already returns: an `id`, the document's `scopus_id`, its
+`title` and `year`, `keywords` (a list-column of character vectors) and
+`references` (a list-column of data frames). This is meant for
+downstream tools that want to consume 'Scopus' output without writing
+their own parsing layer, for example for keyword co-occurrence or
+citation-network analysis. It does not replace
 [`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md),
 which keeps its own established field-mapping convention for users who
 want bibliometrix's tag names instead.
@@ -40,8 +41,10 @@ scopus_corpus(
 
   A
   [`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
-  tibble, or any data frame with `doi`, `title` and `year` columns in
-  the same shape.
+  tibble, or any data frame with `title` and `year` columns and the
+  identifier column `by` names (`doi` or `scopus_id`). A `scopus_id`
+  column, a `query` column and the `plan` and `retrieved_at` attributes
+  are used where present (see *Value*).
 
 - by:
 
@@ -109,8 +112,8 @@ has none, the field is unavailable or `view = "REF"`) and `references`
 (a list-column: each entry is the `references` data frame
 [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
 returns for that document, with one row per cited work). A record in
-`records` whose identifier is `NA` is dropped, with a warning naming how
-many.
+`records` whose identifier is `NA` is dropped, with a
+`scopus_warning_dropped_records` warning naming how many.
 
 The number of Abstract Retrieval requests made and the most recently
 parsed quota are attached as the `n_requests` and `quota` attributes, as

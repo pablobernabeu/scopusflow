@@ -26,8 +26,13 @@ is_scopus_plan(x)
 
 - query:
 
-  Character scalar. The base search expression, without field tags or
-  year filters (these are added through `field` and `years`).
+  Character scalar. The search expression. Give it without a field tag
+  when `field` is set, since the plan wraps it in that tag. A query that
+  already carries its tags, such as one composed by
+  [`scopus_query()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_query.md)
+  with `.field`, is sent as written when `field` is `NULL`. Years given
+  through `years` are sent as the request's separate `date` parameter,
+  not written into the expression.
 
 - years:
 

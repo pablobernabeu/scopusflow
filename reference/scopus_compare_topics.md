@@ -39,7 +39,11 @@ scopus_compare_topics(
 
 - years:
 
-  Integer vector of publication years to span (for example `2015:2020`).
+  Integer vector of publication years, each counted on its own (for
+  example `2015:2020`), so `c(2015, 2020)` counts those two years alone,
+  as
+  [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md)
+  does. It must be supplied, and an empty vector is refused.
 
 - field:
 
@@ -116,7 +120,7 @@ cmp <- tibble::tibble(
   comparison_percentage = 100 * c(ref_n, unlist(counts, use.names = FALSE)) /
     rep(ref_n, length(counts) + 1),
   average_comparison_percentage = c(rep(100, length(years)),
-                                    rep(c(35.3, 5.4), each = length(years)))
+                                    rep(c(35.3, 5.5), each = length(years)))
 )
 class(cmp) <- c("scopus_comparison", class(cmp))
 cmp

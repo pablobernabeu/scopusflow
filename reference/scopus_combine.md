@@ -5,8 +5,10 @@ Binds several
 objects into a single one, renumbering `entry_number` across the result
 and, optionally, dropping duplicates. This is the safe way to merge
 separate fetches: plain [`rbind()`](https://rdrr.io/r/base/cbind.html)
-would leave duplicate entry numbers, and
-[`c()`](https://rdrr.io/r/base/c.html) would return a list.
+would leave duplicate entry numbers.
+[`c()`](https://rdrr.io/r/base/c.html) on record sets calls
+`scopus_combine()`, so it renumbers in the same way and, unless it is
+given `dedupe`, keeps every row.
 
 ## Usage
 
@@ -21,9 +23,10 @@ c(x, ...)
 
 - ...:
 
-  Two or more
+  One or more
   [scopus_records](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
-  objects, or a single list of them.
+  objects, or a single list of them. A single set can be passed to
+  de-duplicate it.
 
 - dedupe:
 
@@ -33,7 +36,7 @@ c(x, ...)
   identifier, or when they share a DOI and one of them lacks an
   identifier. `"id_or_doi"` also merges records with different
   identifiers that share a DOI, and `"id_then_doi"` applies the rule of
-  scopusflow 0.4.0 and earlier. See Details.
+  the 0.4.0 release and earlier. See Details.
 
 - x:
 
@@ -49,15 +52,18 @@ tibble. Per-retrieval attributes such as `total_results` and `plan` are
 not carried over, since they describe a single fetch. The provenance a
 merge leaves true is kept, as
 [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
-keeps it for plan cells. `retrieved_at` is the earliest of the inputs'
-times and `retrieved_until` the latest, so a baseline merged with its
-update is dated from one to the other. Every contributing
-`scopusflow_version` is listed. The merge itself is recorded in the
-`combined` attribute, a list of `n_in` (records supplied), `n_out`
-(records kept), `n_removed`, `deduplicated`, `rule` (the rule applied,
-`NA` when none was) and `doi_conflicts` (how many DOIs records with
-different identifiers share, `NA` when no rule was applied). It is what
-lets
+keeps it for plan cells. When every input records its retrieval time,
+`retrieved_at` is the earliest of the inputs' times and
+`retrieved_until` the latest, so a baseline merged with its update is
+dated from one to the other. Every contributing `scopusflow_version` is
+listed when every input records one. Each is omitted when any input
+cannot supply it, as a set read back from a `.csv` file cannot, since a
+value drawn from the other inputs alone would misreport the set. The
+merge itself is recorded in the `combined` attribute, a list of `n_in`
+(records supplied), `n_out` (records kept), `n_removed`, `deduplicated`,
+`rule` (the rule applied, `NA` when none was) and `doi_conflicts` (how
+many DOIs records with different identifiers share, `NA` when no rule
+was applied). It is what lets
 [`scopus_search_report()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_search_report.md)
 state how many duplicates were removed and how, so the PRISMA-S item is
 answered.
@@ -89,7 +95,7 @@ identifier or a shared DOI, directly or through a chain of such links.
 It suits a set whose shared DOIs have been checked and found to be
 duplicates. `"id_then_doi"` keys each record on its identifier, failing
 that on its DOI lower-cased but not otherwise cleaned, and so reproduces
-a set de-duplicated by scopusflow 0.4.0 or earlier.
+a set de-duplicated by the 0.4.0 release or earlier.
 
 ## References
 

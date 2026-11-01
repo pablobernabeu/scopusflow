@@ -434,10 +434,11 @@ than stopping the run.</p>
 <p>The result is a tibble of class <code>scopus_abstracts</code>, one
 row per identifier. To show its shape without a key, here is a stand-in
 built from the two most-cited records of the corpus, which supplies
-every column but the abstract itself. The abstract is the one thing a
-live call adds and the corpus does not carry, so it is marked as a
-placeholder, with nothing invented to fill it, and the columns are
-listed by name because the prose is far too wide to typeset.</p>
+every column but the abstract and the ‘Scopus’ identifier. Those two are
+what a live call adds and the corpus does not carry, so the abstract is
+marked as a placeholder and the identifier left as <code>NA</code>, with
+nothing invented to fill either, and the columns are listed by name
+because the prose is far too wide to typeset.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">top2</span> <span class="op">&lt;-</span> <span class="va">records</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="op">-</span><span class="va">records</span><span class="op">$</span><span class="va">citations</span><span class="op">)</span>, <span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, <span class="op">]</span></span>
 <span><span class="va">ab</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>

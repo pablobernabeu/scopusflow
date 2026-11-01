@@ -552,8 +552,8 @@ would return 138.</p>
 </h2>
 <p>A harvest is rarely the end of the work. A systematic review has to
 report the search itself, in enough detail that a reader can repeat it,
-and the reporting standard for that is PRISMA-S (Rethlefsen et al.,
-2021). <code><a href="../reference/scopus_search_report.html">scopus_search_report()</a></code> assembles the record from
+and the reporting standard for that is PRISMA-S (<a href="https://doi.org/10.1186/s13643-020-01542-z" class="external-link">Rethlefsen et al.,
+2021</a>). <code><a href="../reference/scopus_search_report.html">scopus_search_report()</a></code> assembles the record from
 what the plan and the harvest already carry, so the methods section is
 written from the objects and never from memory.</p>
 <p>A plan on its own can be reported before it is run, which is useful
@@ -769,14 +769,12 @@ checkpoint.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Inside a plan, the warning for a cell that stops at the ceiling names
 that call, since the cell is already partitioned. Plans page by offset
-unless asked otherwise, as they always have, so an existing script
-returns what it returned before. A checkpoint records the mode it was
-fetched under and serves only a request in the same mode, so switching
-modes fetches each cell again. The Python twin’s
-<code>fetch_plan()</code> makes the opposite choice of default for the
-same reason. It has always paged by cursor, and pages by offset only
-when given <code>cursor=False</code>, the route pybliometrics documents
-for keys without a Scopus subscription.</p>
+unless asked otherwise. A checkpoint records the mode it was fetched
+under and serves only a request in the same mode, so switching modes
+fetches each cell again. The Python twin’s <code>fetch_plan()</code>
+pages by cursor by default, and by offset when given
+<code>cursor=False</code>, the route pybliometrics documents for keys
+without a Scopus subscription.</p>
 </div>
 <div class="section level2">
 <h2 id="handling-interruptions">Handling interruptions<a class="anchor" aria-label="anchor" href="#handling-interruptions"></a>

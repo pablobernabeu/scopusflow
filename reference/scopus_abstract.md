@@ -41,10 +41,10 @@ scopus_abstract(
   The Abstract Retrieval view to request: `"META_ABS"` (the default),
   `"META"`, `"REF"` or `"FULL"`, or `NULL`. `"META_ABS"` is the view
   Elsevier documents as carrying the abstract with the core metadata.
-  `NULL` sends no `view` parameter, as scopusflow 0.4.0 and earlier did,
-  and leaves the choice to the API. Elsevier documents its default as
-  `"META"`, a view without the abstract, but a live request in October
-  2026 returned the abstract without a view. Retrieving
+  `NULL` sends no `view` parameter, as the 0.4.0 release and earlier
+  did, and leaves the choice to the API. Elsevier documents its default
+  as `"META"`, a view without the abstract, but a live request in
+  October 2026 returned the abstract without a view. Retrieving
   `include = "references"` requires `view = "FULL"` or `view = "REF"`;
   see *Details* for how the two differ and which to prefer.
 
@@ -81,7 +81,10 @@ scopus_abstract(
   identifier whose cache file already exists is loaded from disk,
   sparing a second request for it. A cache file that cannot be read
   back, for example one left half-written by an interrupted run, is
-  retrieved again with a warning, and the batch carries on.
+  retrieved again with a `scopus_warning_cache_unreadable` warning, and
+  the batch carries on. One holding a different identifier, since
+  distinct identifiers can share a cache filename, is retrieved again
+  with a `scopus_warning_cache_mismatch` warning.
 
 - api_key, inst_token:
 

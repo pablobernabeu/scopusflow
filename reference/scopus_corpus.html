@@ -3,9 +3,10 @@
 scopus_fetch_plan(), and enriches it with keywords (the author keywords by
 default, or the index keywords 'Scopus' assigns) and structured
 references via Abstract Retrieval, returning a minimal, uniform shape close
-to what OpenAlex's works API already returns: an id, title, year,
-keywords (a list-column of character vectors) and references (a
-list-column of data frames). This is meant for downstream tools that want to
+to what OpenAlex's works API already returns: an id, the document's
+scopus_id, its title and year, keywords (a list-column of character
+vectors) and references (a list-column of data frames). This is meant for
+downstream tools that want to
 consume 'Scopus' output without writing their own parsing layer, for example
 for keyword co-occurrence or citation-network analysis. It does not replace
 as_bibliometrix(), which keeps its own established field-mapping
@@ -13,9 +14,10 @@ convention for users who want bibliometrix's tag names instead."><meta property=
 scopus_fetch_plan(), and enriches it with keywords (the author keywords by
 default, or the index keywords 'Scopus' assigns) and structured
 references via Abstract Retrieval, returning a minimal, uniform shape close
-to what OpenAlex's works API already returns: an id, title, year,
-keywords (a list-column of character vectors) and references (a
-list-column of data frames). This is meant for downstream tools that want to
+to what OpenAlex's works API already returns: an id, the document's
+scopus_id, its title and year, keywords (a list-column of character
+vectors) and references (a list-column of data frames). This is meant for
+downstream tools that want to
 consume 'Scopus' output without writing their own parsing layer, for example
 for keyword co-occurrence or citation-network analysis. It does not replace
 as_bibliometrix(), which keeps its own established field-mapping
@@ -77,9 +79,10 @@ convention for users who want bibliometrix's tag names instead."><meta property=
 <code><a href="scopus_fetch_plan.html">scopus_fetch_plan()</a></code>, and enriches it with keywords (the author keywords by
 default, or the index keywords 'Scopus' assigns) and structured
 references via Abstract Retrieval, returning a minimal, uniform shape close
-to what OpenAlex's <code>works</code> API already returns: an <code>id</code>, <code>title</code>, <code>year</code>,
-<code>keywords</code> (a list-column of character vectors) and <code>references</code> (a
-list-column of data frames). This is meant for downstream tools that want to
+to what OpenAlex's <code>works</code> API already returns: an <code>id</code>, the document's
+<code>scopus_id</code>, its <code>title</code> and <code>year</code>, <code>keywords</code> (a list-column of character
+vectors) and <code>references</code> (a list-column of data frames). This is meant for
+downstream tools that want to
 consume 'Scopus' output without writing their own parsing layer, for example
 for keyword co-occurrence or citation-network analysis. It does not replace
 <code><a href="as_bibliometrix.html">as_bibliometrix()</a></code>, which keeps its own established field-mapping
@@ -106,8 +109,10 @@ convention for users who want bibliometrix's tag names instead.</p>
 
 
 <dl><dt id="arg-records">records<a class="anchor" aria-label="anchor" href="#arg-records"></a></dt>
-<dd><p>A <code><a href="scopus_records.html">scopus_records()</a></code> tibble, or any data frame with <code>doi</code>,
-<code>title</code> and <code>year</code> columns in the same shape.</p></dd>
+<dd><p>A <code><a href="scopus_records.html">scopus_records()</a></code> tibble, or any data frame with <code>title</code>
+and <code>year</code> columns and the identifier column <code>by</code> names (<code>doi</code> or
+<code>scopus_id</code>). A <code>scopus_id</code> column, a <code>query</code> column and the <code>plan</code> and
+<code>retrieved_at</code> attributes are used where present (see <em>Value</em>).</p></dd>
 
 
 <dt id="arg-by">by<a class="anchor" aria-label="anchor" href="#arg-by"></a></dt>
@@ -169,7 +174,8 @@ when the document has none, the field is unavailable or <code>view = "REF"</code
 and <code>references</code> (a list-column: each entry is the
 <code>references</code> data frame <code><a href="scopus_abstract.html">scopus_abstract()</a></code> returns for that document,
 with one row per cited work). A record in <code>records</code> whose identifier is
-<code>NA</code> is dropped, with a warning naming how many.</p>
+<code>NA</code> is dropped, with a <code>scopus_warning_dropped_records</code> warning naming
+how many.</p>
 <p>The number of Abstract Retrieval requests made and the most recently
 parsed quota are attached as the <code>n_requests</code> and <code>quota</code> attributes, as
 <code><a href="scopus_abstract.html">scopus_abstract()</a></code> attaches them. Three more attributes carry what

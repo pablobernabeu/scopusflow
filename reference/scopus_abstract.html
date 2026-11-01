@@ -104,7 +104,7 @@ Identifiers or 'Scopus' record identifiers (with or without the
 <dd><p>The Abstract Retrieval view to request: <code>"META_ABS"</code> (the
 default), <code>"META"</code>, <code>"REF"</code> or <code>"FULL"</code>, or <code>NULL</code>. <code>"META_ABS"</code> is the
 view Elsevier documents as carrying the abstract with the core metadata.
-<code>NULL</code> sends no <code>view</code> parameter, as scopusflow 0.4.0 and earlier did,
+<code>NULL</code> sends no <code>view</code> parameter, as the 0.4.0 release and earlier did,
 and leaves the choice to the API. Elsevier documents its default as
 <code>"META"</code>, a view without the abstract, but a live request in October 2026
 returned the abstract without a view. Retrieving <code>include = "references"</code>
@@ -142,7 +142,10 @@ written all the same warns and keeps the row, as in <code><a href="scopus_fetch_
 identifier whose cache file already exists is loaded from disk, sparing a
 second request for it. A cache file that cannot be read back, for example
 one left half-written by an interrupted run, is retrieved again with a
-warning, and the batch carries on.</p></dd>
+<code>scopus_warning_cache_unreadable</code> warning, and the batch carries on. One
+holding a different identifier, since distinct identifiers can share a
+cache filename, is retrieved again with a <code>scopus_warning_cache_mismatch</code>
+warning.</p></dd>
 
 
 <dt id="arg-api-key-inst-token">api_key, inst_token<a class="anchor" aria-label="anchor" href="#arg-api-key-inst-token"></a></dt>

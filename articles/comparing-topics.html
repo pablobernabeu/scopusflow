@@ -149,8 +149,8 @@ the period, which the uncertainty band will reflect.</p>
 <span>  reference_n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">ref_n</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">counts</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  comparison_percentage <span class="op">=</span> <span class="fl">100</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">ref_n</span>, <span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="va">counts</span>, use.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span> <span class="op">/</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">ref_n</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">counts</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span>,</span>
-<span>  average_comparison_percentage <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">years</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>                                    <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">40</span>, <span class="fl">33</span>, <span class="fl">15</span>, <span class="fl">9</span><span class="op">)</span>, each <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">years</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>  average_comparison_percentage <span class="op">=</span></span>
+<span>    <span class="fl">100</span> <span class="op">*</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/ave.html" class="external-link">ave</a></span><span class="op">(</span><span class="va">n</span>, <span class="va">abridged_query</span>, FUN <span class="op">=</span> <span class="va">sum</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">ref_n</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">cmp</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"scopus_comparison"</span>, <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">cmp</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -186,7 +186,7 @@ the period, which the uncertainty band will reflect.</p>
 <td align="right">400</td>
 <td align="right">400</td>
 <td align="right">100.00</td>
-<td align="right">100</td>
+<td align="right">100.00000</td>
 </tr>
 <tr class="even">
 <td align="left">comparison</td>
@@ -195,7 +195,7 @@ the period, which the uncertainty band will reflect.</p>
 <td align="right">140</td>
 <td align="right">400</td>
 <td align="right">35.00</td>
-<td align="right">40</td>
+<td align="right">43.00000</td>
 </tr>
 <tr class="odd">
 <td align="left">comparison</td>
@@ -204,7 +204,7 @@ the period, which the uncertainty band will reflect.</p>
 <td align="right">90</td>
 <td align="right">400</td>
 <td align="right">22.50</td>
-<td align="right">33</td>
+<td align="right">31.50000</td>
 </tr>
 <tr class="even">
 <td align="left">comparison</td>
@@ -213,7 +213,7 @@ the period, which the uncertainty band will reflect.</p>
 <td align="right">15</td>
 <td align="right">400</td>
 <td align="right">3.75</td>
-<td align="right">15</td>
+<td align="right">13.75556</td>
 </tr>
 <tr class="odd">
 <td align="left">comparison</td>
@@ -222,7 +222,7 @@ the period, which the uncertainty band will reflect.</p>
 <td align="right">8</td>
 <td align="right">400</td>
 <td align="right">2.00</td>
-<td align="right">9</td>
+<td align="right">8.90000</td>
 </tr>
 </tbody>
 </table>
@@ -265,9 +265,9 @@ page sets out.</p>
 sometimes end the period at nearly the same share.
 <code><a href="../reference/plot_scopus_comparison.html">plot_scopus_comparison()</a></code> spreads converging labels apart
 automatically, at the point the figure is actually drawn, so they stay
-readable at any figure size and never stack into an unreadable pile.
-Here six sub-areas of materials-science research all end 2013–2021
-within three points of one another.</p>
+readable in any figure tall enough to stack them. Here six sub-areas of
+materials-science research all end 2013–2021 within three points of one
+another.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">years</span> <span class="op">&lt;-</span> <span class="fl">2013</span><span class="op">:</span><span class="fl">2021</span></span>
 <span><span class="va">ends</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">18</span>, <span class="fl">18.6</span>, <span class="fl">19.2</span>, <span class="fl">19.8</span>, <span class="fl">20.4</span>, <span class="fl">21</span><span class="op">)</span></span>
@@ -341,19 +341,19 @@ their average share.</p>
 <tbody>
 <tr class="odd">
 <td align="left">computer vision</td>
-<td align="right">40</td>
+<td align="right">43.00000</td>
 </tr>
 <tr class="even">
 <td align="left">natural language processing</td>
-<td align="right">33</td>
+<td align="right">31.50000</td>
 </tr>
 <tr class="odd">
 <td align="left">medical imaging</td>
-<td align="right">15</td>
+<td align="right">13.75556</td>
 </tr>
 <tr class="even">
 <td align="left">drug discovery</td>
-<td align="right">9</td>
+<td align="right">8.90000</td>
 </tr>
 </tbody>
 </table>

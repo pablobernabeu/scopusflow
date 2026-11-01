@@ -197,17 +197,17 @@ tibble.</p>
 <h2 id="comparing-records">Comparing records<a class="anchor" aria-label="anchor" href="#comparing-records"></a>
 </h2>
 <p><code><a href="../reference/scopus_diff_records.html">scopus_diff_records()</a></code> compares the records themselves,
-matching them as <code><a href="../reference/scopus_combine.html">scopus_combine()</a></code> de-duplicates them by
-default: on a shared ‘Scopus’ identifier, or on a shared DOI where one
-of the two records lacks an identifier. A record without a DOI is then
-tracked by its identifier, and each row carries the record’s title and
-year and its citation counts in both pulls. Where a record is found in
-one pull only and the other pull gives its DOI to a different record, it
-is marked <code>conflict</code>. It may have been re-indexed under a new
-identifier or may be a distinct paper sharing the DOI, and only the
-records themselves can tell. The bundled records carry no identifier, so
-here they are matched on their DOIs, and the eleven without one in each
-pull cannot be compared.</p>
+matching them as <code>scopus_combine(dedupe = TRUE)</code>
+de-duplicates them: on a shared ‘Scopus’ identifier, or on a shared DOI
+where one of the two records lacks an identifier. A record without a DOI
+is then tracked by its identifier, and each row carries the record’s
+title and year and its citation counts in both pulls. Where a record is
+found in one pull only and the other pull gives its DOI to a different
+record, it is marked <code>conflict</code>. It may have been re-indexed
+under a new identifier or may be a distinct paper sharing the DOI, and
+only the records themselves can tell. The bundled records carry no
+identifier, so here they are matched on their DOIs, and the eleven
+without one in each pull cannot be compared.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">records_changed</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_diff_records.html">scopus_diff_records</a></span><span class="op">(</span>old <span class="op">=</span> <span class="va">baseline</span>, new <span class="op">=</span> <span class="va">later</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">records_changed</span><span class="op">)</span></span></code></pre></div>

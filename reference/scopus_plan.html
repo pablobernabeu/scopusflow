@@ -87,8 +87,12 @@ year, so they can be cached and resumed.</p>
 
 
 <dl><dt id="arg-query">query<a class="anchor" aria-label="anchor" href="#arg-query"></a></dt>
-<dd><p>Character scalar. The base search expression, without field tags
-or year filters (these are added through <code>field</code> and <code>years</code>).</p></dd>
+<dd><p>Character scalar. The search expression. Give it without a
+field tag when <code>field</code> is set, since the plan wraps it in that tag. A query
+that already carries its tags, such as one composed by <code><a href="scopus_query.html">scopus_query()</a></code>
+with <code>.field</code>, is sent as written when <code>field</code> is <code>NULL</code>. Years given
+through <code>years</code> are sent as the request's separate <code>date</code> parameter, not
+written into the expression.</p></dd>
 
 
 <dt id="arg-years">years<a class="anchor" aria-label="anchor" href="#arg-years"></a></dt>

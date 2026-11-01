@@ -92,8 +92,10 @@ before any request (see the <em>Query checks</em> section of <code><a href="scop
 <dd><p>Maximum number of records to retrieve. Defaults to <code>Inf</code>,
 meaning all available records up to the API ceiling. With the default
 offset-based paging the 'Scopus' Search API refuses offsets of 5000 or more,
-so a single query yields at most 5000 records; set <code>cursor = TRUE</code>, or
-partition the search by year with <code><a href="scopus_plan.html">scopus_plan()</a></code>, to go beyond that.</p></dd>
+so a single query yields at most 5000 records, and one that matches more,
+with <code>max_results</code> above 5000, gives a <code>scopus_warning_capped</code> warning; set
+<code>cursor = TRUE</code>, or partition the search by year with <code><a href="scopus_plan.html">scopus_plan()</a></code>, to go
+beyond that.</p></dd>
 
 
 <dt id="arg-view">view<a class="anchor" aria-label="anchor" href="#arg-view"></a></dt>
@@ -132,8 +134,9 @@ pagination, which has no 5000-record ceiling, so an entire large query can be
 harvested in one call. The records then arrive in the API's deep-paging
 order, which is no longer relevance order. As a safeguard against a
 non-conforming server that never signals the end, cursor paging stops after
-<code>getOption("scopusflow.max_cursor_pages", 1e5)</code> pages with a warning; set
-that option to <code>Inf</code> to remove the ceiling.</p></dd>
+<code>getOption("scopusflow.max_cursor_pages", 1e5)</code> pages with a
+<code>scopus_warning_capped</code> warning; set that option to <code>Inf</code> to remove the
+ceiling.</p></dd>
 
 
 <dt id="arg-api-key-inst-token">api_key, inst_token<a class="anchor" aria-label="anchor" href="#arg-api-key-inst-token"></a></dt>

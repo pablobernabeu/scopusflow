@@ -4,10 +4,11 @@ Internal grid method for the
 [`plot_scopus_comparison()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_comparison.md)
 direct labels. It runs whenever the label grob is drawn, when the panel
 viewport (and so the rendered text height) is finally known, and spreads
-the labels by at least one line of text so converging topics never
-overlap however the figure is sized. The panel coordinates are `[0, 1]`
-(npc), so the measured text height, the spread and the overflow shift
-are all in those units. Not called directly.
+the labels by at least one line of text, so converging topics do not
+overlap in any panel tall enough to stack them all. In a shorter panel,
+the lowest labels are held at its floor and can overlap. The panel
+coordinates are `[0, 1]` (npc), so the measured text height, the spread
+and the overflow shift are all in those units. Not called directly.
 
 ## Usage
 

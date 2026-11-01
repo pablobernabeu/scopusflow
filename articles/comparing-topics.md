@@ -67,8 +67,8 @@ cmp <- tibble::tibble(
   reference_n = rep(ref_n, length(counts) + 1),
   comparison_percentage = 100 * c(ref_n, unlist(counts, use.names = FALSE)) /
     rep(ref_n, length(counts) + 1),
-  average_comparison_percentage = c(rep(100, length(years)),
-                                    rep(c(40, 33, 15, 9), each = length(years)))
+  average_comparison_percentage =
+    100 * stats::ave(n, abridged_query, FUN = sum) / sum(ref_n)
 )
 class(cmp) <- c("scopus_comparison", class(cmp))
 
@@ -81,11 +81,11 @@ cmp[cmp$year == min(cmp$year), setdiff(names(cmp), "query")]
 
 | query_type | abridged_query | year | n | reference_n | comparison_percentage | average_comparison_percentage |
 |:---|:---|---:|---:|---:|---:|---:|
-| reference | deep learning | 2013 | 400 | 400 | 100.00 | 100 |
-| comparison | computer vision | 2013 | 140 | 400 | 35.00 | 40 |
-| comparison | natural language processing | 2013 | 90 | 400 | 22.50 | 33 |
-| comparison | medical imaging | 2013 | 15 | 400 | 3.75 | 15 |
-| comparison | drug discovery | 2013 | 8 | 400 | 2.00 | 9 |
+| reference | deep learning | 2013 | 400 | 400 | 100.00 | 100.00000 |
+| comparison | computer vision | 2013 | 140 | 400 | 35.00 | 43.00000 |
+| comparison | natural language processing | 2013 | 90 | 400 | 22.50 | 31.50000 |
+| comparison | medical imaging | 2013 | 15 | 400 | 3.75 | 13.75556 |
+| comparison | drug discovery | 2013 | 8 | 400 | 2.00 | 8.90000 |
 
 Those are the five rows for the first year, one for the reference and
 one for each comparison term. The whole table has 45 rows on the same
@@ -132,9 +132,9 @@ Direct labels are legible only if they do not overlap, and topics
 sometimes end the period at nearly the same share.
 [`plot_scopus_comparison()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_comparison.md)
 spreads converging labels apart automatically, at the point the figure
-is actually drawn, so they stay readable at any figure size and never
-stack into an unreadable pile. Here six sub-areas of materials-science
-research all end 2013–2021 within three points of one another.
+is actually drawn, so they stay readable in any figure tall enough to
+stack them. Here six sub-areas of materials-science research all end
+2013–2021 within three points of one another.
 
 ``` r
 
@@ -227,7 +227,7 @@ unique(comp[, c("abridged_query", "average_comparison_percentage")])
 
 | abridged_query              | average_comparison_percentage |
 |:----------------------------|------------------------------:|
-| computer vision             |                            40 |
-| natural language processing |                            33 |
-| medical imaging             |                            15 |
-| drug discovery              |                             9 |
+| computer vision             |                      43.00000 |
+| natural language processing |                      31.50000 |
+| medical imaging             |                      13.75556 |
+| drug discovery              |                       8.90000 |

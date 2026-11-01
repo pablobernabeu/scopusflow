@@ -7,12 +7,15 @@ every choice as runnable R code. A *Demo mode* (on by default) draws
 records from the bundled
 [example_records](https://pablobernabeu.github.io/scopusflow/reference/example_records.md)
 corpus and synthesises a topic comparison, so the whole workflow can be
-explored with no key and no network; switch it off and supply a key to
-query 'Scopus' for real. The app runs on your own machine: your API key
-never leaves it, and requests originate from your own network, which is
-what the 'Scopus' API expects. It needs the suggested packages shiny,
-bslib and callr (and ggplot2 for the plots, fansi for coloured terminal
-output).
+explored with no key and no network; switch it off and paste a key into
+the app's key field to query 'Scopus' for real. The app uses only that
+key, held in the session, and does not read `SCOPUS_API_KEY` or the
+`scopusflow.api_key` option, while the script it writes finds the key as
+[`scopus_has_key()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_has_key.md)
+describes. The app runs on your own machine: your API key never leaves
+it, and requests originate from your own network, which is what the
+'Scopus' API expects. It needs the suggested packages shiny, bslib and
+callr (and ggplot2 for the plots, fansi for coloured terminal output).
 
 ## Usage
 

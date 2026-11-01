@@ -16,12 +16,18 @@ issue.
 
 ## Setting up for development
 
-Clone the repository and install the development dependencies:
+Clone the repository and, from its root, install the package’s
+dependencies, the suggested ones included, with the development tools:
+
+``` sh
+git clone https://github.com/pablobernabeu/scopusflow.git
+cd scopusflow
+```
 
 ``` r
 
 # install.packages("pak")
-pak::pak("pablobernabeu/scopusflow")
+pak::local_install_dev_deps()
 pak::pak(c("devtools", "roxygen2", "testthat", "spelling", "covr"))
 ```
 
@@ -46,8 +52,9 @@ The tests run entirely offline. HTTP is intercepted with
 [`httr2::local_mocked_responses()`](https://httr2.r-lib.org/reference/with_mocked_responses.html)
 and small fixtures live in `tests/testthat/` and `inst/extdata`. A test
 should never make a real network request. Live integration tests are
-gated behind `skip_on_cran()` and a key, so they run only when
-`SCOPUS_API_KEY` is set.
+skipped on CRAN and run only when the `SCOPUSFLOW_LIVE_TESTS`
+environment variable is `"true"` and `SCOPUS_API_KEY` is set (see
+*Automated maintenance* below).
 
 Errors are raised as typed conditions in the `scopus_error` family
 through
@@ -111,10 +118,9 @@ HTTP, so it cannot tell whether the real ‘Scopus’ API has renamed a
 field or changed its envelope. The live test runs a tiny real query and
 checks that the records come back with the documented columns populated.
 The live tests run only where the variable `SCOPUSFLOW_LIVE_TESTS` is
-`"true"`, which the workflow sets, so a local
-[`devtools::test()`](https://devtools.r-lib.org/reference/test.html)
-spends no quota even with a key in `~/.Renviron`. Set the variable in
-the session to run them by hand. The workflow needs a `SCOPUS_API_KEY`
+`"true"`, which the workflow sets, so a local `devtools::test()` spends
+no quota even with a key in `~/.Renviron`. Set the variable in the
+session to run them by hand. The workflow needs a `SCOPUS_API_KEY`
 repository secret; until one is set, the live tests skip themselves and
 the run stays green, though it flags itself as dormant in the log and
 the run summary. Once a key is present, a skipped live test fails the
@@ -138,9 +144,7 @@ dependency issue, and the run finishes red.
 
 Please base your work on `main`, keep the change focused, and add or
 update tests and documentation alongside the code. Running
-[`devtools::document()`](https://devtools.r-lib.org/reference/document.html),
-[`devtools::test()`](https://devtools.r-lib.org/reference/test.html) and
-[`devtools::check()`](https://devtools.r-lib.org/reference/check.html)
+`devtools::document()`, `devtools::test()` and `devtools::check()`
 locally before opening the pull request saves a round trip. Continuous
 integration then checks the package on Windows, macOS and several
 versions of R on Linux, and once more with only its declared

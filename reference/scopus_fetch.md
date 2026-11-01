@@ -37,8 +37,9 @@ scopus_fetch(
   Maximum number of records to retrieve. Defaults to `Inf`, meaning all
   available records up to the API ceiling. With the default offset-based
   paging the 'Scopus' Search API refuses offsets of 5000 or more, so a
-  single query yields at most 5000 records; set `cursor = TRUE`, or
-  partition the search by year with
+  single query yields at most 5000 records, and one that matches more,
+  with `max_results` above 5000, gives a `scopus_warning_capped`
+  warning; set `cursor = TRUE`, or partition the search by year with
   [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md),
   to go beyond that.
 
@@ -90,7 +91,8 @@ scopus_fetch(
   deep-paging order, which is no longer relevance order. As a safeguard
   against a non-conforming server that never signals the end, cursor
   paging stops after `getOption("scopusflow.max_cursor_pages", 1e5)`
-  pages with a warning; set that option to `Inf` to remove the ceiling.
+  pages with a `scopus_warning_capped` warning; set that option to `Inf`
+  to remove the ceiling.
 
 - api_key, inst_token:
 

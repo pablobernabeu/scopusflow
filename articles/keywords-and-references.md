@@ -178,7 +178,7 @@ minimal shape close to what OpenAlex’s `works` API already returns:
 character vectors) and `references` (a list-column of data frames),
 where bibliometrix would give you semicolon-joined citation strings. It
 does not replace
-\[[`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)\],
+[`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md),
 which keeps its own field-mapping convention for users who want that.
 
 ``` r

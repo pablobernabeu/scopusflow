@@ -99,13 +99,13 @@ buttons.
 
 Fetch records starts the harvest in a background process, so the app
 stays responsive while it works. The Live terminal panel tails the
-worker’s output, streaming a line as each year-cell completes, and a
-progress bar tracks how far through the plan the run has reached. Cancel
-ends the background process at once, which does abandon whatever cell
-was in flight. Every cell that had already finished was checkpointed as
-it completed, and a checkpoint is written to a temporary file and
-renamed into place, so a cancelled run leaves the cache whole.
-Internally the app builds a
+worker’s output, streaming a line as each year-cell starts, and a
+progress bar counts the cells already finished. Cancel ends the
+background process at once, which does abandon whatever cell was in
+flight. Every cell that had already finished was checkpointed as it
+completed, and a checkpoint is written to a temporary file and renamed
+into place, so a cancelled run leaves the cache whole. Internally the
+app builds a
 [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md)
 from your choices and hands it to
 [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)

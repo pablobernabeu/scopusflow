@@ -327,7 +327,8 @@ cost from an ordinary search.
 walks through both, and
 [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md),
 which combines them into a minimal
-`id`/`title`/`year`/`keywords`/`references` shape for downstream tools.
+`id`/`scopus_id`/`title`/`year`/`keywords`/`references` shape for
+downstream tools.
 
 ## Export and interoperability
 
@@ -394,3 +395,7 @@ tryCatch(
     message("Scopus error: ", conditionMessage(e))
 )
 ```
+
+The *API access* section of
+[`?scopus_count`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md)
+lists every class a call can raise.
