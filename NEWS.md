@@ -1,6 +1,6 @@
 # scopusflow (development version)
 
-## Upgrading from the previous release
+## Upgrading from the previous release (0.4.0)
 
 ### Changed results
 
@@ -190,6 +190,9 @@
 * Inside a plan, the warning for a cell stopped at the offset ceiling advises
   `scopus_fetch_plan(plan, cursor = TRUE)`, where it advised
   `scopus_fetch(cursor = TRUE)` or partitioning by year.
+* `citation("scopusflow")` gives the DOI that CRAN registered,
+  <https://doi.org/10.32614/CRAN.package.scopusflow>, where it gave the Zenodo
+  concept DOI, <https://doi.org/10.5281/zenodo.21252669>.
 
 ## New features
 
