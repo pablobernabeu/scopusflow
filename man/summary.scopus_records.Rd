@@ -14,7 +14,9 @@
 \value{
 A list of class \code{scopus_records_summary}, with elements \code{n_records},
 \code{years} (the earliest and latest year present, each \code{NA} when no year is
-known), \code{n_sources}, \code{n_with_doi}, \code{total_citations}, \code{median_citations},
+known), \code{n_sources} (the number of distinct source titles), \code{n_with_doi}
+(the number of records carrying a DOI, so that a DOI held by two records
+counts twice), \code{total_citations}, \code{median_citations},
 \code{top_cited} (the title of the most-cited record), \code{top_source} (the most
 frequent source title) and \code{doc_types}. \code{doc_types} counts the records of
 each document-type code, most frequent first, for a set retrieved with
@@ -29,9 +31,9 @@ against.
 \description{
 Gives a compact overview of a \link{scopus_records} object, reporting how many
 records it holds, the span of publication years they cover, how many distinct
-sources and Digital Object Identifiers appear among them and how widely they
-have been cited. It is a convenient way to take stock of a retrieval before
-any closer analysis.
+sources appear among them, how many records carry a Digital Object Identifier
+and how widely they have been cited. It is a convenient way to take stock of
+a retrieval before any closer analysis.
 }
 \examples{
 # The bundled corpus of real articles stands in for a retrieval of your

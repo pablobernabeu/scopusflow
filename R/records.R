@@ -6,25 +6,26 @@
 #' [scopus_fetch_plan()] return it, and the DOI, comparison and export helpers
 #' all consume it.
 #'
-#' @param x A parsed `search-results` list (the value of
+#' @param x For `scopus_records()`, a parsed `search-results` list (the value of
 #'   `httr2::resp_body_json(resp)[["search-results"]]`), a bare list of entry
 #'   objects, or an existing `scopus_records` object, which is returned
-#'   unchanged.
+#'   unchanged. For `is_scopus_records()`, any object to test. For the
+#'   coercion methods, a `scopus_records` object.
 #' @param query Optional character scalar recording the query that produced the
 #'   entries, kept in the `query` column for provenance.
 #' @param view Optional character scalar naming the Search API view the entries
 #'   came from. Pass `"COMPLETE"` to read `authors` from the author list that
 #'   view carries and to add an `authkeywords` column (see below). Any other
-#'   value, including the default `NULL`, reads the first author and reproduces
-#'   the original columns exactly, so existing callers that never mention
-#'   `view` see no change at all. [scopus_fetch()] and [scopus_fetch_plan()]
+#'   value, including the default `NULL`, reads the first author and adds no
+#'   `authkeywords` column. [scopus_fetch()] and [scopus_fetch_plan()]
 #'   pass this through automatically.
-#' @param fields `"core"` (the default) builds the columns listed under
-#'   *Value*, exactly as before. `"extended"` also keeps the document type,
-#'   source type, volume, issue, pages, ISSN, PubMed identifier and open-access
-#'   status the Search API sends with every record, and under
-#'   `view = "COMPLETE"` the abstract, at no extra quota (see *Extended
-#'   fields*). [scopus_fetch()] and [scopus_fetch_plan()] pass this through.
+#' @param fields `"core"` (the default) builds the core columns listed under
+#'   *Value*, with `authkeywords` under `view = "COMPLETE"`. `"extended"` also
+#'   keeps the document type, source type, volume, issue, pages, ISSN, PubMed
+#'   identifier and open-access status the Search API sends with every record,
+#'   and under `view = "COMPLETE"` the abstract, at no extra quota (see
+#'   *Extended fields*). [scopus_fetch()] and [scopus_fetch_plan()] pass this
+#'   through.
 #' @return A tibble of class `scopus_records` with the columns
 #'   `entry_number` (integer), `scopus_id` (character), `doi` (character),
 #'   `title` (character), `authors` (character, the author list under
@@ -76,9 +77,8 @@
 #'
 #' Author keywords are only ever present under `view = "COMPLETE"`; the
 #' `STANDARD` view (the default throughout the package) never includes them,
-#' and `authkeywords` is not added to the output at all in that case, so
-#' existing code that inspects the column names of a `STANDARD`-view result is
-#' unaffected. Even under `COMPLETE` view, some 'Scopus' API keys do not return
+#' and `authkeywords` is not added to the output at all in that case. Even
+#' under `COMPLETE` view, some 'Scopus' API keys do not return
 #' populated author keywords (this was observed directly against a live,
 #' otherwise fully-entitled key during development, on documents that do carry
 #' author keywords in 'Scopus' itself); if your own keywords come back all
@@ -215,7 +215,6 @@ scopus_records <- function(x, query = NA_character_, view = NULL,
 }
 
 #' @rdname scopus_records
-#' @param x An object to test.
 #' @return `is_scopus_records()` returns a length-one logical.
 #' @export
 is_scopus_records <- function(x) {

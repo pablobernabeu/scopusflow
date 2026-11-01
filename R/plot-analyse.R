@@ -101,13 +101,12 @@ plot_scopus_top <- function(x, ...) {
   by <- attr(x, "by") %||% "value"
   df <- x
   df$value <- factor(df$value, levels = rev(df$value))
-  # Headroom for the end-of-bar count labels, derived from the widest label as
-  # plot-intersections.R derives its gap: each label sits just past its bar, so
-  # the axis must extend by that label's rendered width or it clips at the
-  # panel edge. A fixed multiple tuned to one dataset reads well next to short
-  # labels but truncates wide many-digit ones; scaling the expansion with the
-  # character count keeps the widest label inside the panel, and clip = "off"
-  # backstops an unusually narrow device.
+  # Headroom for the end-of-bar count labels, derived from the widest label:
+  # each label sits just past its bar, so the axis must extend by that label's
+  # rendered width or it clips at the panel edge. A fixed multiple tuned to one
+  # dataset reads well next to short labels but truncates wide many-digit ones;
+  # scaling the expansion with the character count keeps the widest label
+  # inside the panel, and clip = "off" backstops an unusually narrow device.
   count_labels <- format(df$n, big.mark = ",", trim = TRUE)
   headroom <- 0.06 + 0.024 * max(nchar(count_labels))
   ggplot2::ggplot(df, ggplot2::aes(x = .data$n, y = .data$value)) +
@@ -136,8 +135,10 @@ plot_scopus_top <- function(x, ...) {
 #' @param object A [scopus_records] object (for the `autoplot()` method).
 #' @return The `autoplot()` method returns a [ggplot2::ggplot] of the records per
 #'   year. The bars cover every year the set's plan searched, a year without
-#'   records drawn as a zero bar, and no year the plan did not search. A plan
-#'   over 2015, 2016, 2019 and 2020 therefore draws no bar for 2017 or 2018. A
+#'   records drawn as a zero bar, and a year the plan did not search only where
+#'   a record carries it. A plan partitioned by year over 2015, 2016, 2019 and
+#'   2020 therefore draws no bar for 2017 or 2018, while a plan over the same
+#'   years with `partition = "none"` searches 2015 to 2020 and draws all six. A
 #'   harvest stopped before its last cell covers only the cells it ran. Without
 #'   a plan, or with one that sent no year limit, the bars run from the first
 #'   year in the records to the last. When a `max_results` cap stopped any

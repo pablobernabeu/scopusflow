@@ -263,7 +263,8 @@ app_args <- function(args) {
 # The two engines part company on one edge, and deliberately. A requested year
 # outside the corpus span is clamped into it here, then de-duplicated by the
 # unique() below, so a demo run over 2025:2026 shows 2024 once; the Python
-# _demo_rows instead returns nothing for such a year and logs that it did. Both
+# app's _demo_rows instead returns nothing for such a year, and its
+# _demo_worker logs that it did. Both
 # avoid the double-counting that padding a missing year with a neighbour's rows
 # would cause, and each half's app article states its own rule. Keep the two
 # descriptions in step if either rule changes.

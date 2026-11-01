@@ -6,8 +6,12 @@
 #' controlled) and lets large retrievals be partitioned, for example one cell per
 #' year, so they can be cached and resumed.
 #'
-#' @param query Character scalar. The base search expression, without field tags
-#'   or year filters (these are added through `field` and `years`).
+#' @param query Character scalar. The search expression. Give it without a
+#'   field tag when `field` is set, since the plan wraps it in that tag. A query
+#'   that already carries its tags, such as one composed by [scopus_query()]
+#'   with `.field`, is sent as written when `field` is `NULL`. Years given
+#'   through `years` are sent as the request's separate `date` parameter, not
+#'   written into the expression.
 #' @param years Optional integer vector of publication years, for example
 #'   `2015:2020`. When `partition = "year"`, one plan cell is created for each
 #'   distinct year, so `c(2015, 2020)` searches those two years alone, as

@@ -26,7 +26,7 @@ Identifiers or 'Scopus' record identifiers (with or without the
 \item{view}{The Abstract Retrieval view to request: \code{"META_ABS"} (the
 default), \code{"META"}, \code{"REF"} or \code{"FULL"}, or \code{NULL}. \code{"META_ABS"} is the
 view Elsevier documents as carrying the abstract with the core metadata.
-\code{NULL} sends no \code{view} parameter, as scopusflow 0.4.0 and earlier did,
+\code{NULL} sends no \code{view} parameter, as the 0.4.0 release and earlier did,
 and leaves the choice to the API. Elsevier documents its default as
 \code{"META"}, a view without the abstract, but a live request in October 2026
 returned the abstract without a view. Retrieving \code{include = "references"}
@@ -58,7 +58,10 @@ written all the same warns and keeps the row, as in \code{\link[=scopus_fetch_pl
 identifier whose cache file already exists is loaded from disk, sparing a
 second request for it. A cache file that cannot be read back, for example
 one left half-written by an interrupted run, is retrieved again with a
-warning, and the batch carries on.}
+\code{scopus_warning_cache_unreadable} warning, and the batch carries on. One
+holding a different identifier, since distinct identifiers can share a
+cache filename, is retrieved again with a \code{scopus_warning_cache_mismatch}
+warning.}
 
 \item{api_key, inst_token}{Optional credentials (see \code{\link[=scopus_has_key]{scopus_has_key()}}).}
 

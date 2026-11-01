@@ -8,8 +8,10 @@
 #' @param max_results Maximum number of records to retrieve. Defaults to `Inf`,
 #'   meaning all available records up to the API ceiling. With the default
 #'   offset-based paging the 'Scopus' Search API refuses offsets of 5000 or more,
-#'   so a single query yields at most 5000 records; set `cursor = TRUE`, or
-#'   partition the search by year with [scopus_plan()], to go beyond that.
+#'   so a single query yields at most 5000 records, and one that matches more,
+#'   with `max_results` above 5000, gives a `scopus_warning_capped` warning; set
+#'   `cursor = TRUE`, or partition the search by year with [scopus_plan()], to go
+#'   beyond that.
 #' @param page_size Integer records per page, or `NULL` (default) to use the
 #'   most quota-efficient page the view allows (200 for `STANDARD`, 25 for
 #'   `COMPLETE`). See [scopus_plan()] for why larger pages cost less quota.
@@ -18,8 +20,9 @@
 #'   harvested in one call. The records then arrive in the API's deep-paging
 #'   order, which is no longer relevance order. As a safeguard against a
 #'   non-conforming server that never signals the end, cursor paging stops after
-#'   `getOption("scopusflow.max_cursor_pages", 1e5)` pages with a warning; set
-#'   that option to `Inf` to remove the ceiling.
+#'   `getOption("scopusflow.max_cursor_pages", 1e5)` pages with a
+#'   `scopus_warning_capped` warning; set that option to `Inf` to remove the
+#'   ceiling.
 #' @param verbose Logical. When `TRUE`, progress is reported as the retrieval
 #'   proceeds.
 #' @param fields `"core"` (the default) or `"extended"`. `"extended"` also keeps
@@ -123,6 +126,7 @@ scopus_warn_fetch_shortfall <- function(records, max_results) {
   if (is.finite(max_results) && n >= max_results) {
     return(invisible(NULL))
   }
+  # scopusflow.hard_cap is an internal test hook, not meant for users.
   hard_cap <- as.integer(getOption("scopusflow.hard_cap", 5000L))
   if (identical(attr(records, "paging"), "offset") && n >= hard_cap) {
     return(invisible(NULL))
@@ -154,7 +158,8 @@ scopus_fetch_core <- function(wrapped, date, view, page_size, max_results,
       verbose = verbose, fields = fields
     ))
   }
-  # The API refuses start >= 5000; configurable only to keep tests fast.
+  # The API refuses start >= 5000. scopusflow.hard_cap, an internal test hook
+  # not meant for users, lets the tests lower the ceiling to keep them fast.
   hard_cap <- as.integer(getOption("scopusflow.hard_cap", 5000L))
 
   fetch_page <- function(start, count) {

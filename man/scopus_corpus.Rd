@@ -17,8 +17,10 @@ scopus_corpus(
 )
 }
 \arguments{
-\item{records}{A \code{\link[=scopus_records]{scopus_records()}} tibble, or any data frame with \code{doi},
-\code{title} and \code{year} columns in the same shape.}
+\item{records}{A \code{\link[=scopus_records]{scopus_records()}} tibble, or any data frame with \code{title}
+and \code{year} columns and the identifier column \code{by} names (\code{doi} or
+\code{scopus_id}). A \code{scopus_id} column, a \code{query} column and the \code{plan} and
+\code{retrieved_at} attributes are used where present (see \emph{Value}).}
 
 \item{by}{Either \code{"doi"} or \code{"scopus_id"}, the kind of identifier in
 \code{records} to look records up by (see \code{\link[=scopus_abstract]{scopus_abstract()}}).}
@@ -66,7 +68,8 @@ when the document has none, the field is unavailable or \code{view = "REF"})
 and \code{references} (a list-column: each entry is the
 \code{references} data frame \code{\link[=scopus_abstract]{scopus_abstract()}} returns for that document,
 with one row per cited work). A record in \code{records} whose identifier is
-\code{NA} is dropped, with a warning naming how many.
+\code{NA} is dropped, with a \code{scopus_warning_dropped_records} warning naming
+how many.
 
 The number of Abstract Retrieval requests made and the most recently
 parsed quota are attached as the \code{n_requests} and \code{quota} attributes, as
@@ -83,9 +86,10 @@ Takes a \code{\link[=scopus_records]{scopus_records()}} tibble, such as the outp
 \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}, and enriches it with keywords (the author keywords by
 default, or the index keywords 'Scopus' assigns) and structured
 references via Abstract Retrieval, returning a minimal, uniform shape close
-to what OpenAlex's \code{works} API already returns: an \code{id}, \code{title}, \code{year},
-\code{keywords} (a list-column of character vectors) and \code{references} (a
-list-column of data frames). This is meant for downstream tools that want to
+to what OpenAlex's \code{works} API already returns: an \code{id}, the document's
+\code{scopus_id}, its \code{title} and \code{year}, \code{keywords} (a list-column of character
+vectors) and \code{references} (a list-column of data frames). This is meant for
+downstream tools that want to
 consume 'Scopus' output without writing their own parsing layer, for example
 for keyword co-occurrence or citation-network analysis. It does not replace
 \code{\link[=as_bibliometrix]{as_bibliometrix()}}, which keeps its own established field-mapping

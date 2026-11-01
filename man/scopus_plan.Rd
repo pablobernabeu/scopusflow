@@ -17,8 +17,12 @@ scopus_plan(
 is_scopus_plan(x)
 }
 \arguments{
-\item{query}{Character scalar. The base search expression, without field tags
-or year filters (these are added through \code{field} and \code{years}).}
+\item{query}{Character scalar. The search expression. Give it without a
+field tag when \code{field} is set, since the plan wraps it in that tag. A query
+that already carries its tags, such as one composed by \code{\link[=scopus_query]{scopus_query()}}
+with \code{.field}, is sent as written when \code{field} is \code{NULL}. Years given
+through \code{years} are sent as the request's separate \code{date} parameter, not
+written into the expression.}
 
 \item{years}{Optional integer vector of publication years, for example
 \code{2015:2020}. When \code{partition = "year"}, one plan cell is created for each

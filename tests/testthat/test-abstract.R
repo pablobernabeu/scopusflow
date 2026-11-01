@@ -54,6 +54,19 @@ test_that("scopus_abstract aborts clearly when no key is configured", {
   expect_error(scopus_abstract(c("10.1/a", "10.1/b")), class = "scopus_error_no_key")
 })
 
+test_that("scopus_abstract refuses a non-Elsevier endpoint once, before any request", {
+  local_scopus_test_env()
+  withr::local_options(scopusflow.abstract_url = "https://evil.example/content/abstract")
+  requests <- 0L
+  httr2::local_mocked_responses(function(req) {
+    requests <<- requests + 1L
+    mock_abstract(list(`dc:title` = "A record"))
+  })
+  # Caught per identifier, the refusal would become a tibble of NA rows.
+  expect_error(scopus_abstract(c("10.1/a", "10.1/b")), class = "scopus_error_bad_input")
+  expect_equal(requests, 0L)
+})
+
 test_that("a malformed 200 body yields an NA row, not a lost batch", {
   local_scopus_test_env()
   httr2::local_mocked_responses(function(req) {

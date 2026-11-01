@@ -51,7 +51,10 @@ section 2.4). A reference with neither is dropped, and a
 \code{scopus_warning_dropped_references} warning says how many. Each document is
 keyed the same way, from its \code{scopus_id} or else from an \code{id} that is a DOI
 or a 'Scopus' identifier, so a citation of a document in the corpus and the
-document itself share one key.
+document itself share one key. A document with neither, which no key can
+name, is refused with a \code{scopus_error_bad_input} error naming its row (the
+first ten such rows when there are more), and \code{write_scopus_corpus()} then
+writes nothing.
 
 Keywords are trimmed, lower-cased with \code{\link[=tolower]{tolower()}} and made unique, keeping
 the first of each, and empty ones are dropped, so \code{"Graphene"} and

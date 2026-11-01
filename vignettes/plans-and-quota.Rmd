@@ -200,7 +200,9 @@ record, so the same call would return 138.
 
 A harvest is rarely the end of the work. A systematic review has to report the
 search itself, in enough detail that a reader can repeat it, and the reporting
-standard for that is PRISMA-S (Rethlefsen et al., 2021). `scopus_search_report()`
+standard for that is PRISMA-S
+([Rethlefsen et al., 2021](https://doi.org/10.1186/s13643-020-01542-z)).
+`scopus_search_report()`
 assembles the record from what the plan and the harvest already carry, so the
 methods section is written from the objects and never from memory.
 
@@ -310,11 +312,9 @@ records <- scopus_fetch_plan(
 
 Inside a plan, the warning for a cell that stops at the ceiling names that call,
 since the cell is already partitioned. Plans page by offset unless asked
-otherwise, as they always have, so an existing script returns what it returned
-before. A checkpoint records the mode it was fetched under and serves only a
+otherwise. A checkpoint records the mode it was fetched under and serves only a
 request in the same mode, so switching modes fetches each cell again. The Python
-twin's `fetch_plan()` makes the opposite choice of default for the same reason.
-It has always paged by cursor, and pages by offset only when given
+twin's `fetch_plan()` pages by cursor by default, and by offset when given
 `cursor=False`, the route pybliometrics documents for keys without a Scopus
 subscription.
 

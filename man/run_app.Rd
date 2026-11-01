@@ -27,7 +27,10 @@ streams the retrieval's progress and a panel that mirrors every choice as
 runnable R code. A \emph{Demo mode} (on by default) draws records from the bundled
 \link{example_records} corpus and synthesises a topic comparison, so the whole
 workflow can be explored with no key and no network;
-switch it off and supply a key to query 'Scopus' for real. The app runs on your
+switch it off and paste a key into the app's key field to query 'Scopus' for
+real. The app uses only that key, held in the session, and does not read
+\code{SCOPUS_API_KEY} or the \code{scopusflow.api_key} option, while the script it
+writes finds the key as \code{\link[=scopus_has_key]{scopus_has_key()}} describes. The app runs on your
 own machine: your API key never leaves it, and requests originate from your own
 network, which is what the 'Scopus' API expects. It needs the suggested
 packages \pkg{shiny}, \pkg{bslib} and \pkg{callr} (and \pkg{ggplot2} for the

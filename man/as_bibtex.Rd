@@ -42,8 +42,10 @@ series under \code{series}, and a book outside a series, whose source title
 'Scopus' gives as the book's own, names no source. RIS gives the source
 under \code{T2} except for such a book, since Zotero reads a book's \code{T2} as its
 series. The entries also carry the volume, issue, pages, ISSN and document
-type (RIS \code{M3}). Under \code{view = "COMPLETE"} they carry the abstract and the
-author keywords, one \code{KW} line each in RIS and joined by commas in BibTeX.
+type (RIS \code{M3}), and under \code{view = "COMPLETE"} the abstract. The entries of
+a set retrieved under \code{view = "COMPLETE"}, with the core fields or the
+extended ones, also carry the author keywords, one \code{KW} line each in RIS and
+joined by commas in BibTeX.
 Keywords are split at the \code{" | "} the Search API joins them with and at the
 \code{"; "} \code{\link[=scopus_abstract]{scopus_abstract()}} joins its own with. A value the record lacks is
 left out, never filled in.

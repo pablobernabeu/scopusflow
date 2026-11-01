@@ -253,9 +253,10 @@ ab <- scopus_abstract(head(scopus_extract_dois(records), 2))
 
 The result is a tibble of class `scopus_abstracts`, one row per identifier. To
 show its shape without a key, here is a stand-in built from the two most-cited
-records of the corpus, which supplies every column but the abstract itself. The
-abstract is the one thing a live call adds and the corpus does not carry, so it
-is marked as a placeholder, with nothing invented to fill it, and the columns
+records of the corpus, which supplies every column but the abstract and the
+'Scopus' identifier. Those two are what a live call adds and the corpus does
+not carry, so the abstract is marked as a placeholder and the identifier left
+as `NA`, with nothing invented to fill either, and the columns
 are listed by
 name because the prose is far too wide to typeset.
 
