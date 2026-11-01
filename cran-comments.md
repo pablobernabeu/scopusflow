@@ -42,8 +42,8 @@ which r-lib/actions turns off. Each leg ended with 'Status: OK':
 * ubuntu-latest (Ubuntu 24.04.5 LTS), R 4.5.3
 * ubuntu-latest (Ubuntu 24.04.5 LTS), R 4.4.3
 * ubuntu-latest (Ubuntu 24.04.5 LTS), R 4.3.3
-* windows-latest (Windows Server 2022 x64, build 26100), R 4.6.2
-* windows-latest (Windows Server 2022 x64, build 26100), R-devel
+* windows-latest (Windows Server 2025, x86_64-w64-mingw32), R 4.6.2
+* windows-latest (Windows Server 2025, x86_64-w64-mingw32), R-devel
   (2026-10-31 r90820 ucrt)
 * macos-latest (macOS 26.6.2, aarch64-apple-darwin23), R 4.6.2
 

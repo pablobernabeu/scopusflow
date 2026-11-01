@@ -16,3 +16,6 @@ project-state.md
 
 # revdepcheck::revdep_check() output, if reverse dependencies ever need checking
 /revdep/
+
+# devtools::submit_cran() writes the submitted version, time and commit here
+/CRAN-SUBMISSION
