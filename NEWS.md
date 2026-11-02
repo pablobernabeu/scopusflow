@@ -1,4 +1,10 @@
-# scopusflow (development version)
+# scopusflow 0.5.0
+
+A release about retrieving more of a search and about the accuracy of what it
+returns. Cursor paging retrieves plan cells of more than 5000 records whole, and
+`fields = "extended"` adds document metadata at no extra quota. New functions
+compare two harvests and export a corpus for theoryforge. Many fixes change
+results, and the upgrading notes below say what was wrong in each case.
 
 ## Upgrading from the previous release (0.4.0)
 
