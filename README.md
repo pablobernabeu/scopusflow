@@ -18,11 +18,11 @@ MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/
 
 scopusflow is a reproducible, quota-aware workflow layer over the
 Elsevier [Scopus](https://dev.elsevier.com/sc_apis.html) Search API. It
-turns one-off bibliographic queries into inspectable plans, retrieves
-records safely with pagination, rate-limit handling, retry with back-off
-and optional resumable caching, normalises them to a stable tidy schema,
-tracks changes in DOI sets over time, sizes sets of concepts and their
-intersections and compares publication trends across topics.
+turns one-off bibliographic queries into inspectable plans and retrieves
+records with pagination, rate-limit handling, retry with back-off and
+optional resumable caching. It normalises the records to a stable tidy
+schema, tracks changes in DOI sets over time, sizes sets of concepts and
+their intersections and compares publication trends across topics.
 
 Its Python twin, [the package of the same
 name](https://pablobernabeu.github.io/scopusflow-py/), follows the same
@@ -31,9 +31,8 @@ so a search written in one language reads much the same in the other.
 
 <img src="man/figures/README-readme-hero-1.png" alt="An illustrative line chart of four sub-topics' share of a deep-learning reference literature between 2013 and 2021: computer vision, natural language processing, medical imaging and drug discovery" width="100%" />
 
-The figure is drawn by `plot_scopus_comparison()` from illustrative
-counts, so that this page builds without an API key and without
-contacting Elsevier. The [Comparing topics over
+The figure is drawn by `plot_scopus_comparison()` from a table of
+illustrative counts. The [Comparing topics over
 time](https://pablobernabeu.github.io/scopusflow/articles/comparing-topics.html)
 article builds the same table and explains every column.
 
@@ -62,7 +61,7 @@ pak::pak("pablobernabeu/scopusflow")
 ## API key
 
 scopusflow never stores your key. It is read, in order, from the
-`api_key` argument, the `scopusflow.api_key` option, or the
+`api_key` argument, the `scopusflow.api_key` option or the
 `SCOPUS_API_KEY` environment variable. Store it in `~/.Renviron`.
 
     SCOPUS_API_KEY=your-key-here
@@ -108,8 +107,8 @@ scopus_search_report(records, file = file.path(tempdir(), "search-record.md"))
 
 The [Get
 started](https://pablobernabeu.github.io/scopusflow/articles/scopusflow.html)
-vignette walks this workflow offline, on records bundled with the
-package, and the
+vignette walks through this workflow offline, on records bundled with
+the package. The
 [articles](https://pablobernabeu.github.io/scopusflow/articles/index.html)
 each cover one part in depth: designing queries, search plans, quota and
 the PRISMA-S search record, building a reference set, analysing and
@@ -120,12 +119,12 @@ how a literature changes between retrievals.
 
 ## Code-free app
 
-`run_app()` opens a local Shiny app that drives the whole workflow
-without writing code, and mirrors every choice back as a runnable R
-script, so it doubles as a way into the package itself. It runs on your
-own machine, so your API key never leaves it, and a demo mode lets you
-try the flow with no key, on the corpus of real articles bundled with
-the package.
+`run_app()` opens a local Shiny app that lets you run the whole workflow
+without writing code. Because it shows every choice as a runnable R
+script, the app is also a way into the package. It runs on your own
+machine, so your API key never leaves it. A demo mode lets you try the
+workflow with no key, on the harvest of real articles bundled with the
+package.
 
 ``` r
 run_app()
@@ -142,41 +141,43 @@ article walks through every panel.
 
 The Scopus API enforces a weekly quota and a short-term rate limit, and
 ordinary offset paging returns at most the first 5000 records of any
-query (use `scopus_fetch(cursor = TRUE)` to go beyond that). scopusflow
-works within these limits and never tries to evade them. It requests the
-largest page each view allows, 200 records for `STANDARD` and 25 for
-`COMPLETE`, so that a retrieval uses as few requests, and as little
-quota, as it can. This is the same approach `rscopus` takes. The quota
-and rate-limit headers are parsed by `scopus_quota()`. Throttling (HTTP
-429), the server errors 500, 502, 503 and 504, timeouts and reset
-connections are retried with back-off that honours `Retry-After`, while
-a spent weekly quota, which Elsevier also answers with HTTP 429, is not
-retried. An offset-paged query is capped at 5000 records with a warning
-that suggests cursor paging or partitioning by year. A failure arrives
-as a typed condition (every `scopus_error_*` condition inherits from
-`scopus_error`), so a workflow can respond to it in code. The Get
-started vignette shows the `tryCatch()` pattern.
+query. scopusflow works within these limits. An offset-paged query is
+capped at 5000 records with a warning that suggests cursor paging or
+partitioning by year. Use `scopus_fetch(cursor = TRUE)` to go beyond
+that limit. To use as few requests and as little quota as possible,
+scopusflow asks for the largest page each view allows, 200 records for
+`STANDARD` and 25 for `COMPLETE`. This is the same approach `rscopus`
+takes. The quota and rate-limit headers are parsed by `scopus_quota()`.
+
+Throttling (HTTP 429), the server errors 500, 502, 503 and 504, timeouts
+and reset connections are retried with back-off that honours
+`Retry-After`. A spent weekly quota, which Elsevier also answers with
+HTTP 429, is not retried. A failure is signalled as a typed condition,
+and every `scopus_error_*` condition inherits from `scopus_error`. The
+Get started vignette shows the `tryCatch()` pattern for responding to
+these conditions in code.
 
 ## How it compares
 
-Several R packages cover neighbouring ground, and scopusflow is meant to
+Several R packages serve related purposes, and scopusflow is meant to
 work alongside them.
 
 | Package | Focus | Relationship to scopusflow |
 |----|----|----|
-| [`rscopus`](https://cran.r-project.org/package=rscopus) | Low-level Scopus API wrapper | scopusflow sits at a higher workflow layer (plans, quotas, caching, diffs) and calls the API directly through `httr2` |
+| [`rscopus`](https://cran.r-project.org/package=rscopus) | Low-level Scopus API wrapper | scopusflow works at a higher workflow layer (plans, quotas, caching, diffs) and calls the API directly through `httr2` |
 | [`openalexR`](https://cran.r-project.org/package=openalexR), [`pubmedR`](https://cran.r-project.org/package=pubmedR), [`dimensionsR`](https://cran.r-project.org/package=dimensionsR), [`rcrossref`](https://cran.r-project.org/package=rcrossref) | Other bibliographic databases | Complementary, covering different sources |
-| [`bibliometrix`](https://cran.r-project.org/package=bibliometrix) | Science mapping and analysis | Downstream, and fed by `as_bibliometrix()` |
+| [`bibliometrix`](https://cran.r-project.org/package=bibliometrix) | Science mapping and analysis | Downstream, receiving records from `as_bibliometrix()` |
 
 ## Limitations
 
-A few limits are worth keeping in mind. Under ordinary offset paging the
-Scopus Search API returns at most the first 5000 records of a query, so
-a large search is best partitioned by year with `scopus_plan()` or
-harvested in one pass with `scopus_fetch(cursor = TRUE)`, which trades
-relevance order for completeness. `as_bibliometrix()` maps the core
-descriptive fields the Search API returns. Structured reference lists
-are available through
+Under ordinary offset paging, the Scopus Search API returns at most the
+first 5000 records of a query. A larger search is best partitioned by
+year with `scopus_plan()` or harvested in one pass with
+`scopus_fetch(cursor = TRUE)`, which trades relevance order for
+completeness.
+
+`as_bibliometrix()` maps the core descriptive fields the Search API
+returns. Structured reference lists are available through
 `scopus_abstract(view = "FULL", include = "references")` and
 `scopus_corpus()`, but an analysis that needs full affiliations, or
 bibliometrix’s own cited-reference (CR) field, will still call for a
@@ -200,12 +201,12 @@ version.
 The [About
 page](https://pablobernabeu.github.io/scopusflow/articles/about.html)
 carries the same citation with a BibTeX entry, and a short note on the
-developer. The repository also ships a `CITATION.cff`, which is what
-GitHub’s ‘Cite this repository’ button reads.
+developer. The repository also includes a `CITATION.cff`, which GitHub’s
+‘Cite this repository’ button reads.
 
 ## Licence
 
-MIT. ‘Scopus’ is a trademark of Elsevier. This package is an independent
+MIT. Scopus is a trademark of Elsevier. scopusflow is an independent
 client and is not affiliated with or endorsed by Elsevier.
 
 ## Contributing
@@ -216,9 +217,9 @@ describes the development setup and the conventions the package follows,
 and everyone taking part is asked to honour the [Code of
 Conduct](https://github.com/pablobernabeu/scopusflow/blob/main/.github/CODE_OF_CONDUCT.md).
 
-Alongside the per-commit checks on Windows, macOS and Linux across
-several versions of R, a scheduled job re-checks the package every other
-day against the current and development versions of its dependencies, so
-that breakage from an upstream change is caught early. The contributing
-guide describes how it reports, and tries to resolve, any problem it
+Per-commit checks run on Windows, macOS and Linux across several
+versions of R. To find failures caused by changes in its dependencies
+early, a scheduled job also re-checks the package every other day
+against their current and development versions. The contributing guide
+describes how the job reports, and tries to resolve, any problem it
 finds.
