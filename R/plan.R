@@ -39,7 +39,10 @@
 #'   as possible for a given result set. Lower it only where you have a reason to.
 #' @param partition Either `"none"` (a single query cell) or `"year"` (one cell
 #'   per year in `years`). Partitioning by year is the recommended way to stay
-#'   under the API's hard limit of `start < 5000`.
+#'   under the API's hard limit of `start < 5000` for offset paging, provided
+#'   that no single year matches more than 5000 records. Cursor paging, with
+#'   `scopus_fetch_plan(plan, cursor = TRUE)` or `scopus_fetch(cursor = TRUE)`,
+#'   has no such ceiling.
 #' @return A tibble of class `scopus_plan`, one row per cell, with columns
 #'   `cell`, `query` (field-wrapped), `date` (year range string or `NA`), `year`
 #'   (integer or `NA`), `view` and `page_size`. Plan-level settings are stored as

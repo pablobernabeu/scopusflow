@@ -8,7 +8,7 @@ authors:
     given-names: Pablo
     orcid: "https://orcid.org/0000-0003-1083-2460"
     email: pcbernabeu@gmail.com
-version: "0.4.0"
+version: "0.5.0"
 # The date CRAN published 0.4.0.
 date-released: "2026-08-21"
 # The DOI CRAN assigned to the package on publication. It identifies the package

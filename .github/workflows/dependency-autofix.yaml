@@ -6,15 +6,16 @@
 # smallest safe fix. Reproducing the failure means dependency code runs in this
 # job too, beside the write token; that trade-off is accepted because the job
 # is inert until the maintainer opts in by adding a CLAUDE_CODE_OAUTH_TOKEN or
-# ANTHROPIC_API_KEY secret, runs only after a failed check rather than on every
-# schedule, and produces a reviewable pull request rather than an unattended
-# push to main. The action works with this run's GITHUB_TOKEN, which needs the
-# repository setting "Allow GitHub Actions to create and approve pull requests"
-# (Settings > Actions > General) before it can open a pull request. Workflows do
-# not start on their own for a pull request opened with that token. The
-# maintainer therefore runs R-CMD-check on its branch before merging, from the
-# Actions tab or by closing and reopening the pull request. If the attempt
-# fails, the run says so on the open dependency issue and finishes red.
+# ANTHROPIC_API_KEY secret, runs only after a failed check or on demand from
+# the Actions tab, and produces a reviewable pull request rather than an
+# unattended push to main. The action works with this run's GITHUB_TOKEN, which
+# needs the repository setting "Allow GitHub Actions to create and approve pull
+# requests" (Settings > Actions > General) before it can open a pull request.
+# Workflows do not start on their own for a pull request opened with that
+# token. The maintainer therefore runs R-CMD-check on its branch before
+# merging, from the Actions tab or by closing and reopening the pull request.
+# If the attempt fails, the run says so on the open dependency issue and
+# finishes red.
 on:
   workflow_run:
     workflows: ["dependency-check.yaml"]
