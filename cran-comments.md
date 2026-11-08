@@ -30,22 +30,24 @@ key is sent to Elsevier alone.
 
 ## Test environments
 
-GitHub Actions, run 41309923609 on 2026-11-01, at commit 10d6bef on the main
-branch. That commit differs from this submission only in the version number and
-the first heading of NEWS.md. Each leg built the tarball with
-`--no-manual --compact-vignettes=gs+qpdf` and ran
+GitHub Actions, run 42427789546 on 2026-11-08, at commit 83f2177 on the
+ccr-48a6a874-3shvqm branch. The package sources of this submission are those of
+that commit. Because a pull request started the run, it checked out a merge of
+that commit into main. That merge differs from the commit only in a workflow
+file under .github, a directory that .Rbuildignore excludes. Each leg built the
+tarball with `--no-manual --compact-vignettes=gs+qpdf` and ran
 `R CMD check --as-cran --no-manual` on it, without the CRAN incoming checks,
 which r-lib/actions turns off. Each leg ended with 'Status: OK':
 
 * ubuntu-latest (Ubuntu 24.04.5 LTS), R 4.6.2
-* ubuntu-latest (Ubuntu 24.04.5 LTS), R-devel (2026-10-31 r90820)
+* ubuntu-latest (Ubuntu 24.04.5 LTS), R-devel (2026-11-05 r90840)
 * ubuntu-latest (Ubuntu 24.04.5 LTS), R 4.5.3
 * ubuntu-latest (Ubuntu 24.04.5 LTS), R 4.4.3
 * ubuntu-latest (Ubuntu 24.04.5 LTS), R 4.3.3
 * windows-latest (Windows Server 2025, x86_64-w64-mingw32), R 4.6.2
 * windows-latest (Windows Server 2025, x86_64-w64-mingw32), R-devel
-  (2026-10-31 r90820 ucrt)
-* macos-latest (macOS 26.6.2, aarch64-apple-darwin23), R 4.6.2
+  (2026-11-06 r90845 ucrt)
+* macos-latest (macOS 26.7.2, aarch64-apple-darwin23), R 4.6.2
 
 The test suite passed in every leg, with no failures or warnings. Seven live
 tests skip everywhere, because they run only with an API key and an opt-in
@@ -53,9 +55,10 @@ variable. One more test skips on Linux, which has no German time locale, and
 one on Windows, which lets a read-only directory be written.
 
 The same run checked the package under R 4.6.2 on ubuntu-latest twice more:
-with only its strong dependencies installed (`_R_CHECK_DEPENDS_ONLY_=true`,
-`--as-cran`, without re-building the vignettes) and with httr2 1.0.4, the
-minimum that DESCRIPTION declares. Both ended with 'Status: OK'.
+with only its strong dependencies available to the check
+(`_R_CHECK_DEPENDS_ONLY_=true`, `--as-cran`, without re-building the vignettes)
+and with httr2 1.0.4, the minimum that DESCRIPTION declares. Both ended with
+'Status: OK'.
 
 Some platforms may report a note listing possibly misspelled words in the
 DESCRIPTION, among them 'DOIs', 'Elsevier', 'PRISMA', 'Rethlefsen',
