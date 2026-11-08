@@ -33,9 +33,10 @@ library(scopusflow)
 
 `scopus_query()` composes field-tagged 'Scopus' queries from separate terms. A
 query pasted together by hand can contain a missing bracket or a mistyped tag
-and return the wrong records without an error. Everything here is string
-construction and runs offline, and each call is shown with the literal query
-string it returns.
+and return the wrong records without an error. Composing a query is string
+construction and runs offline without an API key. Each call is shown with the
+literal query string it returns. The steps that size or run a search contact
+the API, so they are shown but not run.
 
 ## Field tags decide where to look
 
@@ -138,7 +139,8 @@ scopus_query("vaccine", young)
 
 A composed query can be passed directly to the rest of the workflow. The example
 below uses it as the query of a year-partitioned plan, which keeps each cell
-under the API's 5000-record ceiling.
+under the API's 5000-record ceiling for offset paging, provided that no single
+year matches more than 5000 records.
 
 ```{r}
 q <- scopus_query("gut microbiome", "immunology", .field = "TITLE-ABS-KEY")
@@ -231,10 +233,11 @@ without that DOI, cannot show whether the strategy finds it. It is left out of
 the denominator and listed, so it can be checked by hand.
 
 The sketch below contacts the API, so it is not run here. Its DOIs are
-placeholders for your own, and `scopus_extract_dois()` cleans them first, so a
-resolver prefix or a difference in case does no harm. Chains of at most 25 DOIs
-keep each request short. How the API treats much longer chains has not been
-checked.
+placeholders for your own. `scopus_extract_dois()` strips resolver prefixes from
+them and removes duplicates without regard to case, and the sketch compares DOIs
+in lower case, so a resolver prefix or a difference in case does no harm. Chains
+of at most 25 DOIs keep each request short. How the API treats much longer
+chains has not been checked.
 
 ```{r eval = FALSE}
 known <- scopus_extract_dois(

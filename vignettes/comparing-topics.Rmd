@@ -224,7 +224,7 @@ so any further adjustment, such as a different theme or a saved file, takes one
 
 When the numbers matter more than the picture, the usual tools apply, because
 the output is a tibble. Here are the comparison topics ranked by their average
-share.
+share, the order in which `scopus_compare_topics()` returns them.
 
 ```{r}
 comp <- cmp[cmp$query_type == "comparison", ]

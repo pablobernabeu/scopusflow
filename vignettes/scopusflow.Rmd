@@ -36,7 +36,7 @@ library(scopusflow)
 ```
 
 This vignette can be reproduced without a Scopus API key. The steps that need
-the API are shown but not run, each paired with the offline equivalent.
+the API are shown but not run, and everything else runs offline.
 
 Elsevier's API terms do not permit redistributing retrieved records, so no
 package can include a Scopus harvest. scopusflow bundles an openly licensed
@@ -60,8 +60,9 @@ times as many records.
 
 A plan separates describing a search from executing it. Plans are inspectable,
 saveable and version-controllable. They can be partitioned, for example by
-year, so that a large retrieval stays under the API's `start < 5000` ceiling and
-can be cached and resumed.
+year, so that a large retrieval can be cached and resumed. Partitioning by year
+also keeps each cell under the API's `start < 5000` ceiling, provided that no
+single year matches more than 5000 records.
 
 The plan below describes a Scopus search for the phrase used to collect the
 bundled harvest, and the rest of the article follows it as one worked example
@@ -223,8 +224,9 @@ plot_scopus_comparison(cmp)
 ```
 
 The result is a tidy table with one row per topic and year, which
-`plot_scopus_comparison()` draws with direct line labels, a colour-blind-safe
-palette and shaded stability bands. `vignette("comparing-topics")` builds the
+`plot_scopus_comparison()` draws with a colour-blind-safe palette and shaded
+stability bands. By default, it labels the lines directly when there are at
+most eight comparison topics. `vignette("comparing-topics")` builds the
 object offline, shows the plot in its variations and explains how to read the
 bands.
 

@@ -66,8 +66,11 @@ real publication curve with the shape the literature has. Scopus records may not
 be redistributed, so the corpus is not a Scopus harvest. The corpus covers 2015
 to 2024, and the year slider opens on that span. A year outside it is drawn from
 the nearest year the corpus holds, and the live terminal says so for each such
-year. Only the topic comparison is synthesised, because it counts whole
-literatures and no set of records in hand holds those counts.
+year. With Partition by year off, the plan is a single cell with no year, and
+the replay serves it from the corpus's last year, 2024, so it returns that
+year's 14 records rather than all 138. Only the topic comparison is
+synthesised, because it counts whole literatures and no set of records in hand
+holds those counts.
 
 When you are ready for real results, paste your Scopus key into the field at
 the top of the sidebar and switch Demo mode off. The key stays in the running
@@ -84,8 +87,9 @@ Check size runs a cheap count first, the same one `scopus_count()` performs, so
 you can see how much a query would retrieve before committing to it. In demo
 mode, it reports instead how many records it would draw from the bundled corpus.
 The note it shows applies to the search on screen, so it goes as soon as the
-terms, the field, the years, the detail or the cap change. Check size waits
-while a harvest is running, since the app runs one job at a time.
+terms, the field, the years, the detail or the cap change. While a harvest is
+running, Check size counts nothing and asks you to wait for the harvest to
+finish, since the app runs one job at a time.
 
 Max records per cell is blank when the app opens, so the app sets no cap of its
 own and each cell is retrieved up to the offset ceiling of 5000 records. A
@@ -124,11 +128,12 @@ directory of the plan's own, and resumes from them each time it is run.
 
 The Reproducible code panel rewrites a runnable R script as you go to match
 every choice you make: the query, the field, the year range, whether you
-partition by year and the Compare topics options. Change a control and the
-script updates at once, so you can see which argument each choice sets. The key
-is never written into the script. The panel notes that it is read from the
-`SCOPUS_API_KEY` environment variable, so a script you share carries the method
-but not your credentials.
+partition by year, the detail, the cap on records per cell and the Compare
+topics options. Change a control and the script updates at once, so you can see
+which argument each choice sets. The key is never written into the script. A
+comment in the script says that the key is read from the `SCOPUS_API_KEY`
+environment variable, so a script you share carries the method but not your
+credentials.
 
 The script opens with a comment naming the scopusflow version that wrote it. A
 script written in demo mode then says that the records on screen were replayed
@@ -178,8 +183,9 @@ reference topic. It retrieves no records. You enter comma-separated comparison
 terms, optionally pick one to highlight, and toggle the stability band and
 whether each topic's label carries its record count. Each term needs one count
 request per year, and the reference topic one more, so two terms over six years
-take 18 requests. The tab gives that number and advises fewer terms or years
-above 80. With Partition by year off, the comparison covers the last six years.
+take 18 requests. With Demo mode off, a note above the Compare topics button
+gives that number and advises fewer terms or years above 80. With Partition by
+year off, the comparison covers the last six years.
 
 In demo mode, the comparison is synthesised so you can see the figure offline. A
 note under it says that its counts are illustrative, since the figure's own

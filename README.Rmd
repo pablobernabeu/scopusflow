@@ -239,8 +239,8 @@ describes the development setup and the conventions the package follows, and
 everyone taking part is asked to honour the
 [Code of Conduct](https://github.com/pablobernabeu/scopusflow/blob/main/.github/CODE_OF_CONDUCT.md).
 
-Per-commit checks run on Windows, macOS and Linux across several versions of
-R. To find failures caused by changes in its dependencies early, a scheduled
-job also re-checks the package every other day against their current and
-development versions. The contributing guide describes how the job
-reports, and tries to resolve, any problem it finds.
+Pull requests and pushes to the main branch are checked on Windows, macOS and
+Linux across several versions of R. To find failures caused by changes in the
+package's dependencies early, a scheduled job also re-checks the package every
+other day against their current and development versions. The contributing
+guide describes how the job reports, and tries to resolve, any problem it finds.

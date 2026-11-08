@@ -6,7 +6,7 @@ made while creating it. It is excluded from the built package through
 
 ## Chosen package concept
 
-scopusflow is a coherent, quota-aware workflow layer over the Elsevier 'Scopus'
+scopusflow is a quota-aware workflow layer over the Elsevier 'Scopus'
 Search API. A search is first described as a reproducible plan with
 `scopus_plan()` and sized cheaply with `scopus_count()`. It is then retrieved
 with `scopus_fetch()` or `scopus_fetch_plan()`, which handle pagination,

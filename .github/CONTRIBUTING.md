@@ -43,12 +43,12 @@ internal HTTP layer is in `R/request.R` and `R/conditions.R`. A few
 conventions keep the package predictable, and a pull request is easiest to accept
 when it follows them.
 
-The tests run offline. HTTP is intercepted with
-`httr2::local_mocked_responses()`, and small fixtures are kept in
-`tests/testthat/` and `inst/extdata`. A test should never make a real network
-request. Live integration tests are skipped on CRAN and run only when the
-`SCOPUSFLOW_LIVE_TESTS` environment variable is `"true"` and `SCOPUS_API_KEY`
-is set (see *Automated maintenance* below).
+Apart from the live integration tests, the tests run offline. HTTP is
+intercepted with `httr2::local_mocked_responses()`, and small fixtures are kept
+in `tests/testthat/` and `inst/extdata`. No other test should make a real
+network request. The live integration tests are skipped on CRAN and run only
+when the `SCOPUSFLOW_LIVE_TESTS` environment variable is `"true"` and
+`SCOPUS_API_KEY` is set (see *Automated maintenance* below).
 
 Errors are raised as typed conditions in the `scopus_error` family through
 `rlang::abort()`, never with a bare `stop()`, so that callers can handle them
@@ -81,9 +81,10 @@ marks the run as failed. It closes the issue once the check passes again.
 Because the dependency check executes development code fetched from other
 repositories, it runs with read-only repository access. Write access to the
 repository is held by a companion workflow
-(`.github/workflows/dependency-autofix.yaml`) that runs only after a failed
-check. Each workflow declares the permissions it needs, so the repository's
-default workflow permissions can stay read-only.
+(`.github/workflows/dependency-autofix.yaml`) that runs after a failed check
+and can also be run on demand from the Actions tab. Each workflow declares the
+permissions it needs, so the repository's default workflow permissions can stay
+read-only.
 
 Dependabot (`.github/dependabot.yml`) keeps the GitHub Actions used by the
 workflows up to date through weekly pull requests. It does not track CRAN
@@ -115,8 +116,9 @@ The second scheduled workflow, a weekly live smoke test
 (`.github/workflows/live-api-check.yaml`), checks the package against the
 'Scopus' API itself. The ordinary test suite mocks all HTTP, so it cannot tell
 whether the API has renamed a field or changed its envelope. The live smoke
-test runs a tiny query against the API and checks that the records come back
-with the documented columns populated.
+test runs a few small queries against the API, using about seven Search API
+requests and one Abstract Retrieval request per run, and checks that the
+records come back with the documented columns populated.
 
 The live tests run only where `SCOPUSFLOW_LIVE_TESTS` is `"true"`. The workflow
 sets the variable and a local `devtools::test()` does not, so a local run spends

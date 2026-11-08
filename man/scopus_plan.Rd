@@ -55,7 +55,10 @@ as possible for a given result set. Lower it only where you have a reason to.}
 
 \item{partition}{Either \code{"none"} (a single query cell) or \code{"year"} (one cell
 per year in \code{years}). Partitioning by year is the recommended way to stay
-under the API's hard limit of \code{start < 5000}.}
+under the API's hard limit of \code{start < 5000} for offset paging, provided
+that no single year matches more than 5000 records. Cursor paging, with
+\code{scopus_fetch_plan(plan, cursor = TRUE)} or \code{scopus_fetch(cursor = TRUE)},
+has no such ceiling.}
 
 \item{x}{An object to test or print.}
 }

@@ -347,6 +347,10 @@ results, and the upgrading notes below say what was wrong in each case.
   names, `?summary.scopus_records` that `n_with_doi` counts the records carrying
   a DOI and `?scopus_quota` that `reset` is when the key's quota resets.
   `?scopus_diff_dois` no longer calls `status` an ordered factor.
+* `?scopus_plan` and three articles say that partitioning by year keeps each cell
+  under the 5000-record ceiling of offset paging, provided that no single year
+  matches more than 5000 records, where they offered it without that condition.
+  `?scopus_plan` adds that cursor paging has no such ceiling.
 
 # scopusflow 0.4.0
 

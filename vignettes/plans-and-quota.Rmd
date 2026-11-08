@@ -60,7 +60,8 @@ scopus_field_tags()
 
 A plan records exactly what will be fetched, so it can be saved, reviewed and
 re-run. Partitioning by year is the recommended way to stay under the
-5000-record ceiling, since each year becomes its own cell.
+5000-record ceiling of offset paging, since each year becomes its own cell,
+provided that no single year matches more than 5000 records.
 
 ```{r}
 plan <- scopus_plan(q, years = 2010:2020, partition = "year")
@@ -140,7 +141,9 @@ served trimmed to that cap, with the fuller set left on disk for a later, wider
 request. A checkpoint that stopped at a smaller cap than is being asked for now
 is a mismatch, refetched with a warning. One that ran to the end of its result
 set is not a mismatch, however few records it holds, because there is nothing
-further to fetch.
+further to fetch. Likewise, a checkpoint fetched with `fields = "extended"`
+serves a core harvest with the extra columns dropped, while a core checkpoint
+is refetched with a warning for an extended harvest.
 
 To force a fresh retrieval, empty the managed cache with `scopus_cache_clear()`,
 which removes every plan's directory inside it. Both functions are shown below

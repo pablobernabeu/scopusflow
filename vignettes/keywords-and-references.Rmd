@@ -28,9 +28,10 @@ local({
 ```
 
 Keyword co-occurrence and citation-network analysis need a document's
-author-supplied keywords and its own reference list, which the Search API alone
-does not return. This article covers how to retrieve them, what each costs and
-what your 'Scopus' entitlement needs to cover.
+author-supplied keywords and its own reference list. The Search API returns the
+author keywords only under its `COMPLETE` view and the reference list under no
+view. This article covers how to retrieve them, what each costs and what your
+'Scopus' entitlement needs to cover.
 
 The API calls below are shown as you would run them with a configured key, and
 they are not run here, so no output appears beneath them. No key is available
@@ -264,9 +265,10 @@ pairs with the same DOI, and a DOI that nothing pairs with is keyed as
 `doi:<doi>`, lower-cased. Keywords are lower-cased as well, so the
 `"graphene"` and `"Graphene"` that `keywords = "both"` keeps apart become one.
 
-The chunk below runs the writer on two bundled records, each made to cite the
-same two others, the second with the DOIs in capitals. In the output, both
-records cite the same two keys.
+`as_theoryforge_corpus()` returns the same document as a list. The chunk below
+runs it on two bundled records, each made to cite the same two others, the
+second with the DOIs in capitals. In the output, both records cite the same two
+keys.
 
 ```{r}
 docs <- example_records[!is.na(example_records$doi), ][1:4, ]

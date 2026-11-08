@@ -120,11 +120,12 @@ The default plot of a record set, drawn by `autoplot()`, shows its records per
 year. Because the bundled harvest is complete for one query, the bars are the
 number of publications per year for that query. For a harvest of your own, the
 bars cover the years its plan searched, with a year without records drawn as a
-zero bar and a year no cell searched left out. When the years reach the year of
-the harvest, the caption says that year was incomplete when the records were
-retrieved, since Scopus goes on indexing a year's publications after the year
-has begun. On `scopus_top` and `scopus_trend` objects, `autoplot()` draws the
-plots of `plot_scopus_top()` and `plot_scopus_trend()`.
+zero bar and a year no cell searched left out unless a record carries it. When
+the years reach the year of the harvest, the caption says that year was
+incomplete when the records were retrieved, since Scopus goes on indexing a
+year's publications after the year has begun. On `scopus_top` and
+`scopus_trend` objects, `autoplot()` draws the plots of `plot_scopus_top()` and
+`plot_scopus_trend()`.
 
 ```{r eval = has_ggplot2, fig.alt = "A bar chart of publications per year from 2015 to 2024, fluctuating around fifteen a year", fig.width = 7, fig.height = 3.5}
 ggplot2::autoplot(records)
@@ -184,9 +185,10 @@ A study that crosses two or more fields is best introduced by sizing those
 fields and their overlap. Each parent literature may hold thousands of records,
 while their intersection, the niche the study occupies, holds a handful.
 `scopus_intersections()` counts a named set of concepts and any requested
-intersections of them, at one cheap count request per row. Concept values may
-be bare terms, wrapped in `field` for you, or complete field-tagged expressions
-such as a synonym set, used exactly as given.
+intersections of them, at one count request per row, the same cheap request
+that `scopus_count()` makes for a single query. Concept values may be bare
+terms, wrapped in `field` for you, or complete field-tagged expressions such as
+a synonym set, used exactly as given.
 
 ```{r eval = FALSE}
 sets <- scopus_intersections(

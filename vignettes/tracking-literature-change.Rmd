@@ -134,9 +134,9 @@ such records share, and the search record gives this count so that the records
 can be checked by hand. Once they have been checked, `dedupe = "id_or_doi"`
 merges them.
 
-The base `c()` method concatenates record sets and renumbers them without
-de-duplicating. `scopus_combine()` is the same operation with the duplicate
-handling added.
+`c()` on record sets calls `scopus_combine()`, so it concatenates and
+renumbers them in the same way and, unless it is given `dedupe`, keeps every
+row.
 
 ```{r}
 stacked <- c(baseline, later)
@@ -160,7 +160,7 @@ date matters for this workflow in particular, because `citations` is a snapshot
 value that keeps changing, so a difference between two pulls means something
 only once you know how far apart they were. Both attributes survive the `.rds`
 form, and neither survives `.csv`. The bundled corpus used here carries
-neither, which is why it round-trips identically above.
+neither.
 
 In a live setting, the later retrieval would come from the API, and everything
 else would be as above. The baseline would be an earlier pull of your own,
