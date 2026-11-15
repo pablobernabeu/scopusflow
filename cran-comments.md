@@ -30,7 +30,7 @@ key is sent to Elsevier alone.
 
 ## Test environments
 
-GitHub Actions, run 42427789546 on 2026-11-08, at commit 83f2177 on the
+GitHub Actions, run 43658631179 on 2026-11-15, at commit 6d4543f on the
 ccr-48a6a874-3shvqm branch. The package sources of this submission are those of
 that commit. Because a pull request started the run, it checked out a merge of
 that commit into main. That merge differs from the commit only in a workflow
@@ -39,14 +39,14 @@ tarball with `--no-manual --compact-vignettes=gs+qpdf` and ran
 `R CMD check --as-cran --no-manual` on it, without the CRAN incoming checks,
 which r-lib/actions turns off. Each leg ended with 'Status: OK':
 
-* ubuntu-latest (Ubuntu 24.04.5 LTS), R 4.6.2
-* ubuntu-latest (Ubuntu 24.04.5 LTS), R-devel (2026-11-05 r90840)
-* ubuntu-latest (Ubuntu 24.04.5 LTS), R 4.5.3
-* ubuntu-latest (Ubuntu 24.04.5 LTS), R 4.4.3
-* ubuntu-latest (Ubuntu 24.04.5 LTS), R 4.3.3
+* ubuntu-latest (Ubuntu 26.04.1 LTS), R 4.6.2
+* ubuntu-latest (Ubuntu 26.04.1 LTS), R-devel (2026-11-13 r90888)
+* ubuntu-latest (Ubuntu 26.04.1 LTS), R 4.5.3
+* ubuntu-latest (Ubuntu 26.04.1 LTS), R 4.4.3
+* ubuntu-latest (Ubuntu 26.04.1 LTS), R 4.3.3
 * windows-latest (Windows Server 2025, x86_64-w64-mingw32), R 4.6.2
 * windows-latest (Windows Server 2025, x86_64-w64-mingw32), R-devel
-  (2026-11-06 r90845 ucrt)
+  (2026-11-13 r90888 ucrt)
 * macos-latest (macOS 26.7.2, aarch64-apple-darwin23), R 4.6.2
 
 The test suite passed in every leg, with no failures or warnings. Seven live
