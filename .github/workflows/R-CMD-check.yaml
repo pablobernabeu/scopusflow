@@ -288,12 +288,13 @@ jobs:
           echo "NAMESPACE and man/ match the roxygen comments in R/."
 
   # DESCRIPTION declares `R (>= 4.1.0)`, and the matrix above reaches down to
-  # R 4.3 only, so this runs the test suite on R 4.1 itself. It is not a second
-  # `--as-cran` check: the claim being tested is that the code runs on the
-  # oldest R the package promises, not that the package passes CRAN's checks on
-  # an R that CRAN no longer checks. Only the strong dependencies are
-  # installed, since Suggests are not part of that promise, and the tests that
-  # need a suggested package skip themselves, as depends-only shows.
+  # R 4.3 only, so this job runs the test suite on R 4.1 itself (setup-r
+  # installs 4.1.3, the last release of R 4.1). It tests that the code runs on
+  # the oldest R series the package promises. It does not run
+  # R CMD check --as-cran, since CRAN no longer checks R 4.1. The strong
+  # dependencies are installed with testthat and pkgload, which bring the
+  # suggested callr and withr with them. The tests that need another suggested
+  # package, such as ggplot2 or shiny, skip themselves, as depends-only shows.
   r-minimum:
     name: R (declared minimum, 4.1)
     runs-on: ubuntu-latest
