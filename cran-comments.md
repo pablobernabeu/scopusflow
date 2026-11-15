@@ -30,7 +30,7 @@ key is sent to Elsevier alone.
 
 ## Test environments
 
-GitHub Actions, run 43658631179 on 2026-11-15, at commit 6d4543f on the
+GitHub Actions, run 43663287198 on 2026-11-15, at commit 98e75ee on the
 ccr-48a6a874-3shvqm branch. The package sources of this submission are those of
 that commit. Because a pull request started the run, it checked out a merge of
 that commit into main. That merge differs from the commit only in a workflow
