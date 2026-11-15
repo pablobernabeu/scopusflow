@@ -1,10 +1,9 @@
 #' Normalise raw 'Scopus' entries to a stable tidy schema
 #'
 #' Converts the nested list returned by the 'Scopus' Search API into a flat,
-#' predictable [tibble][tibble::tibble] with one row per record. This shape is
-#' the common currency of the package. Both [scopus_fetch()] and
-#' [scopus_fetch_plan()] return it, and the DOI, comparison and export helpers
-#' all consume it.
+#' predictable [tibble][tibble::tibble] with one row per record. Both
+#' [scopus_fetch()] and [scopus_fetch_plan()] return this shape, and the DOI,
+#' comparison and export helpers all take it.
 #'
 #' @param x For `scopus_records()`, a parsed `search-results` list (the value of
 #'   `httr2::resp_body_json(resp)[["search-results"]]`), a bare list of entry
@@ -33,12 +32,12 @@
 #'   `year` (integer, the leading four digits of the cover date), `date`
 #'   (character, the ISO cover date), `publication` (character, the source
 #'   title), `citations` (integer) and `query` (character). A missing field
-#'   becomes `NA`, and an empty result set yields a
-#'   zero-row tibble with the same columns. When `view = "COMPLETE"`, an
-#'   `authkeywords` column is added: the author-supplied keywords the 'Scopus'
-#'   Search API returns under that view, as a single string in 'Scopus'
-#'   own `" | "`-delimited form (`NA` when the document has none, or when the
-#'   API omits the field for a given key's entitlement; see *Details*).
+#'   becomes `NA`, and an empty result set yields a zero-row tibble with the
+#'   same columns. When `view = "COMPLETE"`, an `authkeywords` column is added:
+#'   the author-supplied keywords the 'Scopus' Search API returns under that
+#'   view, as a single string in the `" | "`-delimited form 'Scopus' uses (`NA`
+#'   when the document has none, or when the API omits the field under a key's
+#'   entitlement, as *Details* explains).
 #'   With `fields = "extended"`, the character columns `doc_type`,
 #'   `doc_type_description`, `source_type`, `volume`, `issue`, `pages`, `issn`
 #'   and `pubmed_id` follow, then the integer `open_access` and, under
@@ -65,26 +64,18 @@
 #' retrieved under `STANDARD` names first authors only. Under `COMPLETE`, each
 #' author is written as `"Surname, Given"`, as the surname alone when the given
 #' name is missing or empty, or as the indexed name when the surname is
-#' missing. Exact duplicates are dropped. The API lists at most 100 authors per
-#' record, and its `author-count` field gives the total. A record whose list
-#' names nobody falls back to `dc:creator`. The Python twin builds the same
-#' string from pybliometrics' `author_names` in the common case, and parts
-#' company at two edges. Where an author object lacks a `surname` or
-#' `given-name` key, pybliometrics builds no list, so that twin keeps the first
-#' author while this one lists every author. Where a surname is null or empty,
-#' pybliometrics writes the given name after a bare comma, and this package uses
-#' the indexed name.
+#' missing or empty. Exact duplicates are dropped. The API lists at most 100
+#' authors per record, and its `author-count` field gives the total. A record
+#' whose list names nobody falls back to `dc:creator`.
 #'
-#' Author keywords are only ever present under `view = "COMPLETE"`; the
-#' `STANDARD` view (the default throughout the package) never includes them,
-#' and `authkeywords` is not added to the output at all in that case. Even
-#' under `COMPLETE` view, some 'Scopus' API keys do not return
-#' populated author keywords (this was observed directly against a live,
-#' otherwise fully-entitled key during development, on documents that do carry
-#' author keywords in 'Scopus' itself); if your own keywords come back all
-#' `NA`, the field is most likely gated by your account's entitlement rather
-#' than genuinely absent, and is worth raising with your 'Scopus'/Elsevier
-#' account contact.
+#' Author keywords are present only under `view = "COMPLETE"`. The `STANDARD`
+#' view, the default throughout the package, never includes them, and
+#' `authkeywords` is then not added at all. Even under the `COMPLETE` view,
+#' some 'Scopus' API keys receive no author keywords. An otherwise fully
+#' entitled key has received none for documents that carry them in 'Scopus'.
+#' If your keywords come back all `NA`, the field is most likely missing from
+#' your account's entitlement rather than from the documents, and your
+#' Elsevier account contact can say whether it can be added.
 #' @section Extended fields:
 #' Elsevier's [Search views table](https://dev.elsevier.com/sc_search_views.html)
 #' lists every field `fields = "extended"` reads under both views, except the
@@ -110,7 +101,9 @@
 #' [summary()][summary.scopus_records()] reports how many records 'Scopus'
 #' labels `er` and `tb`. Errata can also be left out of the search itself with
 #' `AND NOT DOCTYPE(er)`, joined by [scopus_query()], which brackets the rest of
-#' the query first, since 'Scopus' applies AND NOT last (see *Examples*).
+#' the query first, so that the exclusion applies to all of it under either
+#' operator order that `vignette("designing-queries")` describes (see
+#' *Examples*).
 #'
 #' `open_access` holds the code 'Scopus' sends in its `openaccess` field.
 #' Elsevier's Scopus APIs Getting Started Guide (section 17) illustrates its
@@ -146,8 +139,8 @@
 #' ))
 #' scopus_records(raw, query = 'TITLE-ABS-KEY("graphene supercapacitor")')
 #'
-#' # Under COMPLETE view an entry may also carry author keywords, which the
-#' # Search API returns in its own " | "-delimited form. The bundled corpus
+#' # Under the COMPLETE view, an entry may also carry author keywords, which
+#' # the Search API returns in its own " | "-delimited form. The bundled corpus
 #' # holds no keywords, so the ones below are illustrative.
 #' raw_complete <- list(entry = list(
 #'   list(
@@ -179,7 +172,8 @@
 #' as.data.frame(extended)[, c("doc_type", "volume", "issue", "pages", "issn")]
 #'
 #' # Errata can be left out of the search itself. scopus_query() brackets the
-#' # rest of the query, since 'Scopus' applies AND NOT last.
+#' # rest of the query, so the exclusion applies to all of it under either
+#' # operator order.
 #' scopus_query(
 #'   scopus_query("graphene", "graphite", .op = "OR", .field = "TITLE-ABS-KEY"),
 #'   "DOCTYPE(er)", .op = "AND NOT"

@@ -15,9 +15,9 @@ A tibble of class \code{scopus_doi_diff} with columns \code{doi} and \code{statu
 where \code{status} is a factor with levels \code{"added"} (in \code{new} only),
 \code{"removed"} (in \code{old} only) and \code{"unchanged"} (in both). Rows are sorted by
 status then DOI, in byte order, so the order is the same under every
-locale and in the Python twin. The integer attributes \code{n_old_without_doi}
-and \code{n_new_without_doi} count the records (or vector elements) on each
-side that had no DOI and so were not compared. Printing shows the counts
+locale. The integer attributes \code{n_old_without_doi} and
+\code{n_new_without_doi} count the records (or vector elements) on each side
+that had no DOI and so were not compared. Printing shows the counts
 in each category, and those records where there are any.
 }
 \description{

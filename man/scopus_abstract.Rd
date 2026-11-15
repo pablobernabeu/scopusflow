@@ -26,11 +26,11 @@ Identifiers or 'Scopus' record identifiers (with or without the
 \item{view}{The Abstract Retrieval view to request: \code{"META_ABS"} (the
 default), \code{"META"}, \code{"REF"} or \code{"FULL"}, or \code{NULL}. \code{"META_ABS"} is the
 view Elsevier documents as carrying the abstract with the core metadata.
-\code{NULL} sends no \code{view} parameter, as the 0.4.0 release and earlier did,
-and leaves the choice to the API. Elsevier documents its default as
-\code{"META"}, a view without the abstract, but a live request in October 2026
-returned the abstract without a view. Retrieving \code{include = "references"}
-requires \code{view = "FULL"} or \code{view = "REF"}; see \emph{Details} for how the two
+\code{NULL} sends no \code{view} parameter, as version 0.4.0 and earlier did, and
+leaves the choice to the API. Elsevier documents its default as \code{"META"},
+a view without the abstract, although the API has returned the abstract
+to a request without a view. Retrieving \code{include = "references"}
+requires \code{view = "FULL"} or \code{view = "REF"}. \emph{Details} says how the two
 differ and which to prefer.}
 
 \item{include}{Optional character vector naming extra fields to retrieve in
@@ -39,20 +39,20 @@ keywords) and \code{"index_terms"} (the index keywords 'Scopus' assigns).
 \code{"references"} requires \code{view = "FULL"} or \code{view = "REF"}, and
 \code{"keywords"} and \code{"index_terms"} require \code{view = "FULL"}, since the \code{REF}
 response carries neither kind of keyword.
-Either way this is an entitlement that is separate from ordinary abstract
-access and from 'Scopus' Search access, and, per Elsevier's own
-documentation, some fields (notably author keywords) may need to be
-requested from your Scopus/Elsevier account contact even when the view
-itself is otherwise accessible. See \emph{Details}.}
+Both views need an entitlement separate from ordinary abstract access and
+from 'Scopus' Search access. Elsevier's documentation adds that some
+fields, such as the author keywords, may have to be requested from your
+Elsevier account contact even when the view itself is accessible. See
+\emph{Details}.}
 
 \item{cache_dir}{Optional directory for per-identifier cache files, as in
-\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}. \code{NULL} (the default) performs no caching. Worth
-setting whenever \code{include} is used: Abstract Retrieval draws on its own
-weekly quota, smaller than and separate from Search's, and every
-identifier here costs at least one request of its own, so re-running an interrupted batch
-without a cache re-spends quota already spent. A \code{cache_dir} that cannot
-be written is refused before any request, and a checkpoint that cannot be
-written all the same warns and keeps the row, as in \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}.}
+\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}. \code{NULL} (the default) performs no caching. Set it
+whenever \code{include} is used. Abstract Retrieval draws on its own weekly
+quota, separate from and smaller than Search's, and every identifier
+costs at least one request, so re-running an interrupted batch without a
+cache spends that quota again. A \code{cache_dir} that cannot be written is
+refused before any request, and a checkpoint that cannot be written all
+the same gives a warning and keeps the row, as in \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}.}
 
 \item{resume}{Logical. When \code{TRUE} (the default) and \code{cache_dir} is set, an
 identifier whose cache file already exists is loaded from disk, sparing a
@@ -75,8 +75,9 @@ columns \code{id} (the input identifier), \code{scopus_id}, \code{doi}, \code{ti
 'Scopus') yields a row of \code{NA}s with a warning, so a batch is not lost to a
 single failure. The number of Abstract Retrieval requests made and the
 most recently parsed quota (see \code{\link[=scopus_quota]{scopus_quota()}}) are attached as the
-\code{n_requests} and \code{quota} attributes, since this is a materially more
-expensive operation than a search call.
+\code{n_requests} and \code{quota} attributes, since a retrieval here costs one
+request for each identifier, where a search returns many records with
+each request.
 
 When \code{include} names \code{"keywords"}, an \code{authkeywords} column is added: the
 document's author-supplied keywords, joined the same way as \code{authors}
@@ -88,15 +89,14 @@ any \code{authkeywords}: the index keywords of the document, joined by \code{"; 
 or \code{NA} when the response carries none. An entry without text is dropped.
 
 When \code{include} names \code{"references"}, a \code{references} list-column is added:
-one data frame per document, with one row per cited work, where a joined
-string would have to be parsed apart again. Its columns are \code{position} (the
+one data frame per document, with one row per cited work, so that no
+joined string has to be split again. Its columns are \code{position} (the
 reference's place in the bibliography), \code{id} (the 'Scopus' identifier of
-the cited work, when
-resolved), \code{doi}, \code{title}, \code{authors}, \code{source} (the journal or other
-venue), \code{year} and \code{citedbycount} (the cited work's own citation count;
-populated only under \code{view = "REF"}, \code{NA} under \code{"FULL"}). A document with
-no resolvable references yields a zero-row data frame, so the column can
-always be unnested.
+the cited work, when resolved), \code{doi}, \code{title}, \code{authors}, \code{source} (the
+journal or other venue), \code{year} and \code{citedbycount} (the cited work's own
+citation count, given only under \code{view = "REF"} and \code{NA} under
+\code{"FULL"}). A document with no resolvable references yields a zero-row
+data frame, so the column can always be unnested.
 }
 \description{
 Fetches the abstract text and core metadata for one or more records from the
@@ -124,13 +124,12 @@ of references held still differs from the document's reported count, a
 identifier whose later page fails is a failed retrieval: it gets a row of
 \code{NA}s with a warning and is not checkpointed.
 
-Author keywords were not populated by either 'Scopus' Search's \code{COMPLETE}
-view (see \code{\link[=scopus_records]{scopus_records()}}) or Abstract Retrieval's \code{FULL} view in this
-package's own development testing, against a live, otherwise
-fully-entitled key, on documents that do carry author keywords in 'Scopus'
-itself. If your own keywords come back all \code{NA}, this is most likely an
-entitlement gap specific to that field, worth raising with your
-Scopus/Elsevier account contact. The documents do carry keywords.
+A key entitled to the \code{COMPLETE} view of 'Scopus' Search (see
+\code{\link[=scopus_records]{scopus_records()}}) and the \code{FULL} view of Abstract Retrieval has received
+no author keywords under either, for documents that carry them in 'Scopus'.
+If your keywords come back all \code{NA}, the field is most likely missing from
+your key's entitlement, and your Elsevier account contact can say whether
+it can be added.
 
 Index keywords are the other kind 'Scopus' records. Authors choose their own
 keywords, whereas 'Scopus' chooses the index keywords and standardises them
@@ -139,18 +138,18 @@ synonyms, spellings and plurals brought together. The two kinds therefore
 give different keyword co-occurrence results, and a study should say which
 it used. Elsevier's guide lists index keywords in the \code{FULL} view as not
 available by default, so whether they arrive depends on your key's
-entitlement as well. In this package's development testing, they did
-arrive on the same key whose author keywords came back empty.
+entitlement as well. They did arrive for the key that received no author
+keywords.
 }
 \section{API access}{
 
 This performs one request per identifier, or one per page of references
-under \code{view = "REF"} with \code{include = "references"}, and requires a valid
-API key and internet access; full-text abstract access, and the \code{FULL}/\code{REF} views in
-particular, can also depend on your entitlement. A view or field your key is
-not entitled to raises a \code{scopus_error_forbidden} condition with a message
-naming the view and suggesting who to contact, where a generic HTTP failure
-would leave you guessing. Because entitlement is a property of the account,
+under \code{view = "REF"} with \code{include = "references"}. It requires a valid API
+key and internet access, and access to abstracts, to the \code{FULL} and \code{REF}
+views in particular, can also depend on your entitlement. A view or field
+your key is not entitled to raises a \code{scopus_error_forbidden} condition
+with a message that names the view and says whom to contact. Because
+entitlement is a property of the account,
 retrieval stops at the first such failure, so the same refusal is not
 repeated for every remaining identifier.
 
@@ -170,20 +169,19 @@ many were not retrieved and when the quota resets. A checkpoint in
 scopus_abstract(scopus_extract_dois(example_records)[1])
 
 # Author keywords and a structured reference list, in the same request.
-# Costs one Abstract Retrieval request per identifier, against a smaller,
-# separate weekly quota from Search; see the API access section above for
-# the entitlement this needs.
+# This costs one Abstract Retrieval request per identifier, from a weekly
+# quota separate from and smaller than Search's. The API access section
+# above says which entitlement it needs.
 rich <- scopus_abstract(
   "10.1038/natrevmats.2016.33",
   view = "FULL", include = c("references", "keywords")
 )
 rich$references[[1]]
 \dontshow{\}) # examplesIf}
-# The offline companion, which needs no key. The identifiers, titles,
-# sources and citation counts are two records of the bundled corpus of real
-# articles; the abstract text is what a live call adds, so it is left as a
-# placeholder here, as is the 'Scopus' identifier the corpus does not
-# carry.
+# The same shape offline, with no key. The identifiers, titles, sources and
+# citation counts are two records of the bundled corpus of real articles. A
+# live call adds the abstract text, so it is left as a placeholder here, as
+# is the 'Scopus' identifier, which the corpus does not carry.
 cited <- example_records[order(-example_records$citations), ][1:2, ]
 abstracts <- tibble::tibble(
   id = cited$doi,
@@ -220,5 +218,6 @@ abstracts$references[[1]]
 }
 \seealso{
 \code{\link[=scopus_fetch]{scopus_fetch()}}, \code{\link[=scopus_extract_dois]{scopus_extract_dois()}}, \code{\link[=scopus_corpus]{scopus_corpus()}} to
-assemble a minimal keyword/reference corpus across many documents.
+assemble a minimal corpus of keywords and references across many
+documents.
 }

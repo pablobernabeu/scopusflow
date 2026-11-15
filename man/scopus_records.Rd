@@ -61,10 +61,9 @@ year. The bars cover every year the set's plan searched, a year without
 records drawn as a zero bar, and a year the plan did not search only where
 a record carries it. A plan partitioned by year over 2015, 2016, 2019 and
 2020 therefore draws no bar for 2017 or 2018, while a plan over the same
-years with \code{partition = "none"} searches 2015 to 2020 and draws all six. A
-harvest stopped before its last cell covers only the cells it ran. Without
-a plan, or with one that sent no year limit, the bars run from the first
-year in the records to the last. When a \code{max_results} cap stopped any
+years with \code{partition = "none"} searches 2015 to 2020 and draws all six.
+Without a plan, or with one that sent no year limit, the bars run from the
+first year in the records to the last. When a \code{max_results} cap stopped any
 cell of the retrieval, a caption says that the bars count records
 retrieved, not publications per year. When the years plotted reach the
 year of the recorded \code{retrieved_at}, the caption also says that year was
@@ -77,12 +76,12 @@ A tibble of class \code{scopus_records} with the columns
 \code{year} (integer, the leading four digits of the cover date), \code{date}
 (character, the ISO cover date), \code{publication} (character, the source
 title), \code{citations} (integer) and \code{query} (character). A missing field
-becomes \code{NA}, and an empty result set yields a
-zero-row tibble with the same columns. When \code{view = "COMPLETE"}, an
-\code{authkeywords} column is added: the author-supplied keywords the 'Scopus'
-Search API returns under that view, as a single string in 'Scopus'
-own \code{" | "}-delimited form (\code{NA} when the document has none, or when the
-API omits the field for a given key's entitlement; see \emph{Details}).
+becomes \code{NA}, and an empty result set yields a zero-row tibble with the
+same columns. When \code{view = "COMPLETE"}, an \code{authkeywords} column is added:
+the author-supplied keywords the 'Scopus' Search API returns under that
+view, as a single string in the \code{" | "}-delimited form 'Scopus' uses (\code{NA}
+when the document has none, or when the API omits the field under a key's
+entitlement, as \emph{Details} explains).
 With \code{fields = "extended"}, the character columns \code{doc_type},
 \code{doc_type_description}, \code{source_type}, \code{volume}, \code{issue}, \code{pages}, \code{issn}
 and \code{pubmed_id} follow, then the integer \code{open_access} and, under
@@ -97,10 +96,9 @@ writes it, without the hyphen, kept as text so its leading zeros survive.
 }
 \description{
 Converts the nested list returned by the 'Scopus' Search API into a flat,
-predictable \link[tibble:tibble]{tibble} with one row per record. This shape is
-the common currency of the package. Both \code{\link[=scopus_fetch]{scopus_fetch()}} and
-\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} return it, and the DOI, comparison and export helpers
-all consume it.
+predictable \link[tibble:tibble]{tibble} with one row per record. Both
+\code{\link[=scopus_fetch]{scopus_fetch()}} and \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} return this shape, and the DOI,
+comparison and export helpers all take it.
 }
 \details{
 The 'Scopus' API signals an empty result set with a single sentinel entry that
@@ -119,26 +117,18 @@ records its view in the \code{view} attribute (see \code{\link[=scopus_fetch]{sc
 retrieved under \code{STANDARD} names first authors only. Under \code{COMPLETE}, each
 author is written as \code{"Surname, Given"}, as the surname alone when the given
 name is missing or empty, or as the indexed name when the surname is
-missing. Exact duplicates are dropped. The API lists at most 100 authors per
-record, and its \code{author-count} field gives the total. A record whose list
-names nobody falls back to \code{dc:creator}. The Python twin builds the same
-string from pybliometrics' \code{author_names} in the common case, and parts
-company at two edges. Where an author object lacks a \code{surname} or
-\code{given-name} key, pybliometrics builds no list, so that twin keeps the first
-author while this one lists every author. Where a surname is null or empty,
-pybliometrics writes the given name after a bare comma, and this package uses
-the indexed name.
+missing or empty. Exact duplicates are dropped. The API lists at most 100
+authors per record, and its \code{author-count} field gives the total. A record
+whose list names nobody falls back to \code{dc:creator}.
 
-Author keywords are only ever present under \code{view = "COMPLETE"}; the
-\code{STANDARD} view (the default throughout the package) never includes them,
-and \code{authkeywords} is not added to the output at all in that case. Even
-under \code{COMPLETE} view, some 'Scopus' API keys do not return
-populated author keywords (this was observed directly against a live,
-otherwise fully-entitled key during development, on documents that do carry
-author keywords in 'Scopus' itself); if your own keywords come back all
-\code{NA}, the field is most likely gated by your account's entitlement rather
-than genuinely absent, and is worth raising with your 'Scopus'/Elsevier
-account contact.
+Author keywords are present only under \code{view = "COMPLETE"}. The \code{STANDARD}
+view, the default throughout the package, never includes them, and
+\code{authkeywords} is then not added at all. Even under the \code{COMPLETE} view,
+some 'Scopus' API keys receive no author keywords. An otherwise fully
+entitled key has received none for documents that carry them in 'Scopus'.
+If your keywords come back all \code{NA}, the field is most likely missing from
+your account's entitlement rather than from the documents, and your
+Elsevier account contact can say whether it can be added.
 }
 \section{Extended fields}{
 
@@ -166,7 +156,9 @@ which Crossref makes openly available, before relying on it.
 \link[=summary.scopus_records]{summary()} reports how many records 'Scopus'
 labels \code{er} and \code{tb}. Errata can also be left out of the search itself with
 \verb{AND NOT DOCTYPE(er)}, joined by \code{\link[=scopus_query]{scopus_query()}}, which brackets the rest of
-the query first, since 'Scopus' applies AND NOT last (see \emph{Examples}).
+the query first, so that the exclusion applies to all of it under either
+operator order that \code{vignette("designing-queries")} describes (see
+\emph{Examples}).
 
 \code{open_access} holds the code 'Scopus' sends in its \code{openaccess} field.
 Elsevier's Scopus APIs Getting Started Guide (section 17) illustrates its
@@ -193,8 +185,8 @@ raw <- list(entry = list(
 ))
 scopus_records(raw, query = 'TITLE-ABS-KEY("graphene supercapacitor")')
 
-# Under COMPLETE view an entry may also carry author keywords, which the
-# Search API returns in its own " | "-delimited form. The bundled corpus
+# Under the COMPLETE view, an entry may also carry author keywords, which
+# the Search API returns in its own " | "-delimited form. The bundled corpus
 # holds no keywords, so the ones below are illustrative.
 raw_complete <- list(entry = list(
   list(
@@ -226,7 +218,8 @@ extended <- scopus_records(raw_extended, fields = "extended")
 as.data.frame(extended)[, c("doc_type", "volume", "issue", "pages", "issn")]
 
 # Errata can be left out of the search itself. scopus_query() brackets the
-# rest of the query, since 'Scopus' applies AND NOT last.
+# rest of the query, so the exclusion applies to all of it under either
+# operator order.
 scopus_query(
   scopus_query("graphene", "graphite", .op = "OR", .field = "TITLE-ABS-KEY"),
   "DOCTYPE(er)", .op = "AND NOT"

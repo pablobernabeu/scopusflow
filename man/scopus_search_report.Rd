@@ -13,15 +13,15 @@ scopus_search_report(x, plan = NULL, file = NULL)
 \method{print}{scopus_search_report}(x, ...)
 }
 \arguments{
-\item{x}{A \link{scopus_records} object, which supplies the counts and the
-retrieval provenance and, through its \code{plan} attribute, the plan; or a bare
-\code{\link[=scopus_plan]{scopus_plan()}} for a search that has not been run yet. For \code{format()} and
-\code{print()}, the report object itself.}
+\item{x}{A \link{scopus_records} object or a bare \code{\link[=scopus_plan]{scopus_plan()}}. A record set
+supplies the counts and the retrieval provenance and, through its \code{plan}
+attribute, the plan. A plan describes a search that has not been run yet.
+For \code{format()} and \code{print()}, the report object itself.}
 
 \item{plan}{Optional \code{\link[=scopus_plan]{scopus_plan()}} describing \code{x}. Supply it when a record
 set does not carry one, for example one read back from a \code{.csv}, a merged
-set, or one saved by \code{\link[=scopus_fetch]{scopus_fetch()}} in the 0.4.0 release or earlier,
-which attached none. An explicit plan takes precedence over the one \code{x}
+set or one saved by \code{\link[=scopus_fetch]{scopus_fetch()}} in version 0.4.0 or earlier, which
+attached none. An explicit plan takes precedence over the one \code{x}
 carries. A one-cell plan supplied for a set without per-cell counts takes
 the set's own row count and \code{total_results}.}
 
@@ -31,7 +31,7 @@ given, so the package leaves the working directory untouched unless asked.
 Parent directories are assumed to exist already.}
 
 \item{style}{Which rendering to return: \code{"report"} for the readable record
-that \code{print()} shows, \code{"paragraph"} for the methods paragraph, or
+that \code{print()} shows, \code{"paragraph"} for the methods paragraph or
 \code{"markdown"} for the whole record as Markdown, which is what \code{file} writes.}
 
 \item{...}{Ignored, present for compatibility with the generics.}
@@ -47,8 +47,8 @@ A list of class \code{scopus_search_report}, returned invisibly when
 \code{searched_at} and \code{searched_until} (the earliest and latest retrieval
 times), \code{version}, \code{n_records}, \code{n_with_doi}, \code{reported_total},
 \code{cells_reported} (how many cells reported a total), \code{stopped_early},
-\code{cells_planned}, \code{cells_run}, \code{not_run} (the cells a
-stopped harvest never reached), \code{records_combined}, \code{duplicates_removed},
+\code{cells_planned}, \code{cells_run}, \code{not_run} (the cells a stopped harvest never
+reached), \code{records_combined}, \code{duplicates_removed},
 \code{deduplicated}, \code{dedupe_rule} and \code{doi_conflicts} (the rule
 \code{\link[=scopus_combine]{scopus_combine()}} matched records by, and the DOIs it left shared across
 identifiers), \code{snippet} and \code{prisma} (a tibble of \code{item}, \code{name},
@@ -59,9 +59,9 @@ identifiers), \code{snippet} and \code{prisma} (a tibble of \code{item}, \code{n
 \description{
 Turns a harvest, or a plan not yet run, into the search-strategy record a
 systematic review has to report: what was searched, exactly how, when, how
-much came back, and how much the API said there was. The record prints as a
-readable report, formats as a methods paragraph fit to paste into a
-manuscript, and writes as Markdown. The reporting standard it follows is
+much came back and how much the API said there was. The record prints as a
+readable report, formats as a methods paragraph ready to paste into a
+manuscript and writes as Markdown. The reporting standard it follows is
 PRISMA-S (Rethlefsen et al., 2021), together with the identification counts
 of the PRISMA 2020 flow diagram.
 }
@@ -74,39 +74,33 @@ retrieval to its last. PRISMA-S item 13 then gives the date of the last
 search, as the checklist asks. Stamps that fall on one UTC day give that
 single date. The years are those the cells' limits sent, and years with gaps
 between them are listed, since a span would claim years no cell searched.
-The number of records the API reported as matching is what the
-cells recorded (the \code{cell_totals} attribute \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} attaches,
-or, for a set from a single search, its \code{total_results}), never an inference
+The number of records the API reported as matching is what the cells
+recorded (the \code{cell_totals} attribute \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} attaches, or,
+for a set from a single search, its \code{total_results}), never an inference
 from the number of rows, and it is given overall only when every cell
-reported one; and the duplicates removed are those \code{\link[=scopus_combine]{scopus_combine()}}
-recorded removing, matched by the rule it recorded. Where
-an attribute is absent, as it is for a set read back from a \code{.csv}, for the
-bundled corpus, and for a cell resumed from a checkpoint written before these
-attributes existed, the record says the field is unrecorded and fills
-nothing in. This matters most for completeness: a harvest whose reported
-total is unknown is never described as exhaustive.
+reported one. The duplicates removed are those \code{\link[=scopus_combine]{scopus_combine()}} recorded
+removing, matched by the rule it recorded. Where an attribute is absent, as
+it is for a set read back from a \code{.csv}, for the bundled corpus and for a
+cell resumed from a checkpoint written before these attributes existed, the
+record says the field is unrecorded and fills nothing in. This matters most
+for completeness: a harvest whose reported total is unknown is never
+described as exhaustive.
 
 A harvest capped by \code{max_results} says so. A cell that holds as many
 records as the cap allowed, where the API reported more or reported
-nothing, reads "stopped at the requested cap". The completeness line puts
+nothing, reads 'stopped at the requested cap'. The completeness line puts
 the shortfall down to the cap when every cell that fell short stopped at it,
 and otherwise counts the cells that did. Item 9 names the cap, or says that
-it did not bind, and the reproduction snippet passes it. The Python twin's
-\code{fetch_plan()} can also be stopped between cells, as its app's Cancel stops
-it. Its record then says how many of the planned cells ran, the years they
-covered and that the harvest is incomplete, and it marks the rest "not run".
-This package's harvests cannot stop part-way, but a set carrying those
-attributes is described the same way, so that the two records stay one
-rendering.
+it did not bind, and the reproduction snippet passes it.
 
 The PRISMA-S map is decided the same way. Items the package holds evidence
 for (the database and platform, that Scopus was searched on its own, the
 full strategy and the limits where a plan records them, the date, the
-totals, and de-duplication where it was performed) are listed as supplied.
-Without a plan, the year limit is unrecorded, not absent, and the record says
-so. The rest, among them peer review of the strategy, grey literature and
-citation searching, are listed as the author's to supply, because the
-package has no way to know them.
+totals and de-duplication where it was performed) are listed as supplied.
+Without a plan, the record calls the year limit unrecorded, since it cannot
+tell whether one was applied. The rest, among them peer review of the
+strategy, grey literature and citation searching, are listed as the author's
+to supply, because the package has no way to know them.
 }
 \examples{
 # A search described but not yet run. The record says so throughout rather

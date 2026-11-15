@@ -35,15 +35,15 @@ year restriction, as \code{NULL} does.}
 
 \item{field}{Optional character scalar naming a 'Scopus' field tag to wrap the
 query in, for example \code{"TITLE-ABS-KEY"}, \code{"TITLE"}, \code{"AUTH"} or \code{"AFFIL"}.
-When \code{NULL}, the query is used verbatim. See \code{\link[=scopus_field_tags]{scopus_field_tags()}} for the
+When \code{NULL}, the query is used as given. See \code{\link[=scopus_field_tags]{scopus_field_tags()}} for the
 common tags.}
 
 \item{view}{Either \code{"STANDARD"} or \code{"COMPLETE"}. \code{COMPLETE} returns more
 fields, including an \code{authkeywords} column (see \code{\link[=scopus_records]{scopus_records()}}), but
 requires a subscriber entitlement and is limited to a smaller page size,
 which means more requests, and so more quota, for the same number of
-records. Even where \code{COMPLETE} view itself is accessible, the returned
-author keywords can still be gated separately by your own account (see
+records. Even where the \code{COMPLETE} view itself is accessible, your
+account's entitlement can still leave the author keywords out (see
 \code{\link[=scopus_records]{scopus_records()}}).}
 
 \item{page_size}{Integer number of records to request per page, or \code{NULL}
@@ -71,11 +71,11 @@ attributes.
 \code{is_scopus_plan()} returns a length-one logical.
 }
 \description{
-A \emph{plan} is a fully specified, inspectable description of one or more 'Scopus'
-queries to run. Splitting the act of \emph{describing} a search from \emph{executing} it
-makes workflows reproducible (the plan can be saved, reviewed and version
-controlled) and lets large retrievals be partitioned, for example one cell per
-year, so they can be cached and resumed.
+A plan is a fully specified, inspectable description of one or more
+'Scopus' queries to run. Separating the description of a search from its
+execution makes workflows reproducible (the plan can be saved, reviewed and
+put under version control) and lets large retrievals be partitioned, for
+example one cell per year, so that they can be cached and resumed.
 }
 \section{Query checks}{
 
@@ -93,7 +93,7 @@ braces must balance, counting brackets inside a phrase as text.
 \code{INDEXTERMS()}, which pybliometrics documents as not working through the
 Search API, raises a \code{scopus_warning_query_syntax} warning. \code{KEY()}
 searches the index terms together with author keywords, trade names and
-chemical names. The messages are those of the Python twin, word for word.
+chemical names.
 }
 
 \examples{

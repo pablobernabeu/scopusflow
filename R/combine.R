@@ -8,13 +8,13 @@
 #'
 #' @param ... One or more [scopus_records] objects, or a single list of them. A
 #'   single set can be passed to de-duplicate it.
-#' @param dedupe Whether, and by which rule, to keep once the records that are
-#'   one record. `FALSE`, the default, keeps every row. `TRUE`, also spelled
-#'   `"id_or_shared_doi"`, treats records as one when they share a 'Scopus'
-#'   identifier, or when they share a DOI and one of them lacks an identifier.
-#'   `"id_or_doi"` also merges records with different identifiers that share a
-#'   DOI, and `"id_then_doi"` applies the rule of the 0.4.0 release and earlier.
-#'   See Details.
+#' @param dedupe Whether to keep one row of each group of duplicate records,
+#'   and by which rule. `FALSE`, the default, keeps every row. `TRUE`, also
+#'   spelled `"id_or_shared_doi"`, treats records as one when they share a
+#'   'Scopus' identifier, or when they share a DOI and one of them lacks an
+#'   identifier. `"id_or_doi"` also merges records with different identifiers
+#'   that share a DOI, and `"id_then_doi"` applies the rule of version 0.4.0 and
+#'   earlier. See Details.
 #' @return A [scopus_records] tibble. Per-retrieval attributes such as
 #'   `total_results` and `plan` are not carried over, since they describe a
 #'   single fetch. The provenance a merge leaves true is kept, as
@@ -24,8 +24,8 @@
 #'   from one to the other. Every contributing `scopusflow_version` is listed
 #'   when every input records one. Each is omitted when any input cannot supply
 #'   it, as a set read back from a `.csv` file cannot, since a value drawn from
-#'   the other inputs alone would misreport the set. The merge
-#'   itself is recorded in the `combined` attribute, a list of `n_in`
+#'   the other inputs alone would misreport the set. The merge itself is
+#'   recorded in the `combined` attribute, a list of `n_in`
 #'   (records supplied), `n_out` (records kept), `n_removed`, `deduplicated`,
 #'   `rule` (the rule applied, `NA` when none was) and `doi_conflicts` (how
 #'   many DOIs records with different identifiers share, `NA` when no rule was
@@ -43,7 +43,7 @@
 #' when they share a DOI. 'Scopus' holds duplicate records of one paper
 #' (Valderrama-Zurián et al., 2015), but it also gives one DOI to distinct
 #' papers (Franceschini et al., 2015), and a review loses a wrongly removed
-#' record for good where a surviving duplicate is caught at screening. Such
+#' record for good, whereas a surviving duplicate is caught at screening. Such
 #' DOIs are counted in `doi_conflicts`, which the search record reports, so
 #' that they can be checked by hand. A record without an identifier whose DOI
 #' two identified records carry is kept once, apart from both. Records without
@@ -54,7 +54,7 @@
 #' whose shared DOIs have been checked and found to be duplicates.
 #' `"id_then_doi"` keys each record on its identifier, failing that on its DOI
 #' lower-cased but not otherwise cleaned, and so reproduces a set
-#' de-duplicated by the 0.4.0 release or earlier.
+#' de-duplicated by version 0.4.0 or earlier.
 #' @references
 #' Franceschini, F., Maisano, D., & Mastrogiacomo, L. (2015). Errors in DOI
 #' indexing by bibliometric databases. *Scientometrics*, *102*(3), 2181–2186.

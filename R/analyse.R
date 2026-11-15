@@ -1,9 +1,8 @@
 #' Annual publication counts for a query
 #'
 #' Counts how many records match a query in each year, giving the size of a
-#' literature over time. It is the single-query companion to
-#' [scopus_compare_topics()]: where the comparison shows topics as a share of a
-#' reference, this shows the absolute count.
+#' literature over time. Where [scopus_compare_topics()] shows topics as a
+#' share of a reference, this gives the absolute count for one query.
 #'
 #' @inheritParams scopus_count
 #' @param years Integer vector of publication years to count over, for example
@@ -11,23 +10,23 @@
 #' @param verbose Logical. When `TRUE`, progress is reported.
 #' @return A tibble of class `scopus_trend` with columns `query` (the
 #'   field-wrapped query), `year` (integer) and `n` (the count that year, as a
-#'   double so very large counts are exact). A year whose response omits a total
-#'   is recorded as `NA` (with a warning) and contributes nothing to the total
-#'   shown by `print()`. The time the counts were taken is attached as the
+#'   double, so that very large counts are exact). A year whose response omits a
+#'   total is recorded as `NA` (with a warning) and contributes nothing to the
+#'   total shown by `print()`. The time the counts were taken is attached as the
 #'   `retrieved_at` attribute (a `POSIXct`), as a harvest records its own.
 #'   'Scopus' goes on indexing a year's publications after the year has begun,
 #'   so a count for the year of retrieval is a count so far, and
 #'   [plot_scopus_trend()] says so from this time.
 #' @section API access:
 #' This performs one count request per year, so it requires a valid API key and
-#' internet access; see the *API access* section of [scopus_count()].
+#' internet access. See the *API access* section of [scopus_count()].
 #' @seealso [plot_scopus_trend()], [scopus_compare_topics()]
 #' @examplesIf scopusflow::scopus_has_key()
 #' tr <- scopus_trend('"graphene supercapacitor"', years = 2015:2024,
 #'                    field = "TITLE-ABS-KEY")
 #' tr
 #' @examples
-#' # The offline companion, which needs no key. 'Scopus' records may not be
+#' # The same shape offline, with no key. 'Scopus' records may not be
 #' # redistributed, so the package bundles a corpus of real articles instead.
 #' # It is a complete harvest of OpenAlex's exact-phrase search for the same
 #' # phrase, so tallying its rows by year gives the yearly counts of that
@@ -107,11 +106,11 @@ print.scopus_trend <- function(x, ...) {
 #' @param by What to tally: `"source"` (the publication titles) or `"author"`.
 #'   Author strings holding several names are split at the semicolon, with or
 #'   without a space after it, so each contributor is counted once per record.
-#'   Only a `view = "COMPLETE"`
-#'   retrieval holds several names, since `STANDARD` records carry the first
-#'   author alone (see [scopus_records()]). A tally by author of a set retrieved
-#'   under `STANDARD` therefore counts first authorships, and says so with a
-#'   warning of class `scopus_warning_first_author_only`, once per session.
+#'   Only a `view = "COMPLETE"` retrieval holds several names, since `STANDARD`
+#'   records carry the first author alone (see [scopus_records()]). A tally by
+#'   author of a set retrieved under `STANDARD` therefore counts first
+#'   authorships, and says so with a warning of class
+#'   `scopus_warning_first_author_only`, once per session.
 #' @param n The number of rows to return (the top `n`).
 #' @return A tibble of class `scopus_top` with columns `value` and `n`, sorted by
 #'   descending count, with ties broken by `value` in byte order so the result is

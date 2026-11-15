@@ -26,7 +26,7 @@ scopus_year_breaks <- function(years) {
 #'
 #' When the years plotted reach the year recorded in the `retrieved_at`
 #' attribute that [scopus_trend()] attaches, the caption adds a line such as
-#' "2026 was incomplete when retrieved on 2026-09-29." 'Scopus' goes on
+#' '2026 was incomplete when retrieved on 2026-09-29.' 'Scopus' goes on
 #' indexing a year's publications after the year has begun, so the last point
 #' of such a figure is a count so far, easily read as a decline. The line is
 #' read from the recorded time alone, never from the clock of the session
@@ -138,10 +138,9 @@ plot_scopus_top <- function(x, ...) {
 #'   records drawn as a zero bar, and a year the plan did not search only where
 #'   a record carries it. A plan partitioned by year over 2015, 2016, 2019 and
 #'   2020 therefore draws no bar for 2017 or 2018, while a plan over the same
-#'   years with `partition = "none"` searches 2015 to 2020 and draws all six. A
-#'   harvest stopped before its last cell covers only the cells it ran. Without
-#'   a plan, or with one that sent no year limit, the bars run from the first
-#'   year in the records to the last. When a `max_results` cap stopped any
+#'   years with `partition = "none"` searches 2015 to 2020 and draws all six.
+#'   Without a plan, or with one that sent no year limit, the bars run from the
+#'   first year in the records to the last. When a `max_results` cap stopped any
 #'   cell of the retrieval, a caption says that the bars count records
 #'   retrieved, not publications per year. When the years plotted reach the
 #'   year of the recorded `retrieved_at`, the caption also says that year was

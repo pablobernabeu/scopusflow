@@ -77,9 +77,9 @@ scopus_extract_dois <- function(x, dedupe = TRUE, file = NULL) {
 #'   where `status` is a factor with levels `"added"` (in `new` only),
 #'   `"removed"` (in `old` only) and `"unchanged"` (in both). Rows are sorted by
 #'   status then DOI, in byte order, so the order is the same under every
-#'   locale and in the Python twin. The integer attributes `n_old_without_doi`
-#'   and `n_new_without_doi` count the records (or vector elements) on each
-#'   side that had no DOI and so were not compared. Printing shows the counts
+#'   locale. The integer attributes `n_old_without_doi` and
+#'   `n_new_without_doi` count the records (or vector elements) on each side
+#'   that had no DOI and so were not compared. Printing shows the counts
 #'   in each category, and those records where there are any.
 #' @references
 #' Gorraiz, J., Melero-Fuentes, D., Gumpenberger, C., & Valderrama-Zurián,

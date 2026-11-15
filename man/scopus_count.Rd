@@ -30,39 +30,39 @@ where each year is counted.}
 \code{\link[=scopus_plan]{scopus_plan()}}).}
 
 \item{view}{Either \code{"STANDARD"} or \code{"COMPLETE"}. \code{COMPLETE} adds an
-\code{authkeywords} column to \code{\link[=scopus_fetch]{scopus_fetch()}}/\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} output (see
-\code{\link[=scopus_records]{scopus_records()}}) at no extra cost beyond \code{COMPLETE}'s own smaller page
-size, which already means more requests, and so more quota, for the same
-number of records.}
+\code{authkeywords} column to the output of \code{\link[=scopus_fetch]{scopus_fetch()}} and
+\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} (see \code{\link[=scopus_records]{scopus_records()}}) at no extra cost beyond
+\code{COMPLETE}'s own smaller page size, which already means more requests, and
+so more quota, for the same number of records.}
 
 \item{api_key, inst_token}{Optional credentials, resolved by default from
 options or environment variables (see \code{\link[=scopus_has_key]{scopus_has_key()}}).}
 }
 \value{
 A single number giving the total number of matching records, or \code{NA}
-when the API reports no total. It is returned as a double so that very large
-totals are represented exactly, with no risk of overflow, and the parsed
-quota (see \code{\link[=scopus_quota]{scopus_quota()}}) attached as the \code{quota} attribute so a workflow
-can pace itself off a count.
+when the API reports no total. It is a double, so that very large totals
+are exact and cannot overflow. The parsed quota (see \code{\link[=scopus_quota]{scopus_quota()}}) is
+attached as the \code{quota} attribute, so that a workflow can read the quota
+left after a count.
 }
 \description{
 Retrieves only the total number of records matching a query, without
-downloading them. This is the inexpensive way to size a retrieval before
-committing quota. The count can guide how to partition a \code{\link[=scopus_plan]{scopus_plan()}}, or
-simply report how large a topic is.
+downloading them. It costs one request, so it can size a retrieval before
+quota is spent on it. The count can guide how to partition a \code{\link[=scopus_plan]{scopus_plan()}}
+or report how large a topic is.
 }
 \section{API access}{
 
 This function performs a network request and therefore requires a valid API
 key and internet access. Every error it raises inherits from \code{scopus_error},
-so a \code{\link[=tryCatch]{tryCatch()}} around the call lets a workflow handle these gracefully.
+so a \code{\link[=tryCatch]{tryCatch()}} around the call lets a workflow handle them.
 When no key is configured, it raises \code{scopus_error_no_key}, and an invalid
 argument raises \code{scopus_error_bad_input} before any request. A request the
 API refuses raises the subclass for its HTTP status:
 \code{scopus_error_bad_request} (400), \code{scopus_error_unauthorized} (401, a key
 the API does not accept), \code{scopus_error_forbidden} (403),
-\code{scopus_error_not_found} (404),
-\code{scopus_error_payload_too_large} (413), \code{scopus_error_uri_too_long} (414),
+\code{scopus_error_not_found} (404), \code{scopus_error_payload_too_large} (413),
+\code{scopus_error_uri_too_long} (414),
 \code{scopus_error_rate_limit} (429) or \code{scopus_error_server} (any other status),
 with the status in \code{cnd$status} and the parsed quota (see \code{\link[=scopus_quota]{scopus_quota()}})
 in \code{cnd$quota}. A response that is not the JSON the API documents raises
@@ -89,12 +89,12 @@ back-off documented there applies.
 scopus_count('"graphene supercapacitor"', years = 2015:2024,
              field = "TITLE-ABS-KEY")
 \dontshow{\}) # examplesIf}
-# The offline companion, which needs no key: one number with the parsed
-# quota attached. The bundled corpus of real articles is a complete harvest
+# The same shape offline, with no key: one number with the parsed quota
+# attached. The bundled corpus of real articles is a complete harvest
 # of OpenAlex's exact-phrase search for the same phrase, so its row count is
 # the total of that search. A 'Scopus' count of the phrase would differ. The
-# quota attribute is parsed from real response headers by scopus_quota(), so
-# it cannot drift from what a live call attaches.
+# quota attribute is parsed from response headers by scopus_quota(), as a
+# live call parses it.
 resp <- httr2::response(
   status_code = 200,
   headers = list(

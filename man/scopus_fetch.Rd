@@ -24,21 +24,22 @@ before any request (see the \emph{Query checks} section of \code{\link[=scopus_p
 
 \item{max_results}{Maximum number of records to retrieve. Defaults to \code{Inf},
 meaning all available records up to the API ceiling. With the default
-offset-based paging the 'Scopus' Search API refuses offsets of 5000 or more,
-so a single query yields at most 5000 records, and one that matches more,
-with \code{max_results} above 5000, gives a \code{scopus_warning_capped} warning; set
-\code{cursor = TRUE}, or partition the search by year with \code{\link[=scopus_plan]{scopus_plan()}}, to go
-beyond that.}
+offset-based paging, the 'Scopus' Search API refuses offsets of 5000 or
+more, so a single query yields at most 5000 records. One that matches
+more, with \code{max_results} above 5000, gives a \code{scopus_warning_capped}
+warning. Set \code{cursor = TRUE}, or partition the search by year with
+\code{\link[=scopus_plan]{scopus_plan()}}, to go beyond that.}
 
 \item{view}{Either \code{"STANDARD"} or \code{"COMPLETE"}. \code{COMPLETE} adds an
-\code{authkeywords} column to \code{\link[=scopus_fetch]{scopus_fetch()}}/\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} output (see
-\code{\link[=scopus_records]{scopus_records()}}) at no extra cost beyond \code{COMPLETE}'s own smaller page
-size, which already means more requests, and so more quota, for the same
-number of records.}
+\code{authkeywords} column to the output of \code{\link[=scopus_fetch]{scopus_fetch()}} and
+\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} (see \code{\link[=scopus_records]{scopus_records()}}) at no extra cost beyond
+\code{COMPLETE}'s own smaller page size, which already means more requests, and
+so more quota, for the same number of records.}
 
-\item{page_size}{Integer records per page, or \code{NULL} (default) to use the
-most quota-efficient page the view allows (200 for \code{STANDARD}, 25 for
-\code{COMPLETE}). See \code{\link[=scopus_plan]{scopus_plan()}} for why larger pages cost less quota.}
+\item{page_size}{Integer number of records per page, or \code{NULL} (the
+default) to use the most quota-efficient page the view allows (200 for
+\code{STANDARD}, 25 for \code{COMPLETE}). See \code{\link[=scopus_plan]{scopus_plan()}} for why larger pages
+cost less quota.}
 
 \item{field}{Optional 'Scopus' field tag to wrap the query in (see
 \code{\link[=scopus_plan]{scopus_plan()}}).}
@@ -55,10 +56,10 @@ where each year is counted.}
 \item{cursor}{Logical. When \code{TRUE}, retrieve the result set with cursor-based
 pagination, which has no 5000-record ceiling, so an entire large query can be
 harvested in one call. The records then arrive in the API's deep-paging
-order, which is no longer relevance order. As a safeguard against a
-non-conforming server that never signals the end, cursor paging stops after
+order, which is no longer relevance order. In case a server never signals
+the end, cursor paging stops after
 \code{getOption("scopusflow.max_cursor_pages", 1e5)} pages with a
-\code{scopus_warning_capped} warning; set that option to \code{Inf} to remove the
+\code{scopus_warning_capped} warning. Setting that option to \code{Inf} removes the
 ceiling.}
 
 \item{api_key, inst_token}{Optional credentials, resolved by default from
@@ -82,10 +83,10 @@ the harvest is dated by \code{retrieved_at} (a \code{POSIXct}) and
 offset or by cursor. \code{retrieved_until} gives the same time as
 \code{retrieved_at} for a single search. A set combined from several keeps the
 earliest of their times as \code{retrieved_at} and the latest as
-\code{retrieved_until}. The date and version matter because \code{citations} is a
-snapshot value that keeps moving, so two saved sets are only comparable if
-each records when it was taken, and \code{\link[=scopus_search_report]{scopus_search_report()}} reads all of
-them back. \code{view} records the view, which decides what \code{authors} holds: the
+\code{retrieved_until}. The date and version matter because \code{citations}
+changes over time, so two saved sets can be compared only if each records
+when it was taken. \code{\link[=scopus_search_report]{scopus_search_report()}} reads all of these attributes
+back. \code{view} records the view, which decides what \code{authors} holds: the
 first author under \code{STANDARD} and the author list under \code{COMPLETE} (see
 \code{\link[=scopus_records]{scopus_records()}}). \code{max_results} records the cap the call was given,
 when it was given one, so the search record can say whether the
@@ -116,9 +117,9 @@ recs <- scopus_fetch('"graphene supercapacitor"', field = "TITLE-ABS-KEY",
                      max_results = 50)
 recs
 \dontshow{\}) # examplesIf}
-# The offline companion, which needs no key. 'Scopus' records may not be
+# The same shape offline, with no key. 'Scopus' records may not be
 # redistributed, so the package bundles a corpus of real articles in this
-# same schema; a live harvest returns exactly this shape.
+# schema, which is the shape a live harvest returns.
 recs <- example_records
 recs
 nrow(recs)

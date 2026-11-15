@@ -19,9 +19,9 @@ results, and the upgrading notes below say what was wrong in each case.
   braced phrase or a bracketed or field-tagged group, when it joins terms
   without `.field`, so
   `scopus_query("machine learning", "deep learning", .op = "OR")` gives
-  `(machine learning) OR (deep learning)`, where 'Scopus' read the unbracketed
-  join as `machine AND (learning OR deep) AND learning`. It also trims each
-  term.
+  `(machine learning) OR (deep learning)`, where the unbracketed join reads as
+  `machine AND (learning OR deep) AND learning` under the operator order of
+  Elsevier's search tips. It also trims each term.
 * Under `view = "COMPLETE"`, the `authors` column lists every author, up to the
   API's 100, as `"Surname, Given"` joined by `"; "`, where it held the first
   author alone. `COMPLETE` checkpoints from 0.4.0 are fetched again once, each

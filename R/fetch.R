@@ -7,21 +7,22 @@
 #' @inheritParams scopus_count
 #' @param max_results Maximum number of records to retrieve. Defaults to `Inf`,
 #'   meaning all available records up to the API ceiling. With the default
-#'   offset-based paging the 'Scopus' Search API refuses offsets of 5000 or more,
-#'   so a single query yields at most 5000 records, and one that matches more,
-#'   with `max_results` above 5000, gives a `scopus_warning_capped` warning; set
-#'   `cursor = TRUE`, or partition the search by year with [scopus_plan()], to go
-#'   beyond that.
-#' @param page_size Integer records per page, or `NULL` (default) to use the
-#'   most quota-efficient page the view allows (200 for `STANDARD`, 25 for
-#'   `COMPLETE`). See [scopus_plan()] for why larger pages cost less quota.
+#'   offset-based paging, the 'Scopus' Search API refuses offsets of 5000 or
+#'   more, so a single query yields at most 5000 records. One that matches
+#'   more, with `max_results` above 5000, gives a `scopus_warning_capped`
+#'   warning. Set `cursor = TRUE`, or partition the search by year with
+#'   [scopus_plan()], to go beyond that.
+#' @param page_size Integer number of records per page, or `NULL` (the
+#'   default) to use the most quota-efficient page the view allows (200 for
+#'   `STANDARD`, 25 for `COMPLETE`). See [scopus_plan()] for why larger pages
+#'   cost less quota.
 #' @param cursor Logical. When `TRUE`, retrieve the result set with cursor-based
 #'   pagination, which has no 5000-record ceiling, so an entire large query can be
 #'   harvested in one call. The records then arrive in the API's deep-paging
-#'   order, which is no longer relevance order. As a safeguard against a
-#'   non-conforming server that never signals the end, cursor paging stops after
+#'   order, which is no longer relevance order. In case a server never signals
+#'   the end, cursor paging stops after
 #'   `getOption("scopusflow.max_cursor_pages", 1e5)` pages with a
-#'   `scopus_warning_capped` warning; set that option to `Inf` to remove the
+#'   `scopus_warning_capped` warning. Setting that option to `Inf` removes the
 #'   ceiling.
 #' @param verbose Logical. When `TRUE`, progress is reported as the retrieval
 #'   proceeds.
@@ -38,10 +39,10 @@
 #'   offset or by cursor. `retrieved_until` gives the same time as
 #'   `retrieved_at` for a single search. A set combined from several keeps the
 #'   earliest of their times as `retrieved_at` and the latest as
-#'   `retrieved_until`. The date and version matter because `citations` is a
-#'   snapshot value that keeps moving, so two saved sets are only comparable if
-#'   each records when it was taken, and [scopus_search_report()] reads all of
-#'   them back. `view` records the view, which decides what `authors` holds: the
+#'   `retrieved_until`. The date and version matter because `citations`
+#'   changes over time, so two saved sets can be compared only if each records
+#'   when it was taken. [scopus_search_report()] reads all of these attributes
+#'   back. `view` records the view, which decides what `authors` holds: the
 #'   first author under `STANDARD` and the author list under `COMPLETE` (see
 #'   [scopus_records()]). `max_results` records the cap the call was given,
 #'   when it was given one, so the search record can say whether the
@@ -63,9 +64,9 @@
 #'                      max_results = 50)
 #' recs
 #' @examples
-#' # The offline companion, which needs no key. 'Scopus' records may not be
+#' # The same shape offline, with no key. 'Scopus' records may not be
 #' # redistributed, so the package bundles a corpus of real articles in this
-#' # same schema; a live harvest returns exactly this shape.
+#' # schema, which is the shape a live harvest returns.
 #' recs <- example_records
 #' recs
 #' nrow(recs)

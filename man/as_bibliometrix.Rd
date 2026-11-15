@@ -21,9 +21,9 @@ tag fields other than \code{DI} are upper-cased, as bibliometrix upper-cases
 them.
 }
 \description{
-Re-maps a \link{scopus_records} tibble to the tagged column layout used by the
-\pkg{bibliometrix} package (and the wider ISI/Web of Science convention), so
-results can flow into downstream science-mapping workflows. The fields
+Re-maps a \link{scopus_records} tibble to the tagged column layout of the
+\pkg{bibliometrix} package, which follows the field tags of Web of Science,
+so that the results can go into science-mapping workflows. The fields
 follow the conventions \code{bibliometrix::convert2df()} applies to a 'Scopus'
 CSV export, so the two frames describe a record in the same terms.
 }
@@ -47,7 +47,7 @@ split at the \code{" | "} the Search API joins them with and at the \code{"; "}
 \code{\link[=scopus_abstract]{scopus_abstract()}} joins its own with, so either source can fill the
 \code{authkeywords} column.
 
-This produces the \emph{shape} bibliometrix expects from the descriptive
+This produces the layout bibliometrix expects for the descriptive
 fields. It reconstructs only what the 'Scopus' Search API returns, so richer
 fields that some bibliometrix analyses use, such as full author affiliations
 or cited references, are left out. To obtain those, export a full 'Scopus'
@@ -55,7 +55,7 @@ CSV or BibTeX file from the web interface and read it with
 \code{bibliometrix::convert2df()}.
 
 \code{AU} holds every author only for a retrieval made with
-\code{view = "COMPLETE"}. Under \code{STANDARD} the API sends the first author alone,
+\code{view = "COMPLETE"}. Under \code{STANDARD}, the API sends the first author alone,
 so each document would look single-authored to the collaboration measures
 and co-authorship networks bibliometrix builds from \code{AU}. Converting a set
 retrieved under \code{STANDARD} therefore raises a warning of class

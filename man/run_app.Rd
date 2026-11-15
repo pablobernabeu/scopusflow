@@ -11,30 +11,30 @@ run_app(host = "127.0.0.1", port = NULL, launch.browser = TRUE)
 reachable only from your own machine and the key is never exposed on the
 network.}
 
-\item{port}{The port to listen on, or \code{NULL} (default) to choose one.}
+\item{port}{The port to listen on, or \code{NULL} (the default) to choose one.}
 
 \item{launch.browser}{Logical, whether to open a browser. Passed to
 \code{\link[shiny:runApp]{shiny::runApp()}}.}
 }
 \value{
-Called for its side effect of running the app; does not return until
-the app is closed.
+Called for its side effect of running the app. It does not return
+until the app is closed.
 }
 \description{
 Starts a local, code-free Shiny app for building a search, retrieving records,
 comparing topic trends and exporting the results, with a live terminal that
 streams the retrieval's progress and a panel that mirrors every choice as
-runnable R code. A \emph{Demo mode} (on by default) draws records from the bundled
-\link{example_records} corpus and synthesises a topic comparison, so the whole
-workflow can be explored with no key and no network;
-switch it off and paste a key into the app's key field to query 'Scopus' for
-real. The app uses only that key, held in the session, and does not read
-\code{SCOPUS_API_KEY} or the \code{scopusflow.api_key} option, while the script it
-writes finds the key as \code{\link[=scopus_has_key]{scopus_has_key()}} describes. The app runs on your
-own machine: your API key never leaves it, and requests originate from your own
-network, which is what the 'Scopus' API expects. It needs the suggested
-packages \pkg{shiny}, \pkg{bslib} and \pkg{callr} (and \pkg{ggplot2} for the
-plots, \pkg{fansi} for coloured terminal output).
+runnable R code. Its 'Demo mode', on by default, draws records from the
+bundled \link{example_records} corpus and synthesises a topic comparison, so the
+whole workflow can be explored with no key and no network. Switch it off and
+paste a key into the app's key field to query 'Scopus' for real. The app uses
+only that key, held in the session, and does not read \code{SCOPUS_API_KEY} or the
+\code{scopusflow.api_key} option, while the script it writes finds the key as
+\code{\link[=scopus_has_key]{scopus_has_key()}} describes. The app runs on your own machine. Your API key
+goes only to Elsevier's API, with each request, and the requests come from
+your own network, which is what the 'Scopus' API expects. It needs the
+suggested packages \pkg{shiny}, \pkg{bslib} and \pkg{callr}, and
+\pkg{ggplot2} for the plots and \pkg{fansi} for coloured terminal output.
 }
 \examples{
 \dontrun{

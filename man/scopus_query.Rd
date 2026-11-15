@@ -22,20 +22,22 @@ A length-one character string suitable for \code{\link[=scopus_count]{scopus_cou
 }
 \description{
 Combines several terms into one 'Scopus' query string, optionally wrapping
-each in a field tag and joining them with a boolean operator. It is a tidier
-alternative to pasting query fragments together by hand, which is where
-field-tag and bracket mistakes tend to creep in.
+each in a field tag and joining them with a boolean operator. It avoids the
+field-tag and bracket mistakes that pasting query fragments together by
+hand tends to make.
 }
 \details{
 Each term is trimmed and, given \code{.field}, wrapped in that tag, whose
 brackets hold the term together. Without a field tag, a term of several
 words is put in brackets before two or more terms are joined, because
-'Scopus' joins the words of an unquoted term with AND. Joined bare,
-\verb{machine learning OR deep learning} would read as
-\verb{machine AND (learning OR deep) AND learning}. A term that is already one
-operand is left as written: a quoted \code{"..."} phrase, a braced \code{{...}}
-phrase, a bracketed group or a single field-tagged group such as
-\verb{TITLE(deep learning)}. Single words are never bracketed, so
+'Scopus' joins the words of an unquoted term with AND. Joined without
+brackets, \verb{machine learning OR deep learning} would read as
+\verb{machine AND (learning OR deep) AND learning} under the operator order that
+Elsevier's search tips give. With the brackets, the query reads as intended
+under either order that \code{vignette("designing-queries")} describes. A term
+that is already one operand is left as written: a quoted \code{"..."} phrase, a
+braced \code{{...}} phrase, a bracketed group or a single field-tagged group
+such as \verb{TITLE(deep learning)}. Single words are never bracketed, so
 \code{scopus_query("CRISPR", "Cas9", .op = "OR")} stays \verb{CRISPR OR Cas9}, and a
 query composed by an earlier call keeps its meaning when it is joined again.
 A term that already opens with a field tag is refused when \code{.field} is

@@ -18,8 +18,8 @@ columns \code{status}, \code{scopus_id}, \code{doi}, \code{title}, \code{year}, 
 \code{citations_new}. \code{status} is a factor with levels \code{"added"} (in \code{new}
 only), \code{"removed"} (in \code{old} only), \code{"conflict"} (see Details) and
 \code{"unchanged"} (in both). Rows are sorted by status, then DOI, identifier
-and title, in byte order, so the order is the same under every locale and
-in the Python twin. The integer attributes \code{n_old_without_id_or_doi} and
+and title, in byte order, so the order is the same under every locale.
+The integer attributes \code{n_old_without_id_or_doi} and
 \code{n_new_without_id_or_doi} count the records on each side that carried
 neither key and so were not compared. Printing shows the counts in each
 category, and those records where there are any.
