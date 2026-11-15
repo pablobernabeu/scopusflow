@@ -1372,10 +1372,11 @@ reference count alike.
 
 `R (>= 4.1.0)` was an untested claim: the check matrix reached only `oldrel-1`,
 around four minor versions above it. It now also runs `oldrel-2` and `oldrel-3`,
-which reaches roughly R 4.3. The remaining gap between R 4.1 and R 4.3 is still
-untested, and closing it means either pinning an explicit old R in the matrix,
-where current CRAN builds of the dependencies may not be installable, or raising
-the declared floor. That is a release decision and is left open deliberately.
+which reach R 4.3, and the job 'R (declared minimum, 4.1)' runs the test suite on
+R 4.1 itself, with only the strong dependencies installed. It is not an
+`--as-cran` check, since the claim is that the code runs on R 4.1, not that CRAN's
+checks pass there. Its first run, on 15 November 2026 (R 4.1.3 on Ubuntu 26.04,
+with httr2 1.3.0), passed every test, so the floor stays at 4.1.0.
 
 The package floors are now exercised by a `min-deps` job that installs
 `httr2@1.0.4` and runs the check against it. Only httr2 is pinned: it is the
