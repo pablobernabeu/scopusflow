@@ -1373,10 +1373,13 @@ reference count alike.
 `R (>= 4.1.0)` was an untested claim: the check matrix reached only `oldrel-1`,
 around four minor versions above it. It now also runs `oldrel-2` and `oldrel-3`,
 which reach R 4.3, and the job 'R (declared minimum, 4.1)' runs the test suite on
-R 4.1 itself, with only the strong dependencies installed. It is not an
-`--as-cran` check, since the claim is that the code runs on R 4.1, not that CRAN's
-checks pass there. Its first run, on 15 November 2026 (R 4.1.3 on Ubuntu 26.04,
-with httr2 1.3.0), passed every test, so the floor stays at 4.1.0.
+R 4.1.3, the last release of R 4.1, with the strong dependencies and testthat
+installed. It tests that the code runs on R 4.1 and does not run
+`R CMD check --as-cran`, since CRAN no longer checks R 4.1. Its first run, on 15
+November 2026 (Ubuntu 26.04, httr2 1.3.0), had no test failure, so the floor
+stays at 4.1.0. It skipped 79 tests: the 41 that need ggplot2 and the 30 that
+need shiny, which the job does not install, and 8 that skip on every Linux leg.
+No plotting or app code has therefore run on R 4.1.
 
 The package floors are now exercised by a `min-deps` job that installs
 `httr2@1.0.4` and runs the check against it. Only httr2 is pinned: it is the
