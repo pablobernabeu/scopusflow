@@ -81,16 +81,43 @@ test_that("a malformed 200 body yields an NA row, not a lost batch", {
   expect_true(is.na(ab$title))
 })
 
-test_that("scopus_abstract percent-encodes the identifier path", {
+test_that("scopus_abstract keeps the identifier's slashes and escapes the rest of its path", {
+  # A DOI can hold '/', brackets and, rarely, '?', '#' or a space. Its slashes
+  # must stay path separators, and '?', '#' and a space must stay
+  # percent-encoded, or the path would end early or break. Brackets may reach
+  # the URL encoded or literal: RFC 3986 allows them in a path, and httr2 may
+  # rewrite '%28' as '(' when it rebuilds the URL with the system's libcurl.
+  # From httr2 1.1, adding the view to the query rebuilds the URL: the path is
+  # decoded and encoded again, which turns '%2F' into '/'. view = NULL adds no
+  # query, so that request shows the package's own encoding with any httr2.
   local_scopus_test_env()
-  seen <- NULL
+  seen <- character()
   httr2::local_mocked_responses(function(req) {
-    seen <<- req$url
+    seen <<- c(seen, req$url)
     mock_abstract(list(`dc:title` = "x"))
   })
-  scopus_abstract("10.1002/(SICI)1099", by = "doi")
-  expect_match(seen, "%28SICI%29")                    # parens are encoded
-  expect_match(seen, "/doi/10.1002/", fixed = TRUE)   # structural slash preserved
+  prefix <- "https://api.elsevier.com/content/abstract/doi/"
+  check_url <- function(url, id, query) {
+    expect_true(startsWith(url, prefix), info = url)
+    expect_false(grepl("[ #]", url), info = url)
+    # The path ends at the first '?', so the rest must be the query alone.
+    expect_identical(sub("^[^?]*", "", url), query, info = url)
+    path <- sub("[?].*$", "", substring(url, nchar(prefix) + 1L))
+    segments <- strsplit(path, "/", fixed = TRUE)[[1]]
+    expect_identical(
+      vapply(segments, utils::URLdecode, character(1), USE.NAMES = FALSE),
+      strsplit(id, "/", fixed = TRUE)[[1]],
+      info = url
+    )
+  }
+  for (id in c("10.1002/(SICI)1099", "10.1000/a b?c#d/e")) {
+    seen <- character()
+    scopus_abstract(id, by = "doi")
+    scopus_abstract(id, by = "doi", view = NULL)
+    expect_length(seen, 2L)
+    check_url(seen[[1]], id, "?view=META_ABS")
+    check_url(seen[[2]], id, "")
+  }
 })
 
 test_that("the default request names view META_ABS, and view = NULL sends none", {
