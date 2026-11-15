@@ -30,7 +30,7 @@ key is sent to Elsevier alone.
 
 ## Test environments
 
-GitHub Actions, run 43715148461 on 2026-11-15, at commit 101520e on the
+GitHub Actions, run 43733276591 on 2026-11-15, at commit bac5fb2 on the
 ccr-48a6a874-3shvqm branch. The package sources of this submission are those of
 that commit. Because a pull request started the run, it checked out a merge of
 that commit into main. That merge differs from the commit only in a workflow
@@ -58,9 +58,11 @@ The same run checked the package under R 4.6.2 on ubuntu-latest twice more:
 with only its strong dependencies available to the check
 (`_R_CHECK_DEPENDS_ONLY_=true`, `--as-cran`, without re-building the vignettes)
 and with httr2 1.0.4, the minimum that DESCRIPTION declares. Both ended with
-'Status: OK'. The same run also ran the test suite on R 4.1.3, the oldest R
-that DESCRIPTION allows, with only the strong dependencies installed, and on
-R-devel in the Latin-9 locale en_US.iso885915 with NOT_CRAN unset, as CRAN's
+'Status: OK'. The same run also ran the test suite on R 4.1.3, the last
+release of R 4.1 (DESCRIPTION requires R 4.1.0 or later), with the strong
+dependencies and testthat installed, so the tests that need ggplot2 or shiny
+skipped there. It ran the test suite once more on R-devel in the Latin-9 locale
+en_US.iso885915 with NOT_CRAN unset, as CRAN's
 r-devel-linux-x86_64-debian-clang flavour runs it. No test failed in either.
 
 Some platforms may report a note listing possibly misspelled words in the
