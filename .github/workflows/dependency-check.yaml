@@ -4,18 +4,18 @@
 # gates every plotting example). A breaking change upstream, for example in
 # httr2, is then caught early. The remaining Suggests are reported in the
 # version dump below but their development heads are not installed. This
-# workflow only observes
-# and reports. It installs and executes the development heads of the
-# dependencies, which is untrusted code, so it runs with a read-only checkout
-# plus issue access and never holds a token that could push commits or open
-# pull requests. On failure it flags the maintainer with a de-duplicated issue,
-# including a free GitHub Models diagnosis when no Claude credential is
-# configured, and then finishes red. That red conclusion is what triggers the
-# companion dependency-autofix.yaml workflow, which holds the write permissions
-# and attempts the agentic fix in a separate run.
+# workflow only observes and reports. It installs and executes the development
+# heads of the dependencies, which is untrusted code, so it runs with a
+# read-only checkout plus issue access and never holds a token that could push
+# commits or open pull requests. On failure it flags the maintainer with a
+# de-duplicated issue, including a free GitHub Models diagnosis when no Claude
+# credential is configured, and then finishes red. That red conclusion is what
+# triggers the companion dependency-autofix.yaml workflow, which holds the
+# write permissions and attempts the agentic fix in a separate run.
 on:
   schedule:
-    - cron: "17 5 */2 * *" # every other day at 05:17 UTC
+    # 05:17 UTC on odd days of the month, so on the 31st and the 1st in a row.
+    - cron: "17 5 */2 * *"
   workflow_dispatch:
 
 name: dependency-check.yaml
@@ -35,15 +35,15 @@ jobs:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
       # Evaluates to the string "true" only when a Claude credential is
-      # configured; the secret values themselves are never exposed. A Claude
-      # subscription OAuth token (CLAUDE_CODE_OAUTH_TOKEN) drives the agentic
-      # auto-fix at no API cost; an ANTHROPIC_API_KEY is the paid alternative.
+      # configured. The secret values themselves are never exposed. A Claude
+      # subscription OAuth token (CLAUDE_CODE_OAUTH_TOKEN) runs the automatic
+      # fix at no API cost, and an ANTHROPIC_API_KEY is the paid alternative.
       # When true, the free GitHub Models diagnosis below is skipped, because
       # the companion dependency-autofix.yaml workflow will attempt a full fix.
       HAS_CLAUDE: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' || secrets.ANTHROPIC_API_KEY != '' }}
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - uses: r-lib/actions/setup-pandoc@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05  # v2.14.0
 
@@ -163,7 +163,7 @@ jobs:
         id: diagnose
         if: steps.check.outputs.status == 'fail' && env.HAS_CLAUDE != 'true'
         continue-on-error: true
-        uses: actions/ai-inference@v2
+        uses: actions/ai-inference@a7805884c80886efc241e94a5351df715968a0ad  # v2.1.1
         with:
           prompt-file: ai-prompt.txt
           system-prompt: "You are an expert R package maintainer who fixes breakage caused by dependency updates."

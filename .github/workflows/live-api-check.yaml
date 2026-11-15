@@ -31,7 +31,7 @@ jobs:
       NOT_CRAN: "true"
       SCOPUSFLOW_LIVE_TESTS: "true"
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05  # v2.14.0
         with:
@@ -59,7 +59,7 @@ jobs:
           }
           # A green run must mean the live tests genuinely ran. With a key
           # configured, a skipped test is a silent gap in coverage, so it fails
-          # the run; without one, the run is honest about being dormant.
+          # the run. Without one, the run says that the check is dormant.
           key_present <- nzchar(Sys.getenv("SCOPUS_API_KEY"))
           if (key_present && sum(df$skipped) > 0L) {
             cat(sprintf(
