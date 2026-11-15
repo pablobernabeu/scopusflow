@@ -4,7 +4,7 @@
 # permissions live here instead: when the check finishes red, this workflow
 # asks Claude Code to reproduce the breakage and open a pull request with the
 # smallest safe fix. Reproducing the failure means dependency code runs in this
-# job too, beside the write token; that trade-off is accepted because the job
+# job too, beside the write token. That trade-off is accepted because the job
 # is inert until the maintainer opts in by adding a CLAUDE_CODE_OAUTH_TOKEN or
 # ANTHROPIC_API_KEY secret, runs only after a failed check rather than on every
 # schedule, and produces a reviewable pull request rather than an unattended
@@ -31,19 +31,19 @@ permissions:
 
 jobs:
   dependency-autofix:
-    # A manual dispatch always runs (useful for testing the plumbing); the
-    # scheduled path only reacts to a failed dependency check.
+    # A manual dispatch always runs, which helps to test the workflow. After a
+    # dependency check, it runs only if the check failed.
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'failure' }}
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
       # Evaluates to the string "true" only when a Claude credential is
-      # configured; the secret values themselves are never exposed. A Claude
-      # subscription OAuth token (CLAUDE_CODE_OAUTH_TOKEN) drives the fix at no
-      # API cost; an ANTHROPIC_API_KEY is the paid alternative. Without either,
-      # every step below skips and the dependency-check issue remains the sole
-      # means of flagging the maintainer.
+      # configured. The secret values themselves are never exposed. A Claude
+      # subscription OAuth token (CLAUDE_CODE_OAUTH_TOKEN) runs the fix at no
+      # API cost, and an ANTHROPIC_API_KEY is the paid alternative. Without
+      # either, every step below skips and the dependency-check issue is the
+      # only notice to the maintainer.
       HAS_CLAUDE: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' || secrets.ANTHROPIC_API_KEY != '' }}
       # The canary's check step runs with CRAN's incoming checks off (see
       # dependency-check.yaml), so the check that the prompt asks Claude to run
@@ -51,7 +51,7 @@ jobs:
       _R_CHECK_CRAN_INCOMING_: "false"
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         if: env.HAS_CLAUDE == 'true'
         with:
           fetch-depth: 0
@@ -96,8 +96,8 @@ jobs:
         # Kept so that the report step below still runs after a failure. The
         # report step decides the run's conclusion.
         continue-on-error: true
-        # Pinned to a full commit SHA because anthropics/ is outside the small
-        # set of publishers this family trusts to float on a major tag.
+        # Pinned to a full commit SHA, as every action in these workflows is.
+        # Dependabot keeps the pins current.
         uses: anthropics/claude-code-action@c0949c50a78c1ec8ce2647db36629b870e715d0c # v1.0.268
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}

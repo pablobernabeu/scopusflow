@@ -20,6 +20,6 @@ updates:
       # carry, wants a COPILOT_GITHUB_TOKEN, and takes a different form of model id. A
       # merge would therefore break the step, and break it quietly, because the step
       # sets continue-on-error. Revisit deliberately if the triage ever moves to
-      # Copilot; until then a major bump here is noise.
+      # Copilot. Until then, a major bump here is noise.
       - dependency-name: "actions/ai-inference"
         update-types: ["version-update:semver-major"]
