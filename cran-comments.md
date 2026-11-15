@@ -30,7 +30,7 @@ key is sent to Elsevier alone.
 
 ## Test environments
 
-GitHub Actions, run 43663287198 on 2026-11-15, at commit 98e75ee on the
+GitHub Actions, run 43715148461 on 2026-11-15, at commit 101520e on the
 ccr-48a6a874-3shvqm branch. The package sources of this submission are those of
 that commit. Because a pull request started the run, it checked out a merge of
 that commit into main. That merge differs from the commit only in a workflow
@@ -40,13 +40,13 @@ tarball with `--no-manual --compact-vignettes=gs+qpdf` and ran
 which r-lib/actions turns off. Each leg ended with 'Status: OK':
 
 * ubuntu-latest (Ubuntu 26.04.1 LTS), R 4.6.2
-* ubuntu-latest (Ubuntu 26.04.1 LTS), R-devel (2026-11-13 r90888)
+* ubuntu-latest (Ubuntu 26.04.1 LTS), R-devel (2026-11-14 r90890)
 * ubuntu-latest (Ubuntu 26.04.1 LTS), R 4.5.3
 * ubuntu-latest (Ubuntu 26.04.1 LTS), R 4.4.3
 * ubuntu-latest (Ubuntu 26.04.1 LTS), R 4.3.3
 * windows-latest (Windows Server 2025, x86_64-w64-mingw32), R 4.6.2
 * windows-latest (Windows Server 2025, x86_64-w64-mingw32), R-devel
-  (2026-11-13 r90888 ucrt)
+  (2026-11-14 r90890 ucrt)
 * macos-latest (macOS 26.7.2, aarch64-apple-darwin23), R 4.6.2
 
 The test suite passed in every leg, with no failures or warnings. Seven live
@@ -58,7 +58,10 @@ The same run checked the package under R 4.6.2 on ubuntu-latest twice more:
 with only its strong dependencies available to the check
 (`_R_CHECK_DEPENDS_ONLY_=true`, `--as-cran`, without re-building the vignettes)
 and with httr2 1.0.4, the minimum that DESCRIPTION declares. Both ended with
-'Status: OK'.
+'Status: OK'. The same run also ran the test suite on R 4.1.3, the oldest R
+that DESCRIPTION allows, with only the strong dependencies installed, and on
+R-devel in the Latin-9 locale en_US.iso885915 with NOT_CRAN unset, as CRAN's
+r-devel-linux-x86_64-debian-clang flavour runs it. No test failed in either.
 
 Some platforms may report a note listing possibly misspelled words in the
 DESCRIPTION, among them 'DOIs', 'Elsevier', 'PRISMA', 'Rethlefsen',
