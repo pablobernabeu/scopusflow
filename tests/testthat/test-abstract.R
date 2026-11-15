@@ -81,16 +81,37 @@ test_that("a malformed 200 body yields an NA row, not a lost batch", {
   expect_true(is.na(ab$title))
 })
 
-test_that("scopus_abstract percent-encodes the identifier path", {
+test_that("scopus_abstract keeps the identifier's slashes and escapes the rest of its path", {
+  # A DOI can hold '/', brackets and, rarely, '?', '#' or a space. Its slashes
+  # must stay path separators, and '?', '#' and a space must stay
+  # percent-encoded, or the path would end early or break. Brackets may reach
+  # the URL encoded or literal: RFC 3986 allows them in a path, and httr2 may
+  # rewrite '%28' as '(' when it rebuilds the URL with the system's libcurl.
   local_scopus_test_env()
-  seen <- NULL
+  seen <- character()
   httr2::local_mocked_responses(function(req) {
-    seen <<- req$url
+    seen <<- c(seen, req$url)
     mock_abstract(list(`dc:title` = "x"))
   })
-  scopus_abstract("10.1002/(SICI)1099", by = "doi")
-  expect_match(seen, "%28SICI%29")                    # parens are encoded
-  expect_match(seen, "/doi/10.1002/", fixed = TRUE)   # structural slash preserved
+  ids <- c("10.1002/(SICI)1099", "10.1000/a b?c#d/e")
+  for (id in ids) scopus_abstract(id, by = "doi")
+  expect_length(seen, length(ids))
+
+  prefix <- "https://api.elsevier.com/content/abstract/doi/"
+  for (i in seq_along(ids)) {
+    url <- seen[[i]]
+    expect_true(startsWith(url, prefix), info = url)
+    expect_false(grepl("[ #]", url), info = url)
+    # The query is the default view alone, so the path ends at the first '?'.
+    expect_identical(sub("^[^?]*", "", url), "?view=META_ABS", info = url)
+    path <- sub("[?].*$", "", substring(url, nchar(prefix) + 1L))
+    segments <- strsplit(path, "/", fixed = TRUE)[[1]]
+    expect_identical(
+      vapply(segments, utils::URLdecode, character(1), USE.NAMES = FALSE),
+      strsplit(ids[[i]], "/", fixed = TRUE)[[1]],
+      info = url
+    )
+  }
 })
 
 test_that("the default request names view META_ABS, and view = NULL sends none", {
