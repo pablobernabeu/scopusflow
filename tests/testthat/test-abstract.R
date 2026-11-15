@@ -87,30 +87,36 @@ test_that("scopus_abstract keeps the identifier's slashes and escapes the rest o
   # percent-encoded, or the path would end early or break. Brackets may reach
   # the URL encoded or literal: RFC 3986 allows them in a path, and httr2 may
   # rewrite '%28' as '(' when it rebuilds the URL with the system's libcurl.
+  # From httr2 1.1, adding the view to the query rebuilds the URL: the path is
+  # decoded and encoded again, which turns '%2F' into '/'. view = NULL adds no
+  # query, so that request shows the package's own encoding with any httr2.
   local_scopus_test_env()
   seen <- character()
   httr2::local_mocked_responses(function(req) {
     seen <<- c(seen, req$url)
     mock_abstract(list(`dc:title` = "x"))
   })
-  ids <- c("10.1002/(SICI)1099", "10.1000/a b?c#d/e")
-  for (id in ids) scopus_abstract(id, by = "doi")
-  expect_length(seen, length(ids))
-
   prefix <- "https://api.elsevier.com/content/abstract/doi/"
-  for (i in seq_along(ids)) {
-    url <- seen[[i]]
+  check_url <- function(url, id, query) {
     expect_true(startsWith(url, prefix), info = url)
     expect_false(grepl("[ #]", url), info = url)
-    # The query is the default view alone, so the path ends at the first '?'.
-    expect_identical(sub("^[^?]*", "", url), "?view=META_ABS", info = url)
+    # The path ends at the first '?', so the rest must be the query alone.
+    expect_identical(sub("^[^?]*", "", url), query, info = url)
     path <- sub("[?].*$", "", substring(url, nchar(prefix) + 1L))
     segments <- strsplit(path, "/", fixed = TRUE)[[1]]
     expect_identical(
       vapply(segments, utils::URLdecode, character(1), USE.NAMES = FALSE),
-      strsplit(ids[[i]], "/", fixed = TRUE)[[1]],
+      strsplit(id, "/", fixed = TRUE)[[1]],
       info = url
     )
+  }
+  for (id in c("10.1002/(SICI)1099", "10.1000/a b?c#d/e")) {
+    seen <- character()
+    scopus_abstract(id, by = "doi")
+    scopus_abstract(id, by = "doi", view = NULL)
+    expect_length(seen, 2L)
+    check_url(seen[[1]], id, "?view=META_ABS")
+    check_url(seen[[2]], id, "")
   }
 })
 
