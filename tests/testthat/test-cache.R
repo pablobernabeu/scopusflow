@@ -253,6 +253,39 @@ test_that("a half-written checkpoint is refetched rather than aborting the run",
   expect_silent(scopus_fetch_plan(plan, cache_dir = cache, resume = TRUE))
 })
 
+test_that("a half-written abstract checkpoint is retrieved again, not served or fatal", {
+  local_scopus_test_env()
+  cache <- withr::local_tempdir()
+  calls <- 0L
+  httr2::local_mocked_responses(function(req) {
+    calls <<- calls + 1L
+    mock_abstract(list(`prism:doi` = mock_request_doi(req), `dc:title` = "Kept"))
+  })
+  ids <- c("10.1/a", "10.1/b")
+  scopus_abstract(ids, cache_dir = cache, resume = TRUE)
+  expect_equal(calls, 2L)
+
+  # What an interrupted or killed run leaves behind, for the first identifier.
+  file <- list.files(cache, pattern = "^id-.*10_1_a", full.names = TRUE)
+  expect_length(file, 1L)
+  bytes <- readBin(file, "raw", file.size(file))
+  writeBin(bytes[seq_len(length(bytes) %/% 2L)], file)
+
+  expect_warning(
+    ab <- scopus_abstract(ids, cache_dir = cache, resume = TRUE),
+    class = "scopus_warning_cache_unreadable"
+  )
+  # Only the damaged checkpoint is requested again, and the batch is whole.
+  expect_equal(calls, 3L)
+  expect_equal(attr(ab, "n_requests"), 1L)
+  expect_equal(ab$id, ids)
+  expect_equal(ab$title, c("Kept", "Kept"))
+
+  # The damaged checkpoint has been replaced, so the next resume is clean.
+  expect_silent(scopus_abstract(ids, cache_dir = cache, resume = TRUE))
+  expect_equal(calls, 3L)
+})
+
 test_that("a checkpoint is written whole or not at all", {
   # The temp file the atomic write uses must not be left behind, and must never
   # be mistaken for a checkpoint.
