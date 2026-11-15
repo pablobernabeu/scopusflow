@@ -56,9 +56,10 @@
 #'   'Scopus') yields a row of `NA`s with a warning, so a batch is not lost to a
 #'   single failure. The number of Abstract Retrieval requests made and the
 #'   most recently parsed quota (see [scopus_quota()]) are attached as the
-#'   `n_requests` and `quota` attributes, since a retrieval here costs one
-#'   request for each identifier, where a search returns many records with
-#'   each request.
+#'   `n_requests` and `quota` attributes, since a retrieval here costs at
+#'   least one request for each identifier (one for each page of references
+#'   under `view = "REF"`), where a search returns many records with each
+#'   request.
 #'
 #'   When `include` names `"keywords"`, an `authkeywords` column is added: the
 #'   document's author-supplied keywords, joined the same way as `authors`
@@ -89,7 +90,7 @@
 #' your entitlement allows it. Elsevier's guide numbers `startref` from 0 and
 #' pybliometrics from 1, and which of the two the API follows has not been
 #' confirmed. Paging stops on an empty page, on a page that adds no new
-#' reference, or after as many pages as the first page's length implies, so
+#' reference or after as many pages as the first page's length implies, so
 #' neither numbering can make it loop or repeat references. When the number
 #' of references held still differs from the document's reported count, a
 #' `scopus_warning_incomplete_references` warning says so. An
@@ -125,8 +126,8 @@
 #'
 #' A spent weekly quota (HTTP 429 marked `QUOTA_EXCEEDED`) also stops the
 #' requests, but returns what the batch holds, since it usually arrives
-#' part-way through: the rows already retrieved are kept, each identifier not
-#' retrieved gets a row of `NA`s that is not checkpointed, and one
+#' part-way through. The rows already retrieved are kept, and each identifier
+#' not retrieved gets a row of `NA`s that is not checkpointed. One
 #' `scopus_warning_quota_exceeded` warning names the identifier reached, how
 #' many were not retrieved and when the quota resets. A checkpoint in
 #' `cache_dir` is still read after the stop. See the *API access* section of

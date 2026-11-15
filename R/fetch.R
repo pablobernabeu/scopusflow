@@ -33,8 +33,8 @@
 #'   responses, so they cost no extra quota. See the *Extended fields* section
 #'   of [scopus_records()].
 #' @return A [scopus_records] tibble. The reported total and the most recent
-#'   parsed quota are attached as the `total_results` and `quota` attributes,
-#'   the harvest is dated by `retrieved_at` (a `POSIXct`) and
+#'   parsed quota are attached as the `total_results` and `quota` attributes.
+#'   The harvest is dated by `retrieved_at` (a `POSIXct`) and
 #'   `scopusflow_version`, and `paging` records whether it was retrieved by
 #'   offset or by cursor. `retrieved_until` gives the same time as
 #'   `retrieved_at` for a single search. A set combined from several keeps the

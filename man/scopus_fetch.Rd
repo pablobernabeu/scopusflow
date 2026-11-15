@@ -77,8 +77,8 @@ of \code{\link[=scopus_records]{scopus_records()}}.}
 }
 \value{
 A \link{scopus_records} tibble. The reported total and the most recent
-parsed quota are attached as the \code{total_results} and \code{quota} attributes,
-the harvest is dated by \code{retrieved_at} (a \code{POSIXct}) and
+parsed quota are attached as the \code{total_results} and \code{quota} attributes.
+The harvest is dated by \code{retrieved_at} (a \code{POSIXct}) and
 \code{scopusflow_version}, and \code{paging} records whether it was retrieved by
 offset or by cursor. \code{retrieved_until} gives the same time as
 \code{retrieved_at} for a single search. A set combined from several keeps the

@@ -75,9 +75,10 @@ columns \code{id} (the input identifier), \code{scopus_id}, \code{doi}, \code{ti
 'Scopus') yields a row of \code{NA}s with a warning, so a batch is not lost to a
 single failure. The number of Abstract Retrieval requests made and the
 most recently parsed quota (see \code{\link[=scopus_quota]{scopus_quota()}}) are attached as the
-\code{n_requests} and \code{quota} attributes, since a retrieval here costs one
-request for each identifier, where a search returns many records with
-each request.
+\code{n_requests} and \code{quota} attributes, since a retrieval here costs at
+least one request for each identifier (one for each page of references
+under \code{view = "REF"}), where a search returns many records with each
+request.
 
 When \code{include} names \code{"keywords"}, an \code{authkeywords} column is added: the
 document's author-supplied keywords, joined the same way as \code{authors}
@@ -117,7 +118,7 @@ each counted in \code{n_requests}, which makes \code{"FULL"} the cheaper view wh
 your entitlement allows it. Elsevier's guide numbers \code{startref} from 0 and
 pybliometrics from 1, and which of the two the API follows has not been
 confirmed. Paging stops on an empty page, on a page that adds no new
-reference, or after as many pages as the first page's length implies, so
+reference or after as many pages as the first page's length implies, so
 neither numbering can make it loop or repeat references. When the number
 of references held still differs from the document's reported count, a
 \code{scopus_warning_incomplete_references} warning says so. An
@@ -155,8 +156,8 @@ repeated for every remaining identifier.
 
 A spent weekly quota (HTTP 429 marked \code{QUOTA_EXCEEDED}) also stops the
 requests, but returns what the batch holds, since it usually arrives
-part-way through: the rows already retrieved are kept, each identifier not
-retrieved gets a row of \code{NA}s that is not checkpointed, and one
+part-way through. The rows already retrieved are kept, and each identifier
+not retrieved gets a row of \code{NA}s that is not checkpointed. One
 \code{scopus_warning_quota_exceeded} warning names the identifier reached, how
 many were not retrieved and when the quota resets. A checkpoint in
 \code{cache_dir} is still read after the stop. See the \emph{API access} section of

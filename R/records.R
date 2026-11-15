@@ -7,7 +7,7 @@
 #'
 #' @param x For `scopus_records()`, a parsed `search-results` list (the value of
 #'   `httr2::resp_body_json(resp)[["search-results"]]`), a bare list of entry
-#'   objects, or an existing `scopus_records` object, which is returned
+#'   objects or an existing `scopus_records` object, which is returned
 #'   unchanged. For `is_scopus_records()`, any object to test. For the
 #'   coercion methods, a `scopus_records` object.
 #' @param query Optional character scalar recording the query that produced the
@@ -62,11 +62,12 @@
 #' records its view in the `view` attribute (see [scopus_fetch()]), and
 #' [scopus_top()] and [as_bibliometrix()] say once per session that a set
 #' retrieved under `STANDARD` names first authors only. Under `COMPLETE`, each
-#' author is written as `"Surname, Given"`, as the surname alone when the given
-#' name is missing or empty, or as the indexed name when the surname is
-#' missing or empty. Exact duplicates are dropped. The API lists at most 100
-#' authors per record, and its `author-count` field gives the total. A record
-#' whose list names nobody falls back to `dc:creator`.
+#' author is written as `"Surname, Given"`. An author whose surname is missing
+#' or empty is written as the indexed name, and one with a surname but a
+#' missing or empty given name as the surname alone. Exact duplicates are
+#' dropped. The API lists at most 100 authors per record, and its
+#' `author-count` field gives the total. A record whose list names nobody falls
+#' back to `dc:creator`.
 #'
 #' Author keywords are present only under `view = "COMPLETE"`. The `STANDARD`
 #' view, the default throughout the package, never includes them, and

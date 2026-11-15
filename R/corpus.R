@@ -35,7 +35,7 @@
 #' @param verbose Logical. When `TRUE`, progress is reported.
 #' @param keywords Which keywords fill the `keywords` column: `"author"` (the
 #'   default) for the author keywords, `"index"` for the index keywords
-#'   'Scopus' assigns, or `"both"` for the author keywords followed by each
+#'   'Scopus' assigns or `"both"` for the author keywords followed by each
 #'   index keyword not already among them. The match is on the exact text, so
 #'   a term that differs only in case appears twice. `"index"` and `"both"`
 #'   need `view = "FULL"`, since the `REF` response carries no keywords of

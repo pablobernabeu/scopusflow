@@ -46,7 +46,7 @@ weekly quota.}
 
 \item{keywords}{Which keywords fill the \code{keywords} column: \code{"author"} (the
 default) for the author keywords, \code{"index"} for the index keywords
-'Scopus' assigns, or \code{"both"} for the author keywords followed by each
+'Scopus' assigns or \code{"both"} for the author keywords followed by each
 index keyword not already among them. The match is on the exact text, so
 a term that differs only in case appears twice. \code{"index"} and \code{"both"}
 need \code{view = "FULL"}, since the \code{REF} response carries no keywords of

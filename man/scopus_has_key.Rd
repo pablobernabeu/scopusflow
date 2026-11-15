@@ -17,14 +17,14 @@ package.
 }
 \details{
 The key is looked up first from the \code{api_key} argument of whichever function
-is being called, then from the \code{scopusflow.api_key} option, and finally from
+is being called, then from the \code{scopusflow.api_key} option and finally from
 the \code{SCOPUS_API_KEY} environment variable. An optional institutional token,
 used for off-campus access to subscriber content, is resolved the same way
 from the \code{inst_token} argument, the \code{scopusflow.inst_token} option or the
 \code{SCOPUS_INST_TOKEN} environment variable.
 
 A key is a secret. Keep it in \verb{~/.Renviron}, as in \code{SCOPUS_API_KEY=xxxx},
-away from any script, and out of version control.
+away from any script and out of version control.
 }
 \examples{
 # Does the current session have a key configured?

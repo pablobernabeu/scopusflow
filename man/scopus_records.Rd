@@ -26,7 +26,7 @@ is_scopus_records(x)
 \arguments{
 \item{x}{For \code{scopus_records()}, a parsed \code{search-results} list (the value of
 \code{httr2::resp_body_json(resp)[["search-results"]]}), a bare list of entry
-objects, or an existing \code{scopus_records} object, which is returned
+objects or an existing \code{scopus_records} object, which is returned
 unchanged. For \code{is_scopus_records()}, any object to test. For the
 coercion methods, a \code{scopus_records} object.}
 
@@ -115,11 +115,12 @@ and a tally of \code{STANDARD} authors counts first authorships. A harvest
 records its view in the \code{view} attribute (see \code{\link[=scopus_fetch]{scopus_fetch()}}), and
 \code{\link[=scopus_top]{scopus_top()}} and \code{\link[=as_bibliometrix]{as_bibliometrix()}} say once per session that a set
 retrieved under \code{STANDARD} names first authors only. Under \code{COMPLETE}, each
-author is written as \code{"Surname, Given"}, as the surname alone when the given
-name is missing or empty, or as the indexed name when the surname is
-missing or empty. Exact duplicates are dropped. The API lists at most 100
-authors per record, and its \code{author-count} field gives the total. A record
-whose list names nobody falls back to \code{dc:creator}.
+author is written as \code{"Surname, Given"}. An author whose surname is missing
+or empty is written as the indexed name, and one with a surname but a
+missing or empty given name as the surname alone. Exact duplicates are
+dropped. The API lists at most 100 authors per record, and its
+\code{author-count} field gives the total. A record whose list names nobody falls
+back to \code{dc:creator}.
 
 Author keywords are present only under \code{view = "COMPLETE"}. The \code{STANDARD}
 view, the default throughout the package, never includes them, and

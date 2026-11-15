@@ -98,6 +98,12 @@ scopus_report_months <- function() {
 #' and otherwise counts the cells that did. Item 9 names the cap, or says that
 #' it did not bind, and the reproduction snippet passes it.
 #'
+#' A harvest by this package runs every cell of its plan, so `stopped_early` is
+#' `FALSE` and `not_run` is empty unless the set records a stop in its
+#' `stopped_early`, `cells_planned` and `cells_run` attributes. The record of
+#' such a set says how many of the planned cells were retrieved before the
+#' harvest was stopped.
+#'
 #' The PRISMA-S map is decided the same way. Items the package holds evidence
 #' for (the database and platform, that Scopus was searched on its own, the
 #' full strategy and the limits where a plan records them, the date, the
