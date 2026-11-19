@@ -75,7 +75,7 @@ disk unless the caller asks, and examples and tests write only to
 
 The prose follows British spelling, and the names `'Scopus'` and `'API'`
 are single-quoted in the DESCRIPTION and the help files. Running
-[`spelling::spell_check_package()`](https://docs.ropensci.org/spelling//reference/spell_check_package.html)
+[`spelling::spell_check_package()`](https://docs.ropensci.org/spelling/reference/spell_check_package.html)
 before a pull request keeps the word list tidy.
 
 ## Automated maintenance
