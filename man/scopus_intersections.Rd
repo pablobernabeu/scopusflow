@@ -20,7 +20,7 @@ scopus_intersections(
 \arguments{
 \item{concepts}{Named character vector. The names are display labels and
 the values are search terms (wrapped in \code{field} when one is given) or
-complete field-tagged query expressions (used as-is). The labels must be
+complete field-tagged query expressions (used as given). The labels must be
 unique.}
 
 \item{intersections}{Optional list of character vectors, each naming two or
@@ -49,10 +49,10 @@ that is not already a complete field-tagged expression (see
 \code{\link[=scopus_field_tags]{scopus_field_tags()}}).}
 
 \item{view}{Either \code{"STANDARD"} or \code{"COMPLETE"}. \code{COMPLETE} adds an
-\code{authkeywords} column to \code{\link[=scopus_fetch]{scopus_fetch()}}/\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} output (see
-\code{\link[=scopus_records]{scopus_records()}}) at no extra cost beyond \code{COMPLETE}'s own smaller page
-size, which already means more requests, and so more quota, for the same
-number of records.}
+\code{authkeywords} column to the output of \code{\link[=scopus_fetch]{scopus_fetch()}} and
+\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} (see \code{\link[=scopus_records]{scopus_records()}}) at no extra cost beyond
+\code{COMPLETE}'s own smaller page size, which already means more requests, and
+so more quota, for the same number of records.}
 
 \item{api_key, inst_token}{Optional credentials, resolved by default from
 options or environment variables (see \code{\link[=scopus_has_key]{scopus_has_key()}}).}
@@ -62,22 +62,22 @@ options or environment variables (see \code{\link[=scopus_has_key]{scopus_has_ke
 \value{
 A tibble of class \code{scopus_intersections} with one row per concept
 and per intersection: \code{label} (the display label), \code{query} (the exact
-query counted), \code{n} (the count, as a double so very large totals are
-exact), \code{type} (\code{"concept"} or \code{"intersection"}), \code{size} (the number of
+query counted), \code{n} (the count, as a double, so that very large totals
+are exact), \code{type} (\code{"concept"} or \code{"intersection"}), \code{size} (the number of
 member concepts) and \code{members} (the member labels, joined by \code{"; "}). A
 row whose response omits a total is recorded as \code{NA}, with a warning. The
 \code{years} restriction, when given, is stored in the \code{years} attribute.
 }
 \description{
 Counts how many records match each of a named set of concepts, and each
-requested intersection of those concepts. This gives a size-of-field
-snapshot that shows where a study or a niche sits within a wider
+requested intersection of those concepts. This shows the size of each
+field at one time and where a study or a niche sits within a wider
 literature: one field may hold thousands of records and another hundreds,
 while their intersection holds a dozen. Where \code{\link[=scopus_compare_topics]{scopus_compare_topics()}}
 tracks topics' shares of a reference over time, this sizes a set of
 concepts and their overlap at a single point. Like \code{\link[=scopus_count]{scopus_count()}}, it
-retrieves totals only, never records, so a whole landscape costs one
-request per row of the result.
+retrieves totals only, never records, so the result costs one request per
+row.
 }
 \details{
 A concept value that already reads as a complete field-tagged expression,
@@ -90,7 +90,7 @@ supplied. An intersection is counted by joining its members' queries with
 \section{API access}{
 
 This performs one count request per concept and per intersection, so it
-requires a valid API key and internet access; see the \emph{API access} section
+requires a valid API key and internet access. See the \emph{API access} section
 of \code{\link[=scopus_count]{scopus_count()}}.
 }
 

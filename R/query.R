@@ -1,19 +1,21 @@
 #' Build a field-tagged 'Scopus' query
 #'
 #' Combines several terms into one 'Scopus' query string, optionally wrapping
-#' each in a field tag and joining them with a boolean operator. It is a tidier
-#' alternative to pasting query fragments together by hand, which is where
-#' field-tag and bracket mistakes tend to creep in.
+#' each in a field tag and joining them with a boolean operator. It avoids the
+#' field-tag and bracket mistakes that pasting query fragments together by
+#' hand tends to make.
 #'
 #' Each term is trimmed and, given `.field`, wrapped in that tag, whose
 #' brackets hold the term together. Without a field tag, a term of several
 #' words is put in brackets before two or more terms are joined, because
-#' 'Scopus' joins the words of an unquoted term with AND. Joined bare,
-#' `machine learning OR deep learning` would read as
-#' `machine AND (learning OR deep) AND learning`. A term that is already one
-#' operand is left as written: a quoted `"..."` phrase, a braced `{...}`
-#' phrase, a bracketed group or a single field-tagged group such as
-#' `TITLE(deep learning)`. Single words are never bracketed, so
+#' 'Scopus' joins the words of an unquoted term with AND. Joined without
+#' brackets, `machine learning OR deep learning` would read as
+#' `machine AND (learning OR deep) AND learning` under the operator order that
+#' Elsevier's search tips give. With the brackets, the query reads as intended
+#' under either order that `vignette("designing-queries")` describes. A term
+#' that is already one operand is left as written: a quoted `"..."` phrase, a
+#' braced `{...}` phrase, a bracketed group or a single field-tagged group
+#' such as `TITLE(deep learning)`. Single words are never bracketed, so
 #' `scopus_query("CRISPR", "Cas9", .op = "OR")` stays `CRISPR OR Cas9`, and a
 #' query composed by an earlier call keeps its meaning when it is joined again.
 #' A term that already opens with a field tag is refused when `.field` is

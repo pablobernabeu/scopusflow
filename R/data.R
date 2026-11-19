@@ -10,33 +10,33 @@
 #' do not permit redistributing retrieved records, so no package can ship one.
 #' These come instead from OpenAlex, whose metadata is released under CC0 and may
 #' therefore be redistributed, and are reshaped into the schema [scopus_fetch()]
-#' returns. They are the result of OpenAlex's exact-phrase search for "graphene
-#' supercapacitor" in titles and abstracts, limited to journal articles, run on
-#' 22 July 2026. The worked examples send the phrase to 'Scopus' as
-#' `TITLE-ABS-KEY("graphene supercapacitor")`, which also searches keywords and
-#' every document type. That search yields the same kind of object, with the
-#' same columns and the same handling, but a different set of records. Without
-#' the quotation marks the set is far larger, since 'Scopus' joins the words of
-#' an unquoted phrase with AND. In OpenAlex, the unquoted words match about a
-#' hundred times as many records.
+#' returns. They are the result of OpenAlex's exact-phrase search for
+#' `"graphene supercapacitor"` in titles and abstracts, limited to journal
+#' articles, run on 22 July 2026. The worked examples send the phrase to
+#' 'Scopus' as `TITLE-ABS-KEY("graphene supercapacitor")`, which also searches
+#' keywords and every document type. That search yields the same kind of object,
+#' with the same columns and the same handling, but a different set of records.
+#' Without the quotation marks, the set is far larger, since 'Scopus' joins the
+#' words of an unquoted phrase with AND. In OpenAlex, the unquoted words match
+#' about a hundred times as many records.
 #'
-#' Two properties are worth knowing when reading the examples. The harvest is
-#' complete, so the number of rows per year is the real
-#' number of publications per year for that search, and the trend figures show a
-#' real publication curve. The gaps are also genuine: eleven records carry no
-#' DOI and two no source title, exactly as they arrive. They are kept because a
-#' real harvest has such gaps, and the reference-set examples are the more
-#' useful for showing how they are handled.
+#' Two properties matter when reading the examples. The harvest is complete,
+#' so the number of rows per year is the real number of publications per year
+#' for that search, and the trend figures show a real publication curve. The
+#' gaps are also genuine: eleven records carry no DOI and two no source title,
+#' exactly as they arrive. They are kept because a real harvest has such gaps,
+#' and the reference-set examples are the more useful for showing how they are
+#' handled.
 #'
 #' @format A [scopus_records] tibble with 138 rows and the standard schema:
 #' \describe{
 #'   \item{entry_number}{Position within the retrieval.}
 #'   \item{scopus_id}{Empty throughout. These records did not come from
-#'     'Scopus', so they carry no 'Scopus' identifier; de-duplication falls back
+#'     'Scopus', so they carry no 'Scopus' identifier. De-duplication falls back
 #'     to the DOI, as it does for any record whose identifier is missing.}
 #'   \item{doi}{Digital Object Identifier, missing for eleven records.}
 #'   \item{title}{Document title. Publisher markup for subscripts and italics is
-#'     stripped; nothing else is altered.}
+#'     stripped, and nothing else is altered.}
 #'   \item{authors}{First author, as named by the source.}
 #'   \item{year}{Publication year.}
 #'   \item{date}{Publication date in ISO form.}
@@ -45,7 +45,7 @@
 #'   \item{query}{The phrase of the OpenAlex search that produced the record.}
 #' }
 #' @source Retrieved from OpenAlex (<https://openalex.org>) on 2026-07-22: the
-#'   complete result set for the phrase "graphene supercapacitor" in title or
+#'   complete result set for the phrase `"graphene supercapacitor"` in title or
 #'   abstract, restricted to journal articles from 2015 to 2024. OpenAlex data is
 #'   released under CC0. Retrieval and reshaping are reproducible from
 #'   `data-raw/example_records.R`.

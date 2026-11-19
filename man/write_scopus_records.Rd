@@ -36,8 +36,8 @@ set is a baseline to be compared against later.
 \details{
 A \code{.csv} file is written and read as UTF-8 in every locale. One written by
 another tool reads back as well, and a blank field in it reads as missing,
-since pandas, the Python twin and spreadsheet software write a missing value
-that way, where R writes \code{NA}.
+since pandas and spreadsheet software write a missing value that way, where
+R writes \code{NA}.
 }
 \examples{
 # A round trip on the bundled corpus of real articles, which stands in for

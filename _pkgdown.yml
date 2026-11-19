@@ -140,7 +140,7 @@ articles:
 
 reference:
 - title: Plan and size
-  desc: Write a field-tagged query, measure how large it is, and partition it into a reproducible plan.
+  desc: Write a field-tagged query, measure how large it is and partition it into a reproducible plan.
   contents:
   - scopus_plan
   - scopus_query
@@ -156,7 +156,7 @@ reference:
   - scopus_cache_dir
   - scopus_cache_clear
 - title: Records
-  desc: The retrieved table itself, what it holds, and how to summarise and combine harvests.
+  desc: The retrieved table, what it holds and how to summarise and combine harvests.
   contents:
   - scopus_records
   - summary.scopus_records
@@ -173,7 +173,7 @@ reference:
   - scopus_diff_dois
   - scopus_diff_records
 - title: Analyse and visualise
-  desc: Summarise a literature over time and by source, compare topics within it, and plot the result.
+  desc: Summarise a literature over time and by source, compare topics within it and plot the result.
   contents:
   - scopus_trend
   - scopus_top
@@ -184,7 +184,7 @@ reference:
   - plot_scopus_comparison
   - plot_scopus_intersections
 - title: Export and I/O
-  desc: Hand records to bibliometrix, to a reference manager, or to a file on disk, and a corpus to theoryforge.
+  desc: Hand records to bibliometrix, to a reference manager or to a file on disk, and a corpus to theoryforge.
   contents:
   - as_bibliometrix
   - as_bibtex

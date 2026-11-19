@@ -34,20 +34,20 @@ scopus_report_months <- function() {
 #'
 #' Turns a harvest, or a plan not yet run, into the search-strategy record a
 #' systematic review has to report: what was searched, exactly how, when, how
-#' much came back, and how much the API said there was. The record prints as a
-#' readable report, formats as a methods paragraph fit to paste into a
-#' manuscript, and writes as Markdown. The reporting standard it follows is
+#' much came back and how much the API said there was. The record prints as a
+#' readable report, formats as a methods paragraph ready to paste into a
+#' manuscript and writes as Markdown. The reporting standard it follows is
 #' PRISMA-S (Rethlefsen et al., 2021), together with the identification counts
 #' of the PRISMA 2020 flow diagram.
 #'
-#' @param x A [scopus_records] object, which supplies the counts and the
-#'   retrieval provenance and, through its `plan` attribute, the plan; or a bare
-#'   [scopus_plan()] for a search that has not been run yet. For `format()` and
-#'   `print()`, the report object itself.
+#' @param x A [scopus_records] object or a bare [scopus_plan()]. A record set
+#'   supplies the counts and the retrieval provenance and, through its `plan`
+#'   attribute, the plan. A plan describes a search that has not been run yet.
+#'   For `format()` and `print()`, the report object itself.
 #' @param plan Optional [scopus_plan()] describing `x`. Supply it when a record
 #'   set does not carry one, for example one read back from a `.csv`, a merged
-#'   set, or one saved by [scopus_fetch()] in the 0.4.0 release or earlier,
-#'   which attached none. An explicit plan takes precedence over the one `x`
+#'   set or one saved by [scopus_fetch()] in version 0.4.0 or earlier, which
+#'   attached none. An explicit plan takes precedence over the one `x`
 #'   carries. A one-cell plan supplied for a set without per-cell counts takes
 #'   the set's own row count and `total_results`.
 #' @param file Optional path at which to write the record as Markdown. A file is
@@ -64,8 +64,8 @@ scopus_report_months <- function() {
 #'   `searched_at` and `searched_until` (the earliest and latest retrieval
 #'   times), `version`, `n_records`, `n_with_doi`, `reported_total`,
 #'   `cells_reported` (how many cells reported a total), `stopped_early`,
-#'   `cells_planned`, `cells_run`, `not_run` (the cells a
-#'   stopped harvest never reached), `records_combined`, `duplicates_removed`,
+#'   `cells_planned`, `cells_run`, `not_run` (the cells a stopped harvest never
+#'   reached), `records_combined`, `duplicates_removed`,
 #'   `deduplicated`, `dedupe_rule` and `doi_conflicts` (the rule
 #'   [scopus_combine()] matched records by, and the DOIs it left shared across
 #'   identifiers), `snippet` and `prisma` (a tibble of `item`, `name`,
@@ -79,39 +79,39 @@ scopus_report_months <- function() {
 #' search, as the checklist asks. Stamps that fall on one UTC day give that
 #' single date. The years are those the cells' limits sent, and years with gaps
 #' between them are listed, since a span would claim years no cell searched.
-#' The number of records the API reported as matching is what the
-#' cells recorded (the `cell_totals` attribute [scopus_fetch_plan()] attaches,
-#' or, for a set from a single search, its `total_results`), never an inference
+#' The number of records the API reported as matching is what the cells
+#' recorded (the `cell_totals` attribute [scopus_fetch_plan()] attaches, or,
+#' for a set from a single search, its `total_results`), never an inference
 #' from the number of rows, and it is given overall only when every cell
-#' reported one; and the duplicates removed are those [scopus_combine()]
-#' recorded removing, matched by the rule it recorded. Where
-#' an attribute is absent, as it is for a set read back from a `.csv`, for the
-#' bundled corpus, and for a cell resumed from a checkpoint written before these
-#' attributes existed, the record says the field is unrecorded and fills
-#' nothing in. This matters most for completeness: a harvest whose reported
-#' total is unknown is never described as exhaustive.
+#' reported one. The duplicates removed are those [scopus_combine()] recorded
+#' removing, matched by the rule it recorded. Where an attribute is absent, as
+#' it is for a set read back from a `.csv`, for the bundled corpus and for a
+#' cell resumed from a checkpoint written before these attributes existed, the
+#' record says the field is unrecorded and fills nothing in. This matters most
+#' for completeness: a harvest whose reported total is unknown is never
+#' described as exhaustive.
 #'
 #' A harvest capped by `max_results` says so. A cell that holds as many
 #' records as the cap allowed, where the API reported more or reported
-#' nothing, reads "stopped at the requested cap". The completeness line puts
+#' nothing, reads 'stopped at the requested cap'. The completeness line puts
 #' the shortfall down to the cap when every cell that fell short stopped at it,
 #' and otherwise counts the cells that did. Item 9 names the cap, or says that
-#' it did not bind, and the reproduction snippet passes it. The Python twin's
-#' `fetch_plan()` can also be stopped between cells, as its app's Cancel stops
-#' it. Its record then says how many of the planned cells ran, the years they
-#' covered and that the harvest is incomplete, and it marks the rest "not run".
-#' This package's harvests cannot stop part-way, but a set carrying those
-#' attributes is described the same way, so that the two records stay one
-#' rendering.
+#' it did not bind, and the reproduction snippet passes it.
+#'
+#' A harvest by this package runs every cell of its plan, so `stopped_early` is
+#' `FALSE` and `not_run` is empty unless the set records a stop in its
+#' `stopped_early`, `cells_planned` and `cells_run` attributes. The record of
+#' such a set says how many of the planned cells were retrieved before the
+#' harvest was stopped.
 #'
 #' The PRISMA-S map is decided the same way. Items the package holds evidence
 #' for (the database and platform, that Scopus was searched on its own, the
 #' full strategy and the limits where a plan records them, the date, the
-#' totals, and de-duplication where it was performed) are listed as supplied.
-#' Without a plan, the year limit is unrecorded, not absent, and the record says
-#' so. The rest, among them peer review of the strategy, grey literature and
-#' citation searching, are listed as the author's to supply, because the
-#' package has no way to know them.
+#' totals and de-duplication where it was performed) are listed as supplied.
+#' Without a plan, the record calls the year limit unrecorded, since it cannot
+#' tell whether one was applied. The rest, among them peer review of the
+#' strategy, grey literature and citation searching, are listed as the author's
+#' to supply, because the package has no way to know them.
 #' @references
 #' Rethlefsen, M. L., Kirtley, S., Waffenschmidt, S., Ayala, A. P., Moher, D.,
 #' Page, M. J., Koffel, J. B., & PRISMA-S Group. (2021). PRISMA-S: an extension
@@ -171,7 +171,7 @@ scopus_search_report <- function(x, plan = NULL, file = NULL) {
 
 #' @rdname scopus_search_report
 #' @param style Which rendering to return: `"report"` for the readable record
-#'   that `print()` shows, `"paragraph"` for the methods paragraph, or
+#'   that `print()` shows, `"paragraph"` for the methods paragraph or
 #'   `"markdown"` for the whole record as Markdown, which is what `file` writes.
 #' @param ... Ignored, present for compatibility with the generics.
 #' @return `format()` returns a length-one character string.

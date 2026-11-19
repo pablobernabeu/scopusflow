@@ -6,15 +6,14 @@
 #'
 #' @details
 #' The key is looked up first from the `api_key` argument of whichever function
-#' is being called, then from the `scopusflow.api_key` option, and finally from
+#' is being called, then from the `scopusflow.api_key` option and finally from
 #' the `SCOPUS_API_KEY` environment variable. An optional institutional token,
 #' used for off-campus access to subscriber content, is resolved the same way
-#' from the `inst_token` argument, the `scopusflow.inst_token` option, or the
+#' from the `inst_token` argument, the `scopusflow.inst_token` option or the
 #' `SCOPUS_INST_TOKEN` environment variable.
 #'
-#' A key is a secret. The safest home for it is `~/.Renviron`, as in
-#' `SCOPUS_API_KEY=xxxx`, well away from any script, and it should stay out of version
-#' control.
+#' A key is a secret. Keep it in `~/.Renviron`, as in `SCOPUS_API_KEY=xxxx`,
+#' away from any script and out of version control.
 #'
 #' @return A length-one logical that is safe to print, `TRUE` when a non-empty
 #'   key is available and `FALSE` otherwise.

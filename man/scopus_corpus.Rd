@@ -36,9 +36,9 @@ references are requested and \code{keywords} is empty for every record.}
 
 \item{cache_dir, resume}{As in \code{\link[=scopus_abstract]{scopus_abstract()}}: an optional directory
 for per-identifier cache files, and whether an existing one is reused.
-Worth setting for anything beyond a handful of records, since this
-performs one Abstract Retrieval request per record, against its own,
-smaller weekly quota.}
+Set it for anything beyond a few records, since this performs one
+Abstract Retrieval request per record, from that API's own, smaller
+weekly quota.}
 
 \item{api_key, inst_token}{Optional credentials (see \code{\link[=scopus_has_key]{scopus_has_key()}}).}
 
@@ -46,7 +46,7 @@ smaller weekly quota.}
 
 \item{keywords}{Which keywords fill the \code{keywords} column: \code{"author"} (the
 default) for the author keywords, \code{"index"} for the index keywords
-'Scopus' assigns, or \code{"both"} for the author keywords followed by each
+'Scopus' assigns or \code{"both"} for the author keywords followed by each
 index keyword not already among them. The match is on the exact text, so
 a term that differs only in case appears twice. \code{"index"} and \code{"both"}
 need \code{view = "FULL"}, since the \code{REF} response carries no keywords of
@@ -57,19 +57,19 @@ how each is chosen and the entitlement each depends on. Either choice
 costs the same request per record.}
 }
 \value{
-A tibble with columns \code{id} (the identifier \code{records} was looked up
-by), \code{scopus_id} (the document's own 'Scopus' identifier, as Abstract
+A tibble with the columns \code{id} (the identifier \code{records} was looked
+up by), \code{scopus_id}, \code{title}, \code{year}, \code{keywords} and \code{references}.
+\code{scopus_id} is the document's own 'Scopus' identifier, as Abstract
 Retrieval gives it, or the \code{scopus_id} of \code{records} where the lookup
-failed or the \code{REF} response omitted it, and \code{NA} when neither has one),
-\code{title}, \code{year}, \code{keywords} (a list-column: a character vector of
-the document's keywords of the kind \code{keywords} names, split out of
-\code{\link[=scopus_abstract]{scopus_abstract()}}'s joined \code{authkeywords} and \code{idxterms} strings, empty
-when the document has none, the field is unavailable or \code{view = "REF"})
-and \code{references} (a list-column: each entry is the
-\code{references} data frame \code{\link[=scopus_abstract]{scopus_abstract()}} returns for that document,
-with one row per cited work). A record in \code{records} whose identifier is
-\code{NA} is dropped, with a \code{scopus_warning_dropped_records} warning naming
-how many.
+failed or the \code{REF} response omitted it, and \code{NA} when neither has one.
+\code{keywords} is a list-column of character vectors, each holding a
+document's keywords of the kind \code{keywords} names, split out of the joined
+\code{authkeywords} and \code{idxterms} strings of \code{\link[=scopus_abstract]{scopus_abstract()}}. A vector is
+empty when the document has none, the field is unavailable or
+\code{view = "REF"}. \code{references} is a list-column holding, for each document,
+the \code{references} data frame \code{\link[=scopus_abstract]{scopus_abstract()}} returns, with one row per
+cited work. A record in \code{records} whose identifier is \code{NA} is dropped,
+with a \code{scopus_warning_dropped_records} warning naming how many.
 
 The number of Abstract Retrieval requests made and the most recently
 parsed quota are attached as the \code{n_requests} and \code{quota} attributes, as
@@ -83,38 +83,38 @@ absent when \code{records} carries neither.
 }
 \description{
 Takes a \code{\link[=scopus_records]{scopus_records()}} tibble, such as the output of \code{\link[=scopus_fetch]{scopus_fetch()}} or
-\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}, and enriches it with keywords (the author keywords by
-default, or the index keywords 'Scopus' assigns) and structured
-references via Abstract Retrieval, returning a minimal, uniform shape close
-to what OpenAlex's \code{works} API already returns: an \code{id}, the document's
-\code{scopus_id}, its \code{title} and \code{year}, \code{keywords} (a list-column of character
-vectors) and \code{references} (a list-column of data frames). This is meant for
-downstream tools that want to
-consume 'Scopus' output without writing their own parsing layer, for example
-for keyword co-occurrence or citation-network analysis. It does not replace
-\code{\link[=as_bibliometrix]{as_bibliometrix()}}, which keeps its own established field-mapping
-convention for users who want bibliometrix's tag names instead.
+\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}, and adds keywords (the author keywords by default, or
+the index keywords 'Scopus' assigns) and structured references through
+Abstract Retrieval. The result has a minimal, uniform shape close to what
+OpenAlex's \code{works} API returns: an \code{id}, the document's \code{scopus_id}, its
+\code{title} and \code{year}, \code{keywords} (a list-column of character vectors) and
+\code{references} (a list-column of data frames). It is meant for other tools
+that read 'Scopus' output, for example for keyword co-occurrence or
+citation-network analysis, so that they need no parser of their own. It
+does not replace \code{\link[=as_bibliometrix]{as_bibliometrix()}}, which gives bibliometrix's tag
+names.
 }
 \section{API access}{
 
 This performs one Abstract Retrieval request per usable record, or one per
 page of references under \code{view = "REF"}, on top of whatever retrieved
-\code{records} in the first place; see \code{\link[=scopus_abstract]{scopus_abstract()}}'s
-\emph{API access} section for the entitlement \code{view = "FULL"}/\code{"REF"} needs and
-how a 403 is handled.
+\code{records} in the first place. The \emph{API access} section of
+\code{\link[=scopus_abstract]{scopus_abstract()}} gives the entitlement that \code{view = "FULL"} and
+\code{view = "REF"} need and how a 403 is handled.
 }
 
 \examples{
 \dontshow{if (scopusflow::scopus_has_key()) withAutoprint(\{ # examplesIf}
-# Costs one Abstract Retrieval request per record, against a smaller,
-# separate weekly quota from Search; see the API access section above.
+# This costs one Abstract Retrieval request per record, from a weekly quota
+# separate from and smaller than Search's. See the API access section
+# above.
 recs <- scopus_fetch("DOI(10.1038/natrevmats.2016.33)", max_results = 1)
 corpus <- scopus_corpus(recs)
 corpus$keywords[[1]]
 corpus$references[[1]]
 \dontshow{\}) # examplesIf}
-# The offline companion, which needs no key: one row per document, with
-# keywords and references as list-columns. The identifiers, titles and
+# The same shape offline, with no key: one row per document, with keywords
+# and references as list-columns. The identifiers, titles and
 # years are records of the bundled corpus of real articles, which stands in
 # for a harvest because 'Scopus' records may not be redistributed. It holds
 # no keywords, bibliographies or 'Scopus' identifiers, so the keywords and
@@ -148,6 +148,6 @@ corpus$keywords[[1]]
 corpus$references[[1]]
 }
 \seealso{
-\code{\link[=scopus_abstract]{scopus_abstract()}}, \code{\link[=as_bibliometrix]{as_bibliometrix()}}, and
-\code{\link[=write_scopus_corpus]{write_scopus_corpus()}} to write the corpus for theoryforge.
+\code{\link[=scopus_abstract]{scopus_abstract()}}, \code{\link[=as_bibliometrix]{as_bibliometrix()}} and
+\code{\link[=write_scopus_corpus]{write_scopus_corpus()}}, which writes the corpus for theoryforge.
 }

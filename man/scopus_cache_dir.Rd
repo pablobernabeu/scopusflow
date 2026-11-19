@@ -17,7 +17,7 @@ Returns (and creates on request) a per-user cache directory under
 \code{\link[tools:R_user_dir]{tools::R_user_dir()}}. A cache directory serves one plan, so give each plan
 a directory of its own inside this one, as in
 \code{file.path(scopus_cache_dir(), "my-plan")}, and pass that as \code{cache_dir} to
-\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}. The cache is entirely optional, and
+\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}. The cache is optional, and
 \code{\link[=scopus_cache_clear]{scopus_cache_clear()}} removes it, every plan's directory included.
 }
 \examples{

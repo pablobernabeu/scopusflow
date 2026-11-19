@@ -29,10 +29,9 @@ jobs:
           - {os: ubuntu-latest,  r: 'devel', http-user-agent: 'release'}
           - {os: ubuntu-latest,  r: 'release'}
           - {os: ubuntu-latest,  r: 'oldrel-1'}
-          # DESCRIPTION promises R (>= 4.1.0). oldrel-1 alone sits four minor
-          # versions above that, so the claim went untested; these two reach
-          # down to roughly R 4.3. The remaining gap to 4.1 is noted in
-          # dev/design-notes.md.
+          # DESCRIPTION promises R (>= 4.1.0), four minor versions below
+          # oldrel-1. These two legs reach down to R 4.3, and the r-minimum job
+          # below runs the tests on R 4.1 itself.
           - {os: ubuntu-latest,  r: 'oldrel-2'}
           - {os: ubuntu-latest,  r: 'oldrel-3'}
 
@@ -61,13 +60,30 @@ jobs:
           upload-snapshots: true
           build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
 
+      # CRAN's r-devel-linux-x86_64-debian-clang flavour runs its checks in a
+      # Latin-9 locale (en_US.iso885915), and every leg above runs in UTF-8.
+      # There a string not marked as UTF-8 is read as Latin-9, which no UTF-8
+      # leg can show, so the Linux R-devel leg runs the tests once more in that
+      # locale, with NOT_CRAN unset, as CRAN runs them. The first line of the R
+      # code stops the step if the locale did not take.
+      - name: Tests in a Latin-9 locale, as on CRAN's Debian clang flavour
+        if: runner.os == 'Linux' && matrix.config.r == 'devel'
+        shell: bash
+        run: |
+          sudo localedef -i en_US -f ISO-8859-15 en_US.iso885915
+          env -u NOT_CRAN LANG=en_US.iso885915 LC_ALL=en_US.iso885915 Rscript -e '
+            stopifnot(identical(l10n_info()$codeset, "ISO-8859-15"))
+            pkgload::load_all(".", quiet = TRUE)
+            invisible(testthat::test_dir("tests/testthat", stop_on_failure = TRUE))
+          '
+
   # Verify the package works with ONLY its declared strong dependencies on the
   # path, so that nothing in R/, the examples or the tests silently relies on a
-  # Suggests or transitive package. Examples and Suggests-using tests guard
-  # themselves with @examplesIf / requireNamespace() / skip_if_not_installed().
+  # Suggests or transitive package. Examples and tests that use a Suggest guard
+  # themselves with @examplesIf, requireNamespace() or skip_if_not_installed().
   # Vignettes are skipped here because rmarkdown (the output format) is a Suggest
-  # and so is absent under depends-only; the vignettes are built and checked in
-  # full by the matrix job above.
+  # and so is absent under depends-only. The matrix job above builds and checks
+  # the vignettes in full.
   depends-only:
     runs-on: ubuntu-latest
     name: depends-only
@@ -170,18 +186,22 @@ jobs:
   # A NAMESPACE that has drifted from the roxygen tags is invisible to the test
   # suite, because testthat runs inside the package namespace, where an object
   # that lost its export() still resolves. The dropped export reaches users and
-  # nobody else. Regenerating NAMESPACE here and diffing it against the
-  # committed copy is the only check in this repository that can see it.
+  # nobody else. A help page that has drifted from its roxygen comment is
+  # invisible to every check, and it is what CRAN publishes. Regenerating
+  # NAMESPACE and man/ here and diffing them against the committed files is
+  # the only check in this repository that can see either.
   #
-  # NAMESPACE only, deliberately. Rd formatting churns between roxygen2
-  # releases, so gating man/ would report a version gap as though it were a
-  # stale file and leave the job flaky. Keeping this out of the matrix above is
-  # the same judgement: eight platform legs would establish the same fact eight
-  # times, and a red cell there reads as a platform fault rather than as a
-  # document() that was never run.
+  # Rd formatting changes between roxygen2 releases, so roxygen2 is pinned
+  # below, and the job fails if DESCRIPTION records another version. A
+  # roxygen2 release therefore cannot turn this job red with no change to the
+  # sources. The help is regenerated in a UTF-8 locale, since a default
+  # argument holding a non-ASCII character is written differently in any
+  # other. This job stays out of the matrix above, where eight platform legs
+  # would establish the same fact eight times, and a red cell there would read
+  # as a platform fault rather than as a document() that was never run.
   namespace:
     runs-on: ubuntu-latest
-    name: namespace (committed vs regenerated)
+    name: namespace and man/ (committed vs regenerated)
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -222,7 +242,7 @@ jobs:
                       if (is.na(want)) "-" else want))
           if (!is.na(want) && !identical(have, want)) {
             cat(sprintf(
-              "::error file=DESCRIPTION::roxygen2 %s is installed but DESCRIPTION records %s, so any NAMESPACE difference below would be that version gap and not a stale file. Either raise the pin in .github/workflows/R-CMD-check.yaml to %s, or re-run devtools::document() under %s and commit DESCRIPTION and NAMESPACE together.\n",
+              "::error file=DESCRIPTION::roxygen2 %s is installed but DESCRIPTION records %s, so any difference in NAMESPACE or man/ below would be that version gap and not a stale file. Either raise the pin in .github/workflows/R-CMD-check.yaml to %s, or re-run devtools::document() under %s and commit DESCRIPTION, NAMESPACE and man/ together.\n",
               have, want, want, have))
             quit(status = 1)
           }
@@ -240,17 +260,63 @@ jobs:
             exit 1
           fi
 
-      - name: Regenerate NAMESPACE from the roxygen tags
-        # roclets = "namespace" rather than the default set, so that man/ is
-        # left untouched and only the export list is under test.
+      - name: Regenerate NAMESPACE and man/ from the roxygen comments
+        # The namespace and rd roclets, without collate, which this package
+        # does not use.
         shell: Rscript {0}
+        env:
+          LANG: C.UTF-8
+          LC_ALL: C.UTF-8
         run: |
-          roxygen2::roxygenise(".", roclets = "namespace")
+          roxygen2::roxygenise(".", roclets = c("namespace", "rd"))
 
-      - name: Compare the regenerated NAMESPACE with the committed one
+      - name: Compare the regenerated NAMESPACE and man/ with the committed files
+        # The diff and any new Rd file are printed to the log, so that the
+        # change can be read from the run without downloading anything.
         run: |
-          if ! git diff --exit-code -- NAMESPACE; then
-            echo "::error file=NAMESPACE::NAMESPACE is out of date with the @export tags in R/. The diff above is what roxygen2 would have written. Run devtools::document() and commit the updated NAMESPACE."
+          changes=$(git status --porcelain --untracked-files=all -- NAMESPACE man)
+          if [ -n "$changes" ]; then
+            echo "$changes"
+            git --no-pager diff -- NAMESPACE man
+            git ls-files --others --exclude-standard -- man | while read -r f; do
+              echo "New file $f:"
+              cat "$f"
+            done
+            echo "::error::NAMESPACE or man/ is out of date with the roxygen comments in R/. The diff above is what roxygen2 would have written. Run devtools::document() and commit NAMESPACE and man/."
             exit 1
           fi
-          echo "NAMESPACE matches the @export tags in R/."
+          echo "NAMESPACE and man/ match the roxygen comments in R/."
+
+  # DESCRIPTION declares `R (>= 4.1.0)`, and the matrix above reaches down to
+  # R 4.3 only, so this job runs the test suite on R 4.1 itself (setup-r
+  # installs 4.1.3, the last release of R 4.1). It tests that the code runs on
+  # the oldest R series the package promises. It does not run
+  # R CMD check --as-cran, since CRAN no longer checks R 4.1. The strong
+  # dependencies are installed with testthat and pkgload, which bring the
+  # suggested callr and withr with them. The tests that need another suggested
+  # package, such as ggplot2 or shiny, skip themselves, as depends-only shows.
+  r-minimum:
+    name: R (declared minimum, 4.1)
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05  # v2.14.0
+        with:
+          r-version: '4.1'
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05  # v2.14.0
+        with:
+          dependencies: '"hard"'
+          extra-packages: any::testthat, any::pkgload
+
+      - name: Tests
+        shell: Rscript {0}
+        run: |
+          cat(R.version.string, "\n")
+          pkgload::load_all(".", quiet = TRUE)
+          res <- testthat::test_dir("tests/testthat", stop_on_failure = TRUE)
+          invisible(res)

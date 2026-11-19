@@ -18,8 +18,8 @@ yields \code{NA}.
 }
 \description{
 Elsevier returns the caller's weekly quota and short-term rate-limit status in
-response headers. \code{scopus_quota()} extracts them into a tidy list so a
-workflow can pause, schedule or report on the remaining allowance.
+response headers. \code{scopus_quota()} extracts them into a tidy list, so that
+a workflow can pause, schedule or report on the remaining allowance.
 }
 \details{
 The relevant headers are \code{X-RateLimit-Limit}, \code{X-RateLimit-Remaining},

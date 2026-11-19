@@ -25,7 +25,7 @@ Draws annual record counts over time from the output of \code{\link[=scopus_tren
 \details{
 When the years plotted reach the year recorded in the \code{retrieved_at}
 attribute that \code{\link[=scopus_trend]{scopus_trend()}} attaches, the caption adds a line such as
-"2026 was incomplete when retrieved on 2026-09-29." 'Scopus' goes on
+'2026 was incomplete when retrieved on 2026-09-29.' 'Scopus' goes on
 indexing a year's publications after the year has begun, so the last point
 of such a figure is a count so far, easily read as a decline. The line is
 read from the recorded time alone, never from the clock of the session

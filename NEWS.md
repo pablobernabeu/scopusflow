@@ -1,4 +1,10 @@
-# scopusflow (development version)
+# scopusflow 0.5.0
+
+A release about retrieving more of a search and about the accuracy of what it
+returns. Cursor paging retrieves plan cells of more than 5000 records whole, and
+`fields = "extended"` adds document metadata at no extra quota. New functions
+compare two harvests and export a corpus for theoryforge. Many fixes change
+results, and the upgrading notes below say what was wrong in each case.
 
 ## Upgrading from the previous release (0.4.0)
 
@@ -13,9 +19,9 @@
   braced phrase or a bracketed or field-tagged group, when it joins terms
   without `.field`, so
   `scopus_query("machine learning", "deep learning", .op = "OR")` gives
-  `(machine learning) OR (deep learning)`, where 'Scopus' read the unbracketed
-  join as `machine AND (learning OR deep) AND learning`. It also trims each
-  term.
+  `(machine learning) OR (deep learning)`, where the unbracketed join reads as
+  `machine AND (learning OR deep) AND learning` under the operator order of
+  Elsevier's search tips. It also trims each term.
 * Under `view = "COMPLETE"`, the `authors` column lists every author, up to the
   API's 100, as `"Surname, Given"` joined by `"; "`, where it held the first
   author alone. `COMPLETE` checkpoints from 0.4.0 are fetched again once, each
@@ -341,6 +347,10 @@
   names, `?summary.scopus_records` that `n_with_doi` counts the records carrying
   a DOI and `?scopus_quota` that `reset` is when the key's quota resets.
   `?scopus_diff_dois` no longer calls `status` an ordered factor.
+* `?scopus_plan` and three articles say that partitioning by year keeps each cell
+  under the 5000-record ceiling of offset paging, provided that no single year
+  matches more than 5000 records, where they offered it without that condition.
+  `?scopus_plan` adds that cursor paging has no such ceiling.
 
 # scopusflow 0.4.0
 

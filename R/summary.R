@@ -3,8 +3,8 @@
 #' Gives a compact overview of a [scopus_records] object, reporting how many
 #' records it holds, the span of publication years they cover, how many distinct
 #' sources appear among them, how many records carry a Digital Object Identifier
-#' and how widely they have been cited. It is a convenient way to take stock of
-#' a retrieval before any closer analysis.
+#' and how widely they have been cited. It gives a first look at a retrieval
+#' before any closer analysis.
 #'
 #' @param object A [scopus_records] tibble.
 #' @param ... Ignored, present for compatibility with the [summary()] generic.

@@ -13,13 +13,13 @@ scopus_combine(..., dedupe = FALSE)
 \item{...}{One or more \link{scopus_records} objects, or a single list of them. A
 single set can be passed to de-duplicate it.}
 
-\item{dedupe}{Whether, and by which rule, to keep once the records that are
-one record. \code{FALSE}, the default, keeps every row. \code{TRUE}, also spelled
-\code{"id_or_shared_doi"}, treats records as one when they share a 'Scopus'
-identifier, or when they share a DOI and one of them lacks an identifier.
-\code{"id_or_doi"} also merges records with different identifiers that share a
-DOI, and \code{"id_then_doi"} applies the rule of the 0.4.0 release and earlier.
-See Details.}
+\item{dedupe}{Whether to keep one row of each group of duplicate records,
+and by which rule. \code{FALSE}, the default, keeps every row. \code{TRUE}, also
+spelled \code{"id_or_shared_doi"}, treats records as one when they share a
+'Scopus' identifier, or when they share a DOI and one of them lacks an
+identifier. \code{"id_or_doi"} also merges records with different identifiers
+that share a DOI, and \code{"id_then_doi"} applies the rule of version 0.4.0 and
+earlier. See Details.}
 
 \item{x}{A \link{scopus_records} object (for the \code{c()} method).}
 }
@@ -33,8 +33,8 @@ its retrieval time, \code{retrieved_at} is the earliest of the inputs' times and
 from one to the other. Every contributing \code{scopusflow_version} is listed
 when every input records one. Each is omitted when any input cannot supply
 it, as a set read back from a \code{.csv} file cannot, since a value drawn from
-the other inputs alone would misreport the set. The merge
-itself is recorded in the \code{combined} attribute, a list of \code{n_in}
+the other inputs alone would misreport the set. The merge itself is
+recorded in the \code{combined} attribute, a list of \code{n_in}
 (records supplied), \code{n_out} (records kept), \code{n_removed}, \code{deduplicated},
 \code{rule} (the rule applied, \code{NA} when none was) and \code{doi_conflicts} (how
 many DOIs records with different identifiers share, \code{NA} when no rule was
@@ -60,7 +60,7 @@ carries its DOI. Records with different identifiers are never merged, even
 when they share a DOI. 'Scopus' holds duplicate records of one paper
 (Valderrama-Zurián et al., 2015), but it also gives one DOI to distinct
 papers (Franceschini et al., 2015), and a review loses a wrongly removed
-record for good where a surviving duplicate is caught at screening. Such
+record for good, whereas a surviving duplicate is caught at screening. Such
 DOIs are counted in \code{doi_conflicts}, which the search record reports, so
 that they can be checked by hand. A record without an identifier whose DOI
 two identified records carry is kept once, apart from both. Records without
@@ -71,7 +71,7 @@ or a shared DOI, directly or through a chain of such links. It suits a set
 whose shared DOIs have been checked and found to be duplicates.
 \code{"id_then_doi"} keys each record on its identifier, failing that on its DOI
 lower-cased but not otherwise cleaned, and so reproduces a set
-de-duplicated by the 0.4.0 release or earlier.
+de-duplicated by version 0.4.0 or earlier.
 }
 \examples{
 # A baseline retrieval and a later one, merged into a cumulative set. The

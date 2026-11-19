@@ -1,10 +1,10 @@
 #' Build a reproducible 'Scopus' search plan
 #'
-#' A *plan* is a fully specified, inspectable description of one or more 'Scopus'
-#' queries to run. Splitting the act of *describing* a search from *executing* it
-#' makes workflows reproducible (the plan can be saved, reviewed and version
-#' controlled) and lets large retrievals be partitioned, for example one cell per
-#' year, so they can be cached and resumed.
+#' A plan is a fully specified, inspectable description of one or more
+#' 'Scopus' queries to run. Separating the description of a search from its
+#' execution makes workflows reproducible (the plan can be saved, reviewed and
+#' put under version control) and lets large retrievals be partitioned, for
+#' example one cell per year, so that they can be cached and resumed.
 #'
 #' @param query Character scalar. The search expression. Give it without a
 #'   field tag when `field` is set, since the plan wraps it in that tag. A query
@@ -22,14 +22,14 @@
 #'   year restriction, as `NULL` does.
 #' @param field Optional character scalar naming a 'Scopus' field tag to wrap the
 #'   query in, for example `"TITLE-ABS-KEY"`, `"TITLE"`, `"AUTH"` or `"AFFIL"`.
-#'   When `NULL`, the query is used verbatim. See [scopus_field_tags()] for the
+#'   When `NULL`, the query is used as given. See [scopus_field_tags()] for the
 #'   common tags.
 #' @param view Either `"STANDARD"` or `"COMPLETE"`. `COMPLETE` returns more
 #'   fields, including an `authkeywords` column (see [scopus_records()]), but
 #'   requires a subscriber entitlement and is limited to a smaller page size,
 #'   which means more requests, and so more quota, for the same number of
-#'   records. Even where `COMPLETE` view itself is accessible, the returned
-#'   author keywords can still be gated separately by your own account (see
+#'   records. Even where the `COMPLETE` view itself is accessible, your
+#'   account's entitlement can still leave the author keywords out (see
 #'   [scopus_records()]).
 #' @param page_size Integer number of records to request per page, or `NULL`
 #'   (the default) to use the largest page the view allows. The 'Scopus' Search
@@ -39,7 +39,10 @@
 #'   as possible for a given result set. Lower it only where you have a reason to.
 #' @param partition Either `"none"` (a single query cell) or `"year"` (one cell
 #'   per year in `years`). Partitioning by year is the recommended way to stay
-#'   under the API's hard limit of `start < 5000`.
+#'   under the API's hard limit of `start < 5000` for offset paging, provided
+#'   that no single year matches more than 5000 records. Cursor paging, with
+#'   `scopus_fetch_plan(plan, cursor = TRUE)` or `scopus_fetch(cursor = TRUE)`,
+#'   has no such ceiling.
 #' @return A tibble of class `scopus_plan`, one row per cell, with columns
 #'   `cell`, `query` (field-wrapped), `date` (year range string or `NA`), `year`
 #'   (integer or `NA`), `view` and `page_size`. Plan-level settings are stored as
@@ -59,7 +62,7 @@
 #' `INDEXTERMS()`, which pybliometrics documents as not working through the
 #' Search API, raises a `scopus_warning_query_syntax` warning. `KEY()`
 #' searches the index terms together with author keywords, trade names and
-#' chemical names. The messages are those of the Python twin, word for word.
+#' chemical names.
 #' @seealso [scopus_fetch_plan()] to execute a plan, [scopus_count()] to size it.
 #' @examples
 #' scopus_plan("quantum computing", years = 2015:2022, field = "TITLE-ABS-KEY")
