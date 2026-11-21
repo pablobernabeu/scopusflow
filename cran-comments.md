@@ -30,23 +30,23 @@ key is sent to Elsevier alone.
 
 ## Test environments
 
-GitHub Actions, run 43733276591 on 2026-11-15, at commit bac5fb2 on the
+GitHub Actions, run 44941748894 on 2026-11-21, at commit 066a228 on the
 ccr-48a6a874-3shvqm branch. The package sources of this submission are those of
 that commit. Because a pull request started the run, it checked out a merge of
-that commit into main. That merge differs from the commit only in a workflow
-file under .github, a directory that .Rbuildignore excludes. Each leg built the
+that commit into main. That merge differs from the commit only in workflow
+files under .github, a directory that .Rbuildignore excludes. Each leg built the
 tarball with `--no-manual --compact-vignettes=gs+qpdf` and ran
 `R CMD check --as-cran --no-manual` on it, without the CRAN incoming checks,
 which r-lib/actions turns off. Each leg ended with 'Status: OK':
 
 * ubuntu-latest (Ubuntu 26.04.1 LTS), R 4.6.2
-* ubuntu-latest (Ubuntu 26.04.1 LTS), R-devel (2026-11-14 r90890)
+* ubuntu-latest (Ubuntu 26.04.1 LTS), R-devel (2026-11-20 r90953)
 * ubuntu-latest (Ubuntu 26.04.1 LTS), R 4.5.3
 * ubuntu-latest (Ubuntu 26.04.1 LTS), R 4.4.3
 * ubuntu-latest (Ubuntu 26.04.1 LTS), R 4.3.3
 * windows-latest (Windows Server 2025, x86_64-w64-mingw32), R 4.6.2
 * windows-latest (Windows Server 2025, x86_64-w64-mingw32), R-devel
-  (2026-11-14 r90890 ucrt)
+  (2026-11-17 r90926 ucrt)
 * macos-latest (macOS 26.7.2, aarch64-apple-darwin23), R 4.6.2
 
 The test suite passed in every leg, with no failures or warnings. Seven live
