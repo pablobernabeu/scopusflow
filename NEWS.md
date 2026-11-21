@@ -351,6 +351,15 @@ results, and the upgrading notes below say what was wrong in each case.
   under the 5000-record ceiling of offset paging, provided that no single year
   matches more than 5000 records, where they offered it without that condition.
   `?scopus_plan` adds that cursor paging has no such ceiling.
+* Citations were checked against their published records. The designing-queries
+  article links an archived copy of Feldner (2025), whose current version no
+  longer carries the announced operator order, and adds that Elsevier's search
+  tips say the change is due in 2026. `?scopus_diff_dois` says, citing Gorraiz
+  et al. (2016), that a share of what 'Scopus' indexes carries no DOI, where it
+  said that 'Scopus' gives none. `?scopus_abstract` names the index keywords as
+  a field that Elsevier's documentation lists as available only on request,
+  where it named the author keywords and said to request them from an account
+  contact.
 
 # scopusflow 0.4.0
 

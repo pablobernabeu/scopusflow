@@ -114,9 +114,9 @@ scopus_report_months <- function() {
 #' to supply, because the package has no way to know them.
 #' @references
 #' Rethlefsen, M. L., Kirtley, S., Waffenschmidt, S., Ayala, A. P., Moher, D.,
-#' Page, M. J., Koffel, J. B., & PRISMA-S Group. (2021). PRISMA-S: an extension
-#' to the PRISMA Statement for Reporting Literature Searches in Systematic
-#' Reviews. *Systematic Reviews*, *10*, 39. \doi{10.1186/s13643-020-01542-z}
+#' Page, M. J., Koffel, J. B., & PRISMA-S Group. (2021). PRISMA-S: An extension
+#' to the PRISMA statement for reporting literature searches in systematic
+#' reviews. *Systematic Reviews*, *10*, 39. \doi{10.1186/s13643-020-01542-z}
 #' @seealso [scopus_plan()], [scopus_fetch_plan()], [scopus_combine()]
 #' @examples
 #' # A search described but not yet run. The record says so throughout rather

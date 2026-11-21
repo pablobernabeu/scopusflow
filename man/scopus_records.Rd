@@ -151,7 +151,7 @@ published paper, so \code{er} covers retraction notices as well as corrections.
 The guide gives an article the type Retracted once a retraction notice for
 it is published. These codes are the labels 'Scopus' assigns, and they do
 not screen a set for retractions, since 'Scopus' does not label every
-retracted item (Ortega and Delgado-Quirós, 2024). Check a set against the
+retracted item (Ortega & Delgado-Quirós, 2024). Check a set against the
 \href{https://www.crossref.org/documentation/retrieve-metadata/retraction-watch/}{Retraction Watch database},
 which Crossref makes openly available, before relying on it.
 \link[=summary.scopus_records]{summary()} reports how many records 'Scopus'

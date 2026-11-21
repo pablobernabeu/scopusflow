@@ -26,8 +26,8 @@ a later retrieval. This supports change tracking: re-running a search later
 and seeing exactly what is new.
 }
 \details{
-A record without a DOI cannot be compared this way, and 'Scopus' gives no
-DOI to a share of what it indexes, more of it in the arts and humanities and
+A record without a DOI cannot be compared this way, and a share of what
+'Scopus' indexes carries no DOI, more of it in the arts and humanities and
 among books and proceedings (Gorraiz et al., 2016). Such records are left out
 of the rows and counted in the attributes \code{n_old_without_doi} and
 \code{n_new_without_doi} and on the printed line. \code{\link[=scopus_diff_records]{scopus_diff_records()}}

@@ -96,7 +96,7 @@
 #' The guide gives an article the type Retracted once a retraction notice for
 #' it is published. These codes are the labels 'Scopus' assigns, and they do
 #' not screen a set for retractions, since 'Scopus' does not label every
-#' retracted item (Ortega and Delgado-Quirós, 2024). Check a set against the
+#' retracted item (Ortega & Delgado-Quirós, 2024). Check a set against the
 #' [Retraction Watch database](https://www.crossref.org/documentation/retrieve-metadata/retraction-watch/),
 #' which Crossref makes openly available, before relying on it.
 #' [summary()][summary.scopus_records()] reports how many records 'Scopus'

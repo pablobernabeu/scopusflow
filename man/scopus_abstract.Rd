@@ -41,9 +41,8 @@ keywords) and \code{"index_terms"} (the index keywords 'Scopus' assigns).
 response carries neither kind of keyword.
 Both views need an entitlement separate from ordinary abstract access and
 from 'Scopus' Search access. Elsevier's documentation adds that some
-fields, such as the author keywords, may have to be requested from your
-Elsevier account contact even when the view itself is accessible. See
-\emph{Details}.}
+fields, such as the index keywords, are available only on request, even
+when the view itself is accessible. See \emph{Details}.}
 
 \item{cache_dir}{Optional directory for per-identifier cache files, as in
 \code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}}. \code{NULL} (the default) performs no caching. Set it

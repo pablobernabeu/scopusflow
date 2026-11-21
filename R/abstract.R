@@ -28,9 +28,8 @@
 #'   response carries neither kind of keyword.
 #'   Both views need an entitlement separate from ordinary abstract access and
 #'   from 'Scopus' Search access. Elsevier's documentation adds that some
-#'   fields, such as the author keywords, may have to be requested from your
-#'   Elsevier account contact even when the view itself is accessible. See
-#'   *Details*.
+#'   fields, such as the index keywords, are available only on request, even
+#'   when the view itself is accessible. See *Details*.
 #' @param cache_dir Optional directory for per-identifier cache files, as in
 #'   [scopus_fetch_plan()]. `NULL` (the default) performs no caching. Set it
 #'   whenever `include` is used. Abstract Retrieval draws on its own weekly
