@@ -1,6 +1,13 @@
 # Changelog
 
-## scopusflow (development version)
+## scopusflow 0.5.0
+
+A release about retrieving more of a search and about the accuracy of
+what it returns. Cursor paging retrieves plan cells of more than 5000
+records whole, and `fields = "extended"` adds document metadata at no
+extra quota. New functions compare two harvests and export a corpus for
+theoryforge. Many fixes change results, and the upgrading notes below
+say what was wrong in each case.
 
 ### Upgrading from the previous release (0.4.0)
 
@@ -17,9 +24,9 @@
   phrase or a bracketed or field-tagged group, when it joins terms
   without `.field`, so
   `scopus_query("machine learning", "deep learning", .op = "OR")` gives
-  `(machine learning) OR (deep learning)`, where ‘Scopus’ read the
-  unbracketed join as `machine AND (learning OR deep) AND learning`. It
-  also trims each term.
+  `(machine learning) OR (deep learning)`, where the unbracketed join
+  reads as `machine AND (learning OR deep) AND learning` under the
+  operator order of Elsevier’s search tips. It also trims each term.
 - Under `view = "COMPLETE"`, the `authors` column lists every author, up
   to the API’s 100, as `"Surname, Given"` joined by `"; "`, where it
   held the first author alone. `COMPLETE` checkpoints from 0.4.0 are
@@ -493,6 +500,24 @@
   that `reset` is when the key’s quota resets.
   [`?scopus_diff_dois`](https://pablobernabeu.github.io/scopusflow/reference/scopus_diff_dois.md)
   no longer calls `status` an ordered factor.
+- [`?scopus_plan`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md)
+  and three articles say that partitioning by year keeps each cell under
+  the 5000-record ceiling of offset paging, provided that no single year
+  matches more than 5000 records, where they offered it without that
+  condition.
+  [`?scopus_plan`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md)
+  adds that cursor paging has no such ceiling.
+- Citations were checked against their published records. The
+  designing-queries article links an archived copy of Feldner (2025),
+  whose current version no longer carries the announced operator order,
+  and adds that Elsevier’s search tips say the change is due in 2026.
+  [`?scopus_diff_dois`](https://pablobernabeu.github.io/scopusflow/reference/scopus_diff_dois.md)
+  says, citing Gorraiz et al. (2016), that a share of what ‘Scopus’
+  indexes carries no DOI, where it said that ‘Scopus’ gives none.
+  [`?scopus_abstract`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+  names the index keywords as a field that Elsevier’s documentation
+  lists as available only on request, where it named the author keywords
+  and said to request them from an account contact.
 
 ## scopusflow 0.4.0
 

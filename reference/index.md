@@ -2,7 +2,7 @@
 
 ## Plan and size
 
-Write a field-tagged query, measure how large it is, and partition it
+Write a field-tagged query, measure how large it is and partition it
 into a reproducible plan.
 
 - [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md)
@@ -35,8 +35,8 @@ harvest resumes without re-spending quota.
 
 ## Records
 
-The retrieved table itself, what it holds, and how to summarise and
-combine harvests.
+The retrieved table, what it holds and how to summarise and combine
+harvests.
 
 - [`as_tibble(`*`<scopus_records>`*`)`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
   [`as.data.frame(`*`<scopus_records>`*`)`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
@@ -75,8 +75,8 @@ added or dropped.
 
 ## Analyse and visualise
 
-Summarise a literature over time and by source, compare topics within
-it, and plot the result.
+Summarise a literature over time and by source, compare topics within it
+and plot the result.
 
 - [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md)
   : Annual publication counts for a query
@@ -101,7 +101,7 @@ it, and plot the result.
 
 ## Export and I/O
 
-Hand records to bibliometrix, to a reference manager, or to a file on
+Hand records to bibliometrix, to a reference manager or to a file on
 disk, and a corpus to theoryforge.
 
 - [`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)

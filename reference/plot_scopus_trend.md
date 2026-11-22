@@ -37,8 +37,8 @@ object. Needs the suggested package ggplot2.
 When the years plotted reach the year recorded in the `retrieved_at`
 attribute that
 [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md)
-attaches, the caption adds a line such as "2026 was incomplete when
-retrieved on 2026-09-29." 'Scopus' goes on indexing a year's
+attaches, the caption adds a line such as '2026 was incomplete when
+retrieved on 2026-09-29.' 'Scopus' goes on indexing a year's
 publications after the year has begun, so the last point of such a
 figure is a count so far, easily read as a decline. The line is read
 from the recorded time alone, never from the clock of the session

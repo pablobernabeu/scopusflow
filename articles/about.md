@@ -5,7 +5,7 @@
 If you use scopusflow in published work, please cite it.
 
 > Bernabeu, P. (2026). scopusflow: A reproducible workflow layer for
-> ‘Scopus’ bibliographic searches. R package version 0.4.0.
+> ‘Scopus’ bibliographic searches. R package version 0.5.0.
 > Comprehensive R Archive Network (CRAN).
 > <https://doi.org/10.32614/CRAN.package.scopusflow>
 
@@ -15,36 +15,34 @@ If you use scopusflow in published work, please cite it.
   author = {Pablo Bernabeu},
   year   = {2026},
   publisher = {Comprehensive R Archive Network (CRAN)},
-  note   = {R package version 0.4.0},
+  note   = {R package version 0.5.0},
   doi    = {10.32614/CRAN.package.scopusflow},
   url    = {https://CRAN.R-project.org/package=scopusflow},
 }
 ```
 
 Copy BibTeX [Download
-.bib](data:application/x-bibtex;charset=utf-8,%40Manual%7Bscopusflow%2C%0A%20%20title%20%20%3D%20%7B%7Bscopusflow%7D%3A%20A%20reproducible%20workflow%20layer%20for%20%27%7BScopus%7D%27%20bibliographic%20searches%7D%2C%0A%20%20author%20%3D%20%7BPablo%20Bernabeu%7D%2C%0A%20%20year%20%20%20%3D%20%7B2026%7D%2C%0A%20%20publisher%20%3D%20%7BComprehensive%20R%20Archive%20Network%20%28CRAN%29%7D%2C%0A%20%20note%20%20%20%3D%20%7BR%20package%20version%200.4.0%7D%2C%0A%20%20doi%20%20%20%20%3D%20%7B10.32614%2FCRAN.package.scopusflow%7D%2C%0A%20%20url%20%20%20%20%3D%20%7Bhttps%3A%2F%2FCRAN.R-project.org%2Fpackage%3Dscopusflow%7D%2C%0A%7D)
+.bib](data:application/x-bibtex;charset=utf-8,%40Manual%7Bscopusflow%2C%0A%20%20title%20%20%3D%20%7B%7Bscopusflow%7D%3A%20A%20reproducible%20workflow%20layer%20for%20%27%7BScopus%7D%27%20bibliographic%20searches%7D%2C%0A%20%20author%20%3D%20%7BPablo%20Bernabeu%7D%2C%0A%20%20year%20%20%20%3D%20%7B2026%7D%2C%0A%20%20publisher%20%3D%20%7BComprehensive%20R%20Archive%20Network%20%28CRAN%29%7D%2C%0A%20%20note%20%20%20%3D%20%7BR%20package%20version%200.5.0%7D%2C%0A%20%20doi%20%20%20%20%3D%20%7B10.32614%2FCRAN.package.scopusflow%7D%2C%0A%20%20url%20%20%20%20%3D%20%7Bhttps%3A%2F%2FCRAN.R-project.org%2Fpackage%3Dscopusflow%7D%2C%0A%7D)
 
-R users can also retrieve this citation directly with
-`citation("scopusflow")`.
+R users can also retrieve this citation with `citation("scopusflow")`.
 
 ## The developer
 
 [Pablo Bernabeu](https://pablobernabeu.github.io/) is a researcher in
-the Department of Education at the University of Oxford, with hands-on
-experience of behavioural experiments, EEG, corpus analysis,
-computational modelling and statistics. He develops open, reproducible
-research software in R and Python, and is a Fellow of the Software
+the Department of Education at the University of Oxford, with experience
+of behavioural experiments, EEG, corpus analysis, computational
+modelling and statistics. He develops open-source software for
+reproducible research in R and Python, and is a Fellow of the Software
 Sustainability Institute. scopusflow and its [Python
 twin](https://pablobernabeu.github.io/scopusflow-py/) are part of that
-work, keeping a search reproducible and its results legible across both
-languages.
+work.
 
 ## Licence
 
 scopusflow is released under the [MIT
 licence](https://pablobernabeu.github.io/scopusflow/LICENSE.html).
-‘Scopus’ is a trademark of Elsevier. scopusflow is an independent client
-and is not affiliated with or endorsed by Elsevier.
+‘Scopus’ is a trademark of Elsevier, and scopusflow is an independent
+client that is not affiliated with or endorsed by Elsevier.
 
 ## Versioning and archival
 

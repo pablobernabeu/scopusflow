@@ -3,11 +3,12 @@
 Converts the nested list returned by the 'Scopus' Search API into a
 flat, predictable
 [tibble](https://tibble.tidyverse.org/reference/tibble.html) with one
-row per record. This shape is the common currency of the package. Both
+row per record. Both
 [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
 and
 [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
-return it, and the DOI, comparison and export helpers all consume it.
+return this shape, and the DOI, comparison and export helpers all take
+it.
 
 ## Usage
 
@@ -37,7 +38,7 @@ is_scopus_records(x)
 
   For `scopus_records()`, a parsed `search-results` list (the value of
   `httr2::resp_body_json(resp)[["search-results"]]`), a bare list of
-  entry objects, or an existing `scopus_records` object, which is
+  entry objects or an existing `scopus_records` object, which is
   returned unchanged. For `is_scopus_records()`, any object to test. For
   the coercion methods, a `scopus_records` object.
 
@@ -92,12 +93,11 @@ searched, a year without records drawn as a zero bar, and a year the
 plan did not search only where a record carries it. A plan partitioned
 by year over 2015, 2016, 2019 and 2020 therefore draws no bar for 2017
 or 2018, while a plan over the same years with `partition = "none"`
-searches 2015 to 2020 and draws all six. A harvest stopped before its
-last cell covers only the cells it ran. Without a plan, or with one that
-sent no year limit, the bars run from the first year in the records to
-the last. When a `max_results` cap stopped any cell of the retrieval, a
-caption says that the bars count records retrieved, not publications per
-year. When the years plotted reach the year of the recorded
+searches 2015 to 2020 and draws all six. Without a plan, or with one
+that sent no year limit, the bars run from the first year in the records
+to the last. When a `max_results` cap stopped any cell of the retrieval,
+a caption says that the bars count records retrieved, not publications
+per year. When the years plotted reach the year of the recorded
 `retrieved_at`, the caption also says that year was incomplete when the
 records were retrieved, as
 [`plot_scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_trend.md)
@@ -113,9 +113,9 @@ source title), `citations` (integer) and `query` (character). A missing
 field becomes `NA`, and an empty result set yields a zero-row tibble
 with the same columns. When `view = "COMPLETE"`, an `authkeywords`
 column is added: the author-supplied keywords the 'Scopus' Search API
-returns under that view, as a single string in 'Scopus' own
-`" | "`-delimited form (`NA` when the document has none, or when the API
-omits the field for a given key's entitlement; see *Details*). With
+returns under that view, as a single string in the `" | "`-delimited
+form 'Scopus' uses (`NA` when the document has none, or when the API
+omits the field under a key's entitlement, as *Details* explains). With
 `fields = "extended"`, the character columns `doc_type`,
 `doc_type_description`, `source_type`, `volume`, `issue`, `pages`,
 `issn` and `pubmed_id` follow, then the integer `open_access` and, under
@@ -151,28 +151,22 @@ and
 [`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)
 say once per session that a set retrieved under `STANDARD` names first
 authors only. Under `COMPLETE`, each author is written as
-`"Surname, Given"`, as the surname alone when the given name is missing
-or empty, or as the indexed name when the surname is missing. Exact
-duplicates are dropped. The API lists at most 100 authors per record,
-and its `author-count` field gives the total. A record whose list names
-nobody falls back to `dc:creator`. The Python twin builds the same
-string from pybliometrics' `author_names` in the common case, and parts
-company at two edges. Where an author object lacks a `surname` or
-`given-name` key, pybliometrics builds no list, so that twin keeps the
-first author while this one lists every author. Where a surname is null
-or empty, pybliometrics writes the given name after a bare comma, and
-this package uses the indexed name.
+`"Surname, Given"`. An author whose surname is missing or empty is
+written as the indexed name, and one with a surname but a missing or
+empty given name as the surname alone. Exact duplicates are dropped. The
+API lists at most 100 authors per record, and its `author-count` field
+gives the total. A record whose list names nobody falls back to
+`dc:creator`.
 
-Author keywords are only ever present under `view = "COMPLETE"`; the
-`STANDARD` view (the default throughout the package) never includes
-them, and `authkeywords` is not added to the output at all in that case.
-Even under `COMPLETE` view, some 'Scopus' API keys do not return
-populated author keywords (this was observed directly against a live,
-otherwise fully-entitled key during development, on documents that do
-carry author keywords in 'Scopus' itself); if your own keywords come
-back all `NA`, the field is most likely gated by your account's
-entitlement rather than genuinely absent, and is worth raising with your
-'Scopus'/Elsevier account contact.
+Author keywords are present only under `view = "COMPLETE"`. The
+`STANDARD` view, the default throughout the package, never includes
+them, and `authkeywords` is then not added at all. Even under the
+`COMPLETE` view, some 'Scopus' API keys receive no author keywords. An
+otherwise fully entitled key has received none for documents that carry
+them in 'Scopus'. If your keywords come back all `NA`, the field is most
+likely missing from your account's entitlement rather than from the
+documents, and your Elsevier account contact can say whether it can be
+added.
 
 ## Extended fields
 
@@ -198,15 +192,17 @@ notices as well as corrections. The guide gives an article the type
 Retracted once a retraction notice for it is published. These codes are
 the labels 'Scopus' assigns, and they do not screen a set for
 retractions, since 'Scopus' does not label every retracted item (Ortega
-and Delgado-Quirós, 2024). Check a set against the [Retraction Watch
+& Delgado-Quirós, 2024). Check a set against the [Retraction Watch
 database](https://www.crossref.org/documentation/retrieve-metadata/retraction-watch/),
 which Crossref makes openly available, before relying on it.
 [summary()](https://pablobernabeu.github.io/scopusflow/reference/summary.scopus_records.md)
 reports how many records 'Scopus' labels `er` and `tb`. Errata can also
 be left out of the search itself with `AND NOT DOCTYPE(er)`, joined by
 [`scopus_query()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_query.md),
-which brackets the rest of the query first, since 'Scopus' applies AND
-NOT last (see *Examples*).
+which brackets the rest of the query first, so that the exclusion
+applies to all of it under either operator order that
+[`vignette("designing-queries")`](https://pablobernabeu.github.io/scopusflow/articles/designing-queries.md)
+describes (see *Examples*).
 
 `open_access` holds the code 'Scopus' sends in its `openaccess` field.
 Elsevier's Scopus APIs Getting Started Guide (section 17) illustrates
@@ -254,8 +250,8 @@ scopus_records(raw, query = 'TITLE-ABS-KEY("graphene supercapacitor")')
 #>          <int> <chr>     <chr>   <chr> <chr>   <int> <chr> <chr>           <int>
 #> 1            1 NA        10.102… Flex… Zhiwei…  2015 2015… ACS Applie…       469
 
-# Under COMPLETE view an entry may also carry author keywords, which the
-# Search API returns in its own " | "-delimited form. The bundled corpus
+# Under the COMPLETE view, an entry may also carry author keywords, which
+# the Search API returns in its own " | "-delimited form. The bundled corpus
 # holds no keywords, so the ones below are illustrative.
 raw_complete <- list(entry = list(
   list(
@@ -295,7 +291,8 @@ as.data.frame(extended)[, c("doc_type", "volume", "issue", "pages", "issn")]
 #> 1       ar      7     5 3414-3419 19448244
 
 # Errata can be left out of the search itself. scopus_query() brackets the
-# rest of the query, since 'Scopus' applies AND NOT last.
+# rest of the query, so the exclusion applies to all of it under either
+# operator order.
 scopus_query(
   scopus_query("graphene", "graphite", .op = "OR", .field = "TITLE-ABS-KEY"),
   "DOCTYPE(er)", .op = "AND NOT"

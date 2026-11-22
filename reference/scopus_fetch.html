@@ -11,7 +11,7 @@ ceiling, rate-limit handling and retry with back-off are all managed for you."><
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -91,25 +91,26 @@ before any request (see the <em>Query checks</em> section of <code><a href="scop
 <dt id="arg-max-results">max_results<a class="anchor" aria-label="anchor" href="#arg-max-results"></a></dt>
 <dd><p>Maximum number of records to retrieve. Defaults to <code>Inf</code>,
 meaning all available records up to the API ceiling. With the default
-offset-based paging the 'Scopus' Search API refuses offsets of 5000 or more,
-so a single query yields at most 5000 records, and one that matches more,
-with <code>max_results</code> above 5000, gives a <code>scopus_warning_capped</code> warning; set
-<code>cursor = TRUE</code>, or partition the search by year with <code><a href="scopus_plan.html">scopus_plan()</a></code>, to go
-beyond that.</p></dd>
+offset-based paging, the 'Scopus' Search API refuses offsets of 5000 or
+more, so a single query yields at most 5000 records. One that matches
+more, with <code>max_results</code> above 5000, gives a <code>scopus_warning_capped</code>
+warning. Set <code>cursor = TRUE</code>, or partition the search by year with
+<code><a href="scopus_plan.html">scopus_plan()</a></code>, to go beyond that.</p></dd>
 
 
 <dt id="arg-view">view<a class="anchor" aria-label="anchor" href="#arg-view"></a></dt>
 <dd><p>Either <code>"STANDARD"</code> or <code>"COMPLETE"</code>. <code>COMPLETE</code> adds an
-<code>authkeywords</code> column to <code>scopus_fetch()</code>/<code><a href="scopus_fetch_plan.html">scopus_fetch_plan()</a></code> output (see
-<code><a href="scopus_records.html">scopus_records()</a></code>) at no extra cost beyond <code>COMPLETE</code>'s own smaller page
-size, which already means more requests, and so more quota, for the same
-number of records.</p></dd>
+<code>authkeywords</code> column to the output of <code>scopus_fetch()</code> and
+<code><a href="scopus_fetch_plan.html">scopus_fetch_plan()</a></code> (see <code><a href="scopus_records.html">scopus_records()</a></code>) at no extra cost beyond
+<code>COMPLETE</code>'s own smaller page size, which already means more requests, and
+so more quota, for the same number of records.</p></dd>
 
 
 <dt id="arg-page-size">page_size<a class="anchor" aria-label="anchor" href="#arg-page-size"></a></dt>
-<dd><p>Integer records per page, or <code>NULL</code> (default) to use the
-most quota-efficient page the view allows (200 for <code>STANDARD</code>, 25 for
-<code>COMPLETE</code>). See <code><a href="scopus_plan.html">scopus_plan()</a></code> for why larger pages cost less quota.</p></dd>
+<dd><p>Integer number of records per page, or <code>NULL</code> (the
+default) to use the most quota-efficient page the view allows (200 for
+<code>STANDARD</code>, 25 for <code>COMPLETE</code>). See <code><a href="scopus_plan.html">scopus_plan()</a></code> for why larger pages
+cost less quota.</p></dd>
 
 
 <dt id="arg-field">field<a class="anchor" aria-label="anchor" href="#arg-field"></a></dt>
@@ -132,10 +133,10 @@ where each year is counted.</p></dd>
 <dd><p>Logical. When <code>TRUE</code>, retrieve the result set with cursor-based
 pagination, which has no 5000-record ceiling, so an entire large query can be
 harvested in one call. The records then arrive in the API's deep-paging
-order, which is no longer relevance order. As a safeguard against a
-non-conforming server that never signals the end, cursor paging stops after
+order, which is no longer relevance order. In case a server never signals
+the end, cursor paging stops after
 <code>getOption("scopusflow.max_cursor_pages", 1e5)</code> pages with a
-<code>scopus_warning_capped</code> warning; set that option to <code>Inf</code> to remove the
+<code>scopus_warning_capped</code> warning. Setting that option to <code>Inf</code> removes the
 ceiling.</p></dd>
 
 
@@ -161,16 +162,16 @@ of <code><a href="scopus_records.html">scopus_records()</a></code>.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A <a href="scopus_records.html">scopus_records</a> tibble. The reported total and the most recent
-parsed quota are attached as the <code>total_results</code> and <code>quota</code> attributes,
-the harvest is dated by <code>retrieved_at</code> (a <code>POSIXct</code>) and
+parsed quota are attached as the <code>total_results</code> and <code>quota</code> attributes.
+The harvest is dated by <code>retrieved_at</code> (a <code>POSIXct</code>) and
 <code>scopusflow_version</code>, and <code>paging</code> records whether it was retrieved by
 offset or by cursor. <code>retrieved_until</code> gives the same time as
 <code>retrieved_at</code> for a single search. A set combined from several keeps the
 earliest of their times as <code>retrieved_at</code> and the latest as
-<code>retrieved_until</code>. The date and version matter because <code>citations</code> is a
-snapshot value that keeps moving, so two saved sets are only comparable if
-each records when it was taken, and <code><a href="scopus_search_report.html">scopus_search_report()</a></code> reads all of
-them back. <code>view</code> records the view, which decides what <code>authors</code> holds: the
+<code>retrieved_until</code>. The date and version matter because <code>citations</code>
+changes over time, so two saved sets can be compared only if each records
+when it was taken. <code><a href="scopus_search_report.html">scopus_search_report()</a></code> reads all of these attributes
+back. <code>view</code> records the view, which decides what <code>authors</code> holds: the
 first author under <code>STANDARD</code> and the author list under <code>COMPLETE</code> (see
 <code><a href="scopus_records.html">scopus_records()</a></code>). <code>max_results</code> records the cap the call was given,
 when it was given one, so the search record can say whether the
@@ -203,9 +204,9 @@ stopped it.</p>
 <span class="r-in"><span>                     max_results <span class="op">=</span> <span class="fl">50</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">recs</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-in"><span><span class="co"># The offline companion, which needs no key. 'Scopus' records may not be</span></span></span>
+<span class="r-in"><span><span class="co"># The same shape offline, with no key. 'Scopus' records may not be</span></span></span>
 <span class="r-in"><span><span class="co"># redistributed, so the package bundles a corpus of real articles in this</span></span></span>
-<span class="r-in"><span><span class="co"># same schema; a live harvest returns exactly this shape.</span></span></span>
+<span class="r-in"><span><span class="co"># schema, which is the shape a live harvest returns.</span></span></span>
 <span class="r-in"><span><span class="va">recs</span> <span class="op">&lt;-</span> <span class="va">example_records</span></span></span>
 <span class="r-in"><span><span class="va">recs</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;scopus_records&gt; 138 records</span>

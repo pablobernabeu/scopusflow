@@ -13,7 +13,7 @@ bound once into a single scopus_records tibble."><meta property="og:image" conte
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -99,30 +99,29 @@ which cells stopped at it.</p></dd>
 <code>NULL</code> performs no caching. Pass an explicit path you control, or a
 directory of the plan's own under the managed, clearable cache, such as
 <code>file.path(scopus_cache_dir(), "my-plan")</code>, which is created when absent.
-Caching happens only when you opt in through this
-argument. A cache directory serves one plan: cells are checkpointed by
-their position in the plan and their year, so give each distinct plan its
-own directory. As a safeguard, a checkpoint is served only when the query,
-year, view, page size and paging mode it was fetched under all match the
-plan cell, and only when its own <code>max_results</code> did not truncate it below
-what is being asked for now; anything else is a cache miss, refetched and
-overwritten with a <code>scopus_warning_cache_mismatch</code> warning.
+Caching happens only when you opt in through this argument. A cache
+directory serves one plan: cells are checkpointed by their position in the
+plan and their year, so give each distinct plan its own directory. As a
+safeguard, a checkpoint is served only when the query, year, view, page
+size and paging mode it was fetched under all match the plan cell, and
+only when its own <code>max_results</code> did not truncate it below what is being
+asked for now. Any other checkpoint is a cache miss, which is fetched
+again and overwritten with a <code>scopus_warning_cache_mismatch</code> warning.
 A checkpoint holding more records than the current <code>max_results</code> asks for
 is served trimmed to that cap, the fuller set staying on disk. A
 checkpoint that cannot be read back, for example one left half-written by
 an interrupted run, is also treated as a miss, with a
 <code>scopus_warning_cache_unreadable</code> warning, and never aborts the harvest. A
-<code>COMPLETE</code> checkpoint written by a release that read <code>authors</code>
-from the first author alone (the 0.4.0 release and earlier) is a miss as
-well, and is refetched once with a <code>scopus_warning_cache_mismatch</code> warning.
-<code>STANDARD</code> checkpoints from those releases are served, since their authors
-were read correctly.
-Checkpoints also record their <code>fields</code>. One fetched with
+<code>COMPLETE</code> checkpoint written by version 0.4.0 or earlier, which read
+<code>authors</code> from the first author alone, is a miss as well and is fetched
+again once with a <code>scopus_warning_cache_mismatch</code> warning. <code>STANDARD</code>
+checkpoints from those versions are served, since their authors were read
+correctly. Checkpoints also record their <code>fields</code>. One fetched with
 <code>fields = "extended"</code> serves a core request, with the extra columns
 dropped, while a core one is a miss for an extended request and is
-refetched with a <code>scopus_warning_cache_mismatch</code> warning. A checkpoint
-written before the fields were recorded counts as core.
-A <code>cache_dir</code> that is not a directory and cannot be created as one, or in
+fetched again with a <code>scopus_warning_cache_mismatch</code> warning. A
+checkpoint written before the fields were recorded counts as core. A
+<code>cache_dir</code> that is not a directory and cannot be created as one, or in
 which no file can be created, is refused with a <code>scopus_error_bad_input</code>
 error before any request. A checkpoint that cannot be written all the
 same, for example on a full disk, gives a <code>scopus_warning_cache_unwritable</code>
@@ -150,8 +149,7 @@ then arrive in the API's deep-paging order (see <code><a href="scopus_fetch.html
 default, <code>FALSE</code>, pages by offset, so a cell stops at its first 5000
 records with a <code>scopus_warning_capped</code> warning. Checkpoints record the
 paging mode and serve only requests made in the same mode. A checkpoint
-written before the mode was recorded counts as offset-paged. The Python
-twin's <code>fetch_plan()</code> pages by cursor unless told otherwise.</p></dd>
+written before the mode was recorded counts as offset-paged.</p></dd>
 
 
 <dt id="arg-fields">fields<a class="anchor" aria-label="anchor" href="#arg-fields"></a></dt>
@@ -174,20 +172,19 @@ search returns the same records. See the <em>Extended fields</em> section of
 none). <code>total_results</code> is their sum, and is <code>NA</code> unless every cell
 reported one, since a partial sum would understate the search while
 looking like a real figure. A cell that comes back shorter than the API
-said it should warns, because a truncated or refused download otherwise
-arrives as a merely small result set; a cell stopped by <code>max_results</code> is
-short by request and does not warn. A finite <code>max_results</code> is attached as
-the attribute of that name, the cap of this call: a checkpoint written
+said it should warns, because a truncated or refused download would
+otherwise look like a small result set. A cell stopped by <code>max_results</code>
+is short by request and does not warn. A finite <code>max_results</code> is attached
+as the attribute of that name, the cap of this call: a checkpoint written
 under a wider cap is served trimmed to it, so no cell holds more.
 <code><a href="scopus_search_report.html">scopus_search_report()</a></code> reads all of this back. The <code>retrieved_at</code>,
 <code>retrieved_until</code> and <code>scopusflow_version</code> attributes described in
 <code><a href="scopus_fetch.html">scopus_fetch()</a></code> are carried across from the cells. <code>retrieved_at</code> is the
-earliest of their times, since a combined set is only as fresh as its
-oldest cell. <code>retrieved_until</code> is
-the latest, the last search, which the record of a harvest resumed over
-several days has to give. Every version that contributed is listed, since
-resuming an older cache means more than one did. Each is omitted when any
-cell cannot supply it, as a checkpoint written before these attributes
+earliest of their times, the time of the oldest cell. <code>retrieved_until</code>
+is the latest, the last search, which the record of a harvest resumed
+over several days has to give. Every version that contributed is listed,
+since resuming an older cache means more than one did. Each is omitted when
+any cell cannot supply it, as a checkpoint written before these attributes
 existed cannot. Dating the whole from the part of it that can be dated
 would misreport the set. A cell written before <code>retrieved_until</code> existed
 counts by its <code>retrieved_at</code>. <code>paging</code> and <code>view</code> are kept where every
@@ -211,16 +208,15 @@ The <em>API access</em> section of <code><a href="scopus_count.html">scopus_coun
 <span class="r-in"><span><span class="va">plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="st">'"graphene supercapacitor"'</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2024</span>,</span></span>
 <span class="r-in"><span>                    field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span>, partition <span class="op">=</span> <span class="st">"year"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"graphene-cache"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="co"># `max_results` caps each yearly cell, so the example stays small and</span></span></span>
-<span class="r-in"><span><span class="co"># quota-light; drop it to harvest every record in the plan.</span></span></span>
+<span class="r-in"><span><span class="co"># `max_results` caps each yearly cell, so the example spends little quota.</span></span></span>
+<span class="r-in"><span><span class="co"># Drop it to harvest every record in the plan.</span></span></span>
 <span class="r-in"><span><span class="va">recs</span> <span class="op">&lt;-</span> <span class="fu">scopus_fetch_plan</span><span class="op">(</span><span class="va">plan</span>, max_results <span class="op">=</span> <span class="fl">25</span>, cache_dir <span class="op">=</span> <span class="va">dir</span>, resume <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-in"><span><span class="co"># The offline companion, which needs no key: a record set with a plan</span></span></span>
-<span class="r-in"><span><span class="co"># attached. 'Scopus' records may not be redistributed, so the bundled corpus</span></span></span>
-<span class="r-in"><span><span class="co"># of real articles stands in for the harvest. It came from OpenAlex's</span></span></span>
-<span class="r-in"><span><span class="co"># exact-phrase search for the same phrase, so the plan, one cell per year,</span></span></span>
-<span class="r-in"><span><span class="co"># describes a 'Scopus' search that was not run and would return other</span></span></span>
-<span class="r-in"><span><span class="co"># records.</span></span></span>
+<span class="r-in"><span><span class="co"># The same shape offline, with no key: a record set with a plan attached.</span></span></span>
+<span class="r-in"><span><span class="co"># 'Scopus' records may not be redistributed, so the bundled corpus of real</span></span></span>
+<span class="r-in"><span><span class="co"># articles stands in for the harvest. It came from OpenAlex's exact-phrase</span></span></span>
+<span class="r-in"><span><span class="co"># search for the same phrase, so the plan, one cell per year, describes a</span></span></span>
+<span class="r-in"><span><span class="co"># 'Scopus' search that was not run and would return other records.</span></span></span>
 <span class="r-in"><span><span class="va">plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="st">'"graphene supercapacitor"'</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2024</span>,</span></span>
 <span class="r-in"><span>                    field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span>, partition <span class="op">=</span> <span class="st">"year"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">recs</span> <span class="op">&lt;-</span> <span class="va">example_records</span></span></span>

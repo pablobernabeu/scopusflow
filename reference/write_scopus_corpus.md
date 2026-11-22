@@ -71,13 +71,9 @@ naming its row (the first ten such rows when there are more), and
 Keywords are trimmed, lower-cased with
 [`tolower()`](https://rdrr.io/r/base/chartr.html) and made unique,
 keeping the first of each, and empty ones are dropped, so `"Graphene"`
-and `"graphene "` count as one keyword. The Python twin lower-cases with
-`str.lower()`. The two agree on the Latin, Greek and Cyrillic letters in
-common use and differ on a few special cases, such as the Turkish
-capital I with a dot and a capital sigma ending a word, which Python
-writes as a final sigma. A missing year is written as `null`, and a
-missing title is left out, since the schema admits the one and not the
-other.
+and `"graphene "` count as one keyword. A missing year is written as
+`null`, and a missing title is left out, since the schema admits the one
+and not the other.
 
 The document also carries a `provenance` object, which the schema admits
 beside its own fields: `source` (`"Scopus via scopusflow <version>"`),
@@ -94,8 +90,11 @@ which leaves theoryforge's keyword themes empty whatever the writer
 does, and `n_records_without_keywords` shows when that happened.
 
 The file is UTF-8, with no escaping beyond what JSON requires, sorted
-keys, no spaces between tokens and one line feed at the end, so the same
-corpus gives the same bytes from either twin.
+keys, no spaces between tokens and one line feed at the end. The Python
+package scopusflow writes the same bytes for the same corpus, unless a
+keyword holds one of the few letters that its `str.lower()` lower-cases
+differently from [`tolower()`](https://rdrr.io/r/base/chartr.html), such
+as the Turkish capital I with a dot.
 
 ## See also
 

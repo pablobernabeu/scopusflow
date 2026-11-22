@@ -17,7 +17,7 @@ identifier, and two records under one DOI are not taken for one."><meta property
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -94,8 +94,8 @@ columns <code>status</code>, <code>scopus_id</code>, <code>doi</code>, <code>tit
 <code>citations_new</code>. <code>status</code> is a factor with levels <code>"added"</code> (in <code>new</code>
 only), <code>"removed"</code> (in <code>old</code> only), <code>"conflict"</code> (see Details) and
 <code>"unchanged"</code> (in both). Rows are sorted by status, then DOI, identifier
-and title, in byte order, so the order is the same under every locale and
-in the Python twin. The integer attributes <code>n_old_without_id_or_doi</code> and
+and title, in byte order, so the order is the same under every locale.
+The integer attributes <code>n_old_without_id_or_doi</code> and
 <code>n_new_without_id_or_doi</code> count the records on each side that carried
 neither key and so were not compared. Printing shows the counts in each
 category, and those records where there are any.</p>

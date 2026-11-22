@@ -34,10 +34,10 @@ autoplot(object, ...)
 - highlight_label:
 
   Legend label for the highlighted rows. The default, `NULL`, derives
-  the label from what is highlighted: "Focal intersection" when every
-  highlighted row is an intersection, "Focal concept" when every one is
-  a concept, and "Focal set" for a mixture. Supply a string to use that
-  instead.
+  the label from what is highlighted: `"Focal intersection"` when every
+  highlighted row is an intersection, `"Focal concept"` when every one
+  is a concept and `"Focal set"` for a mixture. Supply a string to use
+  that instead.
 
 - ...:
 
@@ -56,8 +56,8 @@ object. Needs the suggested package ggplot2.
 
 A count of zero cannot be placed on a log axis, so rows whose count is
 zero or `NA` are dropped with a warning, which the caption also notes.
-An empty intersection is itself a finding; the printed object keeps the
-zero even though the chart cannot.
+An empty intersection is itself a finding, and the printed object keeps
+the zero even though the chart cannot.
 
 ## See also
 

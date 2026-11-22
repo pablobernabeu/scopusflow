@@ -11,7 +11,7 @@ and seeing exactly what is new."><meta property="og:image" content="https://pabl
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -82,15 +82,15 @@ representing the earlier (<code>old</code>) and later (<code>new</code>) retriev
 where <code>status</code> is a factor with levels <code>"added"</code> (in <code>new</code> only),
 <code>"removed"</code> (in <code>old</code> only) and <code>"unchanged"</code> (in both). Rows are sorted by
 status then DOI, in byte order, so the order is the same under every
-locale and in the Python twin. The integer attributes <code>n_old_without_doi</code>
-and <code>n_new_without_doi</code> count the records (or vector elements) on each
-side that had no DOI and so were not compared. Printing shows the counts
+locale. The integer attributes <code>n_old_without_doi</code> and
+<code>n_new_without_doi</code> count the records (or vector elements) on each side
+that had no DOI and so were not compared. Printing shows the counts
 in each category, and those records where there are any.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>A record without a DOI cannot be compared this way, and 'Scopus' gives no
-DOI to a share of what it indexes, more of it in the arts and humanities and
+    <p>A record without a DOI cannot be compared this way, and a share of what
+'Scopus' indexes carries no DOI, more of it in the arts and humanities and
 among books and proceedings (Gorraiz et al., 2016). Such records are left out
 of the rows and counted in the attributes <code>n_old_without_doi</code> and
 <code>n_new_without_doi</code> and on the printed line. <code><a href="scopus_diff_records.html">scopus_diff_records()</a></code>

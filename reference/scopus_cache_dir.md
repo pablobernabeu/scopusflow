@@ -6,7 +6,7 @@ directory serves one plan, so give each plan a directory of its own
 inside this one, as in `file.path(scopus_cache_dir(), "my-plan")`, and
 pass that as `cache_dir` to
 [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md).
-The cache is entirely optional, and
+The cache is optional, and
 [`scopus_cache_clear()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_cache_clear.md)
 removes it, every plan's directory included.
 

@@ -51,28 +51,29 @@ scopus_fetch_plan(
   own directory. As a safeguard, a checkpoint is served only when the
   query, year, view, page size and paging mode it was fetched under all
   match the plan cell, and only when its own `max_results` did not
-  truncate it below what is being asked for now; anything else is a
-  cache miss, refetched and overwritten with a
+  truncate it below what is being asked for now. Any other checkpoint is
+  a cache miss, which is fetched again and overwritten with a
   `scopus_warning_cache_mismatch` warning. A checkpoint holding more
   records than the current `max_results` asks for is served trimmed to
   that cap, the fuller set staying on disk. A checkpoint that cannot be
   read back, for example one left half-written by an interrupted run, is
   also treated as a miss, with a `scopus_warning_cache_unreadable`
   warning, and never aborts the harvest. A `COMPLETE` checkpoint written
-  by a release that read `authors` from the first author alone (the
-  0.4.0 release and earlier) is a miss as well, and is refetched once
-  with a `scopus_warning_cache_mismatch` warning. `STANDARD` checkpoints
-  from those releases are served, since their authors were read
-  correctly. Checkpoints also record their `fields`. One fetched with
+  by version 0.4.0 or earlier, which read `authors` from the first
+  author alone, is a miss as well and is fetched again once with a
+  `scopus_warning_cache_mismatch` warning. `STANDARD` checkpoints from
+  those versions are served, since their authors were read correctly.
+  Checkpoints also record their `fields`. One fetched with
   `fields = "extended"` serves a core request, with the extra columns
   dropped, while a core one is a miss for an extended request and is
-  refetched with a `scopus_warning_cache_mismatch` warning. A checkpoint
-  written before the fields were recorded counts as core. A `cache_dir`
-  that is not a directory and cannot be created as one, or in which no
-  file can be created, is refused with a `scopus_error_bad_input` error
-  before any request. A checkpoint that cannot be written all the same,
-  for example on a full disk, gives a `scopus_warning_cache_unwritable`
-  warning, and the cell's records are kept in the result.
+  fetched again with a `scopus_warning_cache_mismatch` warning. A
+  checkpoint written before the fields were recorded counts as core. A
+  `cache_dir` that is not a directory and cannot be created as one, or
+  in which no file can be created, is refused with a
+  `scopus_error_bad_input` error before any request. A checkpoint that
+  cannot be written all the same, for example on a full disk, gives a
+  `scopus_warning_cache_unwritable` warning, and the cell's records are
+  kept in the result.
 
 - resume:
 
@@ -99,8 +100,7 @@ scopus_fetch_plan(
   5000 records with a `scopus_warning_capped` warning. Checkpoints
   record the paging mode and serve only requests made in the same mode.
   A checkpoint written before the mode was recorded counts as
-  offset-paged. The Python twin's `fetch_plan()` pages by cursor unless
-  told otherwise.
+  offset-paged.
 
 - fields:
 
@@ -125,8 +125,8 @@ gave for that cell, `NA` where it gave none). `total_results` is their
 sum, and is `NA` unless every cell reported one, since a partial sum
 would understate the search while looking like a real figure. A cell
 that comes back shorter than the API said it should warns, because a
-truncated or refused download otherwise arrives as a merely small result
-set; a cell stopped by `max_results` is short by request and does not
+truncated or refused download would otherwise look like a small result
+set. A cell stopped by `max_results` is short by request and does not
 warn. A finite `max_results` is attached as the attribute of that name,
 the cap of this call: a checkpoint written under a wider cap is served
 trimmed to it, so no cell holds more.
@@ -135,15 +135,15 @@ reads all of this back. The `retrieved_at`, `retrieved_until` and
 `scopusflow_version` attributes described in
 [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
 are carried across from the cells. `retrieved_at` is the earliest of
-their times, since a combined set is only as fresh as its oldest cell.
-`retrieved_until` is the latest, the last search, which the record of a
-harvest resumed over several days has to give. Every version that
-contributed is listed, since resuming an older cache means more than one
-did. Each is omitted when any cell cannot supply it, as a checkpoint
-written before these attributes existed cannot. Dating the whole from
-the part of it that can be dated would misreport the set. A cell written
-before `retrieved_until` existed counts by its `retrieved_at`. `paging`
-and `view` are kept where every cell records the same one.
+their times, the time of the oldest cell. `retrieved_until` is the
+latest, the last search, which the record of a harvest resumed over
+several days has to give. Every version that contributed is listed,
+since resuming an older cache means more than one did. Each is omitted
+when any cell cannot supply it, as a checkpoint written before these
+attributes existed cannot. Dating the whole from the part of it that can
+be dated would misreport the set. A cell written before
+`retrieved_until` existed counts by its `retrieved_at`. `paging` and
+`view` are kept where every cell records the same one.
 
 ## API access
 
@@ -164,16 +164,15 @@ if (FALSE) { # scopusflow::scopus_has_key()
 plan <- scopus_plan('"graphene supercapacitor"', years = 2015:2024,
                     field = "TITLE-ABS-KEY", partition = "year")
 dir <- file.path(tempdir(), "graphene-cache")
-# `max_results` caps each yearly cell, so the example stays small and
-# quota-light; drop it to harvest every record in the plan.
+# `max_results` caps each yearly cell, so the example spends little quota.
+# Drop it to harvest every record in the plan.
 recs <- scopus_fetch_plan(plan, max_results = 25, cache_dir = dir, resume = TRUE)
 }
-# The offline companion, which needs no key: a record set with a plan
-# attached. 'Scopus' records may not be redistributed, so the bundled corpus
-# of real articles stands in for the harvest. It came from OpenAlex's
-# exact-phrase search for the same phrase, so the plan, one cell per year,
-# describes a 'Scopus' search that was not run and would return other
-# records.
+# The same shape offline, with no key: a record set with a plan attached.
+# 'Scopus' records may not be redistributed, so the bundled corpus of real
+# articles stands in for the harvest. It came from OpenAlex's exact-phrase
+# search for the same phrase, so the plan, one cell per year, describes a
+# 'Scopus' search that was not run and would return other records.
 plan <- scopus_plan('"graphene supercapacitor"', years = 2015:2024,
                     field = "TITLE-ABS-KEY", partition = "year")
 recs <- example_records

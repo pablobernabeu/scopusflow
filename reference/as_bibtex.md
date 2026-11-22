@@ -26,8 +26,8 @@ as_ris(x, file = NULL)
 
 - file:
 
-  Optional path to write to. With the default `NULL` the formatted
-  string is returned; with a path it is written there and returned
+  Optional path to write to. With the default `NULL`, the formatted
+  string is returned. With a path, it is written there and returned
   invisibly. Nothing is written unless a path is given.
 
 ## Value
@@ -64,7 +64,7 @@ in.
 
 Names are written family name first, with a comma. Under the `STANDARD`
 view, the `authors` column holds 'Scopus' names in the form `Zhang F.`,
-which BibTeX would read as given name "Zhang" and family name "F.", so a
+which BibTeX would read as given name 'Zhang' and family name 'F.', so a
 name ending in initials is exported as `Zhang, F.`. BibTeX entries also
 space run-together initials (`Kitchin, J. R.`), which BibTeX otherwise
 takes for a single given name. Names that already carry a comma, as
@@ -89,7 +89,7 @@ the EID as the accession number (`AN - 2-s2.0-<scopus_id>`).
 ``` r
 # On the bundled corpus of real articles, which stands in for a retrieval
 # of your own because 'Scopus' records may not be redistributed. Only the
-# opening of each export is shown; pass `file` to write the whole set.
+# opening of each export is shown. Pass `file` to write the whole set.
 cat(substr(as_bibtex(example_records), 1, 200))
 #> @article{jianhua2015,
 #>   author = {Jianhua Yu},

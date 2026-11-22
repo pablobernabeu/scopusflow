@@ -1,10 +1,10 @@
 # Count 'Scopus' results for a query
 
 Retrieves only the total number of records matching a query, without
-downloading them. This is the inexpensive way to size a retrieval before
-committing quota. The count can guide how to partition a
-[`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md),
-or simply report how large a topic is.
+downloading them. It costs one request, so it can size a retrieval
+before quota is spent on it. The count can guide how to partition a
+[`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md)
+or report how large a topic is.
 
 ## Usage
 
@@ -51,9 +51,11 @@ scopus_count(
 - view:
 
   Either `"STANDARD"` or `"COMPLETE"`. `COMPLETE` adds an `authkeywords`
-  column to
-  [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)/[`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
-  output (see
+  column to the output of
+  [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
+  and
+  [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
+  (see
   [`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md))
   at no extra cost beyond `COMPLETE`'s own smaller page size, which
   already means more requests, and so more quota, for the same number of
@@ -68,12 +70,11 @@ scopus_count(
 ## Value
 
 A single number giving the total number of matching records, or `NA`
-when the API reports no total. It is returned as a double so that very
-large totals are represented exactly, with no risk of overflow, and the
-parsed quota (see
+when the API reports no total. It is a double, so that very large totals
+are exact and cannot overflow. The parsed quota (see
 [`scopus_quota()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_quota.md))
-attached as the `quota` attribute so a workflow can pace itself off a
-count.
+is attached as the `quota` attribute, so that a workflow can read the
+quota left after a count.
 
 ## API access
 
@@ -81,8 +82,8 @@ This function performs a network request and therefore requires a valid
 API key and internet access. Every error it raises inherits from
 `scopus_error`, so a
 [`tryCatch()`](https://rdrr.io/r/base/conditions.html) around the call
-lets a workflow handle these gracefully. When no key is configured, it
-raises `scopus_error_no_key`, and an invalid argument raises
+lets a workflow handle them. When no key is configured, it raises
+`scopus_error_no_key`, and an invalid argument raises
 `scopus_error_bad_input` before any request. A request the API refuses
 raises the subclass for its HTTP status: `scopus_error_bad_request`
 (400), `scopus_error_unauthorized` (401, a key the API does not accept),
@@ -118,12 +119,12 @@ if (FALSE) { # scopusflow::scopus_has_key()
 scopus_count('"graphene supercapacitor"', years = 2015:2024,
              field = "TITLE-ABS-KEY")
 }
-# The offline companion, which needs no key: one number with the parsed
-# quota attached. The bundled corpus of real articles is a complete harvest
+# The same shape offline, with no key: one number with the parsed quota
+# attached. The bundled corpus of real articles is a complete harvest
 # of OpenAlex's exact-phrase search for the same phrase, so its row count is
 # the total of that search. A 'Scopus' count of the phrase would differ. The
-# quota attribute is parsed from real response headers by scopus_quota(), so
-# it cannot drift from what a live call attaches.
+# quota attribute is parsed from response headers by scopus_quota(), as a
+# live call parses it.
 resp <- httr2::response(
   status_code = 200,
   headers = list(

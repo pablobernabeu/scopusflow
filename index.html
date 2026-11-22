@@ -15,8 +15,8 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><script src="extra.js"></script><meta property="og:title" content="A Reproducible Workflow Layer for Scopus Bibliographic Searches">
-<meta name="description" content="A coherent, quota-aware workflow layer over the Elsevier Scopus Search API &lt;https://dev.elsevier.com/sc_apis.html&gt;. It builds reproducible search plans, retrieves records with rate-limit handling, retry with back-off and optional resumable caching, normalises results to a stable tidy schema, extracts and tracks changes in Digital Object Identifiers (DOIs), sizes sets of concepts and their intersections, compares publication trends across topics, writes the search up as a reproducible record for a methods section following the PRISMA-S reporting standard (Rethlefsen and others, 2021) &lt;doi:10.1186/s13643-020-01542-z&gt; and exports to formats compatible with downstream bibliometric tools. Network and API errors are surfaced as typed conditions so that callers can respond to them programmatically. Scopus is a trademark of Elsevier. This package is an independent client and is not affiliated with or endorsed by Elsevier.">
-<meta property="og:description" content="A coherent, quota-aware workflow layer over the Elsevier Scopus Search API &lt;https://dev.elsevier.com/sc_apis.html&gt;. It builds reproducible search plans, retrieves records with rate-limit handling, retry with back-off and optional resumable caching, normalises results to a stable tidy schema, extracts and tracks changes in Digital Object Identifiers (DOIs), sizes sets of concepts and their intersections, compares publication trends across topics, writes the search up as a reproducible record for a methods section following the PRISMA-S reporting standard (Rethlefsen and others, 2021) &lt;doi:10.1186/s13643-020-01542-z&gt; and exports to formats compatible with downstream bibliometric tools. Network and API errors are surfaced as typed conditions so that callers can respond to them programmatically. Scopus is a trademark of Elsevier. This package is an independent client and is not affiliated with or endorsed by Elsevier.">
+<meta name="description" content="A quota-aware workflow for the Elsevier Scopus Search API &lt;https://dev.elsevier.com/sc_apis.html&gt;. It builds reproducible search plans and retrieves records with rate-limit handling, retry with back-off and optional resumable caching. It normalises results to a stable tidy schema, extracts and tracks changes in Digital Object Identifiers (DOIs), sizes sets of concepts and their intersections and compares publication trends across topics. It writes the search up as a reproducible record for a methods section following the PRISMA-S reporting standard (Rethlefsen and others, 2021) &lt;doi:10.1186/s13643-020-01542-z&gt; and exports to formats that bibliometric tools read. Network and API errors are signalled as typed conditions that callers can respond to programmatically. Scopus is a trademark of Elsevier. This package is an independent client and is not affiliated with or endorsed by Elsevier.">
+<meta property="og:description" content="A quota-aware workflow for the Elsevier Scopus Search API &lt;https://dev.elsevier.com/sc_apis.html&gt;. It builds reproducible search plans and retrieves records with rate-limit handling, retry with back-off and optional resumable caching. It normalises results to a stable tidy schema, extracts and tracks changes in Digital Object Identifiers (DOIs), sizes sets of concepts and their intersections and compares publication trends across topics. It writes the search up as a reproducible record for a methods section following the PRISMA-S reporting standard (Rethlefsen and others, 2021) &lt;doi:10.1186/s13643-020-01542-z&gt; and exports to formats that bibliometric tools read. Network and API errors are signalled as typed conditions that callers can respond to programmatically. Scopus is a trademark of Elsevier. This package is an independent client and is not affiliated with or endorsed by Elsevier.">
 <meta property="og:image" content="https://pablobernabeu.github.io/scopusflow/reference/figures/logo.png">
 <meta property="og:image:alt" content="scopusflow: a reproducible workflow layer for Scopus searches">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -86,10 +86,10 @@
 </div>
 <!-- badges: start -->
 
-<p>scopusflow is a reproducible, quota-aware workflow layer over the Elsevier <a href="https://dev.elsevier.com/sc_apis.html" class="external-link">Scopus</a> Search API. It turns one-off bibliographic queries into inspectable plans, retrieves records safely with pagination, rate-limit handling, retry with back-off and optional resumable caching, normalises them to a stable tidy schema, tracks changes in DOI sets over time, sizes sets of concepts and their intersections and compares publication trends across topics.</p>
+<p>scopusflow is a reproducible, quota-aware workflow layer over the Elsevier <a href="https://dev.elsevier.com/sc_apis.html" class="external-link">Scopus</a> Search API. It turns one-off bibliographic queries into inspectable plans and retrieves records with pagination, rate-limit handling, retry with back-off and optional resumable caching. It normalises the records to a stable tidy schema, tracks changes in DOI sets over time, sizes sets of concepts and their intersections and compares publication trends across topics.</p>
 <p>Its Python twin, <a href="https://pablobernabeu.github.io/scopusflow-py/">the package of the same name</a>, follows the same design on top of <a href="https://pybliometrics.readthedocs.io" class="external-link">pybliometrics</a>, so a search written in one language reads much the same in the other.</p>
 <p><img src="reference/figures/README-readme-hero-1.png" alt="An illustrative line chart of four sub-topics' share of a deep-learning reference literature between 2013 and 2021: computer vision, natural language processing, medical imaging and drug discovery" width="100%"></p>
-<p>The figure is drawn by <code><a href="reference/plot_scopus_comparison.html">plot_scopus_comparison()</a></code> from illustrative counts, so that this page builds without an API key and without contacting Elsevier. The <a href="https://pablobernabeu.github.io/scopusflow/articles/comparing-topics.html">Comparing topics over time</a> article builds the same table and explains every column.</p>
+<p>The figure is drawn by <code><a href="reference/plot_scopus_comparison.html">plot_scopus_comparison()</a></code> from a table of illustrative counts. The <a href="https://pablobernabeu.github.io/scopusflow/articles/comparing-topics.html">Comparing topics over time</a> article builds the same table and explains every column.</p>
 <blockquote>
 <p>Scopus is a trademark of Elsevier. scopusflow is an independent client and is not affiliated with or endorsed by Elsevier. You will need your own Elsevier API key and should use it under Elsevier’s API terms.</p>
 </blockquote>
@@ -107,7 +107,7 @@
 <div class="section level2">
 <h2 id="api-key">API key<a class="anchor" aria-label="anchor" href="#api-key"></a>
 </h2>
-<p>scopusflow never stores your key. It is read, in order, from the <code>api_key</code> argument, the <code>scopusflow.api_key</code> option, or the <code>SCOPUS_API_KEY</code> environment variable. Store it in <code>~/.Renviron</code>.</p>
+<p>scopusflow never stores your key. It is read, in order, from the <code>api_key</code> argument, the <code>scopusflow.api_key</code> option or the <code>SCOPUS_API_KEY</code> environment variable. Store it in <code>~/.Renviron</code>.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>SCOPUS_API_KEY<span class="ot">=</span>your<span class="sc">-</span>key<span class="sc">-</span>here</span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co"># Optional, for off-campus access to subscriber content:</span></span>
 <span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>SCOPUS_INST_TOKEN<span class="ot">=</span>your<span class="sc">-</span>institutional<span class="sc">-</span>token</span></code></pre></div>
@@ -143,12 +143,12 @@
 <span><span class="co"># Write the search up for the methods section, to the PRISMA-S standard,</span></span>
 <span><span class="co"># from what the plan and the harvest already record.</span></span>
 <span><span class="fu"><a href="reference/scopus_search_report.html">scopus_search_report</a></span><span class="op">(</span><span class="va">records</span>, file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"search-record.md"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>The <a href="https://pablobernabeu.github.io/scopusflow/articles/scopusflow.html">Get started</a> vignette walks this workflow offline, on records bundled with the package, and the <a href="https://pablobernabeu.github.io/scopusflow/articles/index.html">articles</a> each cover one part in depth: designing queries, search plans, quota and the PRISMA-S search record, building a reference set, analysing and visualising a literature (trends, top sources and authors, concept intersections, abstracts and cursor-paged harvests), author keywords and references, comparing topics over time (the chart above) and tracking how a literature changes between retrievals.</p>
+<p>The <a href="https://pablobernabeu.github.io/scopusflow/articles/scopusflow.html">Get started</a> vignette walks through this workflow offline, on records bundled with the package. The <a href="https://pablobernabeu.github.io/scopusflow/articles/index.html">articles</a> each cover one part in depth: designing queries, search plans, quota and the PRISMA-S search record, building a reference set, analysing and visualising a literature (trends, top sources and authors, concept intersections, abstracts and cursor-paged harvests), author keywords and references, comparing topics over time (the chart above) and tracking how a literature changes between retrievals.</p>
 </div>
 <div class="section level2">
 <h2 id="code-free-app">Code-free app<a class="anchor" aria-label="anchor" href="#code-free-app"></a>
 </h2>
-<p><code><a href="reference/run_app.html">run_app()</a></code> opens a local Shiny app that drives the whole workflow without writing code, and mirrors every choice back as a runnable R script, so it doubles as a way into the package itself. It runs on your own machine, so your API key never leaves it, and a demo mode lets you try the flow with no key, on the corpus of real articles bundled with the package.</p>
+<p><code><a href="reference/run_app.html">run_app()</a></code> opens a local Shiny app that lets you run the whole workflow without writing code. Because it shows every choice as a runnable R script, the app is also a way into the package. It runs on your own machine, so your API key never leaves it. A demo mode lets you try the workflow with no key, on the harvest of real articles bundled with the package.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/run_app.html">run_app</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>The retrieval runs in a background process with a live progress terminal, and records appear as a table and as plots with one-click export. It needs the suggested packages shiny, bslib and callr. The <a href="https://pablobernabeu.github.io/scopusflow/articles/using-the-app.html">Using the code-free app</a> article walks through every panel.</p>
@@ -156,12 +156,13 @@
 <div class="section level2">
 <h2 id="quotas-rate-limits-and-errors">Quotas, rate limits and errors<a class="anchor" aria-label="anchor" href="#quotas-rate-limits-and-errors"></a>
 </h2>
-<p>The Scopus API enforces a weekly quota and a short-term rate limit, and ordinary offset paging returns at most the first 5000 records of any query (use <code>scopus_fetch(cursor = TRUE)</code> to go beyond that). scopusflow works within these limits and never tries to evade them. It requests the largest page each view allows, 200 records for <code>STANDARD</code> and 25 for <code>COMPLETE</code>, so that a retrieval uses as few requests, and as little quota, as it can. This is the same approach <code>rscopus</code> takes. The quota and rate-limit headers are parsed by <code><a href="reference/scopus_quota.html">scopus_quota()</a></code>. Throttling (HTTP 429), the server errors 500, 502, 503 and 504, timeouts and reset connections are retried with back-off that honours <code>Retry-After</code>, while a spent weekly quota, which Elsevier also answers with HTTP 429, is not retried. An offset-paged query is capped at 5000 records with a warning that suggests cursor paging or partitioning by year. A failure arrives as a typed condition (every <code>scopus_error_*</code> condition inherits from <code>scopus_error</code>), so a workflow can respond to it in code. The Get started vignette shows the <code><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch()</a></code> pattern.</p>
+<p>The Scopus API enforces a weekly quota and a short-term rate limit, and ordinary offset paging returns at most the first 5000 records of any query. scopusflow works within these limits. An offset-paged query is capped at 5000 records with a warning that suggests cursor paging or partitioning by year. Use <code>scopus_fetch(cursor = TRUE)</code> to go beyond that limit. To use as few requests and as little quota as possible, scopusflow asks for the largest page each view allows, 200 records for <code>STANDARD</code> and 25 for <code>COMPLETE</code>. This is the same approach <code>rscopus</code> takes. The quota and rate-limit headers are parsed by <code><a href="reference/scopus_quota.html">scopus_quota()</a></code>.</p>
+<p>Throttling (HTTP 429), the server errors 500, 502, 503 and 504, timeouts and reset connections are retried with back-off that honours <code>Retry-After</code>. A spent weekly quota, which Elsevier also answers with HTTP 429, is not retried. A failure is signalled as a typed condition, and every <code>scopus_error_*</code> condition inherits from <code>scopus_error</code>. The Get started vignette shows the <code><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch()</a></code> pattern for responding to these conditions in code.</p>
 </div>
 <div class="section level2">
 <h2 id="how-it-compares">How it compares<a class="anchor" aria-label="anchor" href="#how-it-compares"></a>
 </h2>
-<p>Several R packages cover neighbouring ground, and scopusflow is meant to work alongside them.</p>
+<p>Several R packages serve related purposes, and scopusflow is meant to work alongside them.</p>
 <table class="table">
 <colgroup>
 <col width="33%">
@@ -177,7 +178,7 @@
 <tr>
 <td><a href="https://cran.r-project.org/package=rscopus" class="external-link"><code>rscopus</code></a></td>
 <td>Low-level Scopus API wrapper</td>
-<td>scopusflow sits at a higher workflow layer (plans, quotas, caching, diffs) and calls the API directly through <code>httr2</code>
+<td>scopusflow works at a higher workflow layer (plans, quotas, caching, diffs) and calls the API directly through <code>httr2</code>
 </td>
 </tr>
 <tr>
@@ -190,7 +191,7 @@
 <tr>
 <td><a href="https://cran.r-project.org/package=bibliometrix" class="external-link"><code>bibliometrix</code></a></td>
 <td>Science mapping and analysis</td>
-<td>Downstream, and fed by <code><a href="reference/as_bibliometrix.html">as_bibliometrix()</a></code>
+<td>Downstream, receiving records from <code><a href="reference/as_bibliometrix.html">as_bibliometrix()</a></code>
 </td>
 </tr>
 </tbody>
@@ -199,7 +200,8 @@
 <div class="section level2">
 <h2 id="limitations">Limitations<a class="anchor" aria-label="anchor" href="#limitations"></a>
 </h2>
-<p>A few limits are worth keeping in mind. Under ordinary offset paging the Scopus Search API returns at most the first 5000 records of a query, so a large search is best partitioned by year with <code><a href="reference/scopus_plan.html">scopus_plan()</a></code> or harvested in one pass with <code>scopus_fetch(cursor = TRUE)</code>, which trades relevance order for completeness. <code><a href="reference/as_bibliometrix.html">as_bibliometrix()</a></code> maps the core descriptive fields the Search API returns. Structured reference lists are available through <code>scopus_abstract(view = "FULL", include = "references")</code> and <code><a href="reference/scopus_corpus.html">scopus_corpus()</a></code>, but an analysis that needs full affiliations, or bibliometrix’s own cited-reference (CR) field, will still call for a complete Scopus export. What you can retrieve also depends on your Elsevier entitlement, and some fields are available only in the <code>COMPLETE</code> view and to subscribers.</p>
+<p>Under ordinary offset paging, the Scopus Search API returns at most the first 5000 records of a query. A larger search is best partitioned by year with <code><a href="reference/scopus_plan.html">scopus_plan()</a></code> or harvested in one pass with <code>scopus_fetch(cursor = TRUE)</code>, which trades relevance order for completeness.</p>
+<p><code><a href="reference/as_bibliometrix.html">as_bibliometrix()</a></code> maps the core descriptive fields the Search API returns. Structured reference lists are available through <code>scopus_abstract(view = "FULL", include = "references")</code> and <code><a href="reference/scopus_corpus.html">scopus_corpus()</a></code>, but an analysis that needs full affiliations, or bibliometrix’s own cited-reference (CR) field, will still call for a complete Scopus export. What you can retrieve also depends on your Elsevier entitlement, and some fields are available only in the <code>COMPLETE</code> view and to subscribers.</p>
 </div>
 <div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
@@ -208,18 +210,18 @@
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/citation.html" class="external-link">citation</a></span><span class="op">(</span><span class="st">"scopusflow"</span><span class="op">)</span></span></code></pre></div>
 <p>The DOI that CRAN assigned to the package is <a href="https://doi.org/10.32614/CRAN.package.scopusflow" class="external-link uri">https://doi.org/10.32614/CRAN.package.scopusflow</a>, and it covers every version.</p>
-<p>The <a href="https://pablobernabeu.github.io/scopusflow/articles/about.html">About page</a> carries the same citation with a BibTeX entry, and a short note on the developer. The repository also ships a <code>CITATION.cff</code>, which is what GitHub’s ‘Cite this repository’ button reads.</p>
+<p>The <a href="https://pablobernabeu.github.io/scopusflow/articles/about.html">About page</a> carries the same citation with a BibTeX entry, and a short note on the developer. The repository also includes a <code>CITATION.cff</code>, which GitHub’s ‘Cite this repository’ button reads.</p>
 </div>
 <div class="section level2">
 <h2 id="licence">Licence<a class="anchor" aria-label="anchor" href="#licence"></a>
 </h2>
-<p>MIT. ‘Scopus’ is a trademark of Elsevier. This package is an independent client and is not affiliated with or endorsed by Elsevier.</p>
+<p>MIT. Scopus is a trademark of Elsevier. scopusflow is an independent client and is not affiliated with or endorsed by Elsevier.</p>
 </div>
 <div class="section level2">
 <h2 id="contributing">Contributing<a class="anchor" aria-label="anchor" href="#contributing"></a>
 </h2>
 <p>Issues and pull requests are welcome. The <a href="https://github.com/pablobernabeu/scopusflow/blob/main/.github/CONTRIBUTING.md" class="external-link">contributing guide</a> describes the development setup and the conventions the package follows, and everyone taking part is asked to honour the <a href="https://github.com/pablobernabeu/scopusflow/blob/main/.github/CODE_OF_CONDUCT.md" class="external-link">Code of Conduct</a>.</p>
-<p>Alongside the per-commit checks on Windows, macOS and Linux across several versions of R, a scheduled job re-checks the package every other day against the current and development versions of its dependencies, so that breakage from an upstream change is caught early. The contributing guide describes how it reports, and tries to resolve, any problem it finds.</p>
+<p>Pull requests and pushes to the main branch are checked on Windows, macOS and Linux across several versions of R. To find failures caused by changes in the package’s dependencies early, a scheduled job also re-checks the package every other day against their current and development versions. The contributing guide describes how the job reports, and tries to resolve, any problem it finds.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

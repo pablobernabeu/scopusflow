@@ -5,12 +5,12 @@
 library(scopusflow)
 ```
 
-Once a set of records is in hand, the package offers a small analysis
-layer that turns it into the figures a bibliometric study usually needs.
-The steps that contact the API are shown but not run. The rest run on
-`example_records`, the corpus of 138 real journal articles on graphene
-supercapacitors that the package bundles because Scopus records may not
-be redistributed, and which carries the schema a retrieval returns.
+Once a set of records is in hand, a few analysis functions turn it into
+the figures a bibliometric study usually needs. The steps that contact
+the API are shown but not run. The rest run on `example_records`, a
+harvest of 138 real journal articles on graphene supercapacitors that
+the package bundles because Scopus records may not be redistributed. It
+carries the schema a retrieval returns, and
 [`vignette("scopusflow")`](https://pablobernabeu.github.io/scopusflow/articles/scopusflow.md)
 describes where it comes from.
 
@@ -67,7 +67,7 @@ scopus_top(records, by = "author", n = 5)
 | A.I. Mtz-Enríquez |   2 |
 | Bin Wang          |   2 |
 
-The source tally is long-tailed, as a real literature is. These 138
+The source tally has a long tail, as a topic literature does. These 138
 articles are spread across 90 journals, and only *ACS Applied Materials
 & Interfaces*, with eight, appears more than five times. The author
 tally is flatter still, with 119 distinct authors, the most prolific of
@@ -82,7 +82,7 @@ up to 100 names per record, which
 [`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
 writes as `"Surname, Given"` names joined by `"; "`. The tally splits
 that list, so each contributor is counted once per record. The bundled
-corpus names only the first author of each paper and cannot show the
+harvest names only the first author of each paper and cannot show the
 split, but two entries in the shape the `COMPLETE` view returns, with
 placeholder names, can.
 
@@ -121,16 +121,19 @@ plot_scopus_top(scopus_top(records, by = "author", n = 5))
 ![A horizontal bar chart of the most frequent
 authors](analysing-a-literature_files/figure-html/unnamed-chunk-6-1.png)
 
-A record set also has an honest default view. `autoplot()` draws its
-records per year. Because this corpus is a complete harvest of one
-query, those bars are the real number of publications per year for that
-query. For a harvest of your own, the bars cover the years its plan
-searched, a year without records drawn as a zero bar and a year no cell
-searched left out. When the years reach the year of the harvest, the
-caption says that year was incomplete when the records were retrieved,
-since ‘Scopus’ goes on indexing a year’s publications after it has
-begun. The same `autoplot()` generic dispatches on `scopus_trend` and
-`scopus_top` objects too, delegating to the plots above.
+The default plot of a record set, drawn by `autoplot()`, shows its
+records per year. Because the bundled harvest is complete for one query,
+the bars are the number of publications per year for that query. For a
+harvest of your own, the bars cover the years its plan searched, with a
+year without records drawn as a zero bar and a year no cell searched
+left out unless a record carries it. When the years reach the year of
+the harvest, the caption says that year was incomplete when the records
+were retrieved, since Scopus goes on indexing a year’s publications
+after the year has begun. On `scopus_top` and `scopus_trend` objects,
+`autoplot()` draws the plots of
+[`plot_scopus_top()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_top.md)
+and
+[`plot_scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_trend.md).
 
 ``` r
 
@@ -144,8 +147,8 @@ year](analysing-a-literature_files/figure-html/unnamed-chunk-7-1.png)
 ## How a literature grows
 
 [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md)
-counts how many records match a query in each year, which is the size of
-a literature over time. It issues one count request per year, so it
+measures the size of a literature over time by counting the records that
+match a query in each year. It issues one count request per year, so it
 needs the API.
 
 ``` r
@@ -155,11 +158,10 @@ tr <- scopus_trend('"graphene supercapacitor"', years = 2015:2024,
 plot_scopus_trend(tr)
 ```
 
-The offline equivalent costs no requests at all. A complete harvest
-already contains its own yearly counts, and the bundled corpus is a
-complete harvest of OpenAlex’s exact-phrase search for the same phrase.
-Tallying its records by year therefore gives the yearly counts of that
-search, in the shape
+The offline equivalent costs no requests. A complete harvest already
+contains its own yearly counts, and the bundled harvest is complete for
+OpenAlex’s exact-phrase search for the same phrase. Tallying its records
+by year therefore gives the yearly counts of that search, in the shape
 [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md)
 returns. A Scopus count would give different figures, since the two
 databases do not index the same records and the Scopus query also
@@ -199,34 +201,37 @@ plot_scopus_trend(tr)
 peaking in
 2019](analysing-a-literature_files/figure-html/unnamed-chunk-10-1.png)
 
-The figure draws the same counts as the bar chart above, and the
-agreement is worth noticing. A trend is something a record set already
-knows, and something
+The figure draws the same counts as the bar chart above. A record set
+already holds its own trend, and
 [`scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_trend.md)
-can find out for a query whose records you never download. The caption
-is the function’s own attribution, since a `scopus_trend` object
-ordinarily comes from the Search API, whereas this one was tallied from
-the bundled stand-in. The curve itself is flat because the query is a
-narrow phrase, some fifteen papers a year over a decade. The quotation
-marks keep it narrow, since Scopus joins the words of an unquoted phrase
-with AND, and in OpenAlex the two words unquoted match about a hundred
-times as many records. A broader query, ‘graphene’ on its own, would
-show the steep growth the field is better known for, on a scale that
-runs into the offset ceiling discussed below.
+gives the trend for a query whose records you never download. The
+caption, which
+[`plot_scopus_trend()`](https://pablobernabeu.github.io/scopusflow/reference/plot_scopus_trend.md)
+adds to every trend, credits the Search API, the usual source of a
+`scopus_trend` object, although this one was tallied from the bundled
+harvest.
+
+The curve is flat because the query is a narrow phrase, some fifteen
+papers a year over a decade. The quotation marks keep it narrow, since
+Scopus joins the words of an unquoted phrase with AND, and in OpenAlex
+the two words unquoted match about a hundred times as many records. A
+broader query, ‘graphene’ on its own, would show the steep growth the
+field is better known for, on a scale that runs into the offset ceiling
+discussed below.
 
 ## Where a niche sits
 
 A study that crosses two or more fields is best introduced by sizing
 those fields and their overlap. Each parent literature may hold
-thousands of records while their intersection holds a handful, which is
-the niche the study occupies.
+thousands of records, while their intersection, the niche the study
+occupies, holds a handful.
 [`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md)
 counts a named set of concepts and any requested intersections of them,
-at one count request per row, so the whole landscape is as cheap as a
-few
+at one count request per row, the same cheap request that
 [`scopus_count()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_count.md)
-calls. Concept values may be bare terms, wrapped in `field` for you, or
-complete field-tagged expressions, used exactly as given.
+makes for a single query. Concept values may be bare terms, wrapped in
+`field` for you, or complete field-tagged expressions such as a synonym
+set, used exactly as given.
 
 ``` r
 
@@ -247,16 +252,13 @@ plot_scopus_intersections(
 )
 ```
 
-Here `field` leaves the third value untouched, since it already reads as
-a complete field-tagged expression, so a concept can be a whole synonym
-set.
-
-This one cannot be derived from a record set, because it counts whole
-literatures, where a record set holds only the records already in hand,
-so here the result is rebuilt in its own shape with illustrative counts,
-purely to show the plot. The lollipop chart uses a log-scale axis, so
-the small intersection stays legible beside its large parent fields, and
-the highlighted row draws the eye to the niche itself.
+A count of whole literatures cannot be derived from a record set, which
+holds only the records already in hand. The result below is therefore
+rebuilt in the shape
+[`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md)
+returns, with illustrative counts, to show the plot. The lollipop chart
+uses a log-scale axis, so the small intersection stays legible beside
+its large parent fields, and the highlighted row marks the niche.
 
 ``` r
 
@@ -289,9 +291,9 @@ highlighted](analysing-a-literature_files/figure-html/unnamed-chunk-12-1.png)
 The Search API returns a few fields per record. To read the abstract and
 the fuller metadata for a record you already know,
 [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
-calls the Abstract Retrieval API, by DOI or ‘Scopus’ identifier. A batch
-is resilient, so an identifier that cannot be found yields a row of
-`NA`s with a warning rather than stopping the run.
+calls the Abstract Retrieval API, by DOI or Scopus identifier. In a
+batch, an identifier that cannot be found yields a row of `NA`s with a
+warning, and the run continues.
 
 ``` r
 
@@ -299,13 +301,12 @@ ab <- scopus_abstract(head(scopus_extract_dois(records), 2))
 ```
 
 The result is a tibble of class `scopus_abstracts`, one row per
-identifier. To show its shape without a key, here is a stand-in built
-from the two most-cited records of the corpus, which supplies every
-column but the abstract and the ‘Scopus’ identifier. Those two are what
-a live call adds and the corpus does not carry, so the abstract is
-marked as a placeholder and the identifier left as `NA`, with nothing
-invented to fill either, and the columns are listed by name because the
-prose is far too wide to typeset.
+identifier. To show its shape without a key, the stand-in below is built
+from the two most-cited records of the bundled harvest, which supplies
+every column but the abstract and the Scopus identifier. Only a live
+call returns those two, so the abstract is marked as a placeholder and
+the identifier is left as `NA`. The columns are listed by name because
+the prose is too wide to typeset.
 
 ``` r
 
@@ -341,8 +342,8 @@ ab[, c("title", "publication", "year", "citations")]
 
 A single Search API query returns at most its first 5000 records under
 the ordinary offset paging. When you need the whole of a larger result
-set in one pass, `scopus_fetch(cursor = TRUE)` follows the API’s cursor
-instead, which has no such ceiling.
+set in one pass, `scopus_fetch(cursor = TRUE)` follows the API’s cursor,
+which has no such ceiling.
 
 ``` r
 
@@ -350,15 +351,14 @@ recs <- scopus_fetch("TITLE-ABS-KEY(microplastics)", cursor = TRUE)
 nrow(recs)
 ```
 
-That query matched 38,374 records when this article was written (the
-literature keeps growing), several times the offset ceiling, and the
-cursor retrieves all of them in one call. The records then arrive in the
-API’s deep-paging order, which is the right trade for a complete harvest
-and the wrong one when you want the most relevant few hundred. This is
-the one-call alternative to the year-partitioned plan in the *Search
-plans and quota-aware retrieval* article. A plan keeps each cell under
-the ceiling and preserves relevance order, whereas `cursor = TRUE`
-harvests the whole set in a single pass. Reach for the plan when you
-want cached, resumable cells and the cursor when you want the complete
-set at once. `scopus_fetch_plan(plan, cursor = TRUE)` gives both, at the
-cost of the deep-paging order.
+When this article was written, that query matched 38,374 records,
+several times the offset ceiling, and the literature keeps growing. The
+cursor retrieves all of them in the API’s deep-paging order, which suits
+a complete harvest but not a search for the most relevant few hundred.
+
+The cursor is the one-call alternative to the year-partitioned plan in
+the *Search plans and quota-aware retrieval* article. A plan keeps each
+cell under the ceiling and preserves relevance order. Use the plan when
+you want cached, resumable cells and the cursor when you want the
+complete set at once. `scopus_fetch_plan(plan, cursor = TRUE)` gives
+both, at the cost of the deep-paging order.

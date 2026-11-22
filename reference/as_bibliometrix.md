@@ -2,9 +2,9 @@
 
 Re-maps a
 [scopus_records](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
-tibble to the tagged column layout used by the bibliometrix package (and
-the wider ISI/Web of Science convention), so results can flow into
-downstream science-mapping workflows. The fields follow the conventions
+tibble to the tagged column layout of the bibliometrix package, which
+follows the field tags of Web of Science, so that the results can go
+into science-mapping workflows. The fields follow the conventions
 `bibliometrix::convert2df()` applies to a 'Scopus' CSV export, so the
 two frames describe a record in the same terms.
 
@@ -58,7 +58,7 @@ and at the `"; "`
 [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
 joins its own with, so either source can fill the `authkeywords` column.
 
-This produces the *shape* bibliometrix expects from the descriptive
+This produces the layout bibliometrix expects for the descriptive
 fields. It reconstructs only what the 'Scopus' Search API returns, so
 richer fields that some bibliometrix analyses use, such as full author
 affiliations or cited references, are left out. To obtain those, export
@@ -66,7 +66,7 @@ a full 'Scopus' CSV or BibTeX file from the web interface and read it
 with `bibliometrix::convert2df()`.
 
 `AU` holds every author only for a retrieval made with
-`view = "COMPLETE"`. Under `STANDARD` the API sends the first author
+`view = "COMPLETE"`. Under `STANDARD`, the API sends the first author
 alone, so each document would look single-authored to the collaboration
 measures and co-authorship networks bibliometrix builds from `AU`.
 Converting a set retrieved under `STANDARD` therefore raises a warning

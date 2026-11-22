@@ -15,7 +15,7 @@ growing or shrinking within a literature."><meta property="og:image" content="ht
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -61,7 +61,7 @@ growing or shrinking within a literature."><meta property="og:image" content="ht
     </div>
 
     <div class="ref-description section level2">
-    <p>Compares how often a set of <em>comparison</em> topics co-occur with a <em>reference</em>
+    <p>Compares how often a set of comparison topics co-occur with a reference
 topic over time. For each year and each comparison term, the number of records
 matching the reference combined with that term is expressed as a percentage of
 the records matching the reference alone. This reveals which sub-topics are
@@ -128,8 +128,8 @@ query (see <code><a href="scopus_plan.html">scopus_plan()</a></code>).</p></dd>
     <p>A tibble of class <code>scopus_comparison</code> with the columns <code>query</code> (the
 full query used), <code>query_type</code> (<code>"reference"</code> or <code>"comparison"</code>),
 <code>abridged_query</code> (the topic label for plotting), <code>year</code>, <code>n</code> (records that
-year, as a double so very large counts are exact), <code>reference_n</code> (reference
-records that year, likewise a double), <code>comparison_percentage</code>
+year, as a double, so that very large counts are exact), <code>reference_n</code>
+(reference records that year, likewise a double), <code>comparison_percentage</code>
 (<code>100 * n / reference_n</code>, or <code>NA</code> when <code>reference_n</code> is 0) and
 <code>average_comparison_percentage</code> (the same ratio computed on period totals,
 over the years where both counts are available). Comparison rows are sorted

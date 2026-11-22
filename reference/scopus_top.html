@@ -9,7 +9,7 @@ It works on records already in memory, so it makes no network request."><meta pr
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -76,11 +76,11 @@ It works on records already in memory, so it makes no network request.</p>
 <dd><p>What to tally: <code>"source"</code> (the publication titles) or <code>"author"</code>.
 Author strings holding several names are split at the semicolon, with or
 without a space after it, so each contributor is counted once per record.
-Only a <code>view = "COMPLETE"</code>
-retrieval holds several names, since <code>STANDARD</code> records carry the first
-author alone (see <code><a href="scopus_records.html">scopus_records()</a></code>). A tally by author of a set retrieved
-under <code>STANDARD</code> therefore counts first authorships, and says so with a
-warning of class <code>scopus_warning_first_author_only</code>, once per session.</p></dd>
+Only a <code>view = "COMPLETE"</code> retrieval holds several names, since <code>STANDARD</code>
+records carry the first author alone (see <code><a href="scopus_records.html">scopus_records()</a></code>). A tally by
+author of a set retrieved under <code>STANDARD</code> therefore counts first
+authorships, and says so with a warning of class
+<code>scopus_warning_first_author_only</code>, once per session.</p></dd>
 
 
 <dt id="arg-n">n<a class="anchor" aria-label="anchor" href="#arg-n"></a></dt>

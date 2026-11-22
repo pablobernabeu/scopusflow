@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -91,12 +91,12 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pablobernabeu/scopusflow" class="external-link">scopusflow</a></span><span class="op">)</span></span></code></pre></div>
-<p>A retrieval becomes useful once it leaves the package, as a reading
-list in a reference manager or as input to a science-mapping tool. This
-article covers that export end of the workflow. Every step runs without
-an API key, on the bundled <code>example_records</code>, a corpus of 138
-real journal articles that stands in for a harvest of your own because
-Scopus records may not be redistributed. The article
+<p>This article covers the export end of the workflow, which turns a
+retrieval into a reading list in a reference manager or into input for a
+science-mapping tool. Every step runs without an API key, on
+<code>example_records</code>, the bundled harvest of 138 real journal
+articles. It stands in for a harvest of your own because Scopus records
+may not be redistributed. The article
 <code><a href="../articles/scopusflow.html">vignette("scopusflow")</a></code> describes where it comes from.</p>
 <div class="section level2">
 <h2 id="take-stock-first">Take stock first<a class="anchor" aria-label="anchor" href="#take-stock-first"></a>
@@ -112,13 +112,13 @@ of distinct sources, the citation spread and the most-cited record.</p>
 Cited 7015 times in total, median 24 per record.
 Most frequent source: ACS Applied Materials &amp; Interfaces.
 Most cited: Graphene for batteries, supercapacitors and beyond.</code></pre>
-<p>Eleven of those 138 records arrived without a DOI, which is why the
-summary counts 127 with one. That is ordinary in a real harvest, and the
+<p>Eleven of those 138 records arrived without a DOI, so the summary
+counts 127 with one. That is ordinary in a live harvest, and the
 sections below show how each export handles it.</p>
-<p>A record set is an ordinary tibble underneath, so it drops straight
-into tidyverse or base workflows. <code>as_tibble()</code> and
-<code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> make that explicit when a downstream tool
-expects a plain frame.</p>
+<p>A record set is a tibble with an added class, so it works in
+tidyverse or base R workflows as it is. <code>as_tibble()</code> and
+<code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> make the conversion explicit when a
+downstream tool expects a plain frame.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html" class="external-link">as_tibble</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
@@ -268,9 +268,9 @@ Supercapacitors</td>
 <code><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan()</a></code> also keep the document type, source
 type, volume, issue, pages, ISSN, PubMed identifier and open-access
 status the Search API sends with every record. Under the
-<code>COMPLETE</code> view, they keep the abstract too. These fields
-arrive in the responses the harvest already pays for, so they cost no
-extra quota. The bundled corpus came from OpenAlex and carries none of
+<code>COMPLETE</code> view, they keep the abstract too. These fields are
+part of the responses the harvest already receives, so they cost no
+extra quota. The bundled harvest came from OpenAlex and carries none of
 them, so this step is shown but not run.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="st">'"graphene supercapacitor"'</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2024</span>,</span>
@@ -317,11 +317,11 @@ was stored with a resolver prefix or in a different case.</p>
 <pre><code>[1] "10.15541/jim20140527"            "10.1021/am509065d"              
 [3] "10.1016/j.electacta.2015.02.019" "10.1002/smll.201403383"         
 [5] "10.1016/j.jpowsour.2015.03.015"  "10.1103/physrevb.91.125415"     </code></pre>
-<p>The same cleaning applies to a plain vector of DOIs from any source,
-so the first two entries below collapse to one because comparison
-ignores case and resolver prefixes, while <code>dedupe = FALSE</code>
-keeps every occurrence, for instance to count how often a DOI recurs
-across retrievals.</p>
+<p>The same cleaning applies to a plain vector of DOIs from any source.
+The first two entries below collapse to one, because the comparison
+ignores case and resolver prefixes. <code>dedupe = FALSE</code> keeps
+every occurrence, for instance to count how often a DOI recurs across
+retrievals.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"https://doi.org/10.1/A"</span>, <span class="st">"doi: 10.1/a"</span>, <span class="st">"10.2/B"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code>[1] "10.1/A" "10.2/B"</code></pre>
@@ -329,9 +329,9 @@ across retrievals.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"https://doi.org/10.1/A"</span>, <span class="st">"doi: 10.1/a"</span>, <span class="st">"10.2/B"</span><span class="op">)</span>,</span>
 <span>                    dedupe <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <pre><code>[1] "10.1/A" "10.1/a" "10.2/B"</code></pre>
-<p>The list can be written to a single-column CSV at a path you choose.
-Nothing is written unless a path is given. Here are the first few lines
-of the file, which holds a header and one DOI per line.</p>
+<p>The list is written to a single-column CSV only when a path is given.
+The file holds a header and one DOI per line, as its first lines
+show.</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"reference-set.csv"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">example_records</span>, file <span class="op">=</span> <span class="va">out</span><span class="op">)</span></span>
@@ -346,11 +346,12 @@ of the file, which holds a header and one DOI per line.</p>
 <div class="section level2">
 <h2 id="into-a-reference-manager">Into a reference manager<a class="anchor" aria-label="anchor" href="#into-a-reference-manager"></a>
 </h2>
-<p>A DOI list is enough for an import-by-identifier, but a full record
-carries more. <code><a href="../reference/as_bibtex.html">as_ris()</a></code> and <code><a href="../reference/as_bibtex.html">as_bibtex()</a></code> render
-the set in the two interchange formats that reference managers read, so
-a search moves straight into Zotero, EndNote or a LaTeX bibliography.
-Each record becomes one entry, with its authors split out.</p>
+<p>A DOI list is enough for an import-by-identifier, but a record
+carries more than its DOI. <code><a href="../reference/as_bibtex.html">as_ris()</a></code> and
+<code><a href="../reference/as_bibtex.html">as_bibtex()</a></code> render the set in the two interchange formats
+that reference managers read, for use in Zotero, EndNote or a LaTeX
+bibliography. Each record becomes one entry, with its authors split
+out.</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ris</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/as_bibtex.html">as_ris</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/strsplit.html" class="external-link">strsplit</a></span><span class="op">(</span><span class="va">ris</span>, <span class="st">"\n\n"</span>, fixed <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span>, sep <span class="op">=</span> <span class="st">"\n\n"</span><span class="op">)</span></span></code></pre></div>
@@ -371,27 +372,27 @@ T2  - DigitalCommons - CalPoly (California State Polytechnic University)
 DB  - Scopus
 ER  - </code></pre>
 <p>The first two entries of 138 are shown. The second has no DOI, so its
-<code>DO</code> line is simply absent, with no empty field written in
-its place, and the entry still imports on its title, author and year.
-The source sits under <code>T2</code>, the tag ‘Scopus’ itself uses for
-it. A ‘Scopus’ name such as <code>Zhang F.</code> is exported as
+entry has no <code>DO</code> line and still imports on its title, author
+and year. A ‘Scopus’ name such as <code>Zhang F.</code> is exported as
 <code>Zhang, F.</code>, so that a reference manager or BibTeX reads
-Zhang as the family name. Nearly all the bundled records give names
-first, and those are written as they stand.</p>
+Zhang as the family name. Nearly all the bundled records put the given
+name first, and those names are written as they stand. The source title
+goes under <code>T2</code>, the tag ‘Scopus’ itself uses for it.</p>
 <p>Every bundled record is a journal article, exported as
 <code>JOUR</code> and <code>@article</code>. A harvest retrieved with
 <code>fields = "extended"</code> carries the document type ‘Scopus’
 gives each record. A conference paper is then exported as
 <code>CPAPER</code> and <code>@inproceedings</code>, a chapter as
 <code>CHAP</code> and <code>@incollection</code> and a book as
-<code>BOOK</code> and <code>@book</code>. Its entries also carry the
-volume, issue, pages and ISSN, and under <code>view = "COMPLETE"</code>
-the abstract. A <code>COMPLETE</code> harvest exports its author
-keywords as well, with or without the extended fields. Screening and
-de-duplication tools read both. <code><a href="../reference/as_bibtex.html">?as_bibtex</a></code> lists where each
-field goes.</p>
-<p>Pass a <code>file</code> to write the whole set. Nothing is written
-without one.</p>
+<code>BOOK</code> and <code>@book</code>. The entries of such a harvest
+also carry the volume, issue, pages and ISSN, and under
+<code>view = "COMPLETE"</code> the abstract. A <code>COMPLETE</code>
+harvest exports its author keywords as well, with or without the
+extended fields. Screening and de-duplication tools read the abstract
+and the keywords. <code><a href="../reference/as_bibtex.html">?as_bibtex</a></code> lists where each field
+goes.</p>
+<p><code><a href="../reference/as_bibtex.html">as_ris()</a></code> and <code><a href="../reference/as_bibtex.html">as_bibtex()</a></code> write the whole
+set only when a <code>file</code> is given.</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bib</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"reference-set.bib"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/as_bibtex.html">as_bibtex</a></span><span class="op">(</span><span class="va">example_records</span>, file <span class="op">=</span> <span class="va">bib</span><span class="op">)</span></span></code></pre></div>
@@ -491,8 +492,8 @@ which the bundled records lack. A harvest retrieved under
 author keywords, and one retrieved with <code>fields = "extended"</code>
 fills <code>DT</code>, <code>VL</code> and <code>IS</code> with the
 document type, volume and issue.</p>
-<p>From there the usual bibliometrix entry points apply. This step needs
-that package, so it is shown but not run.</p>
+<p>From there, the usual bibliometrix entry points apply. This step
+needs that package, so it is shown but not run.</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"bibliometrix"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">bibliometrix</span><span class="fu">::</span><span class="fu">biblioAnalysis</span><span class="op">(</span><span class="va">m</span><span class="op">)</span></span>

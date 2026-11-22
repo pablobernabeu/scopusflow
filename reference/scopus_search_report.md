@@ -2,10 +2,10 @@
 
 Turns a harvest, or a plan not yet run, into the search-strategy record
 a systematic review has to report: what was searched, exactly how, when,
-how much came back, and how much the API said there was. The record
-prints as a readable report, formats as a methods paragraph fit to paste
-into a manuscript, and writes as Markdown. The reporting standard it
-follows is PRISMA-S (Rethlefsen et al., 2021), together with the
+how much came back and how much the API said there was. The record
+prints as a readable report, formats as a methods paragraph ready to
+paste into a manuscript and writes as Markdown. The reporting standard
+it follows is PRISMA-S (Rethlefsen et al., 2021), together with the
 identification counts of the PRISMA 2020 flow diagram.
 
 ## Usage
@@ -26,10 +26,11 @@ print(x, ...)
 
   A
   [scopus_records](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)
-  object, which supplies the counts and the retrieval provenance and,
-  through its `plan` attribute, the plan; or a bare
-  [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md)
-  for a search that has not been run yet. For
+  object or a bare
+  [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md).
+  A record set supplies the counts and the retrieval provenance and,
+  through its `plan` attribute, the plan. A plan describes a search that
+  has not been run yet. For
   [`format()`](https://rdrr.io/r/base/format.html) and
   [`print()`](https://rdrr.io/r/base/print.html), the report object
   itself.
@@ -39,9 +40,9 @@ print(x, ...)
   Optional
   [`scopus_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_plan.md)
   describing `x`. Supply it when a record set does not carry one, for
-  example one read back from a `.csv`, a merged set, or one saved by
+  example one read back from a `.csv`, a merged set or one saved by
   [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
-  in the 0.4.0 release or earlier, which attached none. An explicit plan
+  in version 0.4.0 or earlier, which attached none. An explicit plan
   takes precedence over the one `x` carries. A one-cell plan supplied
   for a set without per-cell counts takes the set's own row count and
   `total_results`.
@@ -57,7 +58,7 @@ print(x, ...)
 
   Which rendering to return: `"report"` for the readable record that
   [`print()`](https://rdrr.io/r/base/print.html) shows, `"paragraph"`
-  for the methods paragraph, or `"markdown"` for the whole record as
+  for the methods paragraph or `"markdown"` for the whole record as
   Markdown, which is what `file` writes.
 
 - ...:
@@ -103,43 +104,45 @@ cells recorded (the `cell_totals` attribute
 [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md)
 attaches, or, for a set from a single search, its `total_results`),
 never an inference from the number of rows, and it is given overall only
-when every cell reported one; and the duplicates removed are those
+when every cell reported one. The duplicates removed are those
 [`scopus_combine()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_combine.md)
 recorded removing, matched by the rule it recorded. Where an attribute
 is absent, as it is for a set read back from a `.csv`, for the bundled
-corpus, and for a cell resumed from a checkpoint written before these
+corpus and for a cell resumed from a checkpoint written before these
 attributes existed, the record says the field is unrecorded and fills
 nothing in. This matters most for completeness: a harvest whose reported
 total is unknown is never described as exhaustive.
 
 A harvest capped by `max_results` says so. A cell that holds as many
 records as the cap allowed, where the API reported more or reported
-nothing, reads "stopped at the requested cap". The completeness line
+nothing, reads 'stopped at the requested cap'. The completeness line
 puts the shortfall down to the cap when every cell that fell short
 stopped at it, and otherwise counts the cells that did. Item 9 names the
 cap, or says that it did not bind, and the reproduction snippet passes
-it. The Python twin's `fetch_plan()` can also be stopped between cells,
-as its app's Cancel stops it. Its record then says how many of the
-planned cells ran, the years they covered and that the harvest is
-incomplete, and it marks the rest "not run". This package's harvests
-cannot stop part-way, but a set carrying those attributes is described
-the same way, so that the two records stay one rendering.
+it.
+
+A harvest by this package runs every cell of its plan, so
+`stopped_early` is `FALSE` and `not_run` is empty unless the set records
+a stop in its `stopped_early`, `cells_planned` and `cells_run`
+attributes. The record of such a set says how many of the planned cells
+were retrieved before the harvest was stopped.
 
 The PRISMA-S map is decided the same way. Items the package holds
 evidence for (the database and platform, that Scopus was searched on its
 own, the full strategy and the limits where a plan records them, the
-date, the totals, and de-duplication where it was performed) are listed
-as supplied. Without a plan, the year limit is unrecorded, not absent,
-and the record says so. The rest, among them peer review of the
-strategy, grey literature and citation searching, are listed as the
-author's to supply, because the package has no way to know them.
+date, the totals and de-duplication where it was performed) are listed
+as supplied. Without a plan, the record calls the year limit unrecorded,
+since it cannot tell whether one was applied. The rest, among them peer
+review of the strategy, grey literature and citation searching, are
+listed as the author's to supply, because the package has no way to know
+them.
 
 ## References
 
 Rethlefsen, M. L., Kirtley, S., Waffenschmidt, S., Ayala, A. P., Moher,
-D., Page, M. J., Koffel, J. B., & PRISMA-S Group. (2021). PRISMA-S: an
-extension to the PRISMA Statement for Reporting Literature Searches in
-Systematic Reviews. *Systematic Reviews*, *10*, 39.
+D., Page, M. J., Koffel, J. B., & PRISMA-S Group. (2021). PRISMA-S: An
+extension to the PRISMA statement for reporting literature searches in
+systematic reviews. *Systematic Reviews*, *10*, 39.
 [doi:10.1186/s13643-020-01542-z](https://doi.org/10.1186/s13643-020-01542-z)
 
 ## See also

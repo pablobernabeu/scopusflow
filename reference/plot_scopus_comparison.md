@@ -4,8 +4,8 @@ Draws a line chart of each comparison topic's share of the reference
 literature over time, from the output of
 [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md).
 The chart uses integer year breaks, a colour-blind-safe palette and, for
-a handful of topics, labels the lines directly so the reader need not
-consult a legend. Shaded bands convey how stable each yearly share is.
+a few topics, labels the lines directly, so that no legend is needed.
+Shaded bands show how stable each yearly share is.
 
 ## Usage
 
@@ -37,9 +37,9 @@ autoplot(object, ...)
 
 - highlight:
 
-  Optional character scalar naming one comparison topic to draw the eye
-  to. The named topic is drawn in an accent colour, and the others in
-  grey, which is useful when one topic is the focus of a figure.
+  Optional character scalar naming one comparison topic to emphasise.
+  The named topic is drawn in an accent colour, and the others in grey,
+  which is useful when one topic is the focus of a figure.
 
 - interval:
 
@@ -52,10 +52,11 @@ autoplot(object, ...)
   Logical. When `TRUE`, and a legend is drawn (that is, when `highlight`
   is not set), the legend is placed inside the plotting panel, in
   whichever corner has the most free space, on a small semi-transparent
-  background, where the default places it above the panel. Direct line
-  labelling is suppressed so the in-panel legend carries the topic key.
-  Defaults to `FALSE`, which keeps the legend above the panel, or the
-  direct line labels a few topics would otherwise receive.
+  background, where the default places it above the panel. The lines
+  then carry no direct labels, so that the legend in the panel
+  identifies the topics. Defaults to `FALSE`, which keeps the legend
+  above the panel, or the direct line labels a few topics would
+  otherwise receive.
 
 - ...:
 
@@ -72,8 +73,8 @@ object. Printing it draws the plot.
 
 ## Details
 
-This needs the suggested package ggplot2 and raises an informative error
-when it is absent. The chart shows the comparison topics alone, since
+This needs the suggested package ggplot2 and raises an error that says
+so when it is absent. The chart shows the comparison topics alone, since
 the reference is the 100% denominator against which they are measured. A
 year for which the reference has no records carries no defined share and
 is omitted, which is noted in the caption.

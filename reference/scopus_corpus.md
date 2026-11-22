@@ -6,18 +6,17 @@ tibble, such as the output of
 [`scopus_fetch()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch.md)
 or
 [`scopus_fetch_plan()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_fetch_plan.md),
-and enriches it with keywords (the author keywords by default, or the
-index keywords 'Scopus' assigns) and structured references via Abstract
-Retrieval, returning a minimal, uniform shape close to what OpenAlex's
-`works` API already returns: an `id`, the document's `scopus_id`, its
-`title` and `year`, `keywords` (a list-column of character vectors) and
-`references` (a list-column of data frames). This is meant for
-downstream tools that want to consume 'Scopus' output without writing
-their own parsing layer, for example for keyword co-occurrence or
-citation-network analysis. It does not replace
+and adds keywords (the author keywords by default, or the index keywords
+'Scopus' assigns) and structured references through Abstract Retrieval.
+The result has a minimal, uniform shape close to what OpenAlex's `works`
+API returns: an `id`, the document's `scopus_id`, its `title` and
+`year`, `keywords` (a list-column of character vectors) and `references`
+(a list-column of data frames). It is meant for other tools that read
+'Scopus' output, for example for keyword co-occurrence or
+citation-network analysis, so that they need no parser of their own. It
+does not replace
 [`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md),
-which keeps its own established field-mapping convention for users who
-want bibliometrix's tag names instead.
+which gives bibliometrix's tag names.
 
 ## Usage
 
@@ -70,9 +69,9 @@ scopus_corpus(
   As in
   [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md):
   an optional directory for per-identifier cache files, and whether an
-  existing one is reused. Worth setting for anything beyond a handful of
-  records, since this performs one Abstract Retrieval request per
-  record, against its own, smaller weekly quota.
+  existing one is reused. Set it for anything beyond a few records,
+  since this performs one Abstract Retrieval request per record, from
+  that API's own, smaller weekly quota.
 
 - api_key, inst_token:
 
@@ -87,7 +86,7 @@ scopus_corpus(
 
   Which keywords fill the `keywords` column: `"author"` (the default)
   for the author keywords, `"index"` for the index keywords 'Scopus'
-  assigns, or `"both"` for the author keywords followed by each index
+  assigns or `"both"` for the author keywords followed by each index
   keyword not already among them. The match is on the exact text, so a
   term that differs only in case appears twice. `"index"` and `"both"`
   need `view = "FULL"`, since the `REF` response carries no keywords of
@@ -100,20 +99,22 @@ scopus_corpus(
 
 ## Value
 
-A tibble with columns `id` (the identifier `records` was looked up by),
-`scopus_id` (the document's own 'Scopus' identifier, as Abstract
+A tibble with the columns `id` (the identifier `records` was looked up
+by), `scopus_id`, `title`, `year`, `keywords` and `references`.
+`scopus_id` is the document's own 'Scopus' identifier, as Abstract
 Retrieval gives it, or the `scopus_id` of `records` where the lookup
-failed or the `REF` response omitted it, and `NA` when neither has one),
-`title`, `year`, `keywords` (a list-column: a character vector of the
-document's keywords of the kind `keywords` names, split out of
-[`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)'s
-joined `authkeywords` and `idxterms` strings, empty when the document
-has none, the field is unavailable or `view = "REF"`) and `references`
-(a list-column: each entry is the `references` data frame
+failed or the `REF` response omitted it, and `NA` when neither has one.
+`keywords` is a list-column of character vectors, each holding a
+document's keywords of the kind `keywords` names, split out of the
+joined `authkeywords` and `idxterms` strings of
+[`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md).
+A vector is empty when the document has none, the field is unavailable
+or `view = "REF"`. `references` is a list-column holding, for each
+document, the `references` data frame
 [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
-returns for that document, with one row per cited work). A record in
-`records` whose identifier is `NA` is dropped, with a
-`scopus_warning_dropped_records` warning naming how many.
+returns, with one row per cited work. A record in `records` whose
+identifier is `NA` is dropped, with a `scopus_warning_dropped_records`
+warning naming how many.
 
 The number of Abstract Retrieval requests made and the most recently
 parsed quota are attached as the `n_requests` and `quota` attributes, as
@@ -131,32 +132,33 @@ absent when `records` carries neither.
 
 This performs one Abstract Retrieval request per usable record, or one
 per page of references under `view = "REF"`, on top of whatever
-retrieved `records` in the first place; see
-[`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)'s
-*API access* section for the entitlement `view = "FULL"`/`"REF"` needs
-and how a 403 is handled.
+retrieved `records` in the first place. The *API access* section of
+[`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
+gives the entitlement that `view = "FULL"` and `view = "REF"` need and
+how a 403 is handled.
 
 ## See also
 
 [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md),
-[`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md),
+[`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md)
 and
-[`write_scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_corpus.md)
-to write the corpus for theoryforge.
+[`write_scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_corpus.md),
+which writes the corpus for theoryforge.
 
 ## Examples
 
 ``` r
 if (FALSE) { # scopusflow::scopus_has_key()
-# Costs one Abstract Retrieval request per record, against a smaller,
-# separate weekly quota from Search; see the API access section above.
+# This costs one Abstract Retrieval request per record, from a weekly quota
+# separate from and smaller than Search's. See the API access section
+# above.
 recs <- scopus_fetch("DOI(10.1038/natrevmats.2016.33)", max_results = 1)
 corpus <- scopus_corpus(recs)
 corpus$keywords[[1]]
 corpus$references[[1]]
 }
-# The offline companion, which needs no key: one row per document, with
-# keywords and references as list-columns. The identifiers, titles and
+# The same shape offline, with no key: one row per document, with keywords
+# and references as list-columns. The identifiers, titles and
 # years are records of the bundled corpus of real articles, which stands in
 # for a harvest because 'Scopus' records may not be redistributed. It holds
 # no keywords, bibliographies or 'Scopus' identifiers, so the keywords and

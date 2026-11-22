@@ -17,7 +17,7 @@ JSON file. Neither needs theoryforge installed, and neither makes a request."><m
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -114,9 +114,9 @@ cited work one key across the whole corpus, its 'Scopus' identifier, as
 only, and in different cases. A key built from the DOI wherever there is one
 would therefore split one work into several nodes and lose the
 co-citation edges between them. A reference that carries only a DOI takes
-the 'Scopus' identifier that a document or reference
-elsewhere in the corpus pairs with the same DOI, the documents' own
-identifiers counting first. A DOI that nothing pairs with is keyed as
+the 'Scopus' identifier that a document or reference elsewhere in the
+corpus pairs with the same DOI, the documents' own identifiers counting
+first. A DOI that nothing pairs with is keyed as
 <code>doi:&lt;doi&gt;</code>, without its resolver prefix and with its ASCII letters
 lower-cased, since DOIs are case-insensitive over ASCII (DOI Handbook,
 section 2.4). A reference with neither is dropped, and a
@@ -129,12 +129,9 @@ first ten such rows when there are more), and <code>write_scopus_corpus()</code>
 writes nothing.</p>
 <p>Keywords are trimmed, lower-cased with <code><a href="https://rdrr.io/r/base/chartr.html" class="external-link">tolower()</a></code> and made unique, keeping
 the first of each, and empty ones are dropped, so <code>"Graphene"</code> and
-<code>"graphene "</code> count as one keyword. The Python twin lower-cases with
-<code>str.lower()</code>. The two agree on the Latin, Greek and Cyrillic letters in
-common use and differ on a few special cases, such as the Turkish capital I
-with a dot and a capital sigma ending a word, which Python writes as a
-final sigma. A missing year is written as <code>null</code>, and a missing title is
-left out, since the schema admits the one and not the other.</p>
+<code>"graphene "</code> count as one keyword. A missing year is written as <code>null</code>,
+and a missing title is left out, since the schema admits the one and not
+the other.</p>
 <p>The document also carries a <code>provenance</code> object, which the schema admits
 beside its own fields: <code>source</code> (<code>"Scopus via scopusflow &lt;version&gt;"</code>),
 <code>query</code>, <code>retrieved_at</code> (in UTC, as <code>YYYY-MM-DDTHH:MM:SSZ</code>), <code>keywords</code>,
@@ -147,8 +144,10 @@ entitlements (see <code><a href="scopus_abstract.html">scopus_abstract()</a></co
 themes empty whatever the writer does, and <code>n_records_without_keywords</code>
 shows when that happened.</p>
 <p>The file is UTF-8, with no escaping beyond what JSON requires, sorted keys,
-no spaces between tokens and one line feed at the end, so the same corpus
-gives the same bytes from either twin.</p>
+no spaces between tokens and one line feed at the end. The Python package
+scopusflow writes the same bytes for the same corpus, unless a keyword
+holds one of the few letters that its <code>str.lower()</code> lower-cases
+differently from <code><a href="https://rdrr.io/r/base/chartr.html" class="external-link">tolower()</a></code>, such as the Turkish capital I with a dot.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

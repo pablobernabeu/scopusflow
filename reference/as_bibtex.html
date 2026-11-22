@@ -15,7 +15,7 @@ unique within the export, and special characters are escaped."><meta property="o
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -84,8 +84,9 @@ unique within the export, and special characters are escaped.</p>
 
 
 <dt id="arg-file">file<a class="anchor" aria-label="anchor" href="#arg-file"></a></dt>
-<dd><p>Optional path to write to. With the default <code>NULL</code> the formatted
-string is returned; with a path it is written there and returned invisibly.
+<dd><p>Optional path to write to. With the default <code>NULL</code>, the
+formatted string is returned. With a path, it is written there and
+returned invisibly.
 Nothing is written unless a path is given.</p></dd>
 
 </dl></div>
@@ -113,13 +114,12 @@ series. The entries also carry the volume, issue, pages, ISSN and document
 type (RIS <code>M3</code>), and under <code>view = "COMPLETE"</code> the abstract. The entries of
 a set retrieved under <code>view = "COMPLETE"</code>, with the core fields or the
 extended ones, also carry the author keywords, one <code>KW</code> line each in RIS and
-joined by commas in BibTeX.
-Keywords are split at the <code>" | "</code> the Search API joins them with and at the
-<code>"; "</code> <code><a href="scopus_abstract.html">scopus_abstract()</a></code> joins its own with. A value the record lacks is
-left out, never filled in.</p>
+joined by commas in BibTeX. Keywords are split at the <code>" | "</code> the Search
+API joins them with and at the <code>"; "</code> <code><a href="scopus_abstract.html">scopus_abstract()</a></code> joins its own
+with. A value the record lacks is left out, never filled in.</p>
 <p>Names are written family name first, with a comma. Under the <code>STANDARD</code>
 view, the <code>authors</code> column holds 'Scopus' names in the form <code>Zhang F.</code>,
-which BibTeX would read as given name "Zhang" and family name "F.", so a
+which BibTeX would read as given name 'Zhang' and family name 'F.', so a
 name ending in initials is exported as <code>Zhang, F.</code>. BibTeX entries also
 space run-together initials (<code>Kitchin, J. R.</code>), which BibTeX otherwise
 takes for a single given name. Names that already carry a comma, as under
@@ -141,7 +141,7 @@ EID as the accession number (<code>AN  - 2-s2.0-&lt;scopus_id&gt;</code>).</p>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># On the bundled corpus of real articles, which stands in for a retrieval</span></span></span>
 <span class="r-in"><span><span class="co"># of your own because 'Scopus' records may not be redistributed. Only the</span></span></span>
-<span class="r-in"><span><span class="co"># opening of each export is shown; pass `file` to write the whole set.</span></span></span>
+<span class="r-in"><span><span class="co"># opening of each export is shown. Pass `file` to write the whole set.</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="fu">as_bibtex</span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">200</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> @article{jianhua2015,</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   author = {Jianhua Yu},</span>

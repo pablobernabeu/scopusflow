@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -91,12 +91,13 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pablobernabeu/scopusflow" class="external-link">scopusflow</a></span><span class="op">)</span></span></code></pre></div>
-<p>A retrieval is only as good as its query. This article shows how to
-compose correct, field-tagged ‘Scopus’ queries with
-<code><a href="../reference/scopus_query.html">scopus_query()</a></code>, which spares you pasting fragments together
-by hand, where a missing bracket or a mistyped tag quietly returns the
-wrong records. Everything here is string construction, so it all runs
-offline, and each query is shown as the literal string it produces.</p>
+<p><code><a href="../reference/scopus_query.html">scopus_query()</a></code> composes field-tagged ‘Scopus’ queries
+from separate terms. A query pasted together by hand can contain a
+missing bracket or a mistyped tag and return the wrong records without
+an error. Composing a query is string construction and runs offline
+without an API key. Each call is shown with the literal query string it
+returns. The steps that size or run a search contact the API, so they
+are shown but not run.</p>
 <div class="section level2">
 <h2 id="field-tags-decide-where-to-look">Field tags decide where to look<a class="anchor" aria-label="anchor" href="#field-tags-decide-where-to-look"></a>
 </h2>
@@ -161,14 +162,16 @@ offline, and each query is shown as the literal string it produces.</p>
 </tbody>
 </table>
 <p>The most generally useful tag is <code>TITLE-ABS-KEY</code>, which
-searches the title, abstract and keywords together, broad enough to
-catch a topic without the noise of a full-text match.</p>
+searches the title, abstract and keywords together. It is broad enough
+to find work on a topic without the incidental matches of a full-text
+search.</p>
 </div>
 <div class="section level2">
 <h2 id="one-term-many-disciplines">One term, many disciplines<a class="anchor" aria-label="anchor" href="#one-term-many-disciplines"></a>
 </h2>
-<p>The same builder serves any field. Each call below returns the exact
-query string that would be sent to ‘Scopus’.</p>
+<p><code><a href="../reference/scopus_query.html">scopus_query()</a></code> works the same way in any discipline.
+Each call below returns the exact query string that would be sent to
+‘Scopus’.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># molecular biology</span></span>
 <span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"CRISPR"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span></code></pre></div>
@@ -187,15 +190,15 @@ query string that would be sent to ‘Scopus’.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"digital humanities"</span>, .field <span class="op">=</span> <span class="st">"AUTHKEY"</span><span class="op">)</span>        <span class="co"># humanities</span></span></code></pre></div>
 <pre><code>[1] "AUTHKEY(digital humanities)"</code></pre>
 <p>The last example uses <code>AUTHKEY</code>, the author-supplied
-keywords, which isolates work that self-identifies with a field and so
-cuts incidental mentions.</p>
+keywords. It finds work whose authors chose the term as a keyword and so
+returns fewer records that mention it only in passing.</p>
 </div>
 <div class="section level2">
 <h2 id="combining-terms-with-boolean-operators">Combining terms with boolean operators<a class="anchor" aria-label="anchor" href="#combining-terms-with-boolean-operators"></a>
 </h2>
-<p>Passing several terms joins them. The default operator is
-<code>AND</code>, and <code>OR</code> or <code>AND NOT</code> are
-available through <code>.op</code>.</p>
+<p>Passing several terms joins them into one query. The default operator
+is <code>AND</code>, and <code>OR</code> or <code>AND NOT</code> are
+available through the <code>.op</code> argument.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Two concepts that must co-occur (materials science).</span></span>
 <span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"perovskite"</span>, <span class="st">"solar cell"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span></code></pre></div>
@@ -220,9 +223,9 @@ available through <code>.op</code>.</p>
 <p>‘Scopus’ joins the words of an unquoted term with AND, so
 <code>heart attack</code> finds records that mention both words anywhere
 in the searched field. Double quotation marks ask for a loose phrase,
-whose words must sit next to each other, although punctuation is ignored
-and plurals are included. Braces ask for an exact phrase, including any
-stop words, spaces and punctuation. Elsevier’s <a href="https://dev.elsevier.com/sc_search_tips.html" class="external-link">search tips</a>
+whose words must be adjacent, although punctuation is ignored and
+plurals are included. Braces ask for an exact phrase, including any stop
+words, spaces and punctuation. Elsevier’s <a href="https://dev.elsevier.com/sc_search_tips.html" class="external-link">search tips</a>
 describe all three.</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html" class="external-link">writeLines</a></span><span class="op">(</span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">'"heart attack"'</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span><span class="op">)</span> <span class="co"># loose phrase</span></span></code></pre></div>
@@ -232,9 +235,10 @@ describe all three.</p>
 <pre><code>TITLE-ABS-KEY({heart attack})</code></pre>
 <p><code><a href="../reference/scopus_query.html">scopus_query()</a></code> leaves both kinds of phrase as written.
 When terms are joined without a field tag, a term of several unquoted
-words is put in brackets, so it stays one operand of the join. Joined
-bare, the first query below would read as
-<code>machine AND (learning OR deep) AND learning</code>.</p>
+words is put in brackets, so it stays one operand of the join. Without
+the brackets, the first query below would read as
+<code>machine AND (learning OR deep) AND learning</code> under the
+operator order that the search tips give (see the next section).</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html" class="external-link">writeLines</a></span><span class="op">(</span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"machine learning"</span>, <span class="st">"deep learning"</span>, .op <span class="op">=</span> <span class="st">"OR"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code>(machine learning) OR (deep learning)</code></pre>
@@ -245,21 +249,22 @@ bare, the first query below would read as
 <div class="section level2">
 <h2 id="brackets-in-a-query-written-by-hand">Brackets in a query written by hand<a class="anchor" aria-label="anchor" href="#brackets-in-a-query-written-by-hand"></a>
 </h2>
-<p>A query that mixes operators needs brackets to say what it means. The
-search tips state that ‘Scopus’ applies OR first, then AND, then AND
-NOT, so <code>A AND NOT B AND C</code> reads as
+<p>A query that mixes operators needs brackets to make its grouping
+unambiguous. The search tips state that ‘Scopus’ applies OR first, then
+AND, then AND NOT, so <code>A AND NOT B AND C</code> reads as
 <code>A AND NOT (B AND C)</code>. Elsevier has announced a new order,
-with AND NOT first, then AND, then OR (<a href="https://blog.scopus.com/boolean-searches-in-scopus-understanding-operator-precedence-best-practices/" class="external-link">Feldner,
+with AND NOT first, then AND, then OR (<a href="https://web.archive.org/web/20260607011616/https://blog.scopus.com/boolean-searches-in-scopus-understanding-operator-precedence-best-practices/" class="external-link">Feldner,
 2025</a>), under which <code>A OR B AND C</code> reads as
-<code>A OR (B AND C)</code>. Brackets give the same reading under either
-order.</p>
-<p>The package brackets the strings it composes. A query built by an
-earlier <code><a href="../reference/scopus_query.html">scopus_query()</a></code> call keeps its own join together
-when it is joined again, as below, and
+<code>A OR (B AND C)</code>. The <a href="https://dev.elsevier.com/sc_search_tips.html" class="external-link">search tips</a> say
+that the change is due in 2026. Brackets give the same reading under
+either order.</p>
+<p>The package brackets the strings it composes.
 <code><a href="../reference/scopus_compare_topics.html">scopus_compare_topics()</a></code> and
 <code><a href="../reference/scopus_intersections.html">scopus_intersections()</a></code> bracket each side of their joins.
-The year limit of a plan, a count or a trend never enters the query
-string, since it travels as a separate request parameter.</p>
+The year limit of a plan, a count or a trend is sent as a separate
+request parameter and is never added to the query string. A query built
+by an earlier <code><a href="../reference/scopus_query.html">scopus_query()</a></code> call stays one operand when it
+is joined again, as in the example below.</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">young</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"children"</span>, <span class="st">"adolescents"</span>, .op <span class="op">=</span> <span class="st">"OR"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"vaccine"</span>, <span class="va">young</span><span class="op">)</span></span></code></pre></div>
@@ -268,9 +273,10 @@ string, since it travels as a separate request parameter.</p>
 <div class="section level2">
 <h2 id="from-a-query-to-a-plan">From a query to a plan<a class="anchor" aria-label="anchor" href="#from-a-query-to-a-plan"></a>
 </h2>
-<p>A composed query drops straight into the rest of the workflow. Here
-it anchors a year-partitioned plan, which keeps each cell under the
-API’s 5000-record ceiling.</p>
+<p>A composed query can be passed directly to the rest of the workflow.
+The example below uses it as the query of a year-partitioned plan, which
+keeps each cell under the API’s 5000-record ceiling for offset paging,
+provided that no single year matches more than 5000 records.</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">q</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"gut microbiome"</span>, <span class="st">"immunology"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span>
 <span><span class="va">q</span></span></code></pre></div>
@@ -370,21 +376,22 @@ TITLE-ABS-KEY(immunology)</td>
 </tr>
 </tbody>
 </table>
-<p>The plan is ready to size and run, which contacts the API.</p>
+<p>Sizing and running the plan contact the API, so the two calls below
+are not run here.</p>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_count.html">scopus_count</a></span><span class="op">(</span><span class="va">q</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2022</span><span class="op">)</span></span>
 <span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan</a></span><span class="op">(</span><span class="va">plan</span><span class="op">)</span></span></code></pre></div>
-<p>Without a key, <code><a href="../articles/scopusflow.html">vignette("scopusflow")</a></code> carries the same
-two steps through to a record set, standing the bundled corpus of real
-articles in for the harvest, since ‘Scopus’ records may not be
-redistributed.</p>
+<p>Without a key, <code><a href="../articles/scopusflow.html">vignette("scopusflow")</a></code> follows the same
+two steps through to a record set. ‘Scopus’ records may not be
+redistributed, so the bundled corpus of published articles stands in for
+the harvest.</p>
 </div>
 <div class="section level2">
 <h2 id="searching-by-affiliation">Searching by affiliation<a class="anchor" aria-label="anchor" href="#searching-by-affiliation"></a>
 </h2>
-<p>Field tags reach beyond topics. <code>AFFILORG</code> searches the
-affiliation, which turns a query into an institution-level view of
-output.</p>
+<p>Field tags can also search parts of a record that do not describe its
+topic. <code>AFFILORG</code> searches the affiliation organisation name,
+so a query can retrieve the output of an institution.</p>
 <div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"Max Planck"</span>, .field <span class="op">=</span> <span class="st">"AFFILORG"</span><span class="op">)</span></span></code></pre></div>
 <pre><code>[1] "AFFILORG(Max Planck)"</code></pre>
@@ -392,8 +399,10 @@ output.</p>
 <div class="section level2">
 <h2 id="when-a-term-is-empty">When a term is empty<a class="anchor" aria-label="anchor" href="#when-a-term-is-empty"></a>
 </h2>
-<p>The builder validates its input, so a stray empty term is caught at
-construction, well before it can produce a malformed query.</p>
+<p><code><a href="../reference/scopus_query.html">scopus_query()</a></code> checks its terms as it builds the query.
+An empty or whitespace-only term raises
+<code>scopus_error_bad_input</code> before a malformed query can be
+produced.</p>
 <div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"graphene"</span>, <span class="st">""</span><span class="op">)</span>,</span>
@@ -408,13 +417,13 @@ construction, well before it can produce a malformed query.</p>
 <code><a href="../reference/scopus_fetch.html">scopus_fetch()</a></code>, <code><a href="../reference/scopus_trend.html">scopus_trend()</a></code>,
 <code><a href="../reference/scopus_compare_topics.html">scopus_compare_topics()</a></code> and
 <code><a href="../reference/scopus_intersections.html">scopus_intersections()</a></code> check each query offline before
-anything is sent, and refuse three mistakes. Refinement syntax copied
-from the web interface, such as <code>LIMIT-TO(DOCTYPE, "ar")</code>, is
-ignored by the Search API, so the search would run unfiltered with no
-sign of a problem. A field tag wrapped around a query that already opens
-with one is rejected by the API. A bracket, quotation mark or brace left
-unclosed changes what the rest of the query means. Each raises
-<code>scopus_error_bad_input</code> with a message saying what to write
+anything is sent and raise <code>scopus_error_bad_input</code> for three
+mistakes. Refinement syntax copied from the web interface, such as
+<code>LIMIT-TO(DOCTYPE, "ar")</code>, is ignored by the Search API, so
+the search would run unfiltered with no sign of a problem. A field tag
+wrapped around a query that already opens with one is rejected by the
+API. A bracket, quotation mark or brace left unclosed changes what the
+rest of the query means. The message of each error says what to write
 instead.</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span></span>
@@ -435,30 +444,34 @@ PUBYEAR &gt; 2015.</code></pre>
 <code>TITLE-ABS-KEY ( "working memory" )</code>, is sent as written when
 <code>field</code> is left as <code>NULL</code>.
 <code>INDEXTERMS()</code>, which pybliometrics documents as not working
-through the Search API, raises a warning, and <code>KEY()</code>
-searches the index terms together with author keywords, trade names and
-chemical names.</p>
+through the Search API, raises a warning. <code>KEY()</code> searches
+the index terms together with author keywords, trade names and chemical
+names.</p>
 </div>
 <div class="section level2">
 <h2 id="checking-recall-against-known-records">Checking recall against known records<a class="anchor" aria-label="anchor" href="#checking-recall-against-known-records"></a>
 </h2>
-<p>A search strategy can be tested against records already known to be
-relevant, for instance the studies included in an earlier review or
-those named by experts, collected without the strategy’s help. The share
-of them the strategy retrieves is its relative recall (<a href="https://doi.org/10.1186/1471-2288-6-33" class="external-link">Sampson et al., 2006</a>),
-and <a href="https://doi.org/10.5195/jmla.2018.283" class="external-link">Bramer et
-al. (2018)</a> make the check a step in developing a search. It takes
-two searches per chain of DOIs, run under the same year limit. The chain
-alone finds which known records ‘Scopus’ indexes, and the strategy
-joined to the chain finds which of those it retrieves. A known record
-the chain does not find, because ‘Scopus’ does not index it or holds it
-without that DOI, cannot show whether the strategy finds it. It is left
-out of the denominator and listed, so it can be checked by hand.</p>
-<p>The sketch below contacts the API, so it is not run here. The DOIs
-are placeholders for your own, and <code><a href="../reference/scopus_extract_dois.html">scopus_extract_dois()</a></code>
-cleans them first, so a resolver prefix or a difference in case does no
-harm. Chains of at most 25 DOIs keep each request short. How the API
-treats much longer chains has not been checked.</p>
+<p>A search strategy can be tested against records that are already
+known to be relevant and were collected independently of it, for
+instance the studies included in an earlier review or those named by
+experts. The share of them the strategy retrieves is its relative recall
+(<a href="https://doi.org/10.1186/1471-2288-6-33" class="external-link">Sampson et al.,
+2006</a>), and <a href="https://doi.org/10.5195/jmla.2018.283" class="external-link">Bramer et
+al. (2018)</a> make the check a step in developing a search.</p>
+<p>The check runs two searches for each chain of DOIs joined by OR, both
+under the same year limit. The chain alone finds which known records
+‘Scopus’ indexes, and the strategy joined to the chain finds which of
+those it retrieves. A known record the chain does not find, because
+‘Scopus’ does not index it or holds it without that DOI, cannot show
+whether the strategy finds it. It is left out of the denominator and
+listed, so it can be checked by hand.</p>
+<p>The sketch below contacts the API, so it is not run here. Its DOIs
+are placeholders for your own. <code><a href="../reference/scopus_extract_dois.html">scopus_extract_dois()</a></code> strips
+resolver prefixes from them and removes duplicates without regard to
+case, and the sketch compares DOIs in lower case, so a resolver prefix
+or a difference in case does no harm. Chains of at most 25 DOIs keep
+each request short. How the API treats much longer chains has not been
+checked.</p>
 <div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">known</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"10.xxxx/known-1"</span>, <span class="st">"https://doi.org/10.xxxx/known-2"</span>, <span class="st">"doi:10.xxxx/known-3"</span><span class="op">)</span></span>
@@ -481,8 +494,9 @@ treats much longer chains has not been checked.</p>
 <span><span class="op">}</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">not_found</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/chartr.html" class="external-link">tolower</a></span><span class="op">(</span><span class="va">known</span><span class="op">)</span>, <span class="va">indexed</span><span class="op">)</span></span>
 <span><span class="va">relative_recall</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">retrieved</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">indexed</span><span class="op">)</span></span></code></pre></div>
-<p>The figure describes the strategy against this reference set alone,
-so report the set, its source and the DOIs left out alongside it.</p>
+<p>The relative recall describes the strategy against this reference set
+alone, so report the set, its source and the DOIs left out alongside
+it.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

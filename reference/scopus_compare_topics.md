@@ -1,11 +1,10 @@
 # Compare publication trends across topics
 
-Compares how often a set of *comparison* topics co-occur with a
-*reference* topic over time. For each year and each comparison term, the
-number of records matching the reference combined with that term is
-expressed as a percentage of the records matching the reference alone.
-This reveals which sub-topics are growing or shrinking within a
-literature.
+Compares how often a set of comparison topics co-occur with a reference
+topic over time. For each year and each comparison term, the number of
+records matching the reference combined with that term is expressed as a
+percentage of the records matching the reference alone. This reveals
+which sub-topics are growing or shrinking within a literature.
 
 ## Usage
 
@@ -69,8 +68,8 @@ scopus_compare_topics(
 A tibble of class `scopus_comparison` with the columns `query` (the full
 query used), `query_type` (`"reference"` or `"comparison"`),
 `abridged_query` (the topic label for plotting), `year`, `n` (records
-that year, as a double so very large counts are exact), `reference_n`
-(reference records that year, likewise a double),
+that year, as a double, so that very large counts are exact),
+`reference_n` (reference records that year, likewise a double),
 `comparison_percentage` (`100 * n / reference_n`, or `NA` when
 `reference_n` is 0) and `average_comparison_percentage` (the same ratio
 computed on period totals, over the years where both counts are

@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -91,19 +91,19 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pablobernabeu/scopusflow" class="external-link">scopusflow</a></span><span class="op">)</span></span></code></pre></div>
-<p>The Elsevier Scopus Search API is generous but bounded. A weekly
-quota limits how many requests you may make, a short-term rate limit
-caps how fast you may make them, and under the ordinary offset paging no
-single query will return more than its first 5000 records. This article
-shows how scopusflow works within those bounds so that a large retrieval
-is reproducible, efficient and resumable. The steps that contact the API
+<p>The Elsevier Scopus Search API bounds a retrieval in three ways. A
+weekly quota limits how many requests you may make, a short-term rate
+limit caps how fast you may make them, and the ordinary offset paging
+stops at the first 5000 records of a query. This article shows how
+scopusflow works within those bounds to make a large retrieval
+reproducible, efficient and resumable. The steps that contact the API
 need a key and are not run here. Everything else runs offline.</p>
 <div class="section level2">
 <h2 id="a-query-built-safely">A query, built safely<a class="anchor" aria-label="anchor" href="#a-query-built-safely"></a>
 </h2>
 <p>Most queries combine a few terms under a field tag.
 <code><a href="../reference/scopus_query.html">scopus_query()</a></code> assembles them without the bracket and tag
-mistakes that creep in when fragments are pasted together by hand.</p>
+mistakes that arise when fragments are pasted together by hand.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">q</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_query.html">scopus_query</a></span><span class="op">(</span><span class="st">"language learning"</span>, <span class="st">"effect size"</span>, .field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span>
 <span><span class="va">q</span></span></code></pre></div>
@@ -174,7 +174,9 @@ mistakes that creep in when fragments are pasted together by hand.</p>
 </h2>
 <p>A plan records exactly what will be fetched, so it can be saved,
 reviewed and re-run. Partitioning by year is the recommended way to stay
-under the 5000-record ceiling, since each year becomes its own cell.</p>
+under the 5000-record ceiling of offset paging, since each year becomes
+its own cell, provided that no single year matches more than 5000
+records.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">plan</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="va">q</span>, years <span class="op">=</span> <span class="fl">2010</span><span class="op">:</span><span class="fl">2020</span>, partition <span class="op">=</span> <span class="st">"year"</span><span class="op">)</span></span>
 <span><span class="va">plan</span></span></code></pre></div>
@@ -297,21 +299,19 @@ TITLE-ABS-KEY(effect size)</td>
 </tr>
 </tbody>
 </table>
-<p>Each cell carries the query, the year, the view and the page size.
-The page size deserves a moment’s attention, because it is where quota
-is won or lost.</p>
+<p>Each cell carries the query, the year, the view and the page
+size.</p>
 </div>
 <div class="section level2">
 <h2 id="why-page-size-is-a-quota-decision">Why page size is a quota decision<a class="anchor" aria-label="anchor" href="#why-page-size-is-a-quota-decision"></a>
 </h2>
-<p>Scopus charges quota by the request, whatever a request brings back.
-A page may hold up to 200 records under the <code>STANDARD</code> view,
-or 25 under <code>COMPLETE</code>, so retrieving a thousand records in
-pages of 200 costs five requests where pages of 25 would cost forty. For
-that reason <code>page_size</code> defaults to the largest the view
-allows, which is the same efficiency <code>rscopus</code> relies on, and
-is in no sense an evasion of the quota. Every request is counted, and
-the 5000-record ceiling still holds.</p>
+<p>Scopus charges quota by the request. A page may hold up to 200
+records under the <code>STANDARD</code> view, or 25 under
+<code>COMPLETE</code>, so retrieving a thousand records in pages of 200
+costs five requests where pages of 25 would cost forty. For that reason,
+<code>page_size</code> defaults to the largest page the view allows, as
+<code>rscopus</code> also does. At any page size, every request is
+counted and the 5000-record ceiling holds.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="va">q</span>, view <span class="op">=</span> <span class="st">"STANDARD"</span><span class="op">)</span><span class="op">$</span><span class="va">page_size</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span></code></pre></div>
 <pre><code>[1] 200</code></pre>
@@ -323,15 +323,15 @@ the 5000-record ceiling still holds.</p>
 <h2 id="sizing-before-spending">Sizing before spending<a class="anchor" aria-label="anchor" href="#sizing-before-spending"></a>
 </h2>
 <p>Counting is cheap and does not download records, so it is worth doing
-first. The count comes back with the parsed quota attached, which lets a
-workflow decide whether it has the allowance to proceed.</p>
+first. A workflow can read the parsed quota attached to the count and
+decide whether enough quota remains to proceed.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_count.html">scopus_count</a></span><span class="op">(</span><span class="va">q</span>, years <span class="op">=</span> <span class="fl">2010</span><span class="op">:</span><span class="fl">2020</span><span class="op">)</span></span>
 <span><span class="va">n</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">n</span>, <span class="st">"quota"</span><span class="op">)</span></span></code></pre></div>
-<p>That allowance is parsed from the response headers by
+<p>The quota is parsed from the response headers by
 <code><a href="../reference/scopus_quota.html">scopus_quota()</a></code>. To show its shape without a network call,
-apply it to a constructed response.</p>
+apply the function to a constructed response.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">resp</span> <span class="op">&lt;-</span> <span class="fu">httr2</span><span class="fu">::</span><span class="fu"><a href="https://httr2.r-lib.org/reference/response.html" class="external-link">response</a></span><span class="op">(</span></span>
 <span>  status_code <span class="op">=</span> <span class="fl">200</span>,</span>
@@ -361,11 +361,11 @@ $retry_after
 <h2 id="fetching-with-caching-and-resume">Fetching, with caching and resume<a class="anchor" aria-label="anchor" href="#fetching-with-caching-and-resume"></a>
 </h2>
 <p><code><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan()</a></code> runs each cell in turn. Given a
-cache directory it writes each cell to disk as it completes, so a run
+cache directory, it writes each cell to disk as it completes, so a run
 interrupted halfway, or stopped by the quota, resumes from where it left
-off and never pays twice for the same cell. The plan below keeps its
-cells in a directory of its own inside the managed cache, for the reason
-the next paragraph gives.</p>
+off and never spends quota twice on the same cell. The plan below keeps
+its cells in a directory of its own inside the managed cache, the
+directory returned by <code><a href="../reference/scopus_cache_dir.html">scopus_cache_dir()</a></code>.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan</a></span><span class="op">(</span></span>
 <span>  <span class="va">plan</span>,</span>
@@ -373,32 +373,37 @@ the next paragraph gives.</p>
 <span>  resume <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">records</span></span></code></pre></div>
-<p>A cache directory serves one plan. Cells are checkpointed by their
-position in the plan and their year, so a second plan pointed at the
-same directory could otherwise be paired with the first plan’s
-checkpoints. Before loading one, <code><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan()</a></code> checks
-that the query, year, view, page size, paging mode and record cap it was
-written under all match the cell being run, and refetches with a warning
-when they do not. A checkpoint holding more records than the current
+<p>A cache directory belongs to one plan. Cells are checkpointed by
+their position in the plan and their year, so a second plan pointed at
+the same directory could otherwise be paired with the first plan’s
+checkpoints. Before loading a checkpoint,
+<code><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan()</a></code> checks that the query, year, view, page
+size, paging mode and record cap it was written under all match the cell
+being run, and refetches with a warning when they do not. Give each plan
+its own directory all the same.</p>
+<p>A checkpoint holding more records than the current
 <code>max_results</code> asks for is served trimmed to that cap, with
 the fuller set left on disk for a later, wider request. A checkpoint
 that stopped at a smaller cap than is being asked for now is a mismatch,
 refetched with a warning. One that ran to the end of its result set is
-not, however few records that turned out to be, because there is nothing
-further to fetch. The clean arrangement is still a separate directory
-per plan.</p>
-<p>The cache lives under <code><a href="../reference/scopus_cache_dir.html">scopus_cache_dir()</a></code>. To force a
-fresh retrieval, empty it with <code><a href="../reference/scopus_cache_clear.html">scopus_cache_clear()</a></code>, which
-removes every plan’s directory inside it. Both are shown but not run, so
-the article does not touch a real cache.</p>
+not a mismatch, however few records it holds, because there is nothing
+further to fetch. Likewise, a checkpoint fetched with
+<code>fields = "extended"</code> serves a core harvest with the extra
+columns dropped, while a core checkpoint is refetched with a warning for
+an extended harvest.</p>
+<p>To force a fresh retrieval, empty the managed cache with
+<code><a href="../reference/scopus_cache_clear.html">scopus_cache_clear()</a></code>, which removes every plan’s directory
+inside it. Both functions are shown below but not run, so building the
+article leaves any existing cache intact.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_cache_dir.html">scopus_cache_dir</a></span><span class="op">(</span><span class="op">)</span>    <span class="co"># where completed cells are written</span></span>
 <span><span class="fu"><a href="../reference/scopus_cache_clear.html">scopus_cache_clear</a></span><span class="op">(</span><span class="op">)</span>  <span class="co"># remove them, so the next run re-fetches from scratch</span></span></code></pre></div>
-<p>The result is a <code>scopus_records</code> tibble, the same shape
-returned by <code><a href="../reference/scopus_fetch.html">scopus_fetch()</a></code> for a single query. Without a
-key, the bundled <code>example_records</code> stands in for it: 138 real
-journal articles in that same schema, shipped because Scopus records may
-not be redistributed.</p>
+<p>The result of <code><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan()</a></code> is a
+<code>scopus_records</code> tibble, the same shape returned by
+<code><a href="../reference/scopus_fetch.html">scopus_fetch()</a></code> for a single query. Without a key, the
+bundled <code>example_records</code> stands in for it. It holds 138
+published journal articles in that same schema and is included because
+Scopus records may not be redistributed.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
@@ -513,24 +518,23 @@ vacuum-assisted thermal process for electrochemical energy storage</td>
 <div class="section level2">
 <h2 id="watching-progress">Watching progress<a class="anchor" aria-label="anchor" href="#watching-progress"></a>
 </h2>
-<p>Per-cell progress is silent by default and switched on with
-<code>verbose = TRUE</code>, worth doing for a harvest spanning many
-years.</p>
+<p>Per-cell progress is silent by default. For a harvest that spans many
+years, it is worth setting <code>verbose = TRUE</code>, which reports a
+line as each cell is fetched or loaded from cache.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">records</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan</a></span><span class="op">(</span></span>
 <span>  <span class="va">plan</span>,</span>
 <span>  cache_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="../reference/scopus_cache_dir.html">scopus_cache_dir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"language-learning-effect-size"</span><span class="op">)</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>A line is reported as each cell is fetched or loaded from cache.</p>
 </div>
 <div class="section level2">
 <h2 id="combining-separate-retrievals">Combining separate retrievals<a class="anchor" aria-label="anchor" href="#combining-separate-retrievals"></a>
 </h2>
-<p>Results gathered in separate runs combine safely with
+<p>Results gathered in separate runs are combined with
 <code><a href="../reference/scopus_combine.html">scopus_combine()</a></code>, which renumbers the records and can drop
 duplicates by Scopus identifier or DOI. This is preferable to
-<code><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind()</a></code>, which would leave duplicate entry numbers. Here a
+<code><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind()</a></code>, which would leave duplicate entry numbers. Here, a
 baseline retrieval that stopped at 2023 is merged with a later one
 covering the whole period.</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
@@ -538,13 +542,12 @@ covering the whole period.</p>
 <span><span class="va">combined</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_combine.html">scopus_combine</a></span><span class="op">(</span><span class="va">baseline</span>, <span class="va">example_records</span>, dedupe <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">combined</span><span class="op">)</span></span></code></pre></div>
 <pre><code>[1] 149</code></pre>
-<p>The 138 distinct articles come back as 149 rows, which is worth
-understanding before reaching for a workaround. De-duplication needs
-something to match on. These records carry no Scopus identifier, never
-having come from Scopus, so it falls back to the DOI, and the eleven
-that arrived without one cannot be matched to their own copies. A live
-Scopus harvest carries an identifier on every record, so the same call
-would return 138.</p>
+<p>The 138 distinct articles come back as 149 rows. De-duplication needs
+an identifier to match on, and these records carry no Scopus identifier,
+never having come from Scopus. Matching therefore falls back to the DOI,
+and the eleven articles without a DOI cannot be matched to their own
+copies. A live Scopus harvest carries an identifier on every record, so
+the same call would return 138.</p>
 </div>
 <div class="section level2">
 <h2 id="writing-the-search-up">Writing the search up<a class="anchor" aria-label="anchor" href="#writing-the-search-up"></a>
@@ -552,19 +555,18 @@ would return 138.</p>
 <p>A harvest is rarely the end of the work. A systematic review has to
 report the search itself, in enough detail that a reader can repeat it,
 and the reporting standard for that is PRISMA-S (<a href="https://doi.org/10.1186/s13643-020-01542-z" class="external-link">Rethlefsen et al.,
-2021</a>). <code><a href="../reference/scopus_search_report.html">scopus_search_report()</a></code> assembles the record from
-what the plan and the harvest already carry, so the methods section is
-written from the objects and never from memory.</p>
+2021</a>). <code><a href="../reference/scopus_search_report.html">scopus_search_report()</a></code> assembles the search
+record from what the plan and the harvest already carry.</p>
 <p>A plan on its own can be reported before it is run, which is useful
 when a protocol has to be registered in advance. The plan below
 describes a Scopus search for the phrase the bundled corpus was drawn
-on, quoted so that Scopus searches the two words as a phrase. The corpus
-itself came from OpenAlex’s exact-phrase search for “graphene
-supercapacitor” in titles and abstracts, limited to journal articles, on
-22 July 2026. A Scopus run of this plan would return a different set of
-records. Without the quotation marks Scopus would join the two words
-with AND, and in OpenAlex the unquoted words match about a hundred times
-as many records.</p>
+on. The corpus itself came from OpenAlex’s exact-phrase search for
+‘graphene supercapacitor’ in titles and abstracts, limited to journal
+articles, on 22 July 2026. A Scopus run of this plan would return a
+different set of records. The query puts the two words in quotation
+marks so that Scopus searches them as a phrase. Without the quotation
+marks, Scopus would join the two words with AND, and in OpenAlex the
+unquoted words match about a hundred times as many records.</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">graphene</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_plan.html">scopus_plan</a></span><span class="op">(</span><span class="st">'"graphene supercapacitor"'</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2024</span>,</span>
 <span>                        field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span>, partition <span class="op">=</span> <span class="st">"year"</span><span class="op">)</span></span>
@@ -627,25 +629,23 @@ PRISMA-S items only you can supply
 The reporting standard is PRISMA-S (Rethlefsen et al., 2021, Systematic Reviews, 10, 39, https://doi.org/10.1186/s13643-020-01542-z), with the identification counts of the PRISMA 2020 flow diagram.
 
 The methods paragraph is format(x, style = "paragraph"); pass file = to write the whole record as Markdown.</code></pre>
-<p>Notice how much of it says “unrecorded”. Nothing has been retrieved
-yet, so there is nothing to state, and the report says so in words,
-since a blank there would be read as a zero. That is the governing rule
-throughout: the record states only what the objects hold. It never
-substitutes the current time for a retrieval that did not record one,
-never gives a completeness figure for a harvest whose reported total is
-unknown, and never counts duplicates unless a merge recorded removing
-them.</p>
-<p>After a harvest the picture fills in.
+<p>Much of the record says ‘unrecorded’. Nothing has been retrieved yet,
+so there is nothing to state, and the record says so in words because a
+blank would be read as a zero. Throughout, the record states only what
+the objects hold. It never substitutes the current time for a retrieval
+that did not record one, never gives a completeness figure for a harvest
+whose reported total is unknown, and never counts duplicates unless a
+merge recorded removing them.</p>
+<p>After a harvest, the record fills in.
 <code><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan()</a></code> attaches the plan, the retrieval time,
-the version, the paging mode and the per-cell accounting, so the report
-has everything it needs and you never set any of it yourself. The
-bundled corpus stands in for a harvest here, since Scopus records may
-not be redistributed, so those attributes are written out below to show
-what each one contributes. Their values are illustrative, so the record
-they produce describes no search that was run. The retrieval time and
-the version are set by hand. Each cell’s reported total is the number of
-bundled records in its year, a count from the OpenAlex search that the
-Scopus API never gave.</p>
+the version, the paging mode and the per-cell accounting, and you never
+set any of them yourself. Here, the bundled corpus stands in for a
+harvest, since Scopus records may not be redistributed. Those attributes
+are therefore written out below to show what each one contributes. Their
+values are illustrative, so the record they produce describes no search
+that was run. The retrieval time and the version are set by hand. Each
+cell’s reported total is the number of bundled records in its year, a
+count from the OpenAlex search that the Scopus API never gave.</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Illustrative values, set by hand. No Scopus search was run.</span></span>
 <span><span class="va">records</span> <span class="op">&lt;-</span> <span class="va">example_records</span></span>
@@ -718,44 +718,46 @@ PRISMA-S items only you can supply
 The reporting standard is PRISMA-S (Rethlefsen et al., 2021, Systematic Reviews, 10, 39, https://doi.org/10.1186/s13643-020-01542-z), with the identification counts of the PRISMA 2020 flow diagram.
 
 The methods paragraph is format(x, style = "paragraph"); pass file = to write the whole record as Markdown.</code></pre>
-<p>The completeness lines are worth a moment. Each cell is shown against
-the number of records the API reported for it, so a cell that came back
-short stays visible where a total would have hidden it, and the overall
-figure is given only because every cell reported one. Drop any of those
-attributes and the corresponding line says so instead. A harvest run
-with <code>max_results</code> records its cap. A cell that stopped at
-the cap says so, the completeness line says how much of the shortfall
-the cap explains, item 9 names the cap and the snippet passes it.</p>
+<p>The completeness lines show each cell against the number of records
+the API reported for it, so a cell that came back short stays visible
+where a total would have hidden it. The overall figure is given only
+because every cell reported one. Drop any of those attributes and the
+corresponding line says so instead.</p>
+<p>A harvest run with <code>max_results</code> records its cap. The
+search record marks each cell that stopped at the cap, and the
+completeness line says how much of the shortfall the cap explains. The
+record’s entry for PRISMA-S item 9 names the cap, and the snippet that
+rebuilds the plan passes it.</p>
 <p>The methods paragraph is the same record as prose, ready to paste
 into a manuscript and edit.</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span><span class="va">report</span>, style <span class="op">=</span> <span class="st">"paragraph"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code>The literature was searched in Scopus, on the Elsevier Scopus Search API, on 22 July 2026. The search expression was TITLE-ABS-KEY("graphene supercapacitor"), limited to publication years 2015 to 2024. It was partitioned into 10 cells, one per year, each retrieved through the STANDARD view in pages of 200 records under offset paging. The search retrieved 138 records, matching the 138 the API reported, so every reported record was retrieved. Of the records retrieved, 127 carry a DOI. No de-duplication step was recorded for this set. The search was run with scopusflow 0.3.0. The PRISMA-S items this record cannot supply, among them peer review of the strategy, grey literature and any other database searched, remain yours to report.</code></pre>
 <p>Supplying a <code>file</code> writes the whole record as Markdown,
-including a runnable snippet that rebuilds the plan, which makes a
-natural supplementary file.</p>
+including a runnable snippet that rebuilds the plan. The file can serve
+as supplementary material.</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/scopus_search_report.html">scopus_search_report</a></span><span class="op">(</span><span class="va">records</span>, file <span class="op">=</span> <span class="st">"search-record.md"</span><span class="op">)</span></span></code></pre></div>
 <p>Six of the sixteen PRISMA-S items are answered here from the objects,
 and a seventh, de-duplication, would be too had these records been
 merged with <code><a href="../reference/scopus_combine.html">scopus_combine()</a></code>. The rest, among them peer
 review of the strategy and grey literature, are listed as yours to
-supply, because the package has no way to know them. Any other database
-the review searched is yours to name as well.</p>
+supply, because the objects do not record them. Any other database the
+review searched is yours to name as well.</p>
 </div>
 <div class="section level2">
-<h2 id="when-the-ceiling-bites">When the ceiling bites<a class="anchor" aria-label="anchor" href="#when-the-ceiling-bites"></a>
+<h2 id="retrieving-more-than-5000-records">Retrieving more than 5000 records<a class="anchor" aria-label="anchor" href="#retrieving-more-than-5000-records"></a>
 </h2>
 <p>Under offset paging, a query matching more than 5000 records cannot
 be retrieved in full from a single call. <code><a href="../reference/scopus_fetch.html">scopus_fetch()</a></code>
 returns the first 5000 and warns. One remedy is to split the search by
-year, or by any other facet, so that each cell stays under the ceiling,
-and <code><a href="../reference/scopus_count.html">scopus_count()</a></code> tells you in advance whether a split is
-needed. The other is <code>scopus_fetch(cursor = TRUE)</code>, which
-follows the API’s cursor in place of an offset and retrieves the whole
-set in one call, with the records arriving in deep-paging order. The
-<em>Analysing a literature</em> article weighs the two. A plan gives
-cached, resumable cells, the cursor a complete set in a single pass.</p>
+year, or by any other facet, so that each cell stays under the ceiling.
+<code><a href="../reference/scopus_count.html">scopus_count()</a></code> tells you in advance whether a split is
+needed. The other remedy is <code>scopus_fetch(cursor = TRUE)</code>,
+which follows the API’s cursor in place of an offset and retrieves the
+whole set in one call. The records then arrive in deep-paging order. The
+<em>Analysing a literature</em> article weighs a plan’s cached,
+resumable cells against the cursor’s complete set in a single pass.</p>
 <p><code>scopus_fetch_plan(plan, cursor = TRUE)</code> combines the two
 remedies. It pages every cell of a plan by cursor, so a single year that
 matches more than 5000 records is retrieved whole and keeps its
@@ -767,9 +769,10 @@ checkpoint.</p>
 <span>  cursor <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Inside a plan, the warning for a cell that stops at the ceiling names
-that call, since the cell is already partitioned. Plans page by offset
-unless asked otherwise. A checkpoint records the mode it was fetched
-under and serves only a request in the same mode, so switching modes
+<code>scopus_fetch_plan(plan, cursor = TRUE)</code>, since the cell is
+already partitioned. Plans page by offset unless given
+<code>cursor = TRUE</code>. A checkpoint records the mode it was fetched
+under and serves only a harvest in the same mode, so switching modes
 fetches each cell again. The Python twin’s <code>fetch_plan()</code>
 pages by cursor by default, and by offset when given
 <code>cursor=False</code>, the route pybliometrics documents for keys
@@ -792,11 +795,11 @@ them and carry on.</p>
 <span>    <span class="cn">NULL</span></span>
 <span>  <span class="op">}</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>Because each completed cell is already cached, resuming after such a
-pause costs nothing for the work already done.</p>
+<p>Because each completed cell is cached, resuming after such a pause
+costs nothing for the work already done.</p>
 <p>Elsevier answers throttling and a spent weekly quota alike with HTTP
 429. Throttling is retried with back-off before any condition is raised.
-A spent quota is not, since it resets only days later. It arrives as
+A spent quota is not, since it resets only days later. It is raised as
 <code>scopus_error_quota_exceeded</code>, a subclass of
 <code>scopus_error_rate_limit</code>, so the handler above catches it
 too, and its message gives the time the quota resets.</p>

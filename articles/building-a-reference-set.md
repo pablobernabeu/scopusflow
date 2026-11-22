@@ -5,12 +5,12 @@
 library(scopusflow)
 ```
 
-A retrieval becomes useful once it leaves the package, as a reading list
-in a reference manager or as input to a science-mapping tool. This
-article covers that export end of the workflow. Every step runs without
-an API key, on the bundled `example_records`, a corpus of 138 real
-journal articles that stands in for a harvest of your own because Scopus
-records may not be redistributed. The article
+This article covers the export end of the workflow, which turns a
+retrieval into a reading list in a reference manager or into input for a
+science-mapping tool. Every step runs without an API key, on
+`example_records`, the bundled harvest of 138 real journal articles. It
+stands in for a harvest of your own because Scopus records may not be
+redistributed. The article
 [`vignette("scopusflow")`](https://pablobernabeu.github.io/scopusflow/articles/scopusflow.md)
 describes where it comes from.
 
@@ -33,14 +33,14 @@ summary(example_records)
     Most frequent source: ACS Applied Materials & Interfaces.
     Most cited: Graphene for batteries, supercapacitors and beyond.
 
-Eleven of those 138 records arrived without a DOI, which is why the
-summary counts 127 with one. That is ordinary in a real harvest, and the
-sections below show how each export handles it.
+Eleven of those 138 records arrived without a DOI, so the summary counts
+127 with one. That is ordinary in a live harvest, and the sections below
+show how each export handles it.
 
-A record set is an ordinary tibble underneath, so it drops straight into
-tidyverse or base workflows. `as_tibble()` and
-[`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html) make that
-explicit when a downstream tool expects a plain frame.
+A record set is a tibble with an added class, so it works in tidyverse
+or base R workflows as it is. `as_tibble()` and
+[`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html) make the
+conversion explicit when a downstream tool expects a plain frame.
 
 ``` r
 
@@ -77,8 +77,8 @@ and
 also keep the document type, source type, volume, issue, pages, ISSN,
 PubMed identifier and open-access status the Search API sends with every
 record. Under the `COMPLETE` view, they keep the abstract too. These
-fields arrive in the responses the harvest already pays for, so they
-cost no extra quota. The bundled corpus came from OpenAlex and carries
+fields are part of the responses the harvest already receives, so they
+cost no extra quota. The bundled harvest came from OpenAlex and carries
 none of them, so this step is shown but not run.
 
 ``` r
@@ -146,11 +146,10 @@ head(dois, 6)
     [3] "10.1016/j.electacta.2015.02.019" "10.1002/smll.201403383"         
     [5] "10.1016/j.jpowsour.2015.03.015"  "10.1103/physrevb.91.125415"     
 
-The same cleaning applies to a plain vector of DOIs from any source, so
-the first two entries below collapse to one because comparison ignores
-case and resolver prefixes, while `dedupe = FALSE` keeps every
-occurrence, for instance to count how often a DOI recurs across
-retrievals.
+The same cleaning applies to a plain vector of DOIs from any source. The
+first two entries below collapse to one, because the comparison ignores
+case and resolver prefixes. `dedupe = FALSE` keeps every occurrence, for
+instance to count how often a DOI recurs across retrievals.
 
 ``` r
 
@@ -167,9 +166,8 @@ scopus_extract_dois(c("https://doi.org/10.1/A", "doi: 10.1/a", "10.2/B"),
 
     [1] "10.1/A" "10.1/a" "10.2/B"
 
-The list can be written to a single-column CSV at a path you choose.
-Nothing is written unless a path is given. Here are the first few lines
-of the file, which holds a header and one DOI per line.
+The list is written to a single-column CSV only when a path is given.
+The file holds a header and one DOI per line, as its first lines show.
 
 ``` r
 
@@ -187,14 +185,14 @@ writeLines(head(readLines(out), 6))
 
 ## Into a reference manager
 
-A DOI list is enough for an import-by-identifier, but a full record
-carries more.
+A DOI list is enough for an import-by-identifier, but a record carries
+more than its DOI.
 [`as_ris()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
 and
 [`as_bibtex()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
 render the set in the two interchange formats that reference managers
-read, so a search moves straight into Zotero, EndNote or a LaTeX
-bibliography. Each record becomes one entry, with its authors split out.
+read, for use in Zotero, EndNote or a LaTeX bibliography. Each record
+becomes one entry, with its authors split out.
 
 ``` r
 
@@ -220,26 +218,29 @@ cat(strsplit(ris, "\n\n", fixed = TRUE)[[1]][1:2], sep = "\n\n")
     ER  - 
 
 The first two entries of 138 are shown. The second has no DOI, so its
-`DO` line is simply absent, with no empty field written in its place,
-and the entry still imports on its title, author and year. The source
-sits under `T2`, the tag ‘Scopus’ itself uses for it. A ‘Scopus’ name
-such as `Zhang F.` is exported as `Zhang, F.`, so that a reference
-manager or BibTeX reads Zhang as the family name. Nearly all the bundled
-records give names first, and those are written as they stand.
+entry has no `DO` line and still imports on its title, author and year.
+A ‘Scopus’ name such as `Zhang F.` is exported as `Zhang, F.`, so that a
+reference manager or BibTeX reads Zhang as the family name. Nearly all
+the bundled records put the given name first, and those names are
+written as they stand. The source title goes under `T2`, the tag
+‘Scopus’ itself uses for it.
 
 Every bundled record is a journal article, exported as `JOUR` and
 `@article`. A harvest retrieved with `fields = "extended"` carries the
 document type ‘Scopus’ gives each record. A conference paper is then
 exported as `CPAPER` and `@inproceedings`, a chapter as `CHAP` and
-`@incollection` and a book as `BOOK` and `@book`. Its entries also carry
-the volume, issue, pages and ISSN, and under `view = "COMPLETE"` the
-abstract. A `COMPLETE` harvest exports its author keywords as well, with
-or without the extended fields. Screening and de-duplication tools read
-both.
+`@incollection` and a book as `BOOK` and `@book`. The entries of such a
+harvest also carry the volume, issue, pages and ISSN, and under
+`view = "COMPLETE"` the abstract. A `COMPLETE` harvest exports its
+author keywords as well, with or without the extended fields. Screening
+and de-duplication tools read the abstract and the keywords.
 [`?as_bibtex`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
 lists where each field goes.
 
-Pass a `file` to write the whole set. Nothing is written without one.
+[`as_ris()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
+and
+[`as_bibtex()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibtex.md)
+write the whole set only when a `file` is given.
 
 ``` r
 
@@ -278,7 +279,7 @@ records lack. A harvest retrieved under `view = "COMPLETE"` also fills
 `fields = "extended"` fills `DT`, `VL` and `IS` with the document type,
 volume and issue.
 
-From there the usual bibliometrix entry points apply. This step needs
+From there, the usual bibliometrix entry points apply. This step needs
 that package, so it is shown but not run.
 
 ``` r

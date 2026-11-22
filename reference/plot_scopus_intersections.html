@@ -19,7 +19,7 @@ the counts span one order of magnitude or six."><meta property="og:image" conten
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -97,10 +97,10 @@ accent colour, for example the intersection that defines a study's niche.</p></d
 
 <dt id="arg-highlight-label">highlight_label<a class="anchor" aria-label="anchor" href="#arg-highlight-label"></a></dt>
 <dd><p>Legend label for the highlighted rows. The default,
-<code>NULL</code>, derives the label from what is highlighted: "Focal intersection"
-when every highlighted row is an intersection, "Focal concept" when every
-one is a concept, and "Focal set" for a mixture. Supply a string to use
-that instead.</p></dd>
+<code>NULL</code>, derives the label from what is highlighted: <code>"Focal intersection"</code>
+when every highlighted row is an intersection, <code>"Focal concept"</code> when
+every one is a concept and <code>"Focal set"</code> for a mixture. Supply a string to
+use that instead.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -119,8 +119,8 @@ that instead.</p></dd>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>A count of zero cannot be placed on a log axis, so rows whose count is
 zero or <code>NA</code> are dropped with a warning, which the caption also notes. An
-empty intersection is itself a finding; the printed object keeps the zero
-even though the chart cannot.</p>
+empty intersection is itself a finding, and the printed object keeps the
+zero even though the chart cannot.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

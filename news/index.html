@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -52,15 +52,16 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="development version" id="scopusflow-development-version">scopusflow (development version)<a class="anchor" aria-label="anchor" href="#scopusflow-development-version"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.5.0" id="scopusflow-050">scopusflow 0.5.0<a class="anchor" aria-label="anchor" href="#scopusflow-050"></a></h2>
+<p>A release about retrieving more of a search and about the accuracy of what it returns. Cursor paging retrieves plan cells of more than 5000 records whole, and <code>fields = "extended"</code> adds document metadata at no extra quota. New functions compare two harvests and export a corpus for theoryforge. Many fixes change results, and the upgrading notes below say what was wrong in each case.</p>
 <div class="section level3">
-<h3 id="upgrading-from-the-previous-release-development-version">Upgrading from the previous release (0.4.0)<a class="anchor" aria-label="anchor" href="#upgrading-from-the-previous-release-development-version"></a></h3>
+<h3 id="upgrading-from-the-previous-release-0-5-0">Upgrading from the previous release (0.4.0)<a class="anchor" aria-label="anchor" href="#upgrading-from-the-previous-release-0-5-0"></a></h3>
 <div class="section level4">
-<h4 id="changed-results-development-version">Changed results<a class="anchor" aria-label="anchor" href="#changed-results-development-version"></a></h4>
+<h4 id="changed-results-0-5-0">Changed results<a class="anchor" aria-label="anchor" href="#changed-results-0-5-0"></a></h4>
 <ul><li>
 <code><a href="../reference/scopus_compare_topics.html">scopus_compare_topics()</a></code> sends each comparison as <code>(reference) AND (term)</code>, where, without <code>field</code>, it joined them without brackets, so a reference with a top-level AND NOT took the term into its negation and shares could pass 100%. Re-run such comparisons made without <code>field</code>. Given <code>field</code>, only the <code>query</code> column differs.</li>
 <li>
-<code><a href="../reference/scopus_query.html">scopus_query()</a></code> brackets each term of several words, other than a quoted or braced phrase or a bracketed or field-tagged group, when it joins terms without <code>.field</code>, so <code>scopus_query("machine learning", "deep learning", .op = "OR")</code> gives <code>(machine learning) OR (deep learning)</code>, where ‘Scopus’ read the unbracketed join as <code>machine AND (learning OR deep) AND learning</code>. It also trims each term.</li>
+<code><a href="../reference/scopus_query.html">scopus_query()</a></code> brackets each term of several words, other than a quoted or braced phrase or a bracketed or field-tagged group, when it joins terms without <code>.field</code>, so <code>scopus_query("machine learning", "deep learning", .op = "OR")</code> gives <code>(machine learning) OR (deep learning)</code>, where the unbracketed join reads as <code>machine AND (learning OR deep) AND learning</code> under the operator order of Elsevier’s search tips. It also trims each term.</li>
 <li>Under <code>view = "COMPLETE"</code>, the <code>authors</code> column lists every author, up to the API’s 100, as <code>"Surname, Given"</code> joined by <code>"; "</code>, where it held the first author alone. <code>COMPLETE</code> checkpoints from 0.4.0 are fetched again once, each with a <code>scopus_warning_cache_mismatch</code> warning.</li>
 <li>
 <code>scopus_abstract(view = "REF", include = "references")</code> and <code>scopus_corpus(view = "REF")</code> return the whole reference list, at one request per 40 references, where they returned about the first 40. The title and source of each reference are read, where both were <code>NA</code>. REF checkpoints from 0.4.0 are fetched again once.</li>
@@ -87,7 +88,7 @@
 <li>The app trims the query before every request, so it sends the query the script panel shows, where ‘Check size’, ‘Compare topics’ and ‘Fetch records’ sent it as typed.</li>
 </ul></div>
 <div class="section level4">
-<h4 id="changed-interface-development-version">Changed interface<a class="anchor" aria-label="anchor" href="#changed-interface-development-version"></a></h4>
+<h4 id="changed-interface-0-5-0">Changed interface<a class="anchor" aria-label="anchor" href="#changed-interface-0-5-0"></a></h4>
 <ul><li>
 <code><a href="../reference/scopus_plan.html">scopus_plan()</a></code>, <code><a href="../reference/scopus_count.html">scopus_count()</a></code>, <code><a href="../reference/scopus_fetch.html">scopus_fetch()</a></code>, <code><a href="../reference/scopus_trend.html">scopus_trend()</a></code>, <code><a href="../reference/scopus_compare_topics.html">scopus_compare_topics()</a></code> and <code><a href="../reference/scopus_intersections.html">scopus_intersections()</a></code> refuse with <code>scopus_error_bad_input</code>, before any request, unbalanced brackets, quotation marks or braces and the <code>LIMIT-TO()</code> and <code>EXCLUDE()</code> refinements that the Search API ignores, with which a search ran unfiltered.</li>
 <li>
@@ -107,7 +108,7 @@
 <li>The options <code>scopusflow.base_url</code> and <code>scopusflow.abstract_url</code> accept only an <code>https</code> URL on <code>api.elsevier.com</code> or another host under <code>elsevier.com</code>, so the API key goes to Elsevier alone. Any other value is refused before a request.</li>
 </ul></div>
 <div class="section level4">
-<h4 id="changed-output-development-version">Changed output<a class="anchor" aria-label="anchor" href="#changed-output-development-version"></a></h4>
+<h4 id="changed-output-0-5-0">Changed output<a class="anchor" aria-label="anchor" href="#changed-output-0-5-0"></a></h4>
 <ul><li>
 <code><a href="../reference/scopus_search_report.html">scopus_search_report()</a></code> dates a harvest from its first retrieval to its last, where it gave the first alone, lists year cells with gaps separately, where it gave one span, names a <code>max_results</code> cap and supplies PRISMA-S item 2.</li>
 <li>For a set without a plan, <code><a href="../reference/scopus_search_report.html">scopus_search_report()</a></code> calls the year limit unrecorded, where it said that no year limit was applied, and leaves PRISMA-S item 8 to the author.</li>
@@ -150,7 +151,7 @@
 </ul></div>
 </div>
 <div class="section level3">
-<h3 id="new-features-development-version">New features<a class="anchor" aria-label="anchor" href="#new-features-development-version"></a></h3>
+<h3 id="new-features-0-5-0">New features<a class="anchor" aria-label="anchor" href="#new-features-0-5-0"></a></h3>
 <ul><li>
 <code><a href="../reference/scopus_fetch_plan.html">scopus_fetch_plan()</a></code> gains <code>cursor</code>, so a plan cell matching more than 5000 records can be retrieved whole and checkpointed. The default, <code>cursor = FALSE</code>, keeps offset paging, and a checkpoint serves only a request in its own paging mode.</li>
 <li>
@@ -168,7 +169,7 @@
 <code><a href="../reference/scopus_combine.html">scopus_combine()</a></code> gains <code>dedupe = "id_or_doi"</code>, which also merges records with different identifiers that share a DOI, and accepts <code>"id_or_shared_doi"</code> as the name of the rule <code>TRUE</code> applies.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="minor-improvements-development-version">Minor improvements<a class="anchor" aria-label="anchor" href="#minor-improvements-development-version"></a></h3>
+<h3 id="minor-improvements-0-5-0">Minor improvements<a class="anchor" aria-label="anchor" href="#minor-improvements-0-5-0"></a></h3>
 <ul><li>
 <code><a href="../reference/scopus_corpus.html">scopus_corpus()</a></code> reports its requests and the quota left in the <code>n_requests</code> and <code>quota</code> attributes, and records the search expression, when the search that found the records ran and the kind of keyword as <code>query</code>, <code>retrieved_at</code> and <code>keywords</code>.</li>
 <li>
@@ -183,7 +184,7 @@
 <li>The app’s status text has the contrast that text needs, its progress bar has an accessible name and value and each figure has a text alternative.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="fixes-development-version">Fixes<a class="anchor" aria-label="anchor" href="#fixes-development-version"></a></h3>
+<h3 id="fixes-0-5-0">Fixes<a class="anchor" aria-label="anchor" href="#fixes-0-5-0"></a></h3>
 <ul><li>
 <code>scopus_plan(partition = "none")</code>, <code><a href="../reference/scopus_count.html">scopus_count()</a></code>, <code><a href="../reference/scopus_fetch.html">scopus_fetch()</a></code> and <code><a href="../reference/scopus_intersections.html">scopus_intersections()</a></code> read an empty <code>years</code> as no year limit, as they read <code>NULL</code>, where they stopped with an untyped error.</li>
 <li>
@@ -201,7 +202,7 @@
 <li>The app’s ‘By year’, ‘Top sources’ and ‘Top authors’ panels say when there is nothing to show, where they showed a plotting error, and a highlighted topic whose counts are all missing is drawn without the highlight. The live terminal of a demo harvest over every year no longer labels it with the year 0.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="documentation-development-version">Documentation<a class="anchor" aria-label="anchor" href="#documentation-development-version"></a></h3>
+<h3 id="documentation-0-5-0">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-5-0"></a></h3>
 <ul><li>The designing-queries article describes the offline query checks and gives a recipe for testing a strategy’s relative recall against records known to be relevant, following Sampson et al. (2006) and Bramer et al. (2018). It also explains loose and exact phrases and why a query mixing operators needs brackets.</li>
 <li>The help for <code><a href="../reference/scopus_count.html">scopus_count()</a></code>, <code><a href="../reference/scopus_fetch.html">scopus_fetch()</a></code> and <code><a href="../reference/scopus_intersections.html">scopus_intersections()</a></code> says that <code>years</code> is sent as one inclusive range, so <code>c(2015, 2020)</code> covers every year from 2015 to 2020, where it called them ‘publication years to restrict to’. <code><a href="../reference/scopus_compare_topics.html">?scopus_compare_topics</a></code> says that each year is counted on its own, where it called <code>years</code> a span.</li>
 <li>The worked examples no longer present the bundled corpus as the result of an unquoted search. It came from an exact-phrase search in OpenAlex, and the demonstration plan and live searches quote the phrase, since ‘Scopus’ joins the words of an unquoted phrase with AND.</li>
@@ -218,6 +219,9 @@
 <code><a href="../reference/scopus_combine.html">?scopus_combine</a></code> says that <code><a href="https://rdrr.io/r/base/c.html" class="external-link">c()</a></code> on record sets calls <code><a href="../reference/scopus_combine.html">scopus_combine()</a></code>, so it renumbers them and keeps every row unless given <code>dedupe</code>, where it said that <code><a href="https://rdrr.io/r/base/c.html" class="external-link">c()</a></code> returned a list.</li>
 <li>
 <code><a href="../reference/scopus_corpus.html">?scopus_corpus</a></code> says that <code>records</code> needs the identifier column that <code>by</code> names, <code><a href="../reference/summary.scopus_records.html">?summary.scopus_records</a></code> that <code>n_with_doi</code> counts the records carrying a DOI and <code><a href="../reference/scopus_quota.html">?scopus_quota</a></code> that <code>reset</code> is when the key’s quota resets. <code><a href="../reference/scopus_diff_dois.html">?scopus_diff_dois</a></code> no longer calls <code>status</code> an ordered factor.</li>
+<li>
+<code><a href="../reference/scopus_plan.html">?scopus_plan</a></code> and three articles say that partitioning by year keeps each cell under the 5000-record ceiling of offset paging, provided that no single year matches more than 5000 records, where they offered it without that condition. <code><a href="../reference/scopus_plan.html">?scopus_plan</a></code> adds that cursor paging has no such ceiling.</li>
+<li>Citations were checked against their published records. The designing-queries article links an archived copy of Feldner (2025), whose current version no longer carries the announced operator order, and adds that Elsevier’s search tips say the change is due in 2026. <code><a href="../reference/scopus_diff_dois.html">?scopus_diff_dois</a></code> says, citing Gorraiz et al. (2016), that a share of what ‘Scopus’ indexes carries no DOI, where it said that ‘Scopus’ gives none. <code><a href="../reference/scopus_abstract.html">?scopus_abstract</a></code> names the index keywords as a field that Elsevier’s documentation lists as available only on request, where it named the author keywords and said to request them from an account contact.</li>
 </ul></div>
 </div>
     <div class="section level2">

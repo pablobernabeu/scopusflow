@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -91,14 +91,13 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pablobernabeu/scopusflow" class="external-link">scopusflow</a></span><span class="op">)</span></span></code></pre></div>
-<p>Once a set of records is in hand, the package offers a small analysis
-layer that turns it into the figures a bibliometric study usually needs.
-The steps that contact the API are shown but not run. The rest run on
-<code>example_records</code>, the corpus of 138 real journal articles on
+<p>Once a set of records is in hand, a few analysis functions turn it
+into the figures a bibliometric study usually needs. The steps that
+contact the API are shown but not run. The rest run on
+<code>example_records</code>, a harvest of 138 real journal articles on
 graphene supercapacitors that the package bundles because Scopus records
-may not be redistributed, and which carries the schema a retrieval
-returns. <code><a href="../articles/scopusflow.html">vignette("scopusflow")</a></code> describes where it comes
-from.</p>
+may not be redistributed. It carries the schema a retrieval returns, and
+<code><a href="../articles/scopusflow.html">vignette("scopusflow")</a></code> describes where it comes from.</p>
 <div class="section level2">
 <h2 id="what-is-in-a-record-set">What is in a record set<a class="anchor" aria-label="anchor" href="#what-is-in-a-record-set"></a>
 </h2>
@@ -195,8 +194,8 @@ authors.</p>
 </tr>
 </tbody>
 </table>
-<p>The source tally is long-tailed, as a real literature is. These 138
-articles are spread across 90 journals, and only <em>ACS Applied
+<p>The source tally has a long tail, as a topic literature does. These
+138 articles are spread across 90 journals, and only <em>ACS Applied
 Materials &amp; Interfaces</em>, with eight, appears more than five
 times. The author tally is flatter still, with 119 distinct authors, the
 most prolific of whom contributed three papers.</p>
@@ -208,7 +207,7 @@ session. The <code>COMPLETE</code> view carries the author list, up to
 100 names per record, which <code><a href="../reference/scopus_records.html">scopus_records()</a></code> writes as
 <code>"Surname, Given"</code> names joined by <code>"; "</code>. The
 tally splits that list, so each contributor is counted once per record.
-The bundled corpus names only the first author of each paper and cannot
+The bundled harvest names only the first author of each paper and cannot
 show the split, but two entries in the shape the <code>COMPLETE</code>
 view returns, with placeholder names, can.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
@@ -243,17 +242,18 @@ view returns, with placeholder names, can.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_scopus_top.html">plot_scopus_top</a></span><span class="op">(</span><span class="fu"><a href="../reference/scopus_top.html">scopus_top</a></span><span class="op">(</span><span class="va">records</span>, by <span class="op">=</span> <span class="st">"author"</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="analysing-a-literature_files/figure-html/unnamed-chunk-6-1.png" class="r-plt" alt="A horizontal bar chart of the most frequent authors" width="672"></p>
-<p>A record set also has an honest default view. <code>autoplot()</code>
-draws its records per year. Because this corpus is a complete harvest of
-one query, those bars are the real number of publications per year for
-that query. For a harvest of your own, the bars cover the years its plan
-searched, a year without records drawn as a zero bar and a year no cell
-searched left out. When the years reach the year of the harvest, the
-caption says that year was incomplete when the records were retrieved,
-since ‘Scopus’ goes on indexing a year’s publications after it has
-begun. The same <code>autoplot()</code> generic dispatches on
-<code>scopus_trend</code> and <code>scopus_top</code> objects too,
-delegating to the plots above.</p>
+<p>The default plot of a record set, drawn by <code>autoplot()</code>,
+shows its records per year. Because the bundled harvest is complete for
+one query, the bars are the number of publications per year for that
+query. For a harvest of your own, the bars cover the years its plan
+searched, with a year without records drawn as a zero bar and a year no
+cell searched left out unless a record carries it. When the years reach
+the year of the harvest, the caption says that year was incomplete when
+the records were retrieved, since Scopus goes on indexing a year’s
+publications after the year has begun. On <code>scopus_top</code> and
+<code>scopus_trend</code> objects, <code>autoplot()</code> draws the
+plots of <code><a href="../reference/plot_scopus_top.html">plot_scopus_top()</a></code> and
+<code><a href="../reference/plot_scopus_trend.html">plot_scopus_trend()</a></code>.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span></span></code></pre></div>
 <p><img src="analysing-a-literature_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" alt="A bar chart of publications per year from 2015 to 2024, fluctuating around fifteen a year" width="672"></p>
@@ -261,21 +261,20 @@ delegating to the plots above.</p>
 <div class="section level2">
 <h2 id="how-a-literature-grows">How a literature grows<a class="anchor" aria-label="anchor" href="#how-a-literature-grows"></a>
 </h2>
-<p><code><a href="../reference/scopus_trend.html">scopus_trend()</a></code> counts how many records match a query in
-each year, which is the size of a literature over time. It issues one
-count request per year, so it needs the API.</p>
+<p><code><a href="../reference/scopus_trend.html">scopus_trend()</a></code> measures the size of a literature over
+time by counting the records that match a query in each year. It issues
+one count request per year, so it needs the API.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_trend.html">scopus_trend</a></span><span class="op">(</span><span class="st">'"graphene supercapacitor"'</span>, years <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2024</span>,</span>
 <span>                   field <span class="op">=</span> <span class="st">"TITLE-ABS-KEY"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_scopus_trend.html">plot_scopus_trend</a></span><span class="op">(</span><span class="va">tr</span><span class="op">)</span></span></code></pre></div>
-<p>The offline equivalent costs no requests at all. A complete harvest
-already contains its own yearly counts, and the bundled corpus is a
-complete harvest of OpenAlex’s exact-phrase search for the same phrase.
-Tallying its records by year therefore gives the yearly counts of that
-search, in the shape <code><a href="../reference/scopus_trend.html">scopus_trend()</a></code> returns. A Scopus count
-would give different figures, since the two databases do not index the
-same records and the Scopus query also searches keywords and every
-document type.</p>
+<p>The offline equivalent costs no requests. A complete harvest already
+contains its own yearly counts, and the bundled harvest is complete for
+OpenAlex’s exact-phrase search for the same phrase. Tallying its records
+by year therefore gives the yearly counts of that search, in the shape
+<code><a href="../reference/scopus_trend.html">scopus_trend()</a></code> returns. A Scopus count would give different
+figures, since the two databases do not index the same records and the
+Scopus query also searches keywords and every document type.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">by_year</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">records</span><span class="op">$</span><span class="va">year</span><span class="op">)</span></span>
 <span><span class="va">tr</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
@@ -347,32 +346,33 @@ document type.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_scopus_trend.html">plot_scopus_trend</a></span><span class="op">(</span><span class="va">tr</span><span class="op">)</span></span></code></pre></div>
 <p><img src="analysing-a-literature_files/figure-html/unnamed-chunk-10-1.png" class="r-plt" alt="A line and area chart of publications per year from 2015 to 2024, peaking in 2019" width="720"></p>
-<p>The figure draws the same counts as the bar chart above, and the
-agreement is worth noticing. A trend is something a record set already
-knows, and something <code><a href="../reference/scopus_trend.html">scopus_trend()</a></code> can find out for a
-query whose records you never download. The caption is the function’s
-own attribution, since a <code>scopus_trend</code> object ordinarily
-comes from the Search API, whereas this one was tallied from the bundled
-stand-in. The curve itself is flat because the query is a narrow phrase,
-some fifteen papers a year over a decade. The quotation marks keep it
-narrow, since Scopus joins the words of an unquoted phrase with AND, and
-in OpenAlex the two words unquoted match about a hundred times as many
-records. A broader query, ‘graphene’ on its own, would show the steep
-growth the field is better known for, on a scale that runs into the
-offset ceiling discussed below.</p>
+<p>The figure draws the same counts as the bar chart above. A record set
+already holds its own trend, and <code><a href="../reference/scopus_trend.html">scopus_trend()</a></code> gives the
+trend for a query whose records you never download. The caption, which
+<code><a href="../reference/plot_scopus_trend.html">plot_scopus_trend()</a></code> adds to every trend, credits the Search
+API, the usual source of a <code>scopus_trend</code> object, although
+this one was tallied from the bundled harvest.</p>
+<p>The curve is flat because the query is a narrow phrase, some fifteen
+papers a year over a decade. The quotation marks keep it narrow, since
+Scopus joins the words of an unquoted phrase with AND, and in OpenAlex
+the two words unquoted match about a hundred times as many records. A
+broader query, ‘graphene’ on its own, would show the steep growth the
+field is better known for, on a scale that runs into the offset ceiling
+discussed below.</p>
 </div>
 <div class="section level2">
 <h2 id="where-a-niche-sits">Where a niche sits<a class="anchor" aria-label="anchor" href="#where-a-niche-sits"></a>
 </h2>
 <p>A study that crosses two or more fields is best introduced by sizing
 those fields and their overlap. Each parent literature may hold
-thousands of records while their intersection holds a handful, which is
-the niche the study occupies. <code><a href="../reference/scopus_intersections.html">scopus_intersections()</a></code> counts
-a named set of concepts and any requested intersections of them, at one
-count request per row, so the whole landscape is as cheap as a few
-<code><a href="../reference/scopus_count.html">scopus_count()</a></code> calls. Concept values may be bare terms,
-wrapped in <code>field</code> for you, or complete field-tagged
-expressions, used exactly as given.</p>
+thousands of records, while their intersection, the niche the study
+occupies, holds a handful. <code><a href="../reference/scopus_intersections.html">scopus_intersections()</a></code> counts a
+named set of concepts and any requested intersections of them, at one
+count request per row, the same cheap request that
+<code><a href="../reference/scopus_count.html">scopus_count()</a></code> makes for a single query. Concept values may
+be bare terms, wrapped in <code>field</code> for you, or complete
+field-tagged expressions such as a synonym set, used exactly as
+given.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_intersections.html">scopus_intersections</a></span><span class="op">(</span></span>
 <span>  concepts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -389,15 +389,12 @@ expressions, used exactly as given.</p>
 <span>  <span class="va">sets</span>,</span>
 <span>  highlight <span class="op">=</span> <span class="va">sets</span><span class="op">$</span><span class="va">label</span><span class="op">[</span><span class="va">sets</span><span class="op">$</span><span class="va">type</span> <span class="op">==</span> <span class="st">"intersection"</span><span class="op">]</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>Here <code>field</code> leaves the third value untouched, since it
-already reads as a complete field-tagged expression, so a concept can be
-a whole synonym set.</p>
-<p>This one cannot be derived from a record set, because it counts whole
-literatures, where a record set holds only the records already in hand,
-so here the result is rebuilt in its own shape with illustrative counts,
-purely to show the plot. The lollipop chart uses a log-scale axis, so
-the small intersection stays legible beside its large parent fields, and
-the highlighted row draws the eye to the niche itself.</p>
+<p>A count of whole literatures cannot be derived from a record set,
+which holds only the records already in hand. The result below is
+therefore rebuilt in the shape <code><a href="../reference/scopus_intersections.html">scopus_intersections()</a></code>
+returns, with illustrative counts, to show the plot. The lollipop chart
+uses a log-scale axis, so the small intersection stays legible beside
+its large parent fields, and the highlighted row marks the niche.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sets</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
 <span>  label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"semantic priming"</span>, <span class="st">"mental simulation"</span>, <span class="st">"embodied simulation"</span>,</span>
@@ -425,19 +422,18 @@ the highlighted row draws the eye to the niche itself.</p>
 <p>The Search API returns a few fields per record. To read the abstract
 and the fuller metadata for a record you already know,
 <code><a href="../reference/scopus_abstract.html">scopus_abstract()</a></code> calls the Abstract Retrieval API, by DOI
-or ‘Scopus’ identifier. A batch is resilient, so an identifier that
-cannot be found yields a row of <code>NA</code>s with a warning rather
-than stopping the run.</p>
+or Scopus identifier. In a batch, an identifier that cannot be found
+yields a row of <code>NA</code>s with a warning, and the run
+continues.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ab</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_abstract.html">scopus_abstract</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="../reference/scopus_extract_dois.html">scopus_extract_dois</a></span><span class="op">(</span><span class="va">records</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>The result is a tibble of class <code>scopus_abstracts</code>, one
-row per identifier. To show its shape without a key, here is a stand-in
-built from the two most-cited records of the corpus, which supplies
-every column but the abstract and the ‘Scopus’ identifier. Those two are
-what a live call adds and the corpus does not carry, so the abstract is
-marked as a placeholder and the identifier left as <code>NA</code>, with
-nothing invented to fill either, and the columns are listed by name
-because the prose is far too wide to typeset.</p>
+row per identifier. To show its shape without a key, the stand-in below
+is built from the two most-cited records of the bundled harvest, which
+supplies every column but the abstract and the Scopus identifier. Only a
+live call returns those two, so the abstract is marked as a placeholder
+and the identifier is left as <code>NA</code>. The columns are listed by
+name because the prose is too wide to typeset.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">top2</span> <span class="op">&lt;-</span> <span class="va">records</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="op">-</span><span class="va">records</span><span class="op">$</span><span class="va">citations</span><span class="op">)</span>, <span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, <span class="op">]</span></span>
 <span><span class="va">ab</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
@@ -492,21 +488,20 @@ Supercapacitors</td>
 <p>A single Search API query returns at most its first 5000 records
 under the ordinary offset paging. When you need the whole of a larger
 result set in one pass, <code>scopus_fetch(cursor = TRUE)</code> follows
-the API’s cursor instead, which has no such ceiling.</p>
+the API’s cursor, which has no such ceiling.</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">recs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scopus_fetch.html">scopus_fetch</a></span><span class="op">(</span><span class="st">"TITLE-ABS-KEY(microplastics)"</span>, cursor <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">recs</span><span class="op">)</span></span></code></pre></div>
-<p>That query matched 38,374 records when this article was written (the
-literature keeps growing), several times the offset ceiling, and the
-cursor retrieves all of them in one call. The records then arrive in the
-API’s deep-paging order, which is the right trade for a complete harvest
-and the wrong one when you want the most relevant few hundred. This is
-the one-call alternative to the year-partitioned plan in the <em>Search
-plans and quota-aware retrieval</em> article. A plan keeps each cell
-under the ceiling and preserves relevance order, whereas
-<code>cursor = TRUE</code> harvests the whole set in a single pass.
-Reach for the plan when you want cached, resumable cells and the cursor
-when you want the complete set at once.
+<p>When this article was written, that query matched 38,374 records,
+several times the offset ceiling, and the literature keeps growing. The
+cursor retrieves all of them in the API’s deep-paging order, which suits
+a complete harvest but not a search for the most relevant few
+hundred.</p>
+<p>The cursor is the one-call alternative to the year-partitioned plan
+in the <em>Search plans and quota-aware retrieval</em> article. A plan
+keeps each cell under the ceiling and preserves relevance order. Use the
+plan when you want cached, resumable cells and the cursor when you want
+the complete set at once.
 <code>scopus_fetch_plan(plan, cursor = TRUE)</code> gives both, at the
 cost of the deep-paging order.</p>
 </div>

@@ -1,22 +1,22 @@
 # Author keywords and references
 
-Keyword co-occurrence and citation-network analysis both need something
-the Search API alone does not return: a document’s author-supplied
-keywords, and its own reference list. This walks through retrieving
-both, what each costs, and what your ‘Scopus’ entitlement needs to
-cover.
+Keyword co-occurrence and citation-network analysis need a document’s
+author-supplied keywords and its own reference list. The Search API
+returns the author keywords only under its `COMPLETE` view and the
+reference list under no view. This article covers how to retrieve them,
+what each costs and what your ‘Scopus’ entitlement needs to cover.
 
 The API calls below are shown as you would run them with a configured
 key, and they are not run here, so no output appears beneath them. No
 key is available when the site and the package are built, and Elsevier’s
 terms do not permit redistributing retrieved records in any case. The
 shapes the calls return are built in view from `example_records`, the
-corpus of real articles the other articles run on. That corpus carries
-neither author keywords nor reference lists, so its records and titles
-are relabelled into those shapes, and the text says each time what
-stands in for what.
+bundled harvest of real papers that the other articles run on. That
+harvest carries neither author keywords nor reference lists, so its
+records and titles are relabelled into those shapes, and the text says
+each time what stands in for what. A script of your own can use
 [`scopus_has_key()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_has_key.md)
-is the switch you would use to run the calls for real.
+to run the calls only when a key is configured.
 
 ``` r
 
@@ -26,10 +26,10 @@ library(scopusflow)
 ## Author keywords from a search
 
 The Search API’s `COMPLETE` view carries an `authkeywords` field
-alongside the usual title, DOI and date. Requesting it costs no extra
-request beyond `COMPLETE`’s own smaller page size (25 records per page,
-against 200 for `STANDARD`), which already means more requests, and so
-more quota, for the same number of records.
+alongside the usual title, DOI and date. The field adds no request of
+its own, but `COMPLETE` serves 25 records per page, against 200 for
+`STANDARD`. The same number of records therefore already takes more
+requests and more quota.
 
 ``` r
 
@@ -38,12 +38,12 @@ recs$authkeywords
 ```
 
 The column holds one string per record, with the keywords joined by
-`" | "`, the form the Search API sends. In development, this field came
-back `NA` even on a live, otherwise fully-entitled key, for documents
-that do carry author keywords in ‘Scopus’ itself. Those documents do
-have keywords, so what this points to is an entitlement gap specific to
-this one field. If your own keywords come back all `NA`, it is worth
-raising with your Scopus/Elsevier account contact.
+`" | "`, the form the Search API sends. In this package’s development
+testing, this field came back `NA` even on a live, otherwise fully
+entitled key, for documents that do carry author keywords in ‘Scopus’
+itself. This points to an entitlement gap specific to this field. If
+your own keywords come back all `NA`, it is worth raising with your
+Scopus/Elsevier account contact.
 
 ## References via Abstract Retrieval
 
@@ -51,8 +51,8 @@ The reference list is not available from Search under any view. It needs
 Abstract Retrieval’s `FULL` or `REF` view, an entitlement separate from
 ordinary abstract access and from Search access. This is a per-document
 endpoint, so retrieving references for *n* documents under `FULL` costs
-*n* requests against Abstract Retrieval’s own, smaller weekly quota,
-separate from Search’s. Each row of the returned `references` data frame
+*n* requests against Abstract Retrieval’s own weekly quota, which is
+smaller than Search’s. Each row of the returned `references` data frame
 is one cited work.
 
 ``` r
@@ -68,13 +68,14 @@ ab$references[[1]][, c("title", "authors", "source", "year")]
 joined by `"; "` as the `authors` column joins names. The `references`
 list-column holds one data frame per document, with the columns
 `position`, `id`, `doi`, `title`, `authors`, `source`, `year` and
-`citedbycount`. To show that shape offline, the chunk below relabels
-three bundled records into those columns, as though they were works
-cited by a fourth document. They are not the reference list of the
-document above, or of any other. Under `FULL`, a live result writes each
-cited work’s authors as surname and initials, such as `"Doe, A."`,
-joined by `"; "`. These records carry only each paper’s first author,
-written as OpenAlex gives the name. `id` holds a cited work’s ‘Scopus’
+`citedbycount`. Under `FULL`, a live result writes each cited work’s
+authors as surname and initials, such as `"Doe, A."`, joined by `"; "`.
+
+To show that shape offline, the chunk below relabels three bundled
+records into those columns, as though they were works cited by a fourth
+document. They are not the reference list of the document above, or of
+any other. These records carry only each paper’s first author, written
+as OpenAlex gives the name. `id` holds a cited work’s ‘Scopus’
 identifier, absent from the bundled records, and `citedbycount` is `NA`
 under `FULL`, so both are left `NA`.
 
@@ -102,19 +103,16 @@ refs[, c("title", "authors", "source", "year")]
 
 `view = "FULL"` is the recommended default, since it returns the whole
 bibliography in one request. `view = "REF"` serves it about 40
-references at a time, and
+references at a time.
 [`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
 follows the view’s `startref` parameter page by page until the list is
 complete, so a document with *N* references costs `ceiling(N / 40)`
-requests under `REF`.
-[`scopus_abstract()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_abstract.md)
-warns when the number of references it holds still does not match the
-document’s own reported count, so a partial list never arrives
-unannounced.
+requests under `REF`. It warns when the number of references it holds
+still does not match the document’s own reported count.
 
 The number of requests spent and the remaining Abstract Retrieval quota
-are attached as attributes, since this endpoint draws on a separate,
-smaller quota that is easy to exhaust unnoticed.
+are attached as attributes, since that smaller quota is easy to exhaust
+unnoticed.
 
 ``` r
 
@@ -123,14 +121,13 @@ attr(ab, "quota")$remaining   # Abstract Retrieval quota left
 ```
 
 A key or subscription tier that does not cover the requested view raises
-a `scopus_error_forbidden` condition that names the view, where a
-generic HTTP failure would leave you guessing. It stops the whole batch
-too, since entitlement is a property of the account, so the same refusal
-would only recur on every remaining identifier.
+a `scopus_error_forbidden` condition that names the view. It also stops
+the whole batch, because entitlement is a property of the account and
+the same error would recur for every remaining identifier.
 
 For more than a handful of identifiers, pass `cache_dir` so an
-interrupted or quota-limited batch resumes without re-spending quota
-already spent.
+interrupted or quota-limited batch resumes without spending quota again
+on the identifiers it has already retrieved.
 
 ``` r
 
@@ -164,22 +161,24 @@ available by default, so whether they arrive depends on your key’s
 entitlement. In this package’s development testing, they did arrive on
 the same key whose author keywords came back empty. Where that happens,
 the index keywords may be the only keyword signal a ‘Scopus’ harvest can
-give. The two kinds are not interchangeable, though. A standard
-vocabulary merges terms that authors phrase differently, so the two give
-different co-occurrence networks from the same documents, and a study
-should say which it used.
+give, but the two kinds are not interchangeable. A standard vocabulary
+merges terms that authors phrase differently, so the two give different
+co-occurrence networks from the same documents, and a study should say
+which it used.
 
 ## A minimal, cross-tool corpus
 
 [`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
-combines a search result with this Abstract Retrieval step, returning a
+combines a search result with this Abstract Retrieval step. It returns a
 minimal shape close to what OpenAlex’s `works` API already returns:
 `id`, `scopus_id`, `title`, `year`, `keywords` (a list-column of
-character vectors) and `references` (a list-column of data frames),
-where bibliometrix would give you semicolon-joined citation strings. It
+character vectors) and `references` (a list-column of data frames). A
+bibliometrix data frame holds the references as semicolon-joined
+citation strings instead.
+[`scopus_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_corpus.md)
 does not replace
 [`as_bibliometrix()`](https://pablobernabeu.github.io/scopusflow/reference/as_bibliometrix.md),
-which keeps its own field-mapping convention for users who want that.
+which keeps its own field-mapping convention.
 
 ``` r
 
@@ -192,28 +191,27 @@ nrow(corpus$references[[1]])
 This costs one Abstract Retrieval request per record in `recs`, on top
 of whatever retrieved `recs` in the first place. The `keywords` column,
 split from the joined `authkeywords` string, holds a character vector
-per record, which is the shape co-occurrence analysis wants.
+per record, which is the shape co-occurrence analysis needs.
 `keywords = "index"` fills it with the index keywords instead, and
 `keywords = "both"` with the author keywords followed by each index
 keyword not already among them. Either costs what the default costs, and
-both need `view = "FULL"`.
+both need `view = "FULL"`. With `keywords = "both"`, the match is on the
+exact text, so `"graphene"` from the author and `"Graphene"` from the
+index both stay.
 
 ``` r
 
 corpus <- scopus_corpus(recs, view = "FULL", keywords = "both")
 ```
 
-The match is on the exact text, so `"graphene"` from the author and
-`"Graphene"` from the index both stay.
-
 Counting every unordered pair of keywords within each document gives the
 co-occurrence table the article opened on, and base R is enough for it.
-
-Author keywords are one of the fields that cannot travel with the
-package. The corpus below stands them in from each bundled record’s own
-title, keeping a fixed vocabulary of terms and recording those a title
-mentions. That is a cruder signal than a real keyword list, but the
-counting is identical and it runs over 138 published titles.
+Author keywords are one of the fields that cannot be included with the
+package, so the corpus below replaces them with terms from each bundled
+record’s own title. It keeps a fixed vocabulary of terms and records
+those a title mentions. That is a cruder signal than an author keyword
+list, but the counting is identical and it runs over 138 published
+titles.
 
 ``` r
 
@@ -291,9 +289,13 @@ co-citation edges. A reference that carries only a DOI takes the
 identifier that another reference pairs with the same DOI, and a DOI
 that nothing pairs with is keyed as `doi:<doi>`, lower-cased. Keywords
 are lower-cased as well, so the `"graphene"` and `"Graphene"` that
-`keywords = "both"` keeps apart become one. The chunk below runs the
-writer on two bundled records, each made to cite the same two others,
-the second with the DOIs in capitals. Both cite the same two keys.
+`keywords = "both"` keeps apart become one.
+
+[`as_theoryforge_corpus()`](https://pablobernabeu.github.io/scopusflow/reference/write_scopus_corpus.md)
+returns the same document as a list. The chunk below runs it on two
+bundled records, each made to cite the same two others, the second with
+the DOIs in capitals. In the output, both records cite the same two
+keys.
 
 ``` r
 

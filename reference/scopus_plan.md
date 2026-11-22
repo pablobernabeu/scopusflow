@@ -1,11 +1,10 @@
 # Build a reproducible 'Scopus' search plan
 
-A *plan* is a fully specified, inspectable description of one or more
-'Scopus' queries to run. Splitting the act of *describing* a search from
-*executing* it makes workflows reproducible (the plan can be saved,
-reviewed and version controlled) and lets large retrievals be
-partitioned, for example one cell per year, so they can be cached and
-resumed.
+A plan is a fully specified, inspectable description of one or more
+'Scopus' queries to run. Separating the description of a search from its
+execution makes workflows reproducible (the plan can be saved, reviewed
+and put under version control) and lets large retrievals be partitioned,
+for example one cell per year, so that they can be cached and resumed.
 
 ## Usage
 
@@ -55,7 +54,7 @@ is_scopus_plan(x)
 
   Optional character scalar naming a 'Scopus' field tag to wrap the
   query in, for example `"TITLE-ABS-KEY"`, `"TITLE"`, `"AUTH"` or
-  `"AFFIL"`. When `NULL`, the query is used verbatim. See
+  `"AFFIL"`. When `NULL`, the query is used as given. See
   [`scopus_field_tags()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_field_tags.md)
   for the common tags.
 
@@ -66,9 +65,9 @@ is_scopus_plan(x)
   [`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)),
   but requires a subscriber entitlement and is limited to a smaller page
   size, which means more requests, and so more quota, for the same
-  number of records. Even where `COMPLETE` view itself is accessible,
-  the returned author keywords can still be gated separately by your own
-  account (see
+  number of records. Even where the `COMPLETE` view itself is
+  accessible, your account's entitlement can still leave the author
+  keywords out (see
   [`scopus_records()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_records.md)).
 
 - page_size:
@@ -85,7 +84,10 @@ is_scopus_plan(x)
 
   Either `"none"` (a single query cell) or `"year"` (one cell per year
   in `years`). Partitioning by year is the recommended way to stay under
-  the API's hard limit of `start < 5000`.
+  the API's hard limit of `start < 5000` for offset paging, provided
+  that no single year matches more than 5000 records. Cursor paging,
+  with `scopus_fetch_plan(plan, cursor = TRUE)` or
+  `scopus_fetch(cursor = TRUE)`, has no such ceiling.
 
 - x:
 
@@ -121,8 +123,7 @@ query. Brackets, quotation marks and braces must balance, counting
 brackets inside a phrase as text. `INDEXTERMS()`, which pybliometrics
 documents as not working through the Search API, raises a
 `scopus_warning_query_syntax` warning. `KEY()` searches the index terms
-together with author keywords, trade names and chemical names. The
-messages are those of the Python twin, word for word.
+together with author keywords, trade names and chemical names.
 
 ## See also
 

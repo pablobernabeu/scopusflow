@@ -5,13 +5,13 @@
 library(scopusflow)
 ```
 
-A retrieval is only as good as its query. This article shows how to
-compose correct, field-tagged ‘Scopus’ queries with
-[`scopus_query()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_query.md),
-which spares you pasting fragments together by hand, where a missing
-bracket or a mistyped tag quietly returns the wrong records. Everything
-here is string construction, so it all runs offline, and each query is
-shown as the literal string it produces.
+[`scopus_query()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_query.md)
+composes field-tagged ‘Scopus’ queries from separate terms. A query
+pasted together by hand can contain a missing bracket or a mistyped tag
+and return the wrong records without an error. Composing a query is
+string construction and runs offline without an API key. Each call is
+shown with the literal query string it returns. The steps that size or
+run a search contact the API, so they are shown but not run.
 
 ## Field tags decide where to look
 
@@ -40,12 +40,13 @@ scopus_field_tags()
 | ALL                | All available fields                       |
 
 The most generally useful tag is `TITLE-ABS-KEY`, which searches the
-title, abstract and keywords together, broad enough to catch a topic
-without the noise of a full-text match.
+title, abstract and keywords together. It is broad enough to find work
+on a topic without the incidental matches of a full-text search.
 
 ## One term, many disciplines
 
-The same builder serves any field. Each call below returns the exact
+[`scopus_query()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_query.md)
+works the same way in any discipline. Each call below returns the exact
 query string that would be sent to ‘Scopus’.
 
 ``` r
@@ -85,14 +86,14 @@ scopus_query("digital humanities", .field = "AUTHKEY")        # humanities
 
     [1] "AUTHKEY(digital humanities)"
 
-The last example uses `AUTHKEY`, the author-supplied keywords, which
-isolates work that self-identifies with a field and so cuts incidental
-mentions.
+The last example uses `AUTHKEY`, the author-supplied keywords. It finds
+work whose authors chose the term as a keyword and so returns fewer
+records that mention it only in passing.
 
 ## Combining terms with boolean operators
 
-Passing several terms joins them. The default operator is `AND`, and
-`OR` or `AND NOT` are available through `.op`.
+Passing several terms joins them into one query. The default operator is
+`AND`, and `OR` or `AND NOT` are available through the `.op` argument.
 
 ``` r
 
@@ -131,8 +132,8 @@ scopus_query("python", "snake", .op = "AND NOT", .field = "TITLE-ABS-KEY")
 
 ‘Scopus’ joins the words of an unquoted term with AND, so `heart attack`
 finds records that mention both words anywhere in the searched field.
-Double quotation marks ask for a loose phrase, whose words must sit next
-to each other, although punctuation is ignored and plurals are included.
+Double quotation marks ask for a loose phrase, whose words must be
+adjacent, although punctuation is ignored and plurals are included.
 Braces ask for an exact phrase, including any stop words, spaces and
 punctuation. Elsevier’s [search
 tips](https://dev.elsevier.com/sc_search_tips.html) describe all three.
@@ -154,8 +155,9 @@ writeLines(scopus_query("{heart attack}", .field = "TITLE-ABS-KEY")) # exact phr
 [`scopus_query()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_query.md)
 leaves both kinds of phrase as written. When terms are joined without a
 field tag, a term of several unquoted words is put in brackets, so it
-stays one operand of the join. Joined bare, the first query below would
-read as `machine AND (learning OR deep) AND learning`.
+stays one operand of the join. Without the brackets, the first query
+below would read as `machine AND (learning OR deep) AND learning` under
+the operator order that the search tips give (see the next section).
 
 ``` r
 
@@ -173,24 +175,25 @@ writeLines(scopus_query('"machine learning"', '"deep learning"', .op = "OR"))
 
 ## Brackets in a query written by hand
 
-A query that mixes operators needs brackets to say what it means. The
-search tips state that ‘Scopus’ applies OR first, then AND, then AND
-NOT, so `A AND NOT B AND C` reads as `A AND NOT (B AND C)`. Elsevier has
-announced a new order, with AND NOT first, then AND, then OR ([Feldner,
-2025](https://blog.scopus.com/boolean-searches-in-scopus-understanding-operator-precedence-best-practices/)),
-under which `A OR B AND C` reads as `A OR (B AND C)`. Brackets give the
-same reading under either order.
+A query that mixes operators needs brackets to make its grouping
+unambiguous. The search tips state that ‘Scopus’ applies OR first, then
+AND, then AND NOT, so `A AND NOT B AND C` reads as
+`A AND NOT (B AND C)`. Elsevier has announced a new order, with AND NOT
+first, then AND, then OR ([Feldner,
+2025](https://web.archive.org/web/20260607011616/https://blog.scopus.com/boolean-searches-in-scopus-understanding-operator-precedence-best-practices/)),
+under which `A OR B AND C` reads as `A OR (B AND C)`. The [search
+tips](https://dev.elsevier.com/sc_search_tips.html) say that the change
+is due in 2026. Brackets give the same reading under either order.
 
-The package brackets the strings it composes. A query built by an
-earlier
-[`scopus_query()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_query.md)
-call keeps its own join together when it is joined again, as below, and
+The package brackets the strings it composes.
 [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
 and
 [`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md)
 bracket each side of their joins. The year limit of a plan, a count or a
-trend never enters the query string, since it travels as a separate
-request parameter.
+trend is sent as a separate request parameter and is never added to the
+query string. A query built by an earlier
+[`scopus_query()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_query.md)
+call stays one operand when it is joined again, as in the example below.
 
 ``` r
 
@@ -202,9 +205,10 @@ scopus_query("vaccine", young)
 
 ## From a query to a plan
 
-A composed query drops straight into the rest of the workflow. Here it
-anchors a year-partitioned plan, which keeps each cell under the API’s
-5000-record ceiling.
+A composed query can be passed directly to the rest of the workflow. The
+example below uses it as the query of a year-partitioned plan, which
+keeps each cell under the API’s 5000-record ceiling for offset paging,
+provided that no single year matches more than 5000 records.
 
 ``` r
 
@@ -231,7 +235,8 @@ plan
 | 7 | TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS-KEY(immunology) | 2021 | 2021 | STANDARD | 200 |
 | 8 | TITLE-ABS-KEY(gut microbiome) AND TITLE-ABS-KEY(immunology) | 2022 | 2022 | STANDARD | 200 |
 
-The plan is ready to size and run, which contacts the API.
+Sizing and running the plan contact the API, so the two calls below are
+not run here.
 
 ``` r
 
@@ -241,14 +246,15 @@ records <- scopus_fetch_plan(plan)
 
 Without a key,
 [`vignette("scopusflow")`](https://pablobernabeu.github.io/scopusflow/articles/scopusflow.md)
-carries the same two steps through to a record set, standing the bundled
-corpus of real articles in for the harvest, since ‘Scopus’ records may
-not be redistributed.
+follows the same two steps through to a record set. ‘Scopus’ records may
+not be redistributed, so the bundled corpus of published articles stands
+in for the harvest.
 
 ## Searching by affiliation
 
-Field tags reach beyond topics. `AFFILORG` searches the affiliation,
-which turns a query into an institution-level view of output.
+Field tags can also search parts of a record that do not describe its
+topic. `AFFILORG` searches the affiliation organisation name, so a query
+can retrieve the output of an institution.
 
 ``` r
 
@@ -259,8 +265,10 @@ scopus_query("Max Planck", .field = "AFFILORG")
 
 ## When a term is empty
 
-The builder validates its input, so a stray empty term is caught at
-construction, well before it can produce a malformed query.
+[`scopus_query()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_query.md)
+checks its terms as it builds the query. An empty or whitespace-only
+term raises `scopus_error_bad_input` before a malformed query can be
+produced.
 
 ``` r
 
@@ -281,14 +289,14 @@ tryCatch(
 [`scopus_compare_topics()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_compare_topics.md)
 and
 [`scopus_intersections()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_intersections.md)
-check each query offline before anything is sent, and refuse three
-mistakes. Refinement syntax copied from the web interface, such as
-`LIMIT-TO(DOCTYPE, "ar")`, is ignored by the Search API, so the search
-would run unfiltered with no sign of a problem. A field tag wrapped
-around a query that already opens with one is rejected by the API. A
-bracket, quotation mark or brace left unclosed changes what the rest of
-the query means. Each raises `scopus_error_bad_input` with a message
-saying what to write instead.
+check each query offline before anything is sent and raise
+`scopus_error_bad_input` for three mistakes. Refinement syntax copied
+from the web interface, such as `LIMIT-TO(DOCTYPE, "ar")`, is ignored by
+the Search API, so the search would run unfiltered with no sign of a
+problem. A field tag wrapped around a query that already opens with one
+is rejected by the API. A bracket, quotation mark or brace left unclosed
+changes what the rest of the query means. The message of each error says
+what to write instead.
 
 ``` r
 
@@ -317,19 +325,21 @@ scopus_plan("working memory AND DOCTYPE(ar) AND LANGUAGE(english)")$query
 A strategy pasted from the advanced search with its own tags, such as
 `TITLE-ABS-KEY ( "working memory" )`, is sent as written when `field` is
 left as `NULL`. `INDEXTERMS()`, which pybliometrics documents as not
-working through the Search API, raises a warning, and `KEY()` searches
-the index terms together with author keywords, trade names and chemical
+working through the Search API, raises a warning. `KEY()` searches the
+index terms together with author keywords, trade names and chemical
 names.
 
 ## Checking recall against known records
 
-A search strategy can be tested against records already known to be
-relevant, for instance the studies included in an earlier review or
-those named by experts, collected without the strategy’s help. The share
-of them the strategy retrieves is its relative recall ([Sampson et al.,
-2006](https://doi.org/10.1186/1471-2288-6-33)), and [Bramer et
+A search strategy can be tested against records that are already known
+to be relevant and were collected independently of it, for instance the
+studies included in an earlier review or those named by experts. The
+share of them the strategy retrieves is its relative recall ([Sampson et
+al., 2006](https://doi.org/10.1186/1471-2288-6-33)), and [Bramer et
 al. (2018)](https://doi.org/10.5195/jmla.2018.283) make the check a step
-in developing a search. It takes two searches per chain of DOIs, run
+in developing a search.
+
+The check runs two searches for each chain of DOIs joined by OR, both
 under the same year limit. The chain alone finds which known records
 ‘Scopus’ indexes, and the strategy joined to the chain finds which of
 those it retrieves. A known record the chain does not find, because
@@ -337,12 +347,14 @@ those it retrieves. A known record the chain does not find, because
 whether the strategy finds it. It is left out of the denominator and
 listed, so it can be checked by hand.
 
-The sketch below contacts the API, so it is not run here. The DOIs are
-placeholders for your own, and
+The sketch below contacts the API, so it is not run here. Its DOIs are
+placeholders for your own.
 [`scopus_extract_dois()`](https://pablobernabeu.github.io/scopusflow/reference/scopus_extract_dois.md)
-cleans them first, so a resolver prefix or a difference in case does no
-harm. Chains of at most 25 DOIs keep each request short. How the API
-treats much longer chains has not been checked.
+strips resolver prefixes from them and removes duplicates without regard
+to case, and the sketch compares DOIs in lower case, so a resolver
+prefix or a difference in case does no harm. Chains of at most 25 DOIs
+keep each request short. How the API treats much longer chains has not
+been checked.
 
 ``` r
 
@@ -369,5 +381,5 @@ not_found <- setdiff(tolower(known), indexed)
 relative_recall <- length(retrieved) / length(indexed)
 ```
 
-The figure describes the strategy against this reference set alone, so
-report the set, its source and the DOIs left out alongside it.
+The relative recall describes the strategy against this reference set
+alone, so report the set, its source and the DOIs left out alongside it.

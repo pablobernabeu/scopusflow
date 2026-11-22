@@ -5,8 +5,7 @@ Gives a compact overview of a
 object, reporting how many records it holds, the span of publication
 years they cover, how many distinct sources appear among them, how many
 records carry a Digital Object Identifier and how widely they have been
-cited. It is a convenient way to take stock of a retrieval before any
-closer analysis.
+cited. It gives a first look at a retrieval before any closer analysis.
 
 ## Usage
 

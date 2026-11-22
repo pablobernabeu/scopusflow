@@ -11,7 +11,7 @@ package."><meta property="og:image" content="https://pablobernabeu.github.io/sco
 
     <a class="navbar-brand me-2" href="../index.html">scopusflow</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -75,14 +75,13 @@ key is available and <code>FALSE</code> otherwise.</p>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The key is looked up first from the <code>api_key</code> argument of whichever function
-is being called, then from the <code>scopusflow.api_key</code> option, and finally from
+is being called, then from the <code>scopusflow.api_key</code> option and finally from
 the <code>SCOPUS_API_KEY</code> environment variable. An optional institutional token,
 used for off-campus access to subscriber content, is resolved the same way
-from the <code>inst_token</code> argument, the <code>scopusflow.inst_token</code> option, or the
+from the <code>inst_token</code> argument, the <code>scopusflow.inst_token</code> option or the
 <code>SCOPUS_INST_TOKEN</code> environment variable.</p>
-<p>A key is a secret. The safest home for it is <code>~/.Renviron</code>, as in
-<code>SCOPUS_API_KEY=xxxx</code>, well away from any script, and it should stay out of version
-control.</p>
+<p>A key is a secret. Keep it in <code>~/.Renviron</code>, as in <code>SCOPUS_API_KEY=xxxx</code>,
+away from any script and out of version control.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
