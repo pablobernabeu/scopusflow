@@ -122,9 +122,9 @@ how a literature changes between retrievals.
 `run_app()` opens a local Shiny app that lets you run the whole workflow
 without writing code. Because it shows every choice as a runnable R
 script, the app is also a way into the package. It runs on your own
-machine, so your API key never leaves it. A demo mode lets you try the
-workflow with no key, on the harvest of real articles bundled with the
-package.
+machine, so your API key goes only to Elsevier's API. A demo mode lets
+you try the workflow with no key, on the harvest of real articles
+bundled with the package.
 
 ``` r
 run_app()

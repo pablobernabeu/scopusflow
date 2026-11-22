@@ -166,8 +166,9 @@ app_code_mirror <- function(query,
       header,
       "# Demo mode was on, so the records shown in the app were replayed from",
       "# example_records, the bundled corpus of real published articles.",
-      "# Nothing was retrieved. The script below is the live equivalent, which",
-      "# harvests from Scopus and needs a key."
+      "# Nothing was retrieved. The script below runs the search set up in the",
+      "# app against Scopus. It needs a key, and its records will differ from",
+      "# the replayed ones."
     )
   }
 

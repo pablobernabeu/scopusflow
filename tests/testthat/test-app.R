@@ -38,8 +38,10 @@ test_that("app_code_mirror opens with its version and says when demo mode was on
   expect_identical(strsplit(live, "\n", fixed = TRUE)[[1]][1], version_line)
   expect_identical(strsplit(replayed, "\n", fixed = TRUE)[[1]][1], version_line)
   # A demo session retrieved nothing, so its script says that the records were
-  # replayed and that what follows is the live equivalent.
+  # replayed and that what follows runs the search against 'Scopus', whose
+  # records differ from the replayed ones.
   expect_match(replayed, "example_records", fixed = TRUE)
+  expect_match(replayed, "will differ from", fixed = TRUE)
   expect_false(grepl("example_records", live, fixed = TRUE))
   expect_silent(parse(text = live))
   expect_silent(parse(text = replayed))

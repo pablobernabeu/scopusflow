@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use scopusflow, please cite it as below."
 title: "scopusflow: A reproducible workflow layer for 'Scopus' bibliographic searches"
-abstract: "A quota-aware workflow layer over the Elsevier 'Scopus' Search API. It builds reproducible search plans, retrieves records with rate-limit handling and resumable caching, normalises results to a stable tidy schema, tracks changes in DOI sets over time, compares publication trends across topics and exports to downstream bibliometric tools."
+abstract: "A quota-aware workflow for the Elsevier 'Scopus' Search API. It builds reproducible search plans and retrieves records with rate-limit handling, retry with back-off and optional resumable caching. It normalises results to a stable tidy schema, extracts and tracks changes in Digital Object Identifiers (DOIs), sizes sets of concepts and their intersections and compares publication trends across topics. It writes the search up as a reproducible record for a methods section following the PRISMA-S reporting standard (Rethlefsen et al., 2021) and exports to formats that bibliometric tools read. Network and API errors are signalled as typed conditions that callers can respond to programmatically."
 type: software
 authors:
   - family-names: Bernabeu
