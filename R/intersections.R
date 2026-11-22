@@ -1,14 +1,14 @@
 #' Count a set of concepts and their intersections
 #'
 #' Counts how many records match each of a named set of concepts, and each
-#' requested intersection of those concepts. This gives a size-of-field
-#' snapshot that shows where a study or a niche sits within a wider
+#' requested intersection of those concepts. This shows the size of each
+#' field at one time and where a study or a niche sits within a wider
 #' literature: one field may hold thousands of records and another hundreds,
 #' while their intersection holds a dozen. Where [scopus_compare_topics()]
 #' tracks topics' shares of a reference over time, this sizes a set of
 #' concepts and their overlap at a single point. Like [scopus_count()], it
-#' retrieves totals only, never records, so a whole landscape costs one
-#' request per row of the result.
+#' retrieves totals only, never records, so the result costs one request per
+#' row.
 #'
 #' A concept value that already reads as a complete field-tagged expression,
 #' such as `"TITLE(virtual reality)"`, is used exactly as given, so `field`
@@ -19,7 +19,7 @@
 #'
 #' @param concepts Named character vector. The names are display labels and
 #'   the values are search terms (wrapped in `field` when one is given) or
-#'   complete field-tagged query expressions (used as-is). The labels must be
+#'   complete field-tagged query expressions (used as given). The labels must be
 #'   unique.
 #' @param intersections Optional list of character vectors, each naming two or
 #'   more distinct concept labels whose intersection should be counted, for
@@ -37,14 +37,14 @@
 #' @param verbose Logical. When `TRUE`, progress is reported.
 #' @return A tibble of class `scopus_intersections` with one row per concept
 #'   and per intersection: `label` (the display label), `query` (the exact
-#'   query counted), `n` (the count, as a double so very large totals are
-#'   exact), `type` (`"concept"` or `"intersection"`), `size` (the number of
+#'   query counted), `n` (the count, as a double, so that very large totals
+#'   are exact), `type` (`"concept"` or `"intersection"`), `size` (the number of
 #'   member concepts) and `members` (the member labels, joined by `"; "`). A
 #'   row whose response omits a total is recorded as `NA`, with a warning. The
 #'   `years` restriction, when given, is stored in the `years` attribute.
 #' @section API access:
 #' This performs one count request per concept and per intersection, so it
-#' requires a valid API key and internet access; see the *API access* section
+#' requires a valid API key and internet access. See the *API access* section
 #' of [scopus_count()].
 #' @seealso [plot_scopus_intersections()] to visualise the result, and
 #'   [scopus_count()] for a single query.

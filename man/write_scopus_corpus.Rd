@@ -42,9 +42,9 @@ cited work one key across the whole corpus, its 'Scopus' identifier, as
 only, and in different cases. A key built from the DOI wherever there is one
 would therefore split one work into several nodes and lose the
 co-citation edges between them. A reference that carries only a DOI takes
-the 'Scopus' identifier that a document or reference
-elsewhere in the corpus pairs with the same DOI, the documents' own
-identifiers counting first. A DOI that nothing pairs with is keyed as
+the 'Scopus' identifier that a document or reference elsewhere in the
+corpus pairs with the same DOI, the documents' own identifiers counting
+first. A DOI that nothing pairs with is keyed as
 \verb{doi:<doi>}, without its resolver prefix and with its ASCII letters
 lower-cased, since DOIs are case-insensitive over ASCII (DOI Handbook,
 section 2.4). A reference with neither is dropped, and a
@@ -58,12 +58,9 @@ writes nothing.
 
 Keywords are trimmed, lower-cased with \code{\link[=tolower]{tolower()}} and made unique, keeping
 the first of each, and empty ones are dropped, so \code{"Graphene"} and
-\code{"graphene "} count as one keyword. The Python twin lower-cases with
-\code{str.lower()}. The two agree on the Latin, Greek and Cyrillic letters in
-common use and differ on a few special cases, such as the Turkish capital I
-with a dot and a capital sigma ending a word, which Python writes as a
-final sigma. A missing year is written as \code{null}, and a missing title is
-left out, since the schema admits the one and not the other.
+\code{"graphene "} count as one keyword. A missing year is written as \code{null},
+and a missing title is left out, since the schema admits the one and not
+the other.
 
 The document also carries a \code{provenance} object, which the schema admits
 beside its own fields: \code{source} (\code{"Scopus via scopusflow <version>"}),
@@ -78,8 +75,10 @@ themes empty whatever the writer does, and \code{n_records_without_keywords}
 shows when that happened.
 
 The file is UTF-8, with no escaping beyond what JSON requires, sorted keys,
-no spaces between tokens and one line feed at the end, so the same corpus
-gives the same bytes from either twin.
+no spaces between tokens and one line feed at the end. The Python package
+scopusflow writes the same bytes for the same corpus, unless a keyword
+holds one of the few letters that its \code{str.lower()} lower-cases
+differently from \code{\link[=tolower]{tolower()}}, such as the Turkish capital I with a dot.
 }
 \examples{
 # Two records of the bundled corpus of real articles, each citing the same

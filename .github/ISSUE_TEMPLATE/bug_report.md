@@ -6,19 +6,22 @@ labels: bug
 assignees: ''
 ---
 
-**Describe the bug**
+### Describe the bug
+
 A clear description of what went wrong and what you expected instead.
 
-**Reproducible example**
+### Reproducible example
+
 A small [reprex](https://reprex.tidyverse.org) helps a great deal. Please never
-paste your 'Scopus' API key into an issue; replace it with `Sys.getenv(...)` or a
+paste your 'Scopus' API key into an issue. Replace it with `Sys.getenv(...)` or a
 placeholder.
 
 ```r
 # your reprex here
 ```
 
-**Session information**
+### Session information
+
 <details>
 
 ```r
@@ -27,5 +30,6 @@ placeholder.
 
 </details>
 
-**Anything else**
+### Anything else
+
 Any other context that might help.

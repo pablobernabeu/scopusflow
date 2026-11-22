@@ -16,8 +16,8 @@
 #'   `citations_new`. `status` is a factor with levels `"added"` (in `new`
 #'   only), `"removed"` (in `old` only), `"conflict"` (see Details) and
 #'   `"unchanged"` (in both). Rows are sorted by status, then DOI, identifier
-#'   and title, in byte order, so the order is the same under every locale and
-#'   in the Python twin. The integer attributes `n_old_without_id_or_doi` and
+#'   and title, in byte order, so the order is the same under every locale.
+#'   The integer attributes `n_old_without_id_or_doi` and
 #'   `n_new_without_id_or_doi` count the records on each side that carried
 #'   neither key and so were not compared. Printing shows the counts in each
 #'   category, and those records where there are any.

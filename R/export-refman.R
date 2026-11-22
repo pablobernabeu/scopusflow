@@ -349,14 +349,13 @@ scopus_refman_write <- function(out, file) {
 #' type (RIS `M3`), and under `view = "COMPLETE"` the abstract. The entries of
 #' a set retrieved under `view = "COMPLETE"`, with the core fields or the
 #' extended ones, also carry the author keywords, one `KW` line each in RIS and
-#' joined by commas in BibTeX.
-#' Keywords are split at the `" | "` the Search API joins them with and at the
-#' `"; "` [scopus_abstract()] joins its own with. A value the record lacks is
-#' left out, never filled in.
+#' joined by commas in BibTeX. Keywords are split at the `" | "` the Search
+#' API joins them with and at the `"; "` [scopus_abstract()] joins its own
+#' with. A value the record lacks is left out, never filled in.
 #'
 #' Names are written family name first, with a comma. Under the `STANDARD`
 #' view, the `authors` column holds 'Scopus' names in the form `Zhang F.`,
-#' which BibTeX would read as given name "Zhang" and family name "F.", so a
+#' which BibTeX would read as given name 'Zhang' and family name 'F.', so a
 #' name ending in initials is exported as `Zhang, F.`. BibTeX entries also
 #' space run-together initials (`Kitchin, J. R.`), which BibTeX otherwise
 #' takes for a single given name. Names that already carry a comma, as under
@@ -371,8 +370,9 @@ scopus_refman_write <- function(out, file) {
 #' EID as the accession number (`AN  - 2-s2.0-<scopus_id>`).
 #'
 #' @param x A [scopus_records] tibble.
-#' @param file Optional path to write to. With the default `NULL` the formatted
-#'   string is returned; with a path it is written there and returned invisibly.
+#' @param file Optional path to write to. With the default `NULL`, the
+#'   formatted string is returned. With a path, it is written there and
+#'   returned invisibly.
 #'   Nothing is written unless a path is given.
 #' @return A length-one character string of the formatted records (returned
 #'   invisibly when `file` is supplied).
@@ -380,7 +380,7 @@ scopus_refman_write <- function(out, file) {
 #' @examples
 #' # On the bundled corpus of real articles, which stands in for a retrieval
 #' # of your own because 'Scopus' records may not be redistributed. Only the
-#' # opening of each export is shown; pass `file` to write the whole set.
+#' # opening of each export is shown. Pass `file` to write the whole set.
 #' cat(substr(as_bibtex(example_records), 1, 200))
 #' cat(substr(as_ris(example_records), 1, 200))
 #' @export

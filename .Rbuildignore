@@ -15,3 +15,5 @@
 ^LICENSE\.md$
 ^\.git$
 ^\.gitignore$
+^CRAN-SUBMISSION$
+^revdep$

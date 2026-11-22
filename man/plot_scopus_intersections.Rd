@@ -16,10 +16,10 @@ plot_scopus_intersections(x, highlight = NULL, highlight_label = NULL, ...)
 accent colour, for example the intersection that defines a study's niche.}
 
 \item{highlight_label}{Legend label for the highlighted rows. The default,
-\code{NULL}, derives the label from what is highlighted: "Focal intersection"
-when every highlighted row is an intersection, "Focal concept" when every
-one is a concept, and "Focal set" for a mixture. Supply a string to use
-that instead.}
+\code{NULL}, derives the label from what is highlighted: \code{"Focal intersection"}
+when every highlighted row is an intersection, \code{"Focal concept"} when
+every one is a concept and \code{"Focal set"} for a mixture. Supply a string to
+use that instead.}
 
 \item{...}{Currently unused, present for S3 consistency.}
 
@@ -40,8 +40,8 @@ the counts span one order of magnitude or six.
 \details{
 A count of zero cannot be placed on a log axis, so rows whose count is
 zero or \code{NA} are dropped with a warning, which the caption also notes. An
-empty intersection is itself a finding; the printed object keeps the zero
-even though the chart cannot.
+empty intersection is itself a finding, and the printed object keeps the
+zero even though the chart cannot.
 }
 \examples{
 \dontshow{if (rlang::is_installed("ggplot2")) withAutoprint(\{ # examplesIf}

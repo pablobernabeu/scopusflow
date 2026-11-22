@@ -12,8 +12,9 @@ as_ris(x, file = NULL)
 \arguments{
 \item{x}{A \link{scopus_records} tibble.}
 
-\item{file}{Optional path to write to. With the default \code{NULL} the formatted
-string is returned; with a path it is written there and returned invisibly.
+\item{file}{Optional path to write to. With the default \code{NULL}, the
+formatted string is returned. With a path, it is written there and
+returned invisibly.
 Nothing is written unless a path is given.}
 }
 \value{
@@ -45,14 +46,13 @@ series. The entries also carry the volume, issue, pages, ISSN and document
 type (RIS \code{M3}), and under \code{view = "COMPLETE"} the abstract. The entries of
 a set retrieved under \code{view = "COMPLETE"}, with the core fields or the
 extended ones, also carry the author keywords, one \code{KW} line each in RIS and
-joined by commas in BibTeX.
-Keywords are split at the \code{" | "} the Search API joins them with and at the
-\code{"; "} \code{\link[=scopus_abstract]{scopus_abstract()}} joins its own with. A value the record lacks is
-left out, never filled in.
+joined by commas in BibTeX. Keywords are split at the \code{" | "} the Search
+API joins them with and at the \code{"; "} \code{\link[=scopus_abstract]{scopus_abstract()}} joins its own
+with. A value the record lacks is left out, never filled in.
 
 Names are written family name first, with a comma. Under the \code{STANDARD}
 view, the \code{authors} column holds 'Scopus' names in the form \verb{Zhang F.},
-which BibTeX would read as given name "Zhang" and family name "F.", so a
+which BibTeX would read as given name 'Zhang' and family name 'F.', so a
 name ending in initials is exported as \verb{Zhang, F.}. BibTeX entries also
 space run-together initials (\verb{Kitchin, J. R.}), which BibTeX otherwise
 takes for a single given name. Names that already carry a comma, as under
@@ -69,7 +69,7 @@ EID as the accession number (\verb{AN  - 2-s2.0-<scopus_id>}).
 \examples{
 # On the bundled corpus of real articles, which stands in for a retrieval
 # of your own because 'Scopus' records may not be redistributed. Only the
-# opening of each export is shown; pass `file` to write the whole set.
+# opening of each export is shown. Pass `file` to write the whole set.
 cat(substr(as_bibtex(example_records), 1, 200))
 cat(substr(as_ris(example_records), 1, 200))
 }

@@ -64,8 +64,8 @@ scopus_extract_dois <- function(x, dedupe = TRUE, file = NULL) {
 #' a later retrieval. This supports change tracking: re-running a search later
 #' and seeing exactly what is new.
 #'
-#' A record without a DOI cannot be compared this way, and 'Scopus' gives no
-#' DOI to a share of what it indexes, more of it in the arts and humanities and
+#' A record without a DOI cannot be compared this way, and a share of what
+#' 'Scopus' indexes carries no DOI, more of it in the arts and humanities and
 #' among books and proceedings (Gorraiz et al., 2016). Such records are left out
 #' of the rows and counted in the attributes `n_old_without_doi` and
 #' `n_new_without_doi` and on the printed line. [scopus_diff_records()]
@@ -77,9 +77,9 @@ scopus_extract_dois <- function(x, dedupe = TRUE, file = NULL) {
 #'   where `status` is a factor with levels `"added"` (in `new` only),
 #'   `"removed"` (in `old` only) and `"unchanged"` (in both). Rows are sorted by
 #'   status then DOI, in byte order, so the order is the same under every
-#'   locale and in the Python twin. The integer attributes `n_old_without_doi`
-#'   and `n_new_without_doi` count the records (or vector elements) on each
-#'   side that had no DOI and so were not compared. Printing shows the counts
+#'   locale. The integer attributes `n_old_without_doi` and
+#'   `n_new_without_doi` count the records (or vector elements) on each side
+#'   that had no DOI and so were not compared. Printing shows the counts
 #'   in each category, and those records where there are any.
 #' @references
 #' Gorraiz, J., Melero-Fuentes, D., Gumpenberger, C., & Valderrama-Zurián,

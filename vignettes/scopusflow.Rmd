@@ -35,38 +35,40 @@ local({
 library(scopusflow)
 ```
 
-This vignette is fully reproducible without a Scopus API key. Elsevier's API
-terms do not permit redistributing retrieved records, so no package can ship a
-genuine Scopus harvest, and scopusflow bundles an openly licensed stand-in
-instead. `example_records` holds 138 real journal articles on graphene
-supercapacitors published between 2015 and 2024, with their real titles, DOIs,
+This vignette can be reproduced without a Scopus API key. The steps that need
+the API are shown but not run, and everything else runs offline.
+
+Elsevier's API terms do not permit redistributing retrieved records, so no
+package can include a Scopus harvest. scopusflow bundles an openly licensed
+stand-in, `example_records`, which holds 138 real journal articles on graphene
+supercapacitors published between 2015 and 2024, with their titles, DOIs,
 journals, first authors and citation counts. They come from OpenAlex, whose
-metadata is released under CC0, reshaped into the schema a retrieval returns.
-OpenAlex's exact-phrase search for "graphene supercapacitor" in titles and
-abstracts, limited to journal articles, returned them on 22 July 2026. The
-harvest is complete, so its rows per year are the real number of publications
-per year for that search, and its gaps are real gaps too.
-Eleven records carry no DOI and two no source title, exactly as they arrive.
+metadata is released under CC0, and are reshaped into the schema a retrieval
+returns. OpenAlex's exact-phrase search for 'graphene supercapacitor' in titles
+and abstracts, limited to journal articles, returned them on 22 July 2026. The
+harvest is complete, so the number of rows in a year is the number of
+publications that search matched that year, and its gaps are genuine. Eleven
+records carry no DOI and two no source title, left as they arrive.
+
 A Scopus search for the same phrase returns the same kind of object, with the
 same columns and the same handling, but a different set of records. Without the
-quotation marks the set is far larger, since Scopus joins the words of an
+quotation marks, the set is far larger, since Scopus joins the words of an
 unquoted phrase with AND. In OpenAlex, the unquoted words match about a hundred
 times as many records.
-The steps that need the API are shown but not run, each paired with the offline
-equivalent.
 
 ## Describing a search as a plan
 
 A plan separates describing a search from executing it. Plans are inspectable,
-saveable and version-controllable, and they can be partitioned, for example by
-year, so that a large retrieval stays under the API's `start < 5000` ceiling and
-can be cached and resumed.
+saveable and version-controllable. They can be partitioned, for example by
+year, so that a large retrieval can be cached and resumed. Partitioning by year
+also keeps each cell under the API's `start < 5000` ceiling, provided that no
+single year matches more than 5000 records.
 
-The plan below describes a Scopus search for the phrase the bundled records
-were drawn on, and the rest of the article follows it as one worked example
+The plan below describes a Scopus search for the phrase used to collect the
+bundled harvest, and the rest of the article follows it as one worked example
 from description to export. The quotation marks keep the two words together,
 as they were in the OpenAlex search. The plan has not been run, and the bundled
-records did not come from it.
+harvest did not come from it.
 
 ```{r}
 plan <- scopus_plan(
@@ -91,9 +93,9 @@ is_scopus_plan(plan)
 
 ## Sizing and fetching
 
-`scopus_has_key()` reports whether a key is configured, without revealing it. It
-is the guard the package's own examples use to skip the steps that need the API,
-so it is the natural switch for a reproducible script.
+`scopus_has_key()` reports whether a key is configured, without revealing it.
+The package's own examples use it to skip the steps that need the API, and a
+reproducible script can use it the same way.
 
 ```{r}
 scopus_has_key()
@@ -101,9 +103,9 @@ scopus_has_key()
 
 With a key configured, you size a search cheaply and then execute the plan,
 optionally caching each cell so that an interrupted run resumes without
-re-spending quota. A cache directory serves one plan, so the plan gets a
-directory of its own inside the managed cache. These contact the API, so they
-are not evaluated here.
+re-spending quota. Because a cache directory serves one plan, the plan gets a
+directory of its own inside the managed cache. Both calls contact the API, so
+they are not evaluated here.
 
 ```{r eval = FALSE}
 scopus_count(
@@ -119,14 +121,15 @@ records <- scopus_fetch_plan(
 )
 ```
 
-Without a key, the bundled corpus stands in for the result of that harvest, and
-the sections below run on it.
+Without a key, the bundled harvest stands in for the records
+`scopus_fetch_plan()` returns, and the sections below run on it.
 
 ## The record schema
 
-Whether records come from the API or from the bundled corpus, they share one
+Whether records come from the API or from the bundled harvest, they share one
 stable schema, so everything below would read the same on a harvest of your
-own. `summary()` takes stock of a set, and the first rows show the columns.
+own. `summary()` gives an overview of a set, and the first rows show the
+columns.
 
 ```{r}
 records <- example_records
@@ -141,8 +144,7 @@ is_scopus_records(records)
 
 `scopus_records()` produces this same shape from a raw API response, flattening
 the nested result into one row per record. The entry below carries the fields of
-a real article, one of those in the bundled corpus, in the form the API returns
-them.
+one of the articles in the bundled harvest, in the form the API returns them.
 
 ```{r}
 raw <- list(entry = list(
@@ -158,11 +160,12 @@ scopus_records(raw, query = 'TITLE-ABS-KEY("graphene supercapacitor")')
 
 ## Most frequent sources and authors
 
-A record set already answers the first descriptive questions. `scopus_top()`
-tallies the most frequent sources or authors, counting each contributor once
-per record. Across these 138 articles the tally is long-tailed, as a real
-literature is. They are spread over 90 distinct journals, and only one, *ACS
-Applied Materials & Interfaces*, appears more than five times.
+The first descriptive questions can be answered from the record set alone.
+`scopus_top()` tallies the most frequent sources or authors, counting each
+contributor once per record. Across these 138 articles, the tally is
+long-tailed, as a real literature is. The articles are spread over 90 distinct
+journals, and only one, *ACS Applied Materials & Interfaces*, appears more than
+five times.
 
 ```{r}
 scopus_top(records, by = "source")
@@ -174,8 +177,8 @@ top-author plots and abstract retrieval in depth.
 ## DOIs and change tracking
 
 Extract a clean, deduplicated DOI list for import into a reference manager, and
-compare two retrievals to see exactly what changed. Eleven of the 138 records
-arrived without a DOI, so 127 come back.
+compare two retrievals to see what changed. Eleven of the 138 records arrived
+without a DOI, so 127 come back.
 
 ```{r}
 dois <- scopus_extract_dois(records)
@@ -184,8 +187,8 @@ head(dois, 4)
 ```
 
 A search re-run later gains records and occasionally loses one to re-indexing.
-Here the baseline stops at 2023 and the second pull adds the 2024 articles while
-dropping the first record.
+Here, the baseline stops at 2023, and the second retrieval adds the 2024
+articles while dropping the first record.
 
 ```{r}
 baseline <- records[records$year <= 2023, ]
@@ -193,8 +196,8 @@ later <- records[-1, ]
 print(scopus_diff_dois(old = baseline, new = later))
 ```
 
-You can write the DOIs to a path you specify, and read the file back to see
-exactly what lands on disk.
+You can write the DOIs to a path you specify and read the file back to see what
+was written.
 
 ```{r}
 out <- file.path(tempdir(), "dois.csv")
@@ -221,8 +224,9 @@ plot_scopus_comparison(cmp)
 ```
 
 The result is a tidy table with one row per topic and year, which
-`plot_scopus_comparison()` draws with direct line labels, a colour-blind-safe
-palette and shaded stability bands. `vignette("comparing-topics")` builds the
+`plot_scopus_comparison()` draws with a colour-blind-safe palette and shaded
+stability bands. By default, it labels the lines directly when there are at
+most eight comparison topics. `vignette("comparing-topics")` builds the
 object offline, shows the plot in its variations and explains how to read the
 bands.
 
@@ -231,7 +235,7 @@ bands.
 A search only returns the fields the Search API carries. Author keywords and a
 document's own reference list need `view = "COMPLETE"` and Abstract Retrieval
 respectively, both at a materially different quota cost from an ordinary
-search. `vignette("keywords-and-references")` walks through both, and
+search. `vignette("keywords-and-references")` walks through both, and through
 `scopus_corpus()`, which combines them into a minimal
 `id`/`scopus_id`/`title`/`year`/`keywords`/`references` shape for downstream
 tools.
@@ -252,13 +256,15 @@ identical(read_scopus_records(path), records)
 ## Writing the search up
 
 A search that is going into a paper has to be reported. `scopus_search_report()`
-assembles that record from the plan and the harvest, to the PRISMA-S standard,
-and formats it as a methods paragraph. It states only what the objects hold, so
-the record below is candid about the bundled corpus carrying no retrieval time
-of its own. It pairs the plan above with records that came from OpenAlex, and
-so describes no search that was run. The expression it gives was never sent to
-Scopus, and the 138 records it counts are those of the OpenAlex search. The
-*Search plans and quota-aware retrieval* article works through it in full.
+assembles a record of the search from the plan and the harvest, to the PRISMA-S
+standard, and formats it as a methods paragraph. The *Search plans and
+quota-aware retrieval* article works through the record in depth.
+
+The record below pairs the plan above with records that came from OpenAlex, so
+it describes no search that was run. The expression it gives was never sent to
+Scopus, and the 138 records it counts are those of the OpenAlex search. Because
+the function reports only what the objects hold, the record also states that
+the bundled harvest carries no retrieval time of its own.
 
 ```{r}
 report <- scopus_search_report(records, plan = plan)
@@ -267,7 +273,7 @@ cat(format(report, style = "paragraph"))
 
 ## Handling failures
 
-Network and API problems surface as typed conditions, all inheriting from
+Network and API problems are signalled as typed conditions, all inheriting from
 `scopus_error`, so a workflow can respond to them in code.
 
 ```{r eval = FALSE}

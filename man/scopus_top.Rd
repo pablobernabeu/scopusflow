@@ -12,11 +12,11 @@ scopus_top(x, by = c("source", "author"), n = 10L)
 \item{by}{What to tally: \code{"source"} (the publication titles) or \code{"author"}.
 Author strings holding several names are split at the semicolon, with or
 without a space after it, so each contributor is counted once per record.
-Only a \code{view = "COMPLETE"}
-retrieval holds several names, since \code{STANDARD} records carry the first
-author alone (see \code{\link[=scopus_records]{scopus_records()}}). A tally by author of a set retrieved
-under \code{STANDARD} therefore counts first authorships, and says so with a
-warning of class \code{scopus_warning_first_author_only}, once per session.}
+Only a \code{view = "COMPLETE"} retrieval holds several names, since \code{STANDARD}
+records carry the first author alone (see \code{\link[=scopus_records]{scopus_records()}}). A tally by
+author of a set retrieved under \code{STANDARD} therefore counts first
+authorships, and says so with a warning of class
+\code{scopus_warning_first_author_only}, once per session.}
 
 \item{n}{The number of rows to return (the top \code{n}).}
 }

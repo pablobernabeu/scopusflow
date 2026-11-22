@@ -219,8 +219,8 @@ scopus_parse_http_date <- function(x) {
 #' Parse 'Scopus' quota and rate-limit headers
 #'
 #' Elsevier returns the caller's weekly quota and short-term rate-limit status in
-#' response headers. `scopus_quota()` extracts them into a tidy list so a
-#' workflow can pause, schedule or report on the remaining allowance.
+#' response headers. `scopus_quota()` extracts them into a tidy list, so that
+#' a workflow can pause, schedule or report on the remaining allowance.
 #'
 #' @param resp An [httr2::response] object, typically captured during a request.
 #' @return A list with elements `limit`, `remaining`, `reset`, `status` and

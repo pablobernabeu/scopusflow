@@ -25,10 +25,10 @@ before any request (see the \emph{Query checks} section of \code{\link[=scopus_p
 \code{\link[=scopus_plan]{scopus_plan()}}).}
 
 \item{view}{Either \code{"STANDARD"} or \code{"COMPLETE"}. \code{COMPLETE} adds an
-\code{authkeywords} column to \code{\link[=scopus_fetch]{scopus_fetch()}}/\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} output (see
-\code{\link[=scopus_records]{scopus_records()}}) at no extra cost beyond \code{COMPLETE}'s own smaller page
-size, which already means more requests, and so more quota, for the same
-number of records.}
+\code{authkeywords} column to the output of \code{\link[=scopus_fetch]{scopus_fetch()}} and
+\code{\link[=scopus_fetch_plan]{scopus_fetch_plan()}} (see \code{\link[=scopus_records]{scopus_records()}}) at no extra cost beyond
+\code{COMPLETE}'s own smaller page size, which already means more requests, and
+so more quota, for the same number of records.}
 
 \item{api_key, inst_token}{Optional credentials, resolved by default from
 options or environment variables (see \code{\link[=scopus_has_key]{scopus_has_key()}}).}
@@ -38,9 +38,9 @@ options or environment variables (see \code{\link[=scopus_has_key]{scopus_has_ke
 \value{
 A tibble of class \code{scopus_trend} with columns \code{query} (the
 field-wrapped query), \code{year} (integer) and \code{n} (the count that year, as a
-double so very large counts are exact). A year whose response omits a total
-is recorded as \code{NA} (with a warning) and contributes nothing to the total
-shown by \code{print()}. The time the counts were taken is attached as the
+double, so that very large counts are exact). A year whose response omits a
+total is recorded as \code{NA} (with a warning) and contributes nothing to the
+total shown by \code{print()}. The time the counts were taken is attached as the
 \code{retrieved_at} attribute (a \code{POSIXct}), as a harvest records its own.
 'Scopus' goes on indexing a year's publications after the year has begun,
 so a count for the year of retrieval is a count so far, and
@@ -48,14 +48,13 @@ so a count for the year of retrieval is a count so far, and
 }
 \description{
 Counts how many records match a query in each year, giving the size of a
-literature over time. It is the single-query companion to
-\code{\link[=scopus_compare_topics]{scopus_compare_topics()}}: where the comparison shows topics as a share of a
-reference, this shows the absolute count.
+literature over time. Where \code{\link[=scopus_compare_topics]{scopus_compare_topics()}} shows topics as a
+share of a reference, this gives the absolute count for one query.
 }
 \section{API access}{
 
 This performs one count request per year, so it requires a valid API key and
-internet access; see the \emph{API access} section of \code{\link[=scopus_count]{scopus_count()}}.
+internet access. See the \emph{API access} section of \code{\link[=scopus_count]{scopus_count()}}.
 }
 
 \examples{
@@ -64,7 +63,7 @@ tr <- scopus_trend('"graphene supercapacitor"', years = 2015:2024,
                    field = "TITLE-ABS-KEY")
 tr
 \dontshow{\}) # examplesIf}
-# The offline companion, which needs no key. 'Scopus' records may not be
+# The same shape offline, with no key. 'Scopus' records may not be
 # redistributed, so the package bundles a corpus of real articles instead.
 # It is a complete harvest of OpenAlex's exact-phrase search for the same
 # phrase, so tallying its rows by year gives the yearly counts of that

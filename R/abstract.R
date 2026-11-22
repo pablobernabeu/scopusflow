@@ -14,11 +14,11 @@
 #' @param view The Abstract Retrieval view to request: `"META_ABS"` (the
 #'   default), `"META"`, `"REF"` or `"FULL"`, or `NULL`. `"META_ABS"` is the
 #'   view Elsevier documents as carrying the abstract with the core metadata.
-#'   `NULL` sends no `view` parameter, as the 0.4.0 release and earlier did,
-#'   and leaves the choice to the API. Elsevier documents its default as
-#'   `"META"`, a view without the abstract, but a live request in October 2026
-#'   returned the abstract without a view. Retrieving `include = "references"`
-#'   requires `view = "FULL"` or `view = "REF"`; see *Details* for how the two
+#'   `NULL` sends no `view` parameter, as version 0.4.0 and earlier did, and
+#'   leaves the choice to the API. Elsevier documents its default as `"META"`,
+#'   a view without the abstract, although the API has returned the abstract
+#'   to a request without a view. Retrieving `include = "references"`
+#'   requires `view = "FULL"` or `view = "REF"`. *Details* says how the two
 #'   differ and which to prefer.
 #' @param include Optional character vector naming extra fields to retrieve in
 #'   the same request: any of `"references"`, `"keywords"` (the author
@@ -26,19 +26,18 @@
 #'   `"references"` requires `view = "FULL"` or `view = "REF"`, and
 #'   `"keywords"` and `"index_terms"` require `view = "FULL"`, since the `REF`
 #'   response carries neither kind of keyword.
-#'   Either way this is an entitlement that is separate from ordinary abstract
-#'   access and from 'Scopus' Search access, and, per Elsevier's own
-#'   documentation, some fields (notably author keywords) may need to be
-#'   requested from your Scopus/Elsevier account contact even when the view
-#'   itself is otherwise accessible. See *Details*.
+#'   Both views need an entitlement separate from ordinary abstract access and
+#'   from 'Scopus' Search access. Elsevier's documentation adds that some
+#'   fields, such as the index keywords, are available only on request, even
+#'   when the view itself is accessible. See *Details*.
 #' @param cache_dir Optional directory for per-identifier cache files, as in
-#'   [scopus_fetch_plan()]. `NULL` (the default) performs no caching. Worth
-#'   setting whenever `include` is used: Abstract Retrieval draws on its own
-#'   weekly quota, smaller than and separate from Search's, and every
-#'   identifier here costs at least one request of its own, so re-running an interrupted batch
-#'   without a cache re-spends quota already spent. A `cache_dir` that cannot
-#'   be written is refused before any request, and a checkpoint that cannot be
-#'   written all the same warns and keeps the row, as in [scopus_fetch_plan()].
+#'   [scopus_fetch_plan()]. `NULL` (the default) performs no caching. Set it
+#'   whenever `include` is used. Abstract Retrieval draws on its own weekly
+#'   quota, separate from and smaller than Search's, and every identifier
+#'   costs at least one request, so re-running an interrupted batch without a
+#'   cache spends that quota again. A `cache_dir` that cannot be written is
+#'   refused before any request, and a checkpoint that cannot be written all
+#'   the same gives a warning and keeps the row, as in [scopus_fetch_plan()].
 #' @param resume Logical. When `TRUE` (the default) and `cache_dir` is set, an
 #'   identifier whose cache file already exists is loaded from disk, sparing a
 #'   second request for it. A cache file that cannot be read back, for example
@@ -56,8 +55,10 @@
 #'   'Scopus') yields a row of `NA`s with a warning, so a batch is not lost to a
 #'   single failure. The number of Abstract Retrieval requests made and the
 #'   most recently parsed quota (see [scopus_quota()]) are attached as the
-#'   `n_requests` and `quota` attributes, since this is a materially more
-#'   expensive operation than a search call.
+#'   `n_requests` and `quota` attributes, since a retrieval here costs at
+#'   least one request for each identifier (one for each page of references
+#'   under `view = "REF"`), where a search returns many records with each
+#'   request.
 #'
 #'   When `include` names `"keywords"`, an `authkeywords` column is added: the
 #'   document's author-supplied keywords, joined the same way as `authors`
@@ -69,15 +70,14 @@
 #'   or `NA` when the response carries none. An entry without text is dropped.
 #'
 #'   When `include` names `"references"`, a `references` list-column is added:
-#'   one data frame per document, with one row per cited work, where a joined
-#'   string would have to be parsed apart again. Its columns are `position` (the
+#'   one data frame per document, with one row per cited work, so that no
+#'   joined string has to be split again. Its columns are `position` (the
 #'   reference's place in the bibliography), `id` (the 'Scopus' identifier of
-#'   the cited work, when
-#'   resolved), `doi`, `title`, `authors`, `source` (the journal or other
-#'   venue), `year` and `citedbycount` (the cited work's own citation count;
-#'   populated only under `view = "REF"`, `NA` under `"FULL"`). A document with
-#'   no resolvable references yields a zero-row data frame, so the column can
-#'   always be unnested.
+#'   the cited work, when resolved), `doi`, `title`, `authors`, `source` (the
+#'   journal or other venue), `year` and `citedbycount` (the cited work's own
+#'   citation count, given only under `view = "REF"` and `NA` under
+#'   `"FULL"`). A document with no resolvable references yields a zero-row
+#'   data frame, so the column can always be unnested.
 #' @details
 #' Retrieving references needs Abstract Retrieval's `FULL` or `REF` view, and
 #' keywords need `FULL`. `FULL` returns the whole bibliography in one request.
@@ -89,20 +89,19 @@
 #' your entitlement allows it. Elsevier's guide numbers `startref` from 0 and
 #' pybliometrics from 1, and which of the two the API follows has not been
 #' confirmed. Paging stops on an empty page, on a page that adds no new
-#' reference, or after as many pages as the first page's length implies, so
+#' reference or after as many pages as the first page's length implies, so
 #' neither numbering can make it loop or repeat references. When the number
 #' of references held still differs from the document's reported count, a
 #' `scopus_warning_incomplete_references` warning says so. An
 #' identifier whose later page fails is a failed retrieval: it gets a row of
 #' `NA`s with a warning and is not checkpointed.
 #'
-#' Author keywords were not populated by either 'Scopus' Search's `COMPLETE`
-#' view (see [scopus_records()]) or Abstract Retrieval's `FULL` view in this
-#' package's own development testing, against a live, otherwise
-#' fully-entitled key, on documents that do carry author keywords in 'Scopus'
-#' itself. If your own keywords come back all `NA`, this is most likely an
-#' entitlement gap specific to that field, worth raising with your
-#' Scopus/Elsevier account contact. The documents do carry keywords.
+#' A key entitled to the `COMPLETE` view of 'Scopus' Search (see
+#' [scopus_records()]) and the `FULL` view of Abstract Retrieval has received
+#' no author keywords under either, for documents that carry them in 'Scopus'.
+#' If your keywords come back all `NA`, the field is most likely missing from
+#' your key's entitlement, and your Elsevier account contact can say whether
+#' it can be added.
 #'
 #' Index keywords are the other kind 'Scopus' records. Authors choose their own
 #' keywords, whereas 'Scopus' chooses the index keywords and standardises them
@@ -111,48 +110,48 @@
 #' give different keyword co-occurrence results, and a study should say which
 #' it used. Elsevier's guide lists index keywords in the `FULL` view as not
 #' available by default, so whether they arrive depends on your key's
-#' entitlement as well. In this package's development testing, they did
-#' arrive on the same key whose author keywords came back empty.
+#' entitlement as well. They did arrive for the key that received no author
+#' keywords.
 #' @section API access:
 #' This performs one request per identifier, or one per page of references
-#' under `view = "REF"` with `include = "references"`, and requires a valid
-#' API key and internet access; full-text abstract access, and the `FULL`/`REF` views in
-#' particular, can also depend on your entitlement. A view or field your key is
-#' not entitled to raises a `scopus_error_forbidden` condition with a message
-#' naming the view and suggesting who to contact, where a generic HTTP failure
-#' would leave you guessing. Because entitlement is a property of the account,
+#' under `view = "REF"` with `include = "references"`. It requires a valid API
+#' key and internet access, and access to abstracts, to the `FULL` and `REF`
+#' views in particular, can also depend on your entitlement. A view or field
+#' your key is not entitled to raises a `scopus_error_forbidden` condition
+#' with a message that names the view and says whom to contact. Because
+#' entitlement is a property of the account,
 #' retrieval stops at the first such failure, so the same refusal is not
 #' repeated for every remaining identifier.
 #'
 #' A spent weekly quota (HTTP 429 marked `QUOTA_EXCEEDED`) also stops the
 #' requests, but returns what the batch holds, since it usually arrives
-#' part-way through: the rows already retrieved are kept, each identifier not
-#' retrieved gets a row of `NA`s that is not checkpointed, and one
+#' part-way through. The rows already retrieved are kept, and each identifier
+#' not retrieved gets a row of `NA`s that is not checkpointed. One
 #' `scopus_warning_quota_exceeded` warning names the identifier reached, how
 #' many were not retrieved and when the quota resets. A checkpoint in
 #' `cache_dir` is still read after the stop. See the *API access* section of
 #' [scopus_count()] for the other conditions that may be raised.
 #' @seealso [scopus_fetch()], [scopus_extract_dois()], [scopus_corpus()] to
-#'   assemble a minimal keyword/reference corpus across many documents.
+#'   assemble a minimal corpus of keywords and references across many
+#'   documents.
 #' @examplesIf scopusflow::scopus_has_key()
 #' # One record of the bundled corpus, looked up for real.
 #' scopus_abstract(scopus_extract_dois(example_records)[1])
 #'
 #' # Author keywords and a structured reference list, in the same request.
-#' # Costs one Abstract Retrieval request per identifier, against a smaller,
-#' # separate weekly quota from Search; see the API access section above for
-#' # the entitlement this needs.
+#' # This costs one Abstract Retrieval request per identifier, from a weekly
+#' # quota separate from and smaller than Search's. The API access section
+#' # above says which entitlement it needs.
 #' rich <- scopus_abstract(
 #'   "10.1038/natrevmats.2016.33",
 #'   view = "FULL", include = c("references", "keywords")
 #' )
 #' rich$references[[1]]
 #' @examples
-#' # The offline companion, which needs no key. The identifiers, titles,
-#' # sources and citation counts are two records of the bundled corpus of real
-#' # articles; the abstract text is what a live call adds, so it is left as a
-#' # placeholder here, as is the 'Scopus' identifier the corpus does not
-#' # carry.
+#' # The same shape offline, with no key. The identifiers, titles, sources and
+#' # citation counts are two records of the bundled corpus of real articles. A
+#' # live call adds the abstract text, so it is left as a placeholder here, as
+#' # is the 'Scopus' identifier, which the corpus does not carry.
 #' cited <- example_records[order(-example_records$citations), ][1:2, ]
 #' abstracts <- tibble::tibble(
 #'   id = cited$doi,

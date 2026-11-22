@@ -6,7 +6,7 @@ made while creating it. It is excluded from the built package through
 
 ## Chosen package concept
 
-scopusflow is a coherent, quota-aware workflow layer over the Elsevier 'Scopus'
+scopusflow is a quota-aware workflow layer over the Elsevier 'Scopus'
 Search API. A search is first described as a reproducible plan with
 `scopus_plan()` and sized cheaply with `scopus_count()`. It is then retrieved
 with `scopus_fetch()` or `scopus_fetch_plan()`, which handle pagination,
@@ -1372,10 +1372,14 @@ reference count alike.
 
 `R (>= 4.1.0)` was an untested claim: the check matrix reached only `oldrel-1`,
 around four minor versions above it. It now also runs `oldrel-2` and `oldrel-3`,
-which reaches roughly R 4.3. The remaining gap between R 4.1 and R 4.3 is still
-untested, and closing it means either pinning an explicit old R in the matrix,
-where current CRAN builds of the dependencies may not be installable, or raising
-the declared floor. That is a release decision and is left open deliberately.
+which reach R 4.3, and the job 'R (declared minimum, 4.1)' runs the test suite on
+R 4.1.3, the last release of R 4.1, with the strong dependencies and testthat
+installed. It tests that the code runs on R 4.1 and does not run
+`R CMD check --as-cran`, since CRAN no longer checks R 4.1. Its first run, on 15
+November 2026 (Ubuntu 26.04, httr2 1.3.0), had no test failure, so the floor
+stays at 4.1.0. It skipped 79 tests: the 41 that need ggplot2 and the 30 that
+need shiny, which the job does not install, and 8 that skip on every Linux leg.
+No plotting or app code has therefore run on R 4.1.
 
 The package floors are now exercised by a `min-deps` job that installs
 `httr2@1.0.4` and runs the check against it. Only httr2 is pinned: it is the
