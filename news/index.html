@@ -48,11 +48,23 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.5.0/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.5.0" id="scopusflow-050">scopusflow 0.5.0<a class="anchor" aria-label="anchor" href="#scopusflow-050"></a></h2>
+<h2 class="pkg-version" data-toc-text="development version" id="scopusflow-development-version">scopusflow (development version)<a class="anchor" aria-label="anchor" href="#scopusflow-development-version"></a></h2>
+<div class="section level3">
+<h3 id="minor-improvements-development-version">Minor improvements<a class="anchor" aria-label="anchor" href="#minor-improvements-development-version"></a></h3>
+<ul><li>In demo mode, the script that <code><a href="../reference/run_app.html">run_app()</a></code> writes says that it runs the search set up in the app against ‘Scopus’ and that its records will differ from the replayed ones, where it called itself the live equivalent of records that came from another search.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="documentation-development-version">Documentation<a class="anchor" aria-label="anchor" href="#documentation-development-version"></a></h3>
+<ul><li>The README, the app article and the app’s source say that the API key goes only to Elsevier’s API, where they said that it never leaves the machine.</li>
+<li>The example of <code><a href="../reference/scopus_search_report.html">scopus_search_report()</a></code> and the plans-and-quota article record the installed version of scopusflow, where they recorded 0.3.0. The app article’s picture of the script shows 0.5.0 and the new demo note.</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.5.0" id="scopusflow-050">scopusflow 0.5.0<a class="anchor" aria-label="anchor" href="#scopusflow-050"></a></h2><p class="text-muted">CRAN release: 2026-11-21</p>
 <p>A release about retrieving more of a search and about the accuracy of what it returns. Cursor paging retrieves plan cells of more than 5000 records whole, and <code>fields = "extended"</code> adds document metadata at no extra quota. New functions compare two harvests and export a corpus for theoryforge. Many fixes change results, and the upgrading notes below say what was wrong in each case.</p>
 <div class="section level3">
 <h3 id="upgrading-from-the-previous-release-0-5-0">Upgrading from the previous release (0.4.0)<a class="anchor" aria-label="anchor" href="#upgrading-from-the-previous-release-0-5-0"></a></h3>

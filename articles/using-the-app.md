@@ -3,10 +3,10 @@
 [`run_app()`](https://pablobernabeu.github.io/scopusflow/reference/run_app.md)
 opens a local Shiny app that drives the scopusflow workflow through a
 browser tab, from describing a search to exporting the records, without
-writing any R. It runs on your own machine, so your Scopus key never
-leaves it and requests come from your own network. The app also serves
-as an introduction to the package, because it writes every choice you
-make into a runnable R script.
+writing any R. It runs on your own machine, so your Scopus key goes only
+to Elsevier’s API and requests come from your own network. The app also
+serves as an introduction to the package, because it writes every choice
+you make into a runnable R script.
 
 The code chunks in this article are shown but not evaluated, because
 running the app needs a live server. The screenshots were taken from the
@@ -174,10 +174,11 @@ Download script saves exactly what you see.
 
 ![The Reproducible code panel, holding the opening of the script the app
 has written from the choices in the sidebar. It starts with the comment
-‘# scopusflow 0.4.0’ and a demo-mode note saying that the records shown
-were replayed from example_records and that the script below is the live
-equivalent. Then come a library call, a scopus_plan() with the query,
-the years 2015 to 2024, the field and the yearly partition, and a
+‘# scopusflow 0.5.0’ and a demo-mode note saying that the records shown
+were replayed from example_records and that the script below runs the
+search set up in the app against Scopus, whose records will differ from
+the replayed ones. Then come a library call, a scopus_plan() with the
+query, the years 2015 to 2024, the field and the yearly partition, and a
 scopus_count() to size the search. Last is a scopus_fetch_plan() whose
 cache directory lies under scopus_cache_dir() and is named
 graphene-supercapacitor-2015-2024 with a short hash added, with resume
@@ -187,10 +188,11 @@ script.](figures/app-code.png)
 
 The Reproducible code panel, holding the opening of the script the app
 has written from the choices in the sidebar. It starts with the comment
-‘# scopusflow 0.4.0’ and a demo-mode note saying that the records shown
-were replayed from example_records and that the script below is the live
-equivalent. Then come a library call, a scopus_plan() with the query,
-the years 2015 to 2024, the field and the yearly partition, and a
+‘# scopusflow 0.5.0’ and a demo-mode note saying that the records shown
+were replayed from example_records and that the script below runs the
+search set up in the app against Scopus, whose records will differ from
+the replayed ones. Then come a library call, a scopus_plan() with the
+query, the years 2015 to 2024, the field and the yearly partition, and a
 scopus_count() to size the search. Last is a scopus_fetch_plan() whose
 cache directory lies under scopus_cache_dir() and is named
 graphene-supercapacitor-2015-2024 with a short hash added, with resume

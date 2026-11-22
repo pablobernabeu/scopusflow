@@ -367,17 +367,17 @@ the bundled corpus stands in for a harvest, since Scopus records may not
 be redistributed. Those attributes are therefore written out below to
 show what each one contributes. Their values are illustrative, so the
 record they produce describes no search that was run. The retrieval time
-and the version are set by hand. Each cell’s reported total is the
-number of bundled records in its year, a count from the OpenAlex search
-that the Scopus API never gave.
+is set by hand, and the version is the one installed. Each cell’s
+reported total is the number of bundled records in its year, a count
+from the OpenAlex search that the Scopus API never gave.
 
 ``` r
 
-# Illustrative values, set by hand. No Scopus search was run.
+# Illustrative values. No Scopus search was run.
 records <- example_records
 attr(records, "plan") <- graphene
 attr(records, "retrieved_at") <- as.POSIXct("2026-07-22 09:15:00", tz = "UTC")
-attr(records, "scopusflow_version") <- "0.3.0"
+attr(records, "scopusflow_version") <- as.character(utils::packageVersion("scopusflow"))
 attr(records, "paging") <- "offset"
 per_year <- as.integer(table(example_records$year))
 attr(records, "cell_totals") <- tibble::tibble(
@@ -400,7 +400,7 @@ report
     Page size: 200 records per request
     Paging: offset
     Date searched: 2026-07-22 09:15:00 UTC
-    Software: scopusflow 0.3.0
+    Software: scopusflow 0.5.0
     Records retrieved: 138
     Records reported as matching: 138
     Completeness: every record the API reported as matching was retrieved
@@ -467,7 +467,7 @@ manuscript and edit.
 cat(format(report, style = "paragraph"))
 ```
 
-    The literature was searched in Scopus, on the Elsevier Scopus Search API, on 22 July 2026. The search expression was TITLE-ABS-KEY("graphene supercapacitor"), limited to publication years 2015 to 2024. It was partitioned into 10 cells, one per year, each retrieved through the STANDARD view in pages of 200 records under offset paging. The search retrieved 138 records, matching the 138 the API reported, so every reported record was retrieved. Of the records retrieved, 127 carry a DOI. No de-duplication step was recorded for this set. The search was run with scopusflow 0.3.0. The PRISMA-S items this record cannot supply, among them peer review of the strategy, grey literature and any other database searched, remain yours to report.
+    The literature was searched in Scopus, on the Elsevier Scopus Search API, on 22 July 2026. The search expression was TITLE-ABS-KEY("graphene supercapacitor"), limited to publication years 2015 to 2024. It was partitioned into 10 cells, one per year, each retrieved through the STANDARD view in pages of 200 records under offset paging. The search retrieved 138 records, matching the 138 the API reported, so every reported record was retrieved. Of the records retrieved, 127 carry a DOI. No de-duplication step was recorded for this set. The search was run with scopusflow 0.5.0. The PRISMA-S items this record cannot supply, among them peer review of the strategy, grey literature and any other database searched, remain yours to report.
 
 Supplying a `file` writes the whole record as Markdown, including a
 runnable snippet that rebuilds the plan. The file can serve as

@@ -83,7 +83,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Search plans and quota-aware retrieval</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/v0.5.0/vignettes/plans-and-quota.Rmd" class="external-link"><code>vignettes/plans-and-quota.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/pablobernabeu/scopusflow/blob/main/vignettes/plans-and-quota.Rmd" class="external-link"><code>vignettes/plans-and-quota.Rmd</code></a></small>
       <div class="d-none name"><code>plans-and-quota.Rmd</code></div>
     </div>
 
@@ -643,15 +643,16 @@ set any of them yourself. Here, the bundled corpus stands in for a
 harvest, since Scopus records may not be redistributed. Those attributes
 are therefore written out below to show what each one contributes. Their
 values are illustrative, so the record they produce describes no search
-that was run. The retrieval time and the version are set by hand. Each
-cell’s reported total is the number of bundled records in its year, a
-count from the OpenAlex search that the Scopus API never gave.</p>
+that was run. The retrieval time is set by hand, and the version is the
+one installed. Each cell’s reported total is the number of bundled
+records in its year, a count from the OpenAlex search that the Scopus
+API never gave.</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Illustrative values, set by hand. No Scopus search was run.</span></span>
+<code class="sourceCode R"><span><span class="co"># Illustrative values. No Scopus search was run.</span></span>
 <span><span class="va">records</span> <span class="op">&lt;-</span> <span class="va">example_records</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">records</span>, <span class="st">"plan"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">graphene</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">records</span>, <span class="st">"retrieved_at"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.POSIXlt.html" class="external-link">as.POSIXct</a></span><span class="op">(</span><span class="st">"2026-07-22 09:15:00"</span>, tz <span class="op">=</span> <span class="st">"UTC"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">records</span>, <span class="st">"scopusflow_version"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"0.3.0"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">records</span>, <span class="st">"scopusflow_version"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="fu">utils</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/utils/packageDescription.html" class="external-link">packageVersion</a></span><span class="op">(</span><span class="st">"scopusflow"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">records</span>, <span class="st">"paging"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"offset"</span></span>
 <span><span class="va">per_year</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">example_records</span><span class="op">$</span><span class="va">year</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">records</span>, <span class="st">"cell_totals"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
@@ -672,7 +673,7 @@ View: STANDARD
 Page size: 200 records per request
 Paging: offset
 Date searched: 2026-07-22 09:15:00 UTC
-Software: scopusflow 0.3.0
+Software: scopusflow 0.5.0
 Records retrieved: 138
 Records reported as matching: 138
 Completeness: every record the API reported as matching was retrieved
@@ -732,7 +733,7 @@ rebuilds the plan passes it.</p>
 into a manuscript and edit.</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span><span class="va">report</span>, style <span class="op">=</span> <span class="st">"paragraph"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code>The literature was searched in Scopus, on the Elsevier Scopus Search API, on 22 July 2026. The search expression was TITLE-ABS-KEY("graphene supercapacitor"), limited to publication years 2015 to 2024. It was partitioned into 10 cells, one per year, each retrieved through the STANDARD view in pages of 200 records under offset paging. The search retrieved 138 records, matching the 138 the API reported, so every reported record was retrieved. Of the records retrieved, 127 carry a DOI. No de-duplication step was recorded for this set. The search was run with scopusflow 0.3.0. The PRISMA-S items this record cannot supply, among them peer review of the strategy, grey literature and any other database searched, remain yours to report.</code></pre>
+<pre><code>The literature was searched in Scopus, on the Elsevier Scopus Search API, on 22 July 2026. The search expression was TITLE-ABS-KEY("graphene supercapacitor"), limited to publication years 2015 to 2024. It was partitioned into 10 cells, one per year, each retrieved through the STANDARD view in pages of 200 records under offset paging. The search retrieved 138 records, matching the 138 the API reported, so every reported record was retrieved. Of the records retrieved, 127 carry a DOI. No de-duplication step was recorded for this set. The search was run with scopusflow 0.5.0. The PRISMA-S items this record cannot supply, among them peer review of the strategy, grey literature and any other database searched, remain yours to report.</code></pre>
 <p>Supplying a <code>file</code> writes the whole record as Markdown,
 including a runnable snippet that rebuilds the plan. The file can serve
 as supplementary material.</p>

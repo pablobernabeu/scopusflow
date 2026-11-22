@@ -225,7 +225,7 @@ scopus_search_report(plan)
 recs <- example_records
 attr(recs, "plan") <- plan
 attr(recs, "retrieved_at") <- as.POSIXct("2026-07-22 09:15:00", tz = "UTC")
-attr(recs, "scopusflow_version") <- "0.3.0"
+attr(recs, "scopusflow_version") <- as.character(utils::packageVersion("scopusflow"))
 report <- scopus_search_report(recs)
 report
 #> Search strategy record (PRISMA-S)
@@ -239,7 +239,7 @@ report
 #> Page size: 200 records per request
 #> Paging: unrecorded
 #> Date searched: 2026-07-22 09:15:00 UTC
-#> Software: scopusflow 0.3.0
+#> Software: scopusflow 0.5.0
 #> Records retrieved: 138
 #> Records reported as matching: unrecorded, the API's own count did not travel with this set
 #> Completeness: unrecorded, since the number of records the API reported as matching is not known
@@ -288,7 +288,7 @@ report
 
 # The methods paragraph, and the Markdown record for a supplementary file.
 cat(format(report, style = "paragraph"))
-#> The literature was searched in Scopus, on the Elsevier Scopus Search API, on 22 July 2026. The search expression was TITLE-ABS-KEY("graphene supercapacitor"), limited to publication years 2015 to 2024. It was partitioned into 10 cells, one per year, each retrieved through the STANDARD view in pages of 200 records, under a paging mode this record does not carry. The search retrieved 138 records. The API's own count of matching records was not recorded, so the harvest cannot be shown to be complete. Of the records retrieved, 127 carry a DOI. No de-duplication step was recorded for this set. The search was run with scopusflow 0.3.0. The PRISMA-S items this record cannot supply, among them peer review of the strategy, grey literature and any other database searched, remain yours to report.
+#> The literature was searched in Scopus, on the Elsevier Scopus Search API, on 22 July 2026. The search expression was TITLE-ABS-KEY("graphene supercapacitor"), limited to publication years 2015 to 2024. It was partitioned into 10 cells, one per year, each retrieved through the STANDARD view in pages of 200 records, under a paging mode this record does not carry. The search retrieved 138 records. The API's own count of matching records was not recorded, so the harvest cannot be shown to be complete. Of the records retrieved, 127 carry a DOI. No de-duplication step was recorded for this set. The search was run with scopusflow 0.5.0. The PRISMA-S items this record cannot supply, among them peer review of the strategy, grey literature and any other database searched, remain yours to report.
 path <- tempfile(fileext = ".md")
 scopus_search_report(recs, file = path)
 ```
