@@ -238,16 +238,16 @@ and you never set any of them yourself. Here, the bundled corpus stands in for a
 harvest, since Scopus records may not be redistributed. Those attributes are
 therefore written out below to show what each one contributes. Their values are
 illustrative, so the record they produce describes no search that was run. The
-retrieval time and the version are set by hand. Each cell's reported total is
-the number of bundled records in its year, a count from the OpenAlex search
-that the Scopus API never gave.
+retrieval time is set by hand, and the version is the one installed. Each cell's
+reported total is the number of bundled records in its year, a count from the
+OpenAlex search that the Scopus API never gave.
 
 ```{r}
-# Illustrative values, set by hand. No Scopus search was run.
+# Illustrative values. No Scopus search was run.
 records <- example_records
 attr(records, "plan") <- graphene
 attr(records, "retrieved_at") <- as.POSIXct("2026-07-22 09:15:00", tz = "UTC")
-attr(records, "scopusflow_version") <- "0.3.0"
+attr(records, "scopusflow_version") <- as.character(utils::packageVersion("scopusflow"))
 attr(records, "paging") <- "offset"
 per_year <- as.integer(table(example_records$year))
 attr(records, "cell_totals") <- tibble::tibble(

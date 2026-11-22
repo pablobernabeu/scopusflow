@@ -1,6 +1,6 @@
 # A local-first Shiny app over scopusflow. It runs on the user's own machine, so
-# the API key never leaves it and the requests originate from the user's own
-# (institutional) network, which is what the Scopus API expects. The long
+# the API key goes only to Elsevier's API and the requests originate from the
+# user's own (institutional) network, which is what the Scopus API expects. The long
 # retrieval runs in a background callr process whose verbose cli output is tailed
 # into a live terminal panel, and a reproducible script mirrors every choice.
 

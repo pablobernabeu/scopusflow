@@ -1,3 +1,20 @@
+# scopusflow (development version)
+
+## Minor improvements
+
+* In demo mode, the script that `run_app()` writes says that it runs the search
+  set up in the app against 'Scopus' and that its records will differ from the
+  replayed ones, where it called itself the live equivalent of records that
+  came from another search.
+
+## Documentation
+
+* The README, the app article and the app's source say that the API key goes
+  only to Elsevier's API, where they said that it never leaves the machine.
+* The example of `scopus_search_report()` and the plans-and-quota article record
+  the installed version of scopusflow, where they recorded 0.3.0. The app
+  article's picture of the script shows 0.5.0 and the new demo note.
+
 # scopusflow 0.5.0
 
 A release about retrieving more of a search and about the accuracy of what it

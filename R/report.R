@@ -133,7 +133,7 @@ scopus_report_months <- function() {
 #' recs <- example_records
 #' attr(recs, "plan") <- plan
 #' attr(recs, "retrieved_at") <- as.POSIXct("2026-07-22 09:15:00", tz = "UTC")
-#' attr(recs, "scopusflow_version") <- "0.3.0"
+#' attr(recs, "scopusflow_version") <- as.character(utils::packageVersion("scopusflow"))
 #' report <- scopus_search_report(recs)
 #' report
 #'
